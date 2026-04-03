@@ -37,7 +37,7 @@ namespace ktx {
         auto& sample = samples.emplace_back();
         sample.bitOffset = KHR_DFDSVAL(bdfd, i, BITOFFSET);
         sample.bitLength = KHR_DFDSVAL(bdfd, i, BITLENGTH);
-        sample.channelType = KHR_DFDSVAL(bdfd, i, CHANNELID);
+        sample.channelId = KHR_DFDSVAL(bdfd, i, CHANNELID);
         const auto dataType = KHR_DFDSVAL(bdfd, i, QUALIFIERS);
         sample.qualifierFloat = (dataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
         sample.qualifierSigned = (dataType & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;

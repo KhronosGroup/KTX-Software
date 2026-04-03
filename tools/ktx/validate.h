@@ -62,7 +62,7 @@ static_assert(sizeof(BDFD) == 24);
 struct SampleType {
     uint32_t bitOffset: 16;
     uint32_t bitLength: 8;
-    uint32_t channelType: 4;
+    uint32_t channelId: 4;
     uint32_t qualifierLinear: 1;
     uint32_t qualifierExponent: 1;
     uint32_t qualifierSigned: 1;

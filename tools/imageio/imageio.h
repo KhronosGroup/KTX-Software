@@ -146,7 +146,7 @@ class ImageSpec {
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d,
                uint32_t channelCount, std::vector<uint32_t>& channelBitLengths,
-               std::vector<khr_df_model_channels_e>& channelTypes,
+               std::vector<khr_df_model_channels_e>& channelIds,
                khr_df_sample_datatype_qualifiers_e dt
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
@@ -154,11 +154,11 @@ class ImageSpec {
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
                khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
         : ImageSpec(w, h, d, Origin(), channelCount,
-                  channelBitLengths, channelTypes, dt, t, p, m, f) { }
+                  channelBitLengths, channelIds, dt, t, p, m, f) { }
 
     ImageSpec(uint32_t w, uint32_t h, uint32_t d, Origin&& o,
                uint32_t channelCount, std::vector<uint32_t>& channelBitLengths,
-               std::vector<khr_df_model_channels_e>& channelTypes,
+               std::vector<khr_df_model_channels_e>& channelIds,
                khr_df_sample_datatype_qualifiers_e dt
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
@@ -166,7 +166,7 @@ class ImageSpec {
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA,
                khr_df_flags_e f = KHR_DF_FLAG_ALPHA_STRAIGHT)
         : formatDesc(channelCount, channelBitLengths,
-                     channelTypes, dt, t, p, m, f),
+                     channelIds, dt, t, p, m, f),
           imageWidth(w), imageHeight(h), imageDepth(d), imageOrigin(o) { }
 
 

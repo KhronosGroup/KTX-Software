@@ -170,7 +170,7 @@ struct FormatDescriptor {
         uint32_t bitOffset: 16;
         uint32_t bitLength: 8;
         // uint32_t channelType: 8;
-        uint32_t channelType: 4;
+        uint32_t channelId: 4;
         uint32_t qualifierLinear: 1;
         uint32_t qualifierExponent: 1;
         uint32_t qualifierSigned: 1;
@@ -199,7 +199,7 @@ struct FormatDescriptor {
         /// For uncompressed formats. Handle integer data as normalized. For
         /// unsigned use the full range of the number of bits. For signed set
         /// sampleUpper and sampleLower so 0 is representable.
-        sample(uint32_t chanType,
+        sample(uint32_t chanId,
                uint32_t bLength, uint32_t offset,
                khr_df_sample_datatype_qualifiers_e dataType
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
@@ -207,18 +207,18 @@ struct FormatDescriptor {
                khr_df_model_e m = KHR_DF_MODEL_RGBSDA) {
             bitOffset = offset;
             bitLength = bLength - 1;
-            channelType = chanType;
-            if (channelType == 3 && m != KHR_DF_MODEL_XYZW) {
+            channelId = chanId;
+            if (channelId == 3 && m != KHR_DF_MODEL_XYZW) {
                 /// XYZW does not have an alpha chennel. *_ALPHA has the same
                 /// value for all other 4-channel-capable uncompressed models.
-                channelType = KHR_DF_CHANNEL_RGBSDA_ALPHA;
+                channelId = KHR_DF_CHANNEL_RGBSDA_ALPHA;
             }
             qualifierFloat = (dataType & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
             qualifierSigned = (dataType & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
             qualifierExponent = (dataType & KHR_DF_SAMPLE_DATATYPE_EXPONENT) != 0;
             qualifierLinear = (dataType & KHR_DF_SAMPLE_DATATYPE_LINEAR) != 0;
             if (tf > KHR_DF_TRANSFER_LINEAR
-                && channelType == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
+                && channelId == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
                 qualifierLinear = 1;
             }
 
@@ -295,7 +295,7 @@ struct FormatDescriptor {
     /// Data is assumed to be unsigned normalized. @c sampleUpper will be
     /// set to the max value representable by @a channelBitLength.
     ///
-    /// @c channelType will be set to the standard channel types for @a channelCount
+    /// @c channelId will be set to the standard channel types for @a channelCount
     /// and @a m.
     FormatDescriptor(uint32_t channelCount, uint32_t channelBitLength,
                khr_df_sample_datatype_qualifiers_e dt
@@ -313,7 +313,7 @@ struct FormatDescriptor {
                                      dt, t, m));
         }
         if (m == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
-            samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
+            samples[1].channelId = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
         extended.sameUnitAllChannels = true;
     }
@@ -342,7 +342,7 @@ struct FormatDescriptor {
                                      dt, t, m));
         }
         if (m == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
-            samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
+            samples[1].channelId = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
         extended.sameUnitAllChannels = true;
     }
@@ -360,7 +360,7 @@ struct FormatDescriptor {
     /// Each channel has the same basic data type.
     FormatDescriptor(uint32_t channelCount,
                std::vector<uint32_t>& channelBitLengths,
-               std::vector<khr_df_model_channels_e>& channelTypes,
+               std::vector<khr_df_model_channels_e>& channelIds,
                khr_df_sample_datatype_qualifiers_e dt
                   = static_cast<khr_df_sample_datatype_qualifiers_e>(0),
                khr_df_transfer_e t = KHR_DF_TRANSFER_UNSPECIFIED,
@@ -371,16 +371,16 @@ struct FormatDescriptor {
             extended(channelCount)
     {
         if (channelCount > channelBitLengths.size()
-            || channelCount > channelTypes.size()) {
+            || channelCount > channelIds.size()) {
             throw std::runtime_error(
-                "Not enough channelBits or channelType specfications."
+                "Not enough channelBits or channelId specfications."
             );
         }
         uint32_t bitOffset = 0;
         bool bitLengthsEqual = true;
         uint32_t firstBitLength = channelBitLengths[0];
         for (uint32_t s = 0; s < channelCount; s++) {
-            samples.push_back(sample(channelTypes[s], channelBitLengths[s],
+            samples.push_back(sample(channelIds[s], channelBitLengths[s],
                                      bitOffset, dt, t, m));
             bitOffset += channelBitLengths[s];
             if (firstBitLength != channelBitLengths[s]) {
@@ -391,7 +391,7 @@ struct FormatDescriptor {
           extended.sameUnitAllChannels = true;
         }
         if (m == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
-            samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
+            samples[1].channelId = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
     }
 
@@ -402,7 +402,7 @@ struct FormatDescriptor {
     /// integer data or normalized data that does not use the full bit range.
     FormatDescriptor(uint32_t channelCount,
                std::vector<uint32_t>& channelBitLengths,
-               std::vector<khr_df_model_channels_e>& channelTypes,
+               std::vector<khr_df_model_channels_e>& channelIds,
                std::vector<uint32_t>& samplesLower,
                std::vector<uint32_t>& samplesUpper,
                khr_df_sample_datatype_qualifiers_e dt
@@ -415,16 +415,16 @@ struct FormatDescriptor {
             extended(channelCount)
     {
         if (channelCount > channelBitLengths.size()
-            || channelCount > channelTypes.size()) {
+            || channelCount > channelIds.size()) {
             throw std::runtime_error(
-                "Not enough channelBits or channelType specfications."
+                "Not enough channelBits or channelId specfications."
             );
         }
         uint32_t bitOffset = 0;
         bool bitLengthsEqual = true;
         uint32_t firstBitLength = channelBitLengths[0];
         for (uint32_t s = 0; s < channelCount; s++) {
-            samples.push_back(sample(channelTypes[s], channelBitLengths[s],
+            samples.push_back(sample(channelIds[s], channelBitLengths[s],
                                      samplesLower[s], samplesUpper[s],
                                      bitOffset, dt, t, m));
             bitOffset += channelBitLengths[s];
@@ -436,7 +436,7 @@ struct FormatDescriptor {
           extended.sameUnitAllChannels = true;
         }
         if (m == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
-            samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
+            samples[1].channelId = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
     }
 
@@ -568,7 +568,7 @@ struct FormatDescriptor {
         {
             std::vector<sample>::iterator sit = samples.begin();
             for (; sit < samples.end(); sit++) {
-                if (sit->channelType == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
+                if (sit->channelId == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
                     sit->qualifierLinear = t > KHR_DF_TRANSFER_LINEAR;
                 }
             }
@@ -598,7 +598,7 @@ struct FormatDescriptor {
         std::vector<sample>::const_iterator it = samples.begin();
         uint32_t bitLength = 0;
         for (; it < samples.end(); it++) {
-            if (it->channelType == static_cast<uint32_t>(c)) {
+            if (it->channelId == static_cast<uint32_t>(c)) {
                 bitLength += it->bitLength + 1;
             }
         }
@@ -631,7 +631,7 @@ struct FormatDescriptor {
         for (uint32_t i = 0; i < 16; ++i) {
             uint32_t bitLength = 0;
             for (const auto& sample : samples)
-                if (sample.channelType == i)
+                if (sample.channelId == i)
                     bitLength += sample.bitLength + 1;
 
             if (bitLength > maxBitLength)
@@ -643,7 +643,7 @@ struct FormatDescriptor {
         for (uint32_t i = 0; i < 16; ++i) {
             uint32_t channelBitLength = 0;
             for (const auto& sample : samples)
-                if (sample.channelType == i)
+                if (sample.channelId == i)
                     channelBitLength += sample.bitLength + 1;
 
             if (bitLength != channelBitLength)
@@ -656,9 +656,9 @@ struct FormatDescriptor {
         // TODO: Fix for shared exponent case...
         std::vector<sample>::const_iterator it = samples.begin();
         for (; it < samples.end(); it++) {
-            if (it->channelType == static_cast<uint32_t>(c)) {
+            if (it->channelId == static_cast<uint32_t>(c)) {
                 return static_cast<khr_df_sample_datatype_qualifiers_e>
-                   (it->channelType & KHR_DF_SAMPLEMASK_QUALIFIERS);
+                   (it->channelId & KHR_DF_SAMPLEMASK_QUALIFIERS);
             }
         }
         throw std::runtime_error("No such channel.");
@@ -700,7 +700,7 @@ struct FormatDescriptor {
                                      basic.model()));
         }
         if (basic.model() == KHR_DF_MODEL_YUVSDA && channelCount == 2) {
-            samples[1].channelType = KHR_DF_CHANNEL_YUVSDA_ALPHA;
+            samples[1].channelId = KHR_DF_CHANNEL_YUVSDA_ALPHA;
         }
         extended.channelCount = channelCount;
         extended.sameUnitAllChannels = true;
@@ -744,7 +744,7 @@ struct FormatDescriptor {
 
     [[nodiscard]] const sample* find(khr_df_model_channels_e channel) const {
         for (const auto& sample : samples)
-            if (sample.channelType == static_cast<uint32_t>(channel))
+            if (sample.channelId == static_cast<uint32_t>(channel))
                 return &sample;
         return nullptr;
     }

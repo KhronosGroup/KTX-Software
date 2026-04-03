@@ -1740,12 +1740,12 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
             fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/qualifiers", blockIndex, sampleIndex),
             qualifierFlags[0], qualifierFlags[1], dfdToStringSampleDatatypeQualifiersBit);
 
-        diff << DiffEnum<khr_df_model_channels_e>("    Channel Type",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelType", blockIndex, sampleIndex),
-            OPT_BITFIELDS(samples, channelType),
+        diff << DiffEnum<khr_df_model_channels_e>("    Channel Id",
+            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelId", blockIndex, sampleIndex),
+            OPT_BITFIELDS(samples, channelId),
             [&](auto i) {
                 return dfdToStringChannelId(khr_df_model_e(bdfds[i]->model),
-                    khr_df_model_channels_e(samples[i]->channelType));
+                    khr_df_model_channels_e(samples[i]->channelId));
             })
             .outputHexInText();
 
