@@ -263,6 +263,10 @@ namespace ktx {
     }
 }
 
+[[nodiscard]] inline bool isTransferNonLinear(khr_df_transfer_e tf) {
+    return (tf != KHR_DF_TRANSFER_UNSPECIFIED && tf != KHR_DF_TRANSFER_LINEAR);
+}
+
 // -------------------------------------------------------------------------------------------------
 
 [[nodiscard]] inline bool isFormatValid(VkFormat format) noexcept {
