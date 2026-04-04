@@ -2670,21 +2670,9 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     if (KTX_SUCCESS != ret)
         fatal(rc::KTX_FAILURE, "Failed to create ktxTexture: libktx error: {}", ktxErrorString(ret));
 
-    uint32_t* bdb = texture->pDfd + 1;
-    KHR_DFDSETVAL(bdb, PRIMARIES, target.format().primaries());
-    KHR_DFDSETVAL(bdb, TRANSFER, target.format().transfer());
-    if (!isFormatSRGB(options.vkFormat) && isTransferNonLinear(target.format().transfer())) {
-        // Handle the case where the transfer function is not the default for the format,
-        // e.g. not LINEAR for a *_UNORM texture.
-        for (uint32_t s = 0; s < KHR_DFDSAMPLECOUNT(bdb); s++) {
-            if (KHR_DFDSVAL(bdb, s, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
-                uint8_t qualifiers = KHR_DFDSVAL(bdb, s, QUALIFIERS);
-                qualifiers |= KHR_DF_SAMPLE_DATATYPE_LINEAR;
-                KHR_DFDSETSVAL(bdb, s, QUALIFIERS, qualifiers);
-            }
-        }
-    }
-    if (options.premultiplyAlpha) {
+    KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
+    KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
+    if(options.premultiplyAlpha) {
         KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
     }
 
