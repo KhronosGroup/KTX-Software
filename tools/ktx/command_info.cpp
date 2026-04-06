@@ -37,7 +37,7 @@ Print information about a KTX2 file.
     found errors and warnings to stdout. If the specified input file is invalid the information
     is displayed based on best effort and may be incomplete.
 
-    The JSON output formats conform to the https://schema.khronos.org/ktx/info_v0.json
+    The JSON output formats conform to the https://schema.khronos.org/ktx/info_v1.json
     schema even if the input file is invalid and certain information cannot be parsed or
     displayed.
     Additionally, for JSON outputs the KTX file identifier is printed using "\u001A" instead of
@@ -213,7 +213,7 @@ KTX_error_code CommandInfo::printInfoJSON(std::istream& file, bool minified) {
 
     PrintIndent out{std::cout, base_indent, indent_width};
     out(0, "{{{}", nl);
-    out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/info_v0.json\",{}", space, nl);
+    out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/info_v1.json\",{}", space, nl);
     out(1, "\"valid\":{}{},{}", space, validationResult == 0, nl);
     if (!first) {
         out(1, "\"messages\":{}[{}", space, nl);
