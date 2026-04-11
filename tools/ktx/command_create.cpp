@@ -2670,10 +2670,24 @@ KTXTexture2 CommandCreate::createTexture(const ImageSpec& target) {
     if (KTX_SUCCESS != ret)
         fatal(rc::KTX_FAILURE, "Failed to create ktxTexture: libktx error: {}", ktxErrorString(ret));
 
-    KHR_DFDSETVAL(texture->pDfd + 1, PRIMARIES, target.format().primaries());
-    KHR_DFDSETVAL(texture->pDfd + 1, TRANSFER, target.format().transfer());
+    uint32_t* pBdb = texture->pDfd + 1;
+    KHR_DFDSETVAL(pBdb, PRIMARIES, target.format().primaries());
+    KHR_DFDSETVAL(pBdb, TRANSFER, target.format().transfer());
     if(options.premultiplyAlpha) {
-        KHR_DFDSETVAL(texture->pDfd+1, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
+        KHR_DFDSETVAL(pBdb, FLAGS, KHR_DF_FLAG_ALPHA_PREMULTIPLIED);
+    }
+    // Qualifier is only set for non-linear transfer functions. ktxTexture2_Create will
+    // already have set the qualifier for _SRGB formats.
+    if (target.format().transfer() != KHR_DF_TRANSFER_UNSPECIFIED
+        && target.format().transfer() != KHR_DF_TRANSFER_LINEAR
+        && !isFormatSRGB(options.vkFormat)) {
+        uint32_t sampleCount = KHR_DFDSAMPLECOUNT(pBdb);
+        for (uint32_t s = 0; s < sampleCount; s++) {
+            if (KHR_DFDSVAL(pBdb, s, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_ALPHA) {
+                uint32_t qualifiers = KHR_DFDSVAL(pBdb, s, QUALIFIERS);
+                KHR_DFDSETSVAL(pBdb, s, QUALIFIERS, qualifiers | KHR_DF_SAMPLE_DATATYPE_LINEAR);
+            }
+        }
     }
 
     // Add KTXorientation metadata
