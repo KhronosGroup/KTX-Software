@@ -920,7 +920,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
 void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
         VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height,
         const std::vector<int>& pixelTypes, const char* data, std::size_t size,
-        float scale, float offset) {
+        float mapRangeScale, float mapRangeOffset) {
     assert(!format.samples.empty());
 
     if (appendExtension && filepath != "-")
@@ -967,7 +967,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
     assert(size == width * height * pixelBytes); (void) size;
     assert(numChannels == pixelTypes.size());
 
-    bool doMapping = !(scale == 1.0 && offset == 0.0);
+    bool doMapping = !(mapRangeScale == 1.0 && mapRangeOffset == 0.0);
 
     std::vector<int> requestedPixelTypes;
     requestedPixelTypes.resize(static_cast<size_t>(numChannels));
@@ -996,9 +996,9 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                     for (uint32_t c = 0; c < numChannels; c++) {
                         requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
                     }
-                    images[2][y * width + x] = bit_cast<uint32_t>(values.r * scale + offset);
-                    images[1][y * width + x] = bit_cast<uint32_t>(values.g * scale + offset);
-                    images[0][y * width + x] = bit_cast<uint32_t>(values.b * scale + offset);
+                    images[2][y * width + x] = bit_cast<uint32_t>(values.r * mapRangeScale + mapRangeOffset);
+                    images[1][y * width + x] = bit_cast<uint32_t>(values.g * mapRangeScale + mapRangeOffset);
+                    images[0][y * width + x] = bit_cast<uint32_t>(values.b * mapRangeScale + mapRangeOffset);
                 } else {
                     images[2][y * width + x] = bit_cast<uint32_t>(values.r);
                     images[1][y * width + x] = bit_cast<uint32_t>(values.g);
@@ -1009,6 +1009,8 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                     const auto& channel = channels[c];
                     const auto offset = channel.offset;
                     const auto bits = channel.bits;
+                    const auto channelMapRangeScale = (strncmp(channel.name, "A", 1) == 0) ? 1.0f : mapRangeScale;
+                    const auto channelMapRangeOffset = (strncmp(channel.name, "A", 1) == 0) ? 0.0f : mapRangeOffset;
 
                     const auto value = extract_bits<uint32_t>(rawPixel, offset, bits);
                     auto& target = images[c][y * width + x];
@@ -1020,9 +1022,9 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                                 requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
                             }
                             if (channel.isSigned)
-                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits, scale, offset));
+                                target = bit_cast<uint32_t>(convertSFloatToFloat(value, bits, channelMapRangeScale, channelMapRangeOffset));
                             else
-                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits, scale, offset));
+                                target = bit_cast<uint32_t>(convertUFloatToFloat(value, bits, channelMapRangeScale, channelMapRangeOffset));
 
                         } else {
                             if (channel.isNormalized) {
@@ -1031,11 +1033,11 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                                     requestedPixelTypes[c] = TINYEXR_PIXELTYPE_FLOAT;
                                 }
                                 if (channel.isSigned)
-                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits, scale, offset));
+                                    target = bit_cast<uint32_t>(convertSNORMToFloat(value, bits, channelMapRangeScale, channelMapRangeOffset));
                                 else
-                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits, scale, offset));
+                                    target = bit_cast<uint32_t>(convertUNORMToFloat(value, bits, channelMapRangeScale, channelMapRangeOffset));
                             } else {
-                                assert(scale == 1.0f && offset == 0.0f);
+                                assert(channelMapRangeScale == 1.0f && channelMapRangeOffset == 0.0f);
                                 if (channel.isSigned)
                                     target = bit_cast<uint32_t>(convertSIntToFloat(value, bits));
                                 else
@@ -1043,7 +1045,7 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
                             }
                         }
                     } else if (pixelTypes[c] == TINYEXR_PIXELTYPE_UINT) {
-                        assert(scale == 1.0f && offset == 0.0f);
+                        assert(channelMapRangeScale == 1.0f && channelMapRangeOffset == 0.0f);
                         if (channel.isFloat && channel.isSigned) {
                             target = convertSFloatToUInt(value, bits);
                         } else if (channel.isFloat && !channel.isSigned) {

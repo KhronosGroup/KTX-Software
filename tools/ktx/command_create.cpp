@@ -85,6 +85,9 @@ struct OptionsCreate {
     inline static const char* kMipmapWrap = "mipmap-wrap";
     inline static const char* kScale = "scale";
     inline static const char* kPremultiplyAlpha = "premultiply-alpha";
+    inline static const char* kMapRangeAuto = "map-range-auto";
+    inline static const char* kMapRangeOffset = "map-range-offset";
+    inline static const char* kMapRangeScale = "map-range-scale";
 
     bool _1d = false;
     bool cubemap = false;
@@ -98,7 +101,10 @@ struct OptionsCreate {
     std::optional<uint32_t> depth;
     std::optional<uint32_t> layers;
     std::optional<uint32_t> levels;
+    std::optional<float> offset;
+    std::optional<float> scale;
 
+    bool mapRangeRuntime = false;
     bool mipmapRuntime = false;
     bool mipmapGenerate = false;
     std::optional<std::string> mipmapFilter;
@@ -181,6 +187,15 @@ struct OptionsCreate {
                     "normals to generate X+Y normals with --normal-mode. For 4-component\n"
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
+                (kMapRangeAuto, "If needed, map input values to the range supported by the target --format and --encode options.\n"
+                    "Mapping excludes the alpha channel if present.\n"
+                    "If enabled, this flag overrides arguments for --map-rang-offset and --map-range-scale.")
+                (kMapRangeScale, "Scale input values before offseting by the --map-rang-offset value. Defaults to 1.0.",
+            cxxopts::value<float>()->default_value("1.0"),  // used when flag is passed with NO value
+                        "<scale>" )
+                (kMapRangeOffset, "Offset input values after scaling by the --map-rang-scale value. Defaults to 0.0.",
+            cxxopts::value<float>()->default_value("0.0"),  // used when flag is passed with NO value
+                        "<offset>" )
                 (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component"
                     " before encoding and sets the flag in the metadata. Cannot be used with --normalize or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
@@ -540,6 +555,13 @@ struct OptionsCreate {
             if (args[kWidth].count() || args[kHeight].count())
                 report.fatal_usage("{} cannot be used with {} or {}.", kScale, kWidth, kHeight);
             imageScale = args[kScale].as<float>();
+        }
+
+        if (args[kMapRangeAuto].count()) {
+            mapRangeRuntime = true;
+        } else {
+            offset = args[kMapRangeOffset].as<float>();
+            scale = args[kMapRangeScale].as<float>();
         }
 
         // List of formats that have supported format conversions
@@ -1229,6 +1251,9 @@ private:
     uint32_t numFaces = 0;
     uint32_t baseDepth = 0;
 
+    float scale = 1.0f;
+    float offset = 0.0f;
+
 public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
@@ -1848,6 +1873,17 @@ void CommandCreate::executeCreate() {
                 image->normalize();
             }
 
+            if (options.mapRangeRuntime) {
+                const auto& mapRange = image->mapRangeInfo(options.vkFormat, options.codec);
+                image->mapRange(mapRange.scale, mapRange.offset);
+                offset = -mapRange.offset / mapRange.scale;
+                scale = 1.0f / mapRange.scale;
+            } else {
+                image->mapRange(*options.scale, *options.offset);
+                offset = -*options.offset / *options.scale;
+                scale = 1.0f / *options.scale;
+            }
+
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
 
@@ -1891,12 +1927,16 @@ void CommandCreate::executeCreate() {
     }
 
     // Add KTXmapRange metadata
-    if (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4 || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
+    if (scale != 1.0f || offset != 0.0f && !(
+           options.vkFormat == VK_FORMAT_R16G16B16_SFLOAT
+        || options.vkFormat == VK_FORMAT_R16G16B16A16_SFLOAT
+        || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4
+        || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE)) {
         struct KTXmapRange {
             float scale;
             float offset;
         };
-        KTXmapRange data = {1, 0};
+        KTXmapRange data = {scale, offset};
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_MAP_RANGE_KEY, sizeof(KTXmapRange), &data);
     }
 
