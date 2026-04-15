@@ -293,7 +293,6 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         uastcHDRFavorAstc = false;
         uastcHDRUltraQuant = false;
         uastcHDRUberMode = false;
-        rec2020 = false;
         uastcHDRLambda = 0;
         uastcHDRLevel = 2;
         uastcHDRQuality = 1;
