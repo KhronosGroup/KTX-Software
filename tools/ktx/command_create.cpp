@@ -1873,15 +1873,99 @@ void CommandCreate::executeCreate() {
                 image->normalize();
             }
 
-            if (options.mapRangeRuntime) {
-                const auto& mapRange = image->mapRangeInfo(options.vkFormat, options.codec);
-                image->mapRange(mapRange.scale, mapRange.offset);
-                offset = -mapRange.offset / mapRange.scale;
-                scale = 1.0f / mapRange.scale;
-            } else {
-                image->mapRange(*options.scale, *options.offset);
-                offset = -*options.offset / *options.scale;
-                scale = 1.0f / *options.scale;
+            bool isFloatingPoint = false;
+            const uint32_t* pBdb = texture->pDfd + 1;
+            uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBdb);
+            if (numSamples >= 1) {
+                for (uint32_t sample = 0; sample < numSamples; ++sample) {
+                    auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(
+                        KHR_DFDSVAL(pBdb, sample, QUALIFIERS));
+                    isFloatingPoint |= (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT);
+                }
+            }
+
+            if (isFloatingPoint) {
+                if (options.mapRangeRuntime) {
+                    const auto image_data = image->getSFloat(3, 32);
+                    const auto numChannels = (uint32_t)3;
+                    auto imageRangeMin = std::numeric_limits<float>::max();
+                    auto imageRangeMax = std::numeric_limits<float>::min();
+                    
+                    for (uint32_t y = 0; y < image->getHeight(); ++y) {
+                        for (uint32_t x = 0; x < image->getWidth(); ++x) {
+                            for (uint32_t c = 0; c < numChannels; ++c) {
+                              float valuef;
+                              const auto* target =
+                                  image_data.data() +
+                                  (y * image->getWidth() * numChannels + x * numChannels + c) *
+                                      (uint32_t)sizeof(valuef);
+                              memcpy(&valuef, target, sizeof(valuef));
+                              imageRangeMin = std::min(imageRangeMin, valuef);
+                              imageRangeMax = std::max(imageRangeMax, valuef);
+                            }
+                        }
+                    }
+
+                    auto targetRangeMin = 0.0f;
+                    auto targetRangeMax = 0.0f;
+                    
+                    for (uint32_t sample = 0; sample < numSamples; ++sample) {
+                        uint32_t bitlength = (uint32_t)KHR_DFDSVAL(pBdb, sample, BITLENGTH) + 1;
+                        
+                        if (bitlength == 16) {
+                            targetRangeMin =
+                                (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4) 
+                                ? 0.0f : -65504.0f;
+                            targetRangeMax = 65504.0f;
+                        } else if (bitlength == 32) {
+                            targetRangeMin =
+                                (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4)
+                                ? 0.0f : std::numeric_limits<float>::min();
+                            targetRangeMax = std::numeric_limits<float>::max();
+                        }
+                    }
+
+                    struct RangeMapping {
+                        float scale = 1.0f;
+                        float offset = 0.0f;
+                    };
+
+                    const auto mapRangeCompute = [](float oldMin, float oldMax, float newMin,
+                                                    float newMax) -> RangeMapping {
+                        float oldRange = oldMax - oldMin;
+                        float newRange = newMax - newMin;
+                        RangeMapping mapping;
+
+                        // If old range fully overlaps the new range
+                        if ((oldMin >= newMin) && (oldMax <= newMax)) {
+                            return mapping;
+                        }
+
+                        float offsetMin = (oldMin >= newMin) ? 0.0f : newMin - oldMin;
+                        float offsetMax = (oldMax <= newMax) ? 0.0f : oldMax - newMax;
+
+                        if (!(offsetMin != 0.0f && offsetMax != 0.0f) &&
+                            (oldMax + offsetMin < newMax) && (oldMin - offsetMax < newMin)) {
+                            mapping.scale = 1.0f;
+                            mapping.offset = offsetMin != 0.0f ? offsetMin : offsetMax;
+                        } else {
+                            mapping.scale = newRange / oldRange;
+                            mapping.offset = newMin - oldMin * mapping.scale;
+                        }
+
+                        return mapping;
+                    };
+
+                    const auto& mapRange = mapRangeCompute(imageRangeMin, imageRangeMax,
+                                                           targetRangeMin, targetRangeMax);
+                    image->mapRange(mapRange.scale, mapRange.offset);
+                    offset = -mapRange.offset / mapRange.scale;
+                    scale = 1.0f / mapRange.scale;
+                } else {
+                    image->mapRange(*options.scale, *options.offset);
+                    offset = -*options.offset / *options.scale;
+                    scale = 1.0f / *options.scale;
+                }
             }
 
             if (options.swizzleInput)
