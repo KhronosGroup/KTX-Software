@@ -2011,7 +2011,7 @@ void CommandCreate::executeCreate() {
     }
 
     // Add KTXmapRange metadata
-    if (scale != 1.0f || offset != 0.0f && !(
+    if ((scale != 1.0f || offset != 0.0f) && !(
            options.vkFormat == VK_FORMAT_R16G16B16_SFLOAT
         || options.vkFormat == VK_FORMAT_R16G16B16A16_SFLOAT
         || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4
