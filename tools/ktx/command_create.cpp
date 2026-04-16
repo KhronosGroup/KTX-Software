@@ -1896,11 +1896,11 @@ void CommandCreate::executeCreate() {
                         for (uint32_t x = 0; x < image->getWidth(); ++x) {
                             for (uint32_t c = 0; c < numChannels; ++c) {
                               float valuef;
-                              const auto* target =
+                              const auto* target_value =
                                   image_data.data() +
                                   (y * image->getWidth() * numChannels + x * numChannels + c) *
                                       (uint32_t)sizeof(valuef);
-                              memcpy(&valuef, target, sizeof(valuef));
+                              memcpy(&valuef, target_value, sizeof(valuef));
                               imageRangeMin = std::min(imageRangeMin, valuef);
                               imageRangeMax = std::max(imageRangeMax, valuef);
                             }
