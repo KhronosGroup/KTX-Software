@@ -1880,7 +1880,8 @@ void CommandCreate::executeCreate() {
                 for (uint32_t sample = 0; sample < numSamples; ++sample) {
                     auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(
                         KHR_DFDSVAL(pBdb, sample, QUALIFIERS));
-                    isFloatingPoint |= (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT);
+                    isFloatingPoint |=
+                        (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) == KHR_DF_SAMPLE_DATATYPE_FLOAT;
                 }
             }
 
