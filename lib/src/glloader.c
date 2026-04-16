@@ -152,7 +152,7 @@ static GLint contextProfile = 0;
  *        by the current context.
  */
 static GLint sizedFormats = _ALL_SIZED_FORMATS;
-static GLboolean supportsSwizzle = GL_TRUE;
+static MAYBE_UNUSED GLboolean supportsSwizzle = GL_TRUE;
 /**
  * @internal
  * @~English
