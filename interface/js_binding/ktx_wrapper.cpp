@@ -1550,7 +1550,6 @@ EMSCRIPTEN_BINDINGS(ktx)
       .property("uastcHDRUberMode", &ktxBasisParams::uastcHDRUberMode)
       .property("uastcHDRUltraQuant", &ktxBasisParams::uastcHDRUltraQuant)
       .property("uastcHDRFavorAstc", &ktxBasisParams::uastcHDRFavorAstc)
-      .property("rec2020", &ktxBasisParams::rec2020)
       .property("uastcHDRLambda", &ktxBasisParams::uastcHDRLambda)
       .property("uastcHDRLevel", &ktxBasisParams::uastcHDRLevel)
     ;
