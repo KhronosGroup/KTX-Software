@@ -169,6 +169,17 @@ template <typename T>
     return static_cast<uint32_t>(value * static_cast<float>((1u << numBits) - 1u) + 0.5f);
 }
 
+[[nodiscard]] inline float convertSFloatToFloat(uint32_t rawBits, uint32_t numBits,
+                                                float scale, float offset) {
+    assert(numBits == 16 || numBits == 32);
+    if (numBits == 16)
+        return (half_to_float(static_cast<uint16_t>(rawBits)) * scale + offset);
+    if (numBits == 32) {
+        assert(scale == 1.0f && offset == 0.0f);
+        return bit_cast<float>(rawBits);
+    }
+    return 0;
+}
 [[nodiscard]] inline float convertSFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 16 || numBits == 32);
     if (numBits == 16)
@@ -176,6 +187,16 @@ template <typename T>
     if (numBits == 32)
         return bit_cast<float>(rawBits);
     return 0;
+}
+[[nodiscard]] inline float convertUFloatToFloat(uint32_t rawBits, uint32_t numBits,
+                                                float scale, float offset) {
+    assert(numBits == 10 || numBits == 11);
+    float baseValue = 0.0f;
+    if (numBits == 10)
+        baseValue =  glm::detail::packed10bitToFloat(rawBits);
+    else if (numBits == 11)
+        baseValue = glm::detail::packed11bitToFloat(rawBits);
+    return baseValue * scale + offset;
 }
 [[nodiscard]] inline float convertUFloatToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits == 10 || numBits == 11);
@@ -196,10 +217,22 @@ template <typename T>
     assert(numBits > 0 && numBits <= 32); (void) numBits;
     return static_cast<float>(rawBits);
 }
+[[nodiscard]] inline float convertSNORMToFloat(uint32_t rawBits, uint32_t numBits,
+                                               float scale, float offset) {
+    assert(numBits > 0 && numBits <= 32);
+    const auto upper = static_cast<float>((1u << (numBits - 1u)) - 1u);
+    return std::max(static_cast<float>(rawBits) / upper, -1.f) * scale + offset;
+}
 [[nodiscard]] inline float convertSNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
     const auto upper = static_cast<float>((1u << (numBits - 1u)) - 1u);
     return std::max(static_cast<float>(rawBits) / upper, -1.f);
+}
+[[nodiscard]] inline float convertUNORMToFloat(uint32_t rawBits, uint32_t numBits,
+                                               float scale, float offset) {
+    assert(numBits > 0 && numBits <= 32);
+    const auto upper = static_cast<float>((1u << numBits) - 1u);
+    return (static_cast<float>(rawBits) / upper) * scale + offset;
 }
 [[nodiscard]] inline float convertUNORMToFloat(uint32_t rawBits, uint32_t numBits) {
     assert(numBits > 0 && numBits <= 32);
