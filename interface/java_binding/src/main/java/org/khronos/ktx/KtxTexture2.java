@@ -52,6 +52,15 @@ public class KtxTexture2 extends KtxTexture {
 	 * Use {@link #getTransferFunction()} instead.
 	 */
 	public native int getOETF();
+	
+	/**
+	 * Retrieve the DFD color model of the images.<br>
+	 * <br>
+	 * This is one of the constants in {@link KhrDfModel}
+	 * 
+	 * @return The model
+	 */
+	public native int getColorModel();
 
 	/**
 	 * Returns whether the RGB components have been premultiplied by the alpha component.
@@ -59,6 +68,15 @@ public class KtxTexture2 extends KtxTexture {
 	 * @return The premultiplied flag
 	 */
 	public native boolean getPremultipliedAlpha();
+	
+	/**
+	 * Retrieve the color primaries of the images.<br>
+	 * <br>
+	 * This is one of the constants in {@link KhrDfPrimaries}
+	 *
+	 * @return The primaries
+	 */
+	public native int getPrimaries();
 
 	/**
 	 * Returns whether the images are in a transcodable format.
@@ -216,6 +234,8 @@ public class KtxTexture2 extends KtxTexture {
 	 * {@link KtxTranscodeFormat#PVRTC2_4_RGB}<br>
 	 * {@link KtxTranscodeFormat#PVRTC2_4_RGBA}<br>
 	 * {@link KtxTranscodeFormat#ASTC_4x4_RGBA}<br>
+	 * {@link KtxTranscodeFormat#ASTC_HDR_4x4_RGBA}<br>
+	 * {@link KtxTranscodeFormat#ASTC_HDR_6x6_RGBA}<br>
 	 * {@link KtxTranscodeFormat#ETC2_EAC_R11}<br>
 	 * {@link KtxTranscodeFormat#ETC2_EAC_RG11}<br>
 	 * {@link KtxTranscodeFormat#ETC}<br>
