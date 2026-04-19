@@ -161,11 +161,6 @@ public class KtxBasisParams {
 	private boolean uastcHDRFavorAstc;
 
 	/**
-	 * Whether the input image's gamut is Rec. 2020 vs. the default Rec. 709
-	 */
-	private boolean rec2020;
-
-	/**
 	 * Enables rate distortion optimization
 	 */
 	private float uastcHDRLambda;
@@ -822,30 +817,6 @@ public class KtxBasisParams {
 	 */
 	public void setUastcHDRFavorAstc(boolean uastcHDRFavorAstc) {
 	    this.uastcHDRFavorAstc = uastcHDRFavorAstc;
-	}
-
-	/**
-	 * Returns whether the input image is Rec. 2020.
-	 * 
-	 * See {@link #setRec2020(boolean)}
-	 * 
-	 * @return The setting
-	 */
-	public boolean isRec2020() {
-	    return rec2020;
-	}
-
-	/**
-	 * Set whether the input image is Rec. 2020.<br>
-	 * <br>
-	 * UASTC HDR 6x6i specific option: The input image's gamut is Rec. 
-	 * 2020 vs. the default Rec. 709 - for accurate colorspace error 
-	 * calculations.
-	 * 
-	 * @param rec2020 The setting.
-	 */
-	public void setRec2020(boolean rec2020) {
-	    this.rec2020 = rec2020;
 	}
 
 	/**

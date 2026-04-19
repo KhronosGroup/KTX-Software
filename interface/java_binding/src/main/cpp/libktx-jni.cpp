@@ -91,7 +91,6 @@ jfieldID KtxBasisParams_uastcHDRQuality_field; // "I"
 jfieldID KtxBasisParams_uastcHDRUberMode_field; // "Z"
 jfieldID KtxBasisParams_uastcHDRUltraQuant_field; // "Z"
 jfieldID KtxBasisParams_uastcHDRFavorAstc_field; // "Z"
-jfieldID KtxBasisParams_rec2020_field; // "Z"
 jfieldID KtxBasisParams_uastcHDRLambda_field; // "F"
 jfieldID KtxBasisParams_uastcHDRLevel_field; // "I"
 
@@ -197,7 +196,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
     if (!initField(env, cls, KtxBasisParams_uastcHDRUberMode_field, "uastcHDRUberMode", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcHDRUltraQuant_field, "uastcHDRUltraQuant", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcHDRFavorAstc_field, "uastcHDRFavorAstc", "Z")) return JNI_ERR;
-    if (!initField(env, cls, KtxBasisParams_rec2020_field, "rec2020", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcHDRLambda_field, "uastcHDRLambda", "F")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcHDRLevel_field, "uastcHDRLevel", "I")) return JNI_ERR;
 
@@ -351,7 +349,6 @@ bool copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcHDRUberMode = env->GetBooleanField(params, KtxBasisParams_uastcHDRUberMode_field);
     out.uastcHDRUltraQuant = env->GetBooleanField(params, KtxBasisParams_uastcHDRUltraQuant_field);
     out.uastcHDRFavorAstc = env->GetBooleanField(params, KtxBasisParams_uastcRDONoMultithreading_field);
-    out.rec2020 = env->GetBooleanField(params, KtxBasisParams_rec2020_field);
     out.uastcHDRLambda = env->GetFloatField(params, KtxBasisParams_uastcHDRLambda_field);
     out.uastcHDRLevel = env->GetIntField(params, KtxBasisParams_uastcHDRLevel_field);
 
