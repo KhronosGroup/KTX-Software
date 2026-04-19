@@ -911,7 +911,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         cparams.m_uastc_hdr_4x4_options.set_quality_level(static_cast<int>(params->uastcHDRQuality));
         cparams.m_uastc_hdr_4x4_options.m_allow_uber_mode = params->uastcHDRUberMode;
         cparams.m_uastc_hdr_4x4_options.m_ultra_quant = params->uastcHDRUltraQuant;
-        cparams.m_astc_hdr_6x6_options.m_rec2020_bt2100_color_gamut = params->rec2020;
+        khr_df_primaries_e primaries = ktxTexture2_GetPrimaries_e(This);
+        cparams.m_astc_hdr_6x6_options.m_rec2020_bt2100_color_gamut = primaries == khr_df_primaries_e::KHR_DF_PRIMARIES_BT2020;
         cparams.m_astc_hdr_6x6_options.set_user_level(static_cast<int>(params->uastcHDRLevel));
         if (params->uastcHDRLambda > 0.0f)
         {

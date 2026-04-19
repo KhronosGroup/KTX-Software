@@ -750,6 +750,7 @@ class Image {
     virtual Image& copyToRGB(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGBA(Image&, std::string_view swizzle) = 0;
     virtual Image& premultiplyAlpha() = 0;
+    virtual Image& mapRange(float scale, float offset) = 0;
 
   protected:
     Image() : Image(0, 0) { }
@@ -1334,6 +1335,26 @@ class ImageT : public Image {
     virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
     virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
     virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
+
+    virtual ImageT& mapRange(float scale, float offset) override {
+        if (scale == 1.0f && offset == 0.0f) return *this;
+
+        if constexpr (std::is_floating_point_v<componentType>) {
+            uint32_t pixelCount = getPixelCount();
+            uint32_t compCount = getComponentCount() > 3 ? 3 : getComponentCount(); // Skip alpha
+
+            for (uint32_t i = 0; i < pixelCount; ++i) {
+                Color& c = pixels[i];
+                for (uint32_t comp = 0; comp < compCount; comp++) {
+                    float mappedColor = c[comp] * scale + offset;
+                    c.set(comp, static_cast<componentType>(mappedColor));
+                }
+            }
+            return *this;
+        } else {
+            return *this; // Nothing to do (not supported for non-floating point types)
+        }
+    }
 
     virtual ImageT& premultiplyAlpha() override {
         if(getComponentCount() < 4) {

@@ -141,7 +141,6 @@ KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
         .uastcHDRUberMode = uastcHDRUberMode,
         .uastcHDRUltraQuant = uastcHDRUltraQuant,
         .uastcHDRFavorAstc = uastcHDRFavorAstc,
-        .rec2020 = rec2020,
         .uastcHDRLambda = uastcHDRLambda,
         .uastcHDRLevel = uastcHDRLevel
     };

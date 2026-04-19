@@ -85,6 +85,9 @@ struct OptionsCreate {
     inline static const char* kMipmapWrap = "mipmap-wrap";
     inline static const char* kScale = "scale";
     inline static const char* kPremultiplyAlpha = "premultiply-alpha";
+    inline static const char* kMapRangeAuto = "map-range-auto";
+    inline static const char* kMapRangeOffset = "map-range-offset";
+    inline static const char* kMapRangeScale = "map-range-scale";
 
     bool _1d = false;
     bool cubemap = false;
@@ -98,7 +101,10 @@ struct OptionsCreate {
     std::optional<uint32_t> depth;
     std::optional<uint32_t> layers;
     std::optional<uint32_t> levels;
+    std::optional<float> offset;
+    std::optional<float> scale;
 
+    bool mapRangeRuntime = false;
     bool mipmapRuntime = false;
     bool mipmapGenerate = false;
     std::optional<std::string> mipmapFilter;
@@ -181,6 +187,15 @@ struct OptionsCreate {
                     "normals to generate X+Y normals with --normal-mode. For 4-component\n"
                     "inputs a 3D unit normal is calculated. 1.0 is used for the value of\n"
                     "the 4th component. Cannot be used with --raw.")
+                (kMapRangeAuto, "If needed, map input values to the range supported by the target --format and --encode options.\n"
+                    "Mapping excludes the alpha channel if present.\n"
+                    "If enabled, this flag overrides arguments for --map-rang-offset and --map-range-scale.")
+                (kMapRangeScale, "Scale input values before offseting by the --map-rang-offset value. Defaults to 1.0.",
+            cxxopts::value<float>()->default_value("1.0"),  // used when flag is passed with NO value
+                        "<scale>" )
+                (kMapRangeOffset, "Offset input values after scaling by the --map-rang-scale value. Defaults to 0.0.",
+            cxxopts::value<float>()->default_value("0.0"),  // used when flag is passed with NO value
+                        "<offset>" )
                 (kPremultiplyAlpha, "Pre-multiplies the color components of the input pixels by the alpha component"
                     " before encoding and sets the flag in the metadata. Cannot be used with --normalize or --raw.")
                 (kSwizzle, "KTX swizzle metadata.", cxxopts::value<std::string>(), "[rgba01]{4}")
@@ -540,6 +555,13 @@ struct OptionsCreate {
             if (args[kWidth].count() || args[kHeight].count())
                 report.fatal_usage("{} cannot be used with {} or {}.", kScale, kWidth, kHeight);
             imageScale = args[kScale].as<float>();
+        }
+
+        if (args[kMapRangeAuto].count()) {
+            mapRangeRuntime = true;
+        } else {
+            offset = args[kMapRangeOffset].as<float>();
+            scale = args[kMapRangeScale].as<float>();
         }
 
         // List of formats that have supported format conversions
@@ -1229,6 +1251,9 @@ private:
     uint32_t numFaces = 0;
     uint32_t baseDepth = 0;
 
+    float scale = 1.0f;
+    float offset = 0.0f;
+
 public:
     virtual int main(int argc, char* argv[]) override;
     virtual void initOptions(cxxopts::Options& opts) override;
@@ -1848,6 +1873,102 @@ void CommandCreate::executeCreate() {
                 image->normalize();
             }
 
+            bool isFloatingPoint = false;
+            const uint32_t* pBdb = texture->pDfd + 1;
+            uint32_t numSamples = KHR_DFDSAMPLECOUNT(pBdb);
+            if (numSamples >= 1) {
+                for (uint32_t sample = 0; sample < numSamples; ++sample) {
+                    auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(
+                        KHR_DFDSVAL(pBdb, sample, QUALIFIERS));
+                    isFloatingPoint |=
+                        (qualifiers & KHR_DF_SAMPLE_DATATYPE_FLOAT) == KHR_DF_SAMPLE_DATATYPE_FLOAT;
+                }
+            }
+
+            if (isFloatingPoint) {
+                if (options.mapRangeRuntime) {
+                    const auto image_data = image->getSFloat(3, 32);
+                    const auto numChannels = (uint32_t)3;
+                    auto imageRangeMin = std::numeric_limits<float>::max();
+                    auto imageRangeMax = std::numeric_limits<float>::min();
+                    
+                    for (uint32_t y = 0; y < image->getHeight(); ++y) {
+                        for (uint32_t x = 0; x < image->getWidth(); ++x) {
+                            for (uint32_t c = 0; c < numChannels; ++c) {
+                              float valuef;
+                              const auto* target_value =
+                                  image_data.data() +
+                                  (y * image->getWidth() * numChannels + x * numChannels + c) *
+                                      (uint32_t)sizeof(valuef);
+                              memcpy(&valuef, target_value, sizeof(valuef));
+                              imageRangeMin = std::min(imageRangeMin, valuef);
+                              imageRangeMax = std::max(imageRangeMax, valuef);
+                            }
+                        }
+                    }
+
+                    auto targetRangeMin = 0.0f;
+                    auto targetRangeMax = 0.0f;
+                    
+                    for (uint32_t sample = 0; sample < numSamples; ++sample) {
+                        uint32_t bitlength = (uint32_t)KHR_DFDSVAL(pBdb, sample, BITLENGTH) + 1;
+                        
+                        if (bitlength == 16) {
+                            targetRangeMin =
+                                (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4) 
+                                ? 0.0f : -65504.0f;
+                            targetRangeMax = 65504.0f;
+                        } else if (bitlength == 32) {
+                            targetRangeMin =
+                                (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4)
+                                ? 0.0f : std::numeric_limits<float>::min();
+                            targetRangeMax = std::numeric_limits<float>::max();
+                        }
+                    }
+
+                    struct RangeMapping {
+                        float scale = 1.0f;
+                        float offset = 0.0f;
+                    };
+
+                    const auto mapRangeCompute = [](float oldMin, float oldMax, float newMin,
+                                                    float newMax) -> RangeMapping {
+                        float oldRange = oldMax - oldMin;
+                        float newRange = newMax - newMin;
+                        RangeMapping mapping;
+
+                        // If old range fully overlaps the new range
+                        if ((oldMin >= newMin) && (oldMax <= newMax)) {
+                            return mapping;
+                        }
+
+                        float offsetMin = (oldMin >= newMin) ? 0.0f : newMin - oldMin;
+                        float offsetMax = (oldMax <= newMax) ? 0.0f : oldMax - newMax;
+
+                        if (!(offsetMin != 0.0f && offsetMax != 0.0f) &&
+                            (oldMax + offsetMin < newMax) && (oldMin - offsetMax < newMin)) {
+                            mapping.scale = 1.0f;
+                            mapping.offset = offsetMin != 0.0f ? offsetMin : offsetMax;
+                        } else {
+                            mapping.scale = newRange / oldRange;
+                            mapping.offset = newMin - oldMin * mapping.scale;
+                        }
+
+                        return mapping;
+                    };
+
+                    const auto& mapRange = mapRangeCompute(imageRangeMin, imageRangeMax,
+                                                           targetRangeMin, targetRangeMax);
+                    image->mapRange(mapRange.scale, mapRange.offset);
+                    offset = -mapRange.offset / mapRange.scale;
+                    scale = 1.0f / mapRange.scale;
+                } else {
+                    image->mapRange(*options.scale, *options.offset);
+                    offset = -*options.offset / *options.scale;
+                    scale = 1.0f / *options.scale;
+                }
+            }
+
             if (options.swizzleInput)
                 image->swizzle(*options.swizzleInput);
 
@@ -1891,12 +2012,16 @@ void CommandCreate::executeCreate() {
     }
 
     // Add KTXmapRange metadata
-    if (options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4 || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
+    if ((scale != 1.0f || offset != 0.0f) && (
+           options.vkFormat == VK_FORMAT_R16G16B16_SFLOAT
+        || options.vkFormat == VK_FORMAT_R16G16B16A16_SFLOAT
+        || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4
+        || options.codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE)) {
         struct KTXmapRange {
             float scale;
             float offset;
         };
-        KTXmapRange data = {1, 0};
+        KTXmapRange data = {scale, offset};
         ktxHashList_AddKVPair(&texture->kvDataHead, KTX_MAP_RANGE_KEY, sizeof(KTXmapRange), &data);
     }
 
