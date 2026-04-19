@@ -167,6 +167,9 @@ public class KtxTranscodeFormat {
 	 */
         public static final int BC6HU = 31;
 	
+        /**
+         * No selection
+         */
 	public static final int NOSELECTION = 0x7fffffff;
 
 	/**
