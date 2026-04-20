@@ -34,32 +34,39 @@ public class KtxSupercmpScheme {
      */
     public static final int ZLIB = 3;
 
-	/**
-	 * Returns a string representation of the given supercompression scheme
-	 *
-	 * @param n The supercompression scheme
-	 * @return A string representation of the given supercompression scheme
-	 */
-	public static String stringFor(int n) {
-		switch (n) {
-		case NONE:
-			return "NONE";
-		case BASIS_LZ:
-			return "BASIS_LZ";
-		case ZSTD:
-			return "ZSTD";
-		case ZLIB:
-			return "ZLIB";
-		}
-		return "[Unknown KtxSupercmpScheme]";
-	}
+    /**
+     * UASTC HDR 6x6 Intermediate supercompression. 
+     */
+    public static final int UASTC_HDR_6X6_INTERMEDIATE = 4;    
 
-	/**
-	 * Private constructor to prevent instantiation
-	 */
-	private KtxSupercmpScheme() {
-		// Prevent instantiation
-	}
+    /**
+     * Returns a string representation of the given supercompression scheme
+     *
+     * @param n The supercompression scheme
+     * @return A string representation of the given supercompression scheme
+     */
+    public static String stringFor(int n) {
+        switch (n) {
+        case NONE:
+            return "NONE";
+        case BASIS_LZ:
+            return "BASIS_LZ";
+        case ZSTD:
+            return "ZSTD";
+        case ZLIB:
+            return "ZLIB";
+        case UASTC_HDR_6X6_INTERMEDIATE:
+            return "UASTC_HDR_6X6_INTERMEDIATE";
+        }
+        return "[Unknown KtxSupercmpScheme]";
+    }
+
+    /**
+     * Private constructor to prevent instantiation
+     */
+    private KtxSupercmpScheme() {
+        // Prevent instantiation
+    }
 
 
 }

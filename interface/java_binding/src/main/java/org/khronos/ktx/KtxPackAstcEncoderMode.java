@@ -13,8 +13,19 @@ package org.khronos.ktx;
  * function.
  */
 public class KtxPackAstcEncoderMode {
+    /**
+     * Selects LDR mode if component size is &lt;= 8-bit, HDR otherwise. 
+     */
     public static final int DEFAULT = 0;
+    
+    /**
+     * Always encode in low dynamic range mode. 
+     */
     public static final int LDR = 1;
+    
+    /** 
+     * Always encode in high dynamic range mode. 
+     */
     public static final int HDR = 2;
 
 	/**

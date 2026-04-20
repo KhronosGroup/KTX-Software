@@ -9,6 +9,7 @@ package org.khronos.ktx.test;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -64,7 +65,7 @@ public class KtxTestLibraryLoader implements BeforeAllCallback, ExtensionContext
 			return null;
 		}
 
-		Path ktxPath = Path.of(ktxDir);
+		Path ktxPath = Paths.get(ktxDir);
 		if (!ktxPath.isAbsolute() || !Files.exists(ktxPath) || !Files.isDirectory(ktxPath)) {
 			System.out.println(
 					"KTXTestLibraryLoader: The value of the LIBKTX_BINARY_DIR environment variable is invalid: "

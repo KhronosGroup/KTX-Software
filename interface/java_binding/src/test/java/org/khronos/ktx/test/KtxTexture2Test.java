@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.khronos.ktx.KtxBasisCodec;
 import org.khronos.ktx.KtxBasisParams;
 import org.khronos.ktx.KtxTextureCreateStorage;
 import org.khronos.ktx.KtxErrorCode;
@@ -191,6 +192,23 @@ public class KtxTexture2Test {
 
         texture.destroy();
     }
+    
+    @Test
+    public void testCreateFromNamedFileHdr() {
+        Path testKtxFile = Paths.get("")
+                .resolve("../../tests/resources/ktx2/Desk_uastc_hdr4x4_zstd_15.ktx2")
+                .toAbsolutePath()
+                .normalize();
+
+        KtxTexture2 texture = KtxTexture2.createFromNamedFile(testKtxFile.toString(),
+                KtxTextureCreateFlagBits.NO_FLAGS);
+
+        assertTrue(texture.isHDR());
+        assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK, texture.getVkFormat());
+
+        texture.destroy();
+    }
+    
 
     @Test
     public void testGetImageSize() {
@@ -222,7 +240,6 @@ public class KtxTexture2Test {
 
         long level10Offset = texture.getImageOffset(10, 0, 0);
         long level0Offset = texture.getImageOffset(0, 0, 0);
-        System.out.println("level10Offset = " + level10Offset + ", level0Offset = " + level0Offset);
 
         assertEquals(level10Offset, 0);
         // ktx info offsets are from start of file :)
@@ -378,8 +395,6 @@ public class KtxTexture2Test {
         texture.destroy();
     }
 
-
-
     @Test
     public void testTranscodeBasis() {
         Path testKtxFile = Paths.get("")
@@ -397,6 +412,30 @@ public class KtxTexture2Test {
         assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SRGB_BLOCK, texture.getVkFormat());
     }
 
+    @Test
+    public void testTranscodeBasisHdr() {
+
+        int sizeX = 32;
+        int sizeY = 32;
+
+        // Create a dummy texture
+        KtxTextureCreateInfo info = new KtxTextureCreateInfo();
+        info.setBaseWidth(sizeX);
+        info.setBaseHeight(sizeY);
+        info.setVkFormat(VkFormat.VK_FORMAT_R8G8B8A8_SRGB);
+        KtxTexture2 t = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC_STORAGE);
+        byte[] rgba = new byte[sizeX * sizeY * 4];
+        t.setImageFromMemory(0, 0, 0, rgba);
+
+        // Apply UASTC HDR compression
+        KtxBasisParams p = new KtxBasisParams();
+        p.setCodec(KtxBasisCodec.UASTC_HDR_4X4);
+        t.compressBasisEx(p);
+
+        assertTrue(t.isHDR());
+        assertEquals(VkFormat.VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK, t.getVkFormat());
+    }
+    
     @Test
     public void testCreate() {
         KtxTextureCreateInfo info = new KtxTextureCreateInfo();
@@ -486,7 +525,7 @@ public class KtxTexture2Test {
         // the former G channel becomes the B channel
         // the former A channel remains the A channel
         KtxBasisParams inputParams = new KtxBasisParams();
-        inputParams.setCodec(1);
+        inputParams.setCodec(KtxBasisCodec.ETC1S);
         inputParams.setInputSwizzle(new char[] { 'b', 'r', 'g', 'a' });
         inputTexture.compressBasisEx(inputParams);
 
@@ -519,7 +558,7 @@ public class KtxTexture2Test {
 
         // Apply basis compression to the reference, without swizzling
         KtxBasisParams goldParams = new KtxBasisParams();
-        goldParams.setCodec(1);
+        goldParams.setCodec(KtxBasisCodec.ETC1S);
         goldTexture.compressBasisEx(goldParams);
 
         // Transcode the reference texture to RGBA32
@@ -550,7 +589,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodec(2);
+        p.setCodec(KtxBasisCodec.UASTC_LDR);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
@@ -584,7 +623,7 @@ public class KtxTexture2Test {
 
         // Apply default UASTC compression
         KtxBasisParams p = new KtxBasisParams();
-        p.setCodec(2);
+        p.setCodec(KtxBasisCodec.UASTC_LDR);
         t.compressBasisEx(p);
 
         // The supercompression scheme should be NONE here
@@ -620,7 +659,9 @@ public class KtxTexture2Test {
 
         // Native getter methods from the 'KtxTexture2' class
         texture.getOETF();
+        texture.getColorModel();
         texture.getPremultipliedAlpha();
+        texture.getPrimaries();
         texture.needsTranscoding();
         texture.getSupercompressionScheme();
         texture.getVkFormat();

@@ -6,8 +6,6 @@
 
 package org.khronos.ktx;
 
-import java.util.Arrays;
-
 /**
  * Structure for passing extended parameters to
  * {@link KtxTexture2#compressAstcEx(KtxAstcParams)}.<br>

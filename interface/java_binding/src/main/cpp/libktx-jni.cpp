@@ -27,7 +27,19 @@ jmethodID Buffer_hasArray_method; // "()Z"
 jmethodID Buffer_array_method; // "()Ljava/lang/Object;"
 
 // The field IDs of the Java classes 
-// The comment indicates their signature/type
+// The comment indicates their signature/type:
+// Z boolean
+// B byte
+// C char
+// S short
+// I int
+// J long
+// F float
+// D double
+// L fully-qualified-class; fully-qualified-class
+// [ type type[]
+// ( arg-types ) ret-type	method type
+
 
 jfieldID KtxTexture_instance_field; // "J"
 
@@ -75,6 +87,12 @@ jfieldID KtxBasisParams_uastcRDOMaxSmoothBlockErrorScale_field; // "F"
 jfieldID KtxBasisParams_uastcRDOMaxSmoothBlockStdDev_field; // "F"
 jfieldID KtxBasisParams_uastcRDODontFavorSimplerModes_field; // "Z"
 jfieldID KtxBasisParams_uastcRDONoMultithreading_field; // "Z"
+jfieldID KtxBasisParams_uastcHDRQuality_field; // "I"
+jfieldID KtxBasisParams_uastcHDRUberMode_field; // "Z"
+jfieldID KtxBasisParams_uastcHDRUltraQuant_field; // "Z"
+jfieldID KtxBasisParams_uastcHDRFavorAstc_field; // "Z"
+jfieldID KtxBasisParams_uastcHDRLambda_field; // "F"
+jfieldID KtxBasisParams_uastcHDRLevel_field; // "I"
 
 
 /**
@@ -155,7 +173,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
     if (!initField(env, cls, KtxBasisParams_verbose_field, "verbose", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_noSSE_field, "noSSE", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_threadCount_field, "threadCount", "I")) return JNI_ERR;
-    if (!initField(env, cls, KtxBasisParams_etc1sCompressionLevel_field, "compressionLevel", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_etc1sCompressionLevel_field, "etc1sCompressionLevel", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_qualityLevel_field, "qualityLevel", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_maxEndpoints_field, "maxEndpoints", "I")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_endpointRDOThreshold_field, "endpointRDOThreshold", "F")) return JNI_ERR;
@@ -174,6 +192,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
     if (!initField(env, cls, KtxBasisParams_uastcRDOMaxSmoothBlockStdDev_field, "uastcRDOMaxSmoothBlockStdDev", "F")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcRDODontFavorSimplerModes_field, "uastcRDODontFavorSimplerModes", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxBasisParams_uastcRDONoMultithreading_field, "uastcRDONoMultithreading", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRQuality_field, "uastcHDRQuality", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRUberMode_field, "uastcHDRUberMode", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRUltraQuant_field, "uastcHDRUltraQuant", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRFavorAstc_field, "uastcHDRFavorAstc", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRLambda_field, "uastcHDRLambda", "F")) return JNI_ERR;
+    if (!initField(env, cls, KtxBasisParams_uastcHDRLevel_field, "uastcHDRLevel", "I")) return JNI_ERR;
 
      return JNI_VERSION_1_4;
 }
@@ -320,6 +344,13 @@ bool copy_ktx_basis_params(JNIEnv *env, jobject params, ktxBasisParams &out)
     out.uastcRDOMaxSmoothBlockStdDev = env->GetFloatField(params, KtxBasisParams_uastcRDOMaxSmoothBlockStdDev_field);
     out.uastcRDODontFavorSimplerModes = env->GetBooleanField(params, KtxBasisParams_uastcRDODontFavorSimplerModes_field);
     out.uastcRDONoMultithreading = env->GetBooleanField(params, KtxBasisParams_uastcRDONoMultithreading_field);
+    out.uastcHDRQuality = env->GetIntField(params, KtxBasisParams_uastcHDRQuality_field);
+    out.uastcRDONoMultithreading = env->GetBooleanField(params, KtxBasisParams_uastcRDONoMultithreading_field);
+    out.uastcHDRUberMode = env->GetBooleanField(params, KtxBasisParams_uastcHDRUberMode_field);
+    out.uastcHDRUltraQuant = env->GetBooleanField(params, KtxBasisParams_uastcHDRUltraQuant_field);
+    out.uastcHDRFavorAstc = env->GetBooleanField(params, KtxBasisParams_uastcRDONoMultithreading_field);
+    out.uastcHDRLambda = env->GetFloatField(params, KtxBasisParams_uastcHDRLambda_field);
+    out.uastcHDRLevel = env->GetIntField(params, KtxBasisParams_uastcHDRLevel_field);
 
     return true;
 }
