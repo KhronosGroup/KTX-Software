@@ -1041,7 +1041,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                         if (parsed.qualifierLinear)
                             error(DFD::InvalidQualifierLinearForLinearTF, blockIndex, i + 1, parsed.qualifierLinear,
                                   toString(khr_df_transfer_e(block.transfer)), 0);
-                    } else {
+                    } else if (block.transfer <= KHR_DF_TRANSFER_HLG_UNNORMALIZED_OETF) {
                         if (parsed.channelId == KHR_DF_CHANNEL_RGBSDA_ALPHA && !parsed.qualifierLinear)
                             error(DFD::InvalidQualifierLinearForNonLinearTF, blockIndex, i + 1,
                                   parsed.qualifierLinear, toString(khr_df_transfer_e(block.transfer)),
@@ -1050,7 +1050,9 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                             error(DFD::InvalidQualifierLinearForNonLinearTF, blockIndex, i + 1,
                                   parsed.qualifierLinear, toString(khr_df_transfer_e(block.transfer)),
                                   parsed.channelId, "(non-alpha)", 0);
-                    }
+                    } // else
+                        // Invalid transfer function, an error that has already been logged.
+                        // No meaningful help would be provided by chacking the qualifier.
                     if (parsed.qualifierExponent != expected.qualifierExponent)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierExponent", parsed.qualifierExponent,
                                 expected.qualifierExponent, toString(VkFormat(header.vkFormat)));
