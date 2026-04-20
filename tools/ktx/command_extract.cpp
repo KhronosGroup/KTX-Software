@@ -641,7 +641,7 @@ void CommandExtract::unpackAndSave422(std::string filepath, bool appendExtension
     uint32_t vPositionX = 0;
 
     for (const auto& sample : format.samples) {
-        switch (sample.channelType) {
+        switch (sample.channelId) {
         case KHR_DF_CHANNEL_YUVSDA_Y:
             if (y0Bits != 0) {
                 y1Offset = sample.bitOffset;
@@ -937,8 +937,8 @@ void CommandExtract::saveEXR(std::string filepath, bool appendExtension,
     std::vector<Channel> channels;
 
     if (format.model() == KHR_DF_MODEL_RGBSDA) {
-        const auto addChannel = [&](auto channelType, const char* channelName) {
-            if (const auto sample = format.find(channelType))
+        const auto addChannel = [&](auto channelId, const char* channelName) {
+            if (const auto sample = format.find(channelId))
                 channels.push_back({
                         sample->bitOffset,
                         sample->bitLength + 1u,

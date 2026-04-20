@@ -462,8 +462,8 @@ struct DFD {
     // 61xx - Basic Data Format Descriptor Block sample related issues:
 
     static constexpr IssueError InvalidChannelForModel{
-        6101, "Invalid sample channelType for colorModel in the basic DFD block.",
-        "DFD block #{} sample #{} channelType in basic DFD block is {} which is not valid for colorModel {}."
+        6101, "Invalid sample channelId for colorModel in the basic DFD block.",
+        "DFD block #{} sample #{} channelId in basic DFD block is {} which is not valid for colorModel {}."
     };
     static constexpr IssueError InvalidBitOffsetForUASTC{
         6102, "Invalid sample bitOffset for UASTC texture in the basic DFD block.",
@@ -516,8 +516,8 @@ struct DFD {
         "DFD block #{} colorModel is {} while supercompressionScheme is {} but KHR_texture_basisu requires supercompressionScheme {} for this colorModel."
     };
     static constexpr IssueError InvalidChannelGLTFBU{
-        6303, "Invalid sample channelType for colorModel for KHR_texture_basisu compatibility.",
-        "DFD block #{} colorModel is {} but sample #{} channelType is {} while KHR_texture_basisu requires {}."
+        6303, "Invalid sample channelId for colorModel for KHR_texture_basisu compatibility.",
+        "DFD block #{} colorModel is {} but sample #{} channelId is {} while KHR_texture_basisu requires {}."
     };
     static constexpr IssueError InvalidColorSpaceGLTFBU{
         6304, "Color space information is incompatible with KHR_texture_basisu.",

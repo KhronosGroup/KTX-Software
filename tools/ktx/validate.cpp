@@ -933,22 +933,22 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
         case KHR_DF_MODEL_ETC1S:
             // Supercompression already verified above, only need to check samples.
             if (samples.size() > 0) {
-                switch (samples[0].channelType) {
+                switch (samples[0].channelId) {
                 case KHR_DF_CHANNEL_ETC1S_RGB:
-                    if (samples.size() > 1 && samples[1].channelType != KHR_DF_CHANNEL_ETC1S_AAA)
+                    if (samples.size() > 1 && samples[1].channelId != KHR_DF_CHANNEL_ETC1S_AAA)
                         error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 2,
-                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelType)),
-                                "KHR_DF_CHANNEL_ETC1S_AAA when sample #0 channelType is KHR_DF_CHANNEL_ETC1S_RGB");
+                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelId)),
+                                "KHR_DF_CHANNEL_ETC1S_AAA when sample #0 channelId is KHR_DF_CHANNEL_ETC1S_RGB");
                     break;
                 case KHR_DF_CHANNEL_ETC1S_RRR:
-                    if (samples.size() > 1 && samples[1].channelType != KHR_DF_CHANNEL_ETC1S_GGG)
+                    if (samples.size() > 1 && samples[1].channelId != KHR_DF_CHANNEL_ETC1S_GGG)
                         error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 2,
-                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelType)),
-                                "KHR_DF_CHANNEL_ETC1S_GGG when sample #0 channelType is KHR_DF_CHANNEL_ETC1S_RRR");
+                                toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[1].channelId)),
+                                "KHR_DF_CHANNEL_ETC1S_GGG when sample #0 channelId is KHR_DF_CHANNEL_ETC1S_RRR");
                     break;
                 default:
                     error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_ETC1S", 1,
-                            toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[0].channelType)),
+                            toString(KHR_DF_MODEL_ETC1S, khr_df_model_channels_e(samples[0].channelId)),
                             "KHR_DF_CHANNEL_ETC1S_RGB or KHR_DF_CHANNEL_ETC1S_RRR");
                     break;
                 }
@@ -961,7 +961,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                         "KTX_SS_NONE or KTX_SS_ZSTD");
 
             if (samples.size() > 0) {
-                switch (samples[0].channelType) {
+                switch (samples[0].channelId) {
                 case KHR_DF_CHANNEL_UASTC_RGB: [[fallthrough]];
                 case KHR_DF_CHANNEL_UASTC_RGBA: [[fallthrough]];
                 case KHR_DF_CHANNEL_UASTC_RRR: [[fallthrough]];
@@ -969,7 +969,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     break;
                 default:
                     error(DFD::InvalidChannelGLTFBU, blockIndex, "KHR_DF_MODEL_UASTC", 0,
-                            toString(KHR_DF_MODEL_UASTC, khr_df_model_channels_e(samples[0].channelType)),
+                            toString(KHR_DF_MODEL_UASTC, khr_df_model_channels_e(samples[0].channelId)),
                             "KHR_DF_CHANNEL_UASTC_RGB, KHR_DF_CHANNEL_UASTC_RGBA, KHR_DF_CHANNEL_UASTC_RRR, or KHR_DF_CHANNEL_UASTC_RG");
                     break;
                 }
@@ -990,14 +990,14 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
     if (!isColorPrimariesValid(khr_df_primaries_e(block.primaries)))
         error(DFD::InvalidColorPrimaries, blockIndex, block.primaries);
 
-    // Validate samples[].channelType
+    // Validate samples[].channelId
     for (std::size_t i = 0; i < samples.size(); ++i) {
         const auto& sample = samples[i];
-        if (!isChannelTypeValid(khr_df_model_e(block.model), khr_df_model_channels_e(sample.channelType)))
+        if (!isChannelIdValid(khr_df_model_e(block.model), khr_df_model_channels_e(sample.channelId)))
             error(DFD::InvalidChannelForModel,
                     blockIndex,
                     i + 1,
-                    toString(khr_df_model_e(block.model), khr_df_model_channels_e(sample.channelType)),
+                    toString(khr_df_model_e(block.model), khr_df_model_channels_e(sample.channelId)),
                     toString(khr_df_model_e(block.model)));
     }
 
@@ -1032,10 +1032,10 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
                     if (parsed.bitLength != expected.bitLength)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "bitLength", parsed.bitLength,
                                 expected.bitLength, toString(VkFormat(header.vkFormat)));
-                    if (parsed.channelType != expected.channelType)
-                        error(DFD::FormatMismatch, blockIndex, i + 1, "channelType",
-                                toString(khr_df_model_e(block.model), khr_df_model_channels_e(parsed.channelType)),
-                                toString(expectedColorModel.value_or(KHR_DF_MODEL_UNSPECIFIED), khr_df_model_channels_e(expected.channelType)),
+                    if (parsed.channelId != expected.channelId)
+                        error(DFD::FormatMismatch, blockIndex, i + 1, "channelId",
+                                toString(khr_df_model_e(block.model), khr_df_model_channels_e(parsed.channelId)),
+                                toString(expectedColorModel.value_or(KHR_DF_MODEL_UNSPECIFIED), khr_df_model_channels_e(expected.channelId)),
                                 toString(VkFormat(header.vkFormat)));
                     if (parsed.qualifierLinear != expected.qualifierLinear)
                         error(DFD::FormatMismatch, blockIndex, i + 1, "qualifierLinear", parsed.qualifierLinear,

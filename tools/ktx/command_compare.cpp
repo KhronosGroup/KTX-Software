@@ -820,7 +820,7 @@ Compare two KTX2 files.
     If any of the specified input files are invalid then comparison is done based on best effort
     and may be incomplete.
 
-    The JSON output formats conform to the https://schema.khronos.org/ktx/compare_v0.json
+    The JSON output formats conform to the https://schema.khronos.org/ktx/compare_v1.json
     schema even if the input file is invalid and certain information cannot be parsed or
     displayed.
     Additionally, for JSON outputs the KTX file identifier is printed using "\u001A" instead of
@@ -1351,7 +1351,7 @@ void CommandCompare::executeCompare() {
 
         PrintIndent out{std::cout, baseIndent, indentWidth};
         out(0, "{{{}", nl);
-        out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/compare_v0.json\",{}", space, nl);
+        out(1, "\"$schema\":{}\"https://schema.khronos.org/ktx/compare_v1.json\",{}", space, nl);
 
         for (std::size_t i = 0; i < inputStreams.size(); ++i) {
             std::ostringstream messagesOS;
@@ -1740,12 +1740,12 @@ void CommandCompare::compareDFDBasic(PrintDiff& diff, uint32_t blockIndex,
             fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/qualifiers", blockIndex, sampleIndex),
             qualifierFlags[0], qualifierFlags[1], dfdToStringSampleDatatypeQualifiersBit);
 
-        diff << DiffEnum<khr_df_model_channels_e>("    Channel Type",
-            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelType", blockIndex, sampleIndex),
-            OPT_BITFIELDS(samples, channelType),
+        diff << DiffEnum<khr_df_model_channels_e>("    Channel Id",
+            fmt::format("/dataFormatDescriptor/blocks/{}/samples/{}/channelId", blockIndex, sampleIndex),
+            OPT_BITFIELDS(samples, channelId),
             [&](auto i) {
                 return dfdToStringChannelId(khr_df_model_e(bdfds[i]->model),
-                    khr_df_model_channels_e(samples[i]->channelType));
+                    khr_df_model_channels_e(samples[i]->channelId));
             })
             .outputHexInText();
 

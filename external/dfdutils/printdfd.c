@@ -821,20 +821,20 @@ void printDFD(uint32_t *DFD, uint32_t dataSize)
                 if (remainingSize < sizeof_BDFD + (sample + 1) * sizeof_BDFDSample)
                     break; // Invalid DFD: Missing or partial basic DFD sample
 
-                khr_df_model_channels_e channelType = KHR_DFDSVAL(block, sample, CHANNELID);
+                khr_df_model_channels_e channelId = KHR_DFDSVAL(block, sample, CHANNELID);
                 printf("Sample %u:\n", sample);
 
                 khr_df_sample_datatype_qualifiers_e qualifiers = KHR_DFDSVAL(block, sample, QUALIFIERS);
                 printf("    Qualifiers: 0x%X (", qualifiers);
                 printFlagBits(qualifiers, dfdToStringSampleDatatypeQualifiersBit);
                 printf(")\n");
-                printf("    Channel Type: 0x%X", channelType);
+                printf("    Channel Id: 0x%X", channelId);
                 {
-                    const char* str = dfdToStringChannelId(model, channelType);
+                    const char* str = dfdToStringChannelId(model, channelId);
                     if (str)
                         printf(" (%s)\n", str);
                     else
-                        printf(" (%u)\n", channelType);
+                        printf(" (%u)\n", channelId);
                 }
                 printf("    Length: %u bits Offset: %u\n",
                        KHR_DFDSVAL(block, sample, BITLENGTH) + 1,
@@ -1008,12 +1008,12 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
                     PRINT_INDENT(4, "],%s", nl)
                 }
 
-                khr_df_model_channels_e channelType = KHR_DFDSVAL(block, sample, CHANNELID);
-                const char* channelStr = dfdToStringChannelId(model, channelType);
+                khr_df_model_channels_e channelId = KHR_DFDSVAL(block, sample, CHANNELID);
+                const char* channelStr = dfdToStringChannelId(model, channelId);
                 if (channelStr)
-                    PRINT_INDENT(4, "\"channelType\":%s\"%s\",%s", space, channelStr, nl)
+                    PRINT_INDENT(4, "\"channelId\":%s\"%s\",%s", space, channelStr, nl)
                 else
-                    PRINT_INDENT(4, "\"channelType\":%s%u,%s", space, channelType, nl)
+                    PRINT_INDENT(4, "\"channelId\":%s%u,%s", space, channelId, nl)
 
                 PRINT_INDENT(4, "\"bitLength\":%s%u,%s", space, KHR_DFDSVAL(block, sample, BITLENGTH), nl)
                 PRINT_INDENT(4, "\"bitOffset\":%s%u,%s", space, KHR_DFDSVAL(block, sample, BITOFFSET), nl)

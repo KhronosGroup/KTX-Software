@@ -85,9 +85,9 @@ namespace ktx {
     return str ? std::string(str) : fmt::format("(0x{:02X})", static_cast<uint32_t>(transfer));
 }
 
-[[nodiscard]] inline std::string toString(khr_df_model_e colorModel, khr_df_model_channels_e channelType) noexcept {
-    const auto str = dfdToStringChannelId(colorModel, channelType);
-    return str ? std::string(str) : fmt::format("(0x{:01X})", static_cast<uint32_t>(channelType));
+[[nodiscard]] inline std::string toString(khr_df_model_e colorModel, khr_df_model_channels_e channelId) noexcept {
+    const auto str = dfdToStringChannelId(colorModel, channelId);
+    return str ? std::string(str) : fmt::format("(0x{:01X})", static_cast<uint32_t>(channelId));
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -133,9 +133,9 @@ namespace ktx {
     return dfdToStringColorPrimaries(primaries) != nullptr;
 }
 
-[[nodiscard]] inline bool isChannelTypeValid(khr_df_model_e colorModel, khr_df_model_channels_e channelType) noexcept {
+[[nodiscard]] inline bool isChannelIdValid(khr_df_model_e colorModel, khr_df_model_channels_e channelId) noexcept {
     // dfdToStringChannelId yields a nullptr if the model and channel combination is invalid
-    return dfdToStringChannelId(colorModel, channelType) != nullptr;
+    return dfdToStringChannelId(colorModel, channelId) != nullptr;
 }
 
 [[nodiscard]] inline khr_df_model_e getColorModelForBlockCompressedFormat(VkFormat format) noexcept {

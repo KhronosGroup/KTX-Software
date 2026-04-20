@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2019-09/schema",
-    "$id": "https://schema.khronos.org/ktx/compare_v0.json",
+    "$id": "https://schema.khronos.org/ktx/compare_v1.json",
     "definitions": {
         "enum_vkFormat": {
             "oneOf": [
@@ -471,7 +471,7 @@
                 }
             ]
         },
-        "enum_channelType": {
+        "enum_channelId": {
             "oneOf": [
                 { "type": "integer" },
                 {
@@ -1117,11 +1117,11 @@
                         ]
                     }
                 },
-                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/channelType$": {
+                "^/dataFormatDescriptor/blocks/[0-9]+/samples/[0-9]+/channelId$": {
                     "type": "array",
                     "items": {
                         "oneOf": [
-                            { "$ref": "#/definitions/enum_channelType" },
+                            { "$ref": "#/definitions/enum_channelId" },
                             { "type": "null" }
                         ]
                     }
