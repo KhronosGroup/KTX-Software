@@ -154,7 +154,7 @@ case $# in
 esac
 
 if [ $write_all -eq 1 ]; then
-  for i in lib tools/*; do
+  for i in lib lib/src tools/*; do
     if [ -d $i -a "$i" != "tools/package" ]; then
       writeversion $i
     fi
@@ -173,8 +173,8 @@ else
   else
       >&2 echo "$0: Working directory is not in KTX-Software repo."
       exit 1
-    fi
   fi
   writeversion $OBJ
+fi
 
 # vim:ai:ts=4:sts=4:sw=2:expandtab:textwidth=70
