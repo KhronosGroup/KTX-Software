@@ -489,6 +489,14 @@ struct DFD {
         6107, "Invalid sample upper for UASTC or BasisLZ/ETC1S texture in the basic DFD block.",
         "DFD block #{} sample #{} upper in basic DFD block is {} but for {} textures it must be {}."
     };
+    static constexpr IssueError InvalidQualifierLinearForLinearTF{
+        6108, "Invalid sample qualifierLinear for linear or unspecified transfer function in the basic DFD block.",
+        "DFD block #{} sample #{} qualifierLinear is {} but for {} it must be {}."
+    };
+    static constexpr IssueError InvalidQualifierLinearForNonLinearTF{
+        6109, "Invalid sample qualifierLinear for non-linear transfer function in the basic DFD block.",
+        "DFD block #{} sample #{} qualifierLinear is {} but for {} and channelId {} {} it must be {}."
+    };
 
     // 62xx - InterpretDFD related issues:
 
