@@ -9,7 +9,7 @@
 # A file of this name will be created in the subdir (object) for which a
 # version number is being generated.
 VF=version.h
-DEF_VER=v4.0
+DEF_VER=v5.0
 
 LF='
 '
