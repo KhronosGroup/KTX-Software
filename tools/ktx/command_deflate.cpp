@@ -258,7 +258,7 @@ void CommandDeflate::executeDeflate() {
                 e = "ktxsc|toktx";
                 if (std::regex_search(writer, e)) {
                     // Look for toktx/ktxsc deflate option
-                    e = " ?--zcmp ?[1-9]?[0-9]?";
+                    e = " ?--zcmp ?[1-9]?[0-9]? ?";
                     (void)std::regex_search(writerScParams,
                                             deflateOptionMatch, e);
                 }
