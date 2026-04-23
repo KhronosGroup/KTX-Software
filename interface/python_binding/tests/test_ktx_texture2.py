@@ -181,7 +181,7 @@ class TestKtxTexture2(unittest.TestCase):
         self.assertEqual(texture.color_model, KhrDfModel.ASTC)
         self.assertTrue(texture.is_compressed)
         self.assertTrue(texture.is_array)
-        self.assertFalse(texture.is_hdr);
+        self.assertTrue(texture.is_hdr);
         self.assertFalse(texture.premultipled_alpha)
         self.assertEqual(texture.num_layers, 7)
         self.assertFalse(texture.needs_transcoding)
@@ -190,7 +190,7 @@ class TestKtxTexture2(unittest.TestCase):
         self.assertEqual(texture.color_model, KhrDfModel.RGBSDA)
         self.assertEqual(texture.transfer_function, KhrDfTransfer.LINEAR)
         self.assertTrue(texture.is_array)
-        self.assertFalse(texture.is_hdr);
+        self.assertTrue(texture.is_hdr)
         self.assertFalse(texture.premultipled_alpha)
         self.assertEqual(texture.num_layers, 7)
         self.assertFalse(texture.needs_transcoding)
