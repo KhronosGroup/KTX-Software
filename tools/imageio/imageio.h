@@ -536,6 +536,14 @@ class ImageInput {
         }
     }
 
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic push
+  // GCC complains of writing 1 byte into a region of size 0 when called
+  // from ImageInput::convert at line 658. Given that the write argument
+  // passed from there is an array of size 4, this looks like a compiler
+  // bug. Silence the error.
+  #pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
     template<class Tr, class Tw>
     inline static void
     rescale(Tw* write, Tw maxw, const Tr* read, Tr maxr, size_t nvals)
@@ -547,6 +555,9 @@ class ImageInput {
             }
         }
     }
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic pop
+#endif
 
     template<class T>
     inline static T
