@@ -474,7 +474,7 @@ macro(common_libktx_settings target enable_write library_type)
         target_compile_options(
             ${target}
         PRIVATE
-            $<$<AND:$<BOOL:${BASISU_SUPPORT_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
+            $<$<AND:$<BOOL:${BASISU_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
                 -msse4.1
             >
         )
@@ -489,7 +489,7 @@ macro(common_libktx_settings target enable_write library_type)
         target_link_libraries(
             ${target}
         PRIVATE
-            $<$<BOOL:${BASISU_SUPPORT_OPENCL}>:${OpenCL_LIBRARY}>
+            $<$<BOOL:${BASISU_OPENCL}>:${OpenCL_LIBRARY}>
         )
     endif()
 
@@ -598,7 +598,7 @@ endif()
 # macOS simultaneous multiple architectures are supported by the ASTC
 # encoder but not by the BasisU encoder. The latter supports only SSE
 # SIMD that is enabled by compile time defines which makes it not amenable
-# to a standard Xcode universal binary build. To ensure BASISU_SUPPORT_SSE
+# to a standard Xcode universal binary build. To ensure BASISU_SSE
 # is disabled when building for multiple architectures use only the
 # value of CMAKE_OSX_ARCHITECTURES to decide if a universal build
 # has been requested. Do not expose the astc-encoder's
