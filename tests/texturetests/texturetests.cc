@@ -3170,20 +3170,10 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
 //template<typename component_type, ktx_uint32_t numComponents>
 class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
 
-  protected:
-//    using ktxTextureTestBase<component_type, numComponents, internalformat>::helper;
-//    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFile;
-//    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
-
   public:
-    void runTest(const u8string& astcFileName) {
+    void runTest(const std::u8string& astcFileName) {
         ktxTexture2* texture;
         KTX_error_code result;
-//        auto tmpDir = fs::temp_directory_path();
-
-//        fs::path original = tmpDir / "CompressToAstcLdrThenDecode_original.ktx2";
-//        fs::path decoded = tmpDir / "CompressToAstcLdrThenDecode_decoded.ktx2";
-//        fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
 
         fs::path astcPath = ktx2Path;
         astcPath.replace_filename(astcFileName);
