@@ -2916,6 +2916,7 @@ TEST(UnicodeFileNames, CreateFrom) {
 //------------------------------------------------------------
 
 fs::path ktxdiffPath;
+fs::path ktx2Path;
 
 template<typename component_type, ktx_uint32_t numComponents,
          GLenum internalformat>
@@ -2995,7 +2996,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             result = ktxTexture2_DecodeAstc(texture);
             EXPECT_EQ(result, KTX_SUCCESS);
             if (isFormatFloat())
-                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R32G32B32A32_SFLOAT);
+                EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R16G16B16A16_SFLOAT);
             else if (isFormatSrgb())
                 EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
             else
@@ -3162,6 +3163,100 @@ TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThen
     runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
 }
 
+//-------------------------------------------------
+// Template for base fixture for ASTC decode tests.
+//-------------------------------------------------
+
+//template<typename component_type, ktx_uint32_t numComponents>
+class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
+
+  public:
+    void runTest(const std::u8string& astcFileName) {
+        ktxTexture2* texture;
+        KTX_error_code result;
+
+        fs::path astcPath = ktx2Path;
+        astcPath.replace_filename(astcFileName);
+        result = ktxTexture2_CreateFromNamedFile(
+            reinterpret_cast<const char*>(astcPath.u8string().c_str()),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+            &texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
+                      from_u8string(astcPath.u8string()), ktxErrorString(result));
+        EXPECT_NE(texture, nullptr);
+
+        // Check the input file is valid ASTC
+        ASSERT_TRUE(ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_ASTC);
+        ASSERT_TRUE(texture->isCompressed);
+        ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
+        ASSERT_TRUE(texture->pDfd != nullptr);
+
+        auto height = texture->baseHeight;
+        auto width = texture->baseWidth;
+        auto depth = texture->baseDepth;
+        ASSERT_TRUE(depth == 1);
+        auto numLayers = texture->numLayers;
+        auto isArray = texture->isArray;
+        auto isHdr = ktxTexture2_IsHDR(texture);
+        auto isPremultipliedAlpha = ktxTexture2_GetPremultipliedAlpha(texture);
+        uint32_t* pBdb = texture->pDfd+1;
+        auto isFloat = (KHR_DFDSVAL(pBdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0U;
+        //auto isSigned = KHR_DFDSVAL(pBdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_SIGNED;
+        auto isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+
+        EXPECT_FALSE(isSrgb && isFloat);
+
+        result = ktxTexture2_DecodeAstc(texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture2_DecodeAstc failed: {}", ktxErrorString(result));
+        // Get the pointer to the updated DFD
+        ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
+        ASSERT_FALSE(texture->isCompressed);
+        ASSERT_TRUE(texture->pDfd != nullptr);
+        pBdb = texture->pDfd+1;
+        if (isFloat) {
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R16G16B16A16_SFLOAT);
+            EXPECT_NE((KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT), 0U);
+            EXPECT_FALSE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+        } else if (isSrgb)
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
+        else
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_UNORM);
+
+        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd+1, MODEL));
+        EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+        EXPECT_EQ(height, texture->baseHeight);
+        EXPECT_EQ(width, texture->baseWidth);
+        EXPECT_EQ(depth, texture->baseDepth);
+        EXPECT_EQ(numLayers, texture->numLayers);
+        EXPECT_EQ(isArray, texture->isArray);
+        EXPECT_EQ(isHdr, ktxTexture2_IsHDR(texture));
+        EXPECT_EQ(isPremultipliedAlpha, ktxTexture2_GetPremultipliedAlpha(texture));
+
+        if (texture) {
+            ktxTexture2_Destroy(texture);
+        }
+    }
+  protected:
+    bool isFormatFloat() {
+        // Test does not yet support float formats
+        return false;
+    }
+};
+
+// Test fixtures for ASTC encode and decode tests.
+
+////////////////////////////////////////////
+// ASTC encode & decode tests
+///////////////////////////////////////////
+
+TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
+    runTest(u8"astc_8x8_unorm_array_7.ktx2");
+}
+
 }  // namespace
 
 
@@ -3193,6 +3288,7 @@ GTEST_API_ int main(int argc, char* argv[]) {
             return -3;
         }
         unicodePath = resourcesPath / u8"unicode" / "";
+        ktx2Path = resourcesPath / u8"ktx2" / "";
 
 #if defined(_WIN32)
         ktxdiffPath.replace_extension("exe");

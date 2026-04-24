@@ -14,13 +14,13 @@ class TestKtxTexture(unittest.TestCase):
         self.assertEqual(texture.kv_data.find_value('KTXorientation'), b'rd\x00')
         self.assertEqual(texture.kv_data.copy(), {
             'KTXorientation': b'rd\x00',
-            'KTXwriter': b'ktx create v4.0.__default__ / libktx v4.0.__default__\x00',
+            'KTXwriter': b'ktx create v5.0.__default__ / libktx v5.0.__default__\x00',
             'KTXwriterScParams': b'--zstd 10\x00',
         })
 
         for key in ['KTXorientation', 'KTXwriter', 'KTXwriterScParams']:
             texture.kv_data.delete_kv_pair(key)
-        texture.kv_data.add_kv_pair('KTXwriter', b'pyktx v4.0.__default__ / libktx v4.0.__default__\x00')
+        texture.kv_data.add_kv_pair('KTXwriter', b'pyktx v5.0.__default__ / libktx v5.0.__default__\x00')
 
         self.assertEqual(texture.kv_data.find_value('KTXwriter'),
-                         b'pyktx v4.0.__default__ / libktx v4.0.__default__\x00')
+                         b'pyktx v5.0.__default__ / libktx v5.0.__default__\x00')
