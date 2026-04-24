@@ -123,7 +123,7 @@ jobs:
     - name: Upload generated HTML documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest'
       id: deployment
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: ${{ env.BUILD_DIR }}/docs/html
 

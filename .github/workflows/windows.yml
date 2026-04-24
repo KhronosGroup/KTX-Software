@@ -247,7 +247,7 @@ jobs:
 
     - name: Set up JDK.
       if: matrix.options.jni == 'ON' && matrix.check_mkvk != 'ONLY'
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.java-version }}
