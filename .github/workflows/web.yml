@@ -189,7 +189,7 @@ jobs:
       # job would attempt to upload a same-named artifact.
       - name: Upload artifact Install Package
         if: matrix.options.package == 'YES'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*

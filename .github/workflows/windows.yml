@@ -211,7 +211,7 @@ jobs:
       # Maintaining cross-platform access is desirable so the code can be
       # easily copied to a multi-platform workflow. NUGET_FEED_URL is set
       # here to keep the vcpkg cache environment variables together.
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         # JSON in use here. #<comments> in the script will break it.
         # Pre-installed vcpkg location is indicated by a non-standard env.
@@ -264,7 +264,7 @@ jobs:
     # Install a version that works.
     - name: Set up Python 3.12
       if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
@@ -349,7 +349,7 @@ jobs:
     # job would attempt to upload a same-named artifact.
     - name: Upload artifact Install Package
       if: matrix.options.package == 'YES' && matrix.toolset == 'CLangCL'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: KTX-Software-${{env.KTX_VERSION}}-Windows-${{matrix.arch}}
         path: ${{env.BUILD_DIR}}/KTX-Software-*.exe*
@@ -357,7 +357,7 @@ jobs:
 
     - name: Upload artifact pyktx
       if: matrix.options.package == 'YES' && matrix.options.py == 'ON' && matrix.toolset == 'CLangCL'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pyktx-${{env.KTX_VERSION}}-Windows-${{matrix.arch}}
         path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}
