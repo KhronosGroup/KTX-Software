@@ -75,7 +75,7 @@ jobs:
       BUILD_DIR: build
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)

@@ -177,7 +177,7 @@ jobs:
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Fetch all history to make sure tags are
           # included (used for version creation)
