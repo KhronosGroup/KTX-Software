@@ -283,7 +283,10 @@ Release Notes
 ## Version ${thisrel#v}
 $PREFACE
 
-### Changes since $lastrel (by part)
+### Commits since $lastrel (by part${includeDetails:+ with details})
+
+Note: commits will appear in each part they affected.
+
 $lib
 
 $tools
