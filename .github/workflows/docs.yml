@@ -75,7 +75,7 @@ jobs:
       BUILD_DIR: build
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
@@ -87,7 +87,7 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11.4'
 
@@ -123,7 +123,7 @@ jobs:
     - name: Upload generated HTML documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest'
       id: deployment
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: ${{ env.BUILD_DIR }}/docs/html
 

@@ -152,7 +152,7 @@ jobs:
       VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.vulkan_sdk_version }}/macOS
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Fetch all history to make sure tags are
           # included (used for version creation)
@@ -187,7 +187,7 @@ jobs:
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
 #        if: matrix.options.py == 'ON' && matrix.check_mkvk != 'ONLY'
-#        uses: actions/setup-python@v5
+#        uses: actions/setup-python@v6
 #        with:
 #          python-version: '3.14'
 
@@ -229,7 +229,7 @@ jobs:
         # Maintaining cross-platform access is desirable so the code can be
         # easily copied to a multi-platform workflow. NUGET_FEED_URL is set
         # here to keep the vcpkg cache environment variables together.
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           # JSON in use here. #<comments> in the script will break it.
           # Pre-installed vcpkg location is indicated by a non-standard env.
@@ -305,7 +305,7 @@ jobs:
       # job would attempt to upload a same-named artifact.
       - name: Upload artifact Install Package
         if: matrix.options.package == 'YES'  && (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: KTX-Software-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
@@ -313,7 +313,7 @@ jobs:
 
       - name: Upload artifact pyktx
         if:  matrix.options.py == 'ON' && matrix.options.package == 'YES' && (matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pyktx-${{env.PACKAGE_NAME_SUFFIX}}
           path: ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}

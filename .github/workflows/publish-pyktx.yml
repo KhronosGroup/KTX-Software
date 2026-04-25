@@ -78,7 +78,7 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up .netrc
         env:
@@ -116,7 +116,7 @@ jobs:
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # Maybe it is possible to test for a release tag here too.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up .netrc
         env:
