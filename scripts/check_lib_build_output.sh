@@ -17,12 +17,17 @@ if [[ $# -ne 2 ]]; then
 fi
 
 cd $1
-version=$2
-if [[ $version =~ ([0-9]+).[0-9]+.[0-9]+ ]]; then
+
+fullversion=$2
+# If the incoming version is a full (package) version that includes
+# a tweak, remove it. Library version reflect the API version so do
+# not include a tweak.
+if [[ $fullversion =~ (([0-9]+).[0-9]+.[0-9]+)(-.*$)? ]]; then
   major=${BASH_REMATCH[1]}
-  echo "major is $major"
+  version=${BASH_REMATCH[2]}
+  #echo "major is $major, version is $version"
 else
-  echo "version number must have the form major.minor.patch".
+  echo "version number must have the form major.minor.patch[-tweak]".
   usage
   exit 1
 fi

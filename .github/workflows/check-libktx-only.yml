@@ -113,16 +113,11 @@ jobs:
     - name: Prepare version number and architecture for artifact
       id: libktx-version
       shell: bash
-      # The ktx.version file in the parent of the build directory will include
-      # the "tweak", if the package version has one. The library version though
-      # reflects the API version so does not include the tewak. Extract the
-      # version from the generated version.h file instead.
-      #
       # Arch set up is to match arch to names used in releases and platforms.
       # N.B. If `>> ${{ github.env }} is used here variables are not seen in
       # following step on Windows runners. Linux and macOS have no problem.
       run: |
-        echo KTX_VERSION=$(grep -A 1 -m 1 "Code version" lib/src/version.h | tail -n 1) >> $GITHUB_ENV
+        echo KTX_VERSION=$(cat ${{ env.BUILD_DIR_TL }}/ktx.version) >> $GITHUB_ENV
         arch=$(echo ${{ runner.arch }} | tr '[:upper:]' '[:lower:]')
         if [ "$arch" = "x64" ]; then arch=x86_64; fi
         echo ARCH=$arch >> $GITHUB_ENV
