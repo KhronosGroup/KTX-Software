@@ -7,24 +7,31 @@
 # libktx-only build has only the expected output files.
 
 function usage() {
-  echo "$0 <directory> where <directory> is the directory to check."
+  echo "$0 <directory> <version> where <directory> is the directory to check and <version> is the expected library version."
 }
 
+if [[ $# -ne 2 ]]; then
+  echo "$# is the wrong number of arguments"
+  usage
+  exit 1
+fi
+
 cd $1
-# Expect to be in the output of a build created by a multi-config generator.
-version=$(cat ../ktx.version)
-if [[ -z "$version" ]]; then
-  # No file. Perhaps a single config generator was used.
-  version=$(cat ktx.version)
+version=$2
+if [[ $version =~ ([0-9]+).[0-9]+.[0-9]+ ]]; then
+  major=${BASH_REMATCH[1]}
+  echo "major is $major"
+else
+  echo "version number must have the form major.minor.patch".
+  usage
+  exit 1
 fi
-if [[ -z "$version" ]]; then
-  echo "ktx.version file is missing from $1/.. and $1."
-fi
+
 declare -a expected
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  expected=(libktx.so.$version libktx.so.4 libktx.so libktx_read.so.$version libktx_read.so.4 libktx_read.so)
+  expected=(libktx.so.$version libktx.so.$major libktx.so libktx_read.so.$version libktx_read.so.$major libktx_read.so)
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  expected=(libktx.$version.dylib libktx.4.dylib libktx.dylib libktx_read.$version.dylib libktx_read.4.dylib libktx_read.dylib)
+  expected=(libktx.$version.dylib libktx.$major.dylib libktx.dylib libktx_read.$version.dylib libktx_read.$major.dylib libktx_read.dylib)
 elif [[ "$OSTYPE" == "win32" ]]; then
   expected=(ktx.dll ktx.lib ktx_read.dll ktx_read.lib)
 fi

@@ -195,7 +195,7 @@ jobs:
           path: ${{env.BUILD_DIR}}/KTX-Software-*-*
 
       - name: Upload to Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
         with:
           draft: true

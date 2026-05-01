@@ -113,6 +113,11 @@ jobs:
     - name: Prepare version number and architecture for artifact
       id: libktx-version
       shell: bash
+      # The ktx.version file in the parent of the build directory will include
+      # the "tweak", if the package version has one. The library version though
+      # reflects the API version so does not include the tewak. Extract the
+      # version from the generated version.h file instead.
+      #
       # Arch set up is to match arch to names used in releases and platforms.
       # N.B. If `>> ${{ github.env }} is used here variables are not seen in
       # following step on Windows runners. Linux and macOS have no problem.
@@ -123,7 +128,7 @@ jobs:
         echo ARCH=$arch >> $GITHUB_ENV
 
     - name: Check content of output directory from top-level build
-      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }}
+      run: scripts/check_lib_build_output.sh ${{ env.BUILD_DIR_TL }}/${{ matrix.config }} ${{ env.KTX_VERSION }}
 
     - name: Test run use-ktx program
       run: ${{ env.BUILD_DIR_UKP }}/Release/use-ktx ${{ env.KTX2_TEST_FILE }}
