@@ -51,7 +51,7 @@ jobs:
       run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_CONFIG }}'
 
     - name: Configure KTX software for MinGW build
-      if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio)'
+      if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio')
       run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_CONFIG }}'
 
     - name: Build KTX software
