@@ -23,15 +23,19 @@ jobs:
           # ".dll.a" extension. I have neither the time nor energy to find out
           # how to change the behaviour. Use VS.
           - os: windows-latest
+            config: Release
             generator: 'Visual Studio 17 2022'
             toolset: v143
           - os: windows-latest
+            config: Release
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
           - os: windows-11-arm
+            config: Release
             generator: 'Visual Studio 17 2022'
             toolset: v143
           - os: windows-11-arm
+            config: Release
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
 
