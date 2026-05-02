@@ -35,7 +35,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
-      BUILD_DIR: "build"
+      BUILD_DIR: build
       WERROR: ON
 
     steps:
@@ -53,5 +53,5 @@ jobs:
 
     - name: Run KTX tools CTS
       continue-on-error: true
-      run: echo 'ctest --output-on-failure --test-dir ${{ BUILD_DIR }} -C Release -R ktxToolsTest'
+      run: echo 'ctest --output-on-failure --test-dir ${{ env.BUILD_DIR }} -C Release -R ktxToolsTest'
 
