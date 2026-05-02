@@ -20,6 +20,7 @@ on:
     paths-ignore:
       - .appveyor.yml
       - .github/workflows/android.yml
+      - .github/workflows/check-determinism.yml
       - .github/workflows/check-libktx-only.yml
       - .github/workflows/check-mkvk.yml
       - .github/workflows/docs.yml

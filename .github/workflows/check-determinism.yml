@@ -1,0 +1,57 @@
+# Copyright 2015-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Check Determinism of Encoder Results Across Plaforms and Compilers
+
+# The purpose of this is to show whether the encoding results are
+# deterministic across platforms and compilers. Do this by building
+# and running the library and tools then running the CTS with an
+# option set so it will expect an exact match and won't use ktxdiff.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-determinism:
+    strategy:
+      matrix:
+        os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-22.04-arm, windows-latest, windows-11-arm ]
+        config: [ Release ]
+        generator: [ 'Ninja Multi-Config' ]
+        exclude:
+          #- os: [ windows-latest, windows-11-arm ]
+          - os: windows-latest
+            generator: 'Ninja Multi-Config'
+        include:
+          # The NMC generator defaults to using GCC and GCC names dlls with
+          # a "lib" prefix and the import files with both the prefix and a
+          # ".dll.a" extension. I have neither the time nor energy to find out
+          # how to change the behaviour. Use VS.
+          #- os: [ windows-latest, windows-11-arm ]
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            config: Release
+            static: OFF
+
+    runs-on: ${{ matrix.os }}
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+      BUILD_DIR: "build"
+      WERROR: ON
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        # Fetch all history to make sure tags are
+        # included (used for version creation)
+        fetch-depth: 0
+
+    - name: Configure KTX software
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D KTX_WERROR=${{ env.WERROR }} -D LIBKTX_VERSION_READ_ONLY=OFF -D KTX_FEATURE_TOOLS=ON -D KTX_FEATURE_TOOLS_CTS=ON -D KTX_TOOLS_CTS_PRIMARY_PLATFORM=ON -D KTX_FEATURE_TESTS ${{ matrix.os }}'
+
+    - name: Build KTX software
+      run: echo 'cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools'
+
+    - name: Run KTX tools CTS
+      continue-on-error: true
+      run: echo 'ctest --output-on-failure --test-dir ${{ BUILD_DIR }} -C Release -R ktxToolsTest'
+
