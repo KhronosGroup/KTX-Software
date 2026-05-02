@@ -47,6 +47,8 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
+        # For the CTS submodule.
+        submodules: true
 
     - name: Configure KTX software build for Linux and macOS
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
