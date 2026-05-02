@@ -17,26 +17,23 @@ jobs:
         os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm ]
         config: [ Release ]
         generator: [ 'Ninja Multi-Config' ]
-        exclude:
-          - os: [ windows-latest, windows-11-arm ]
-          #- os: windows-latest
-            generator: 'Ninja Multi-Config'
         include:
           # The NMC generator defaults to using GCC and GCC names dlls with
           # a "lib" prefix and the import files with both the prefix and a
           # ".dll.a" extension. I have neither the time nor energy to find out
           # how to change the behaviour. Use VS.
-          - os: [ windows-latest, windows-11-arm ]
-          #- os: windows-latest
+          - os: windows-latest
             generator: 'Visual Studio 17 2022'
-            config: Release
-            static: OFF
+            toolset: [v143, CLangCL]
+          - os: windows-11-arm
+            generator: 'Visual Studio 17 2022'
+            toolset: [v143, CLangCL]
 
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: build
-      WERROR: ON
+      STANDARD_CONFIG: '-D KTX_WERROR=ON -D LIBKTX_VERSION_READ_ONLY=OFF -D KTX_FEATURE_TOOLS=ON -D KTX_FEATURE_TOOLS_CTS=ON -D KTX_TOOLS_CTS_PRIMARY_PLATFORM=ON -D KTX_FEATURE_TESTS'
 
     steps:
     - uses: actions/checkout@v6
@@ -45,8 +42,17 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
-    - name: Configure KTX software
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D KTX_WERROR=${{ env.WERROR }} -D LIBKTX_VERSION_READ_ONLY=OFF -D KTX_FEATURE_TOOLS=ON -D KTX_FEATURE_TOOLS_CTS=ON -D KTX_TOOLS_CTS_PRIMARY_PLATFORM=ON -D KTX_FEATURE_TESTS ${{ matrix.os }}'
+    - name: Configure KTX software build for macOS/Linux
+      if: !startsWith(matrix.os, 'windows')
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_CONFIG }}'
+
+    - name: Configure KTX software build for Windows
+      if: startsWith(matrix.generator, 'Visual Studio'
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_CONFIG }}'
+
+    - name: Configure KTX software for MinGW build
+      if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio'
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_CONFIG }}'
 
     - name: Build KTX software
       run: echo 'cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools'
