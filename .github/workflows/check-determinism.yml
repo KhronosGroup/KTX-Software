@@ -14,20 +14,20 @@ jobs:
   check-determinism:
     strategy:
       matrix:
-        os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-22.04-arm, windows-latest, windows-11-arm ]
+        os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm ]
         config: [ Release ]
         generator: [ 'Ninja Multi-Config' ]
         exclude:
-          #- os: [ windows-latest, windows-11-arm ]
-          - os: windows-latest
+          - os: [ windows-latest, windows-11-arm ]
+          #- os: windows-latest
             generator: 'Ninja Multi-Config'
         include:
           # The NMC generator defaults to using GCC and GCC names dlls with
           # a "lib" prefix and the import files with both the prefix and a
           # ".dll.a" extension. I have neither the time nor energy to find out
           # how to change the behaviour. Use VS.
-          #- os: [ windows-latest, windows-11-arm ]
-          - os: windows-latest
+          - os: [ windows-latest, windows-11-arm ]
+          #- os: windows-latest
             generator: 'Visual Studio 17 2022'
             config: Release
             static: OFF
