@@ -54,6 +54,10 @@ jobs:
         # For the CTS submodule.
         submodules: true
 
+    - name: check files for debugging
+      if: matrix.os == 'macos-15-intel'
+      run: find other_include -name zstd_errors.h; /Applications/xcode.app/Contents/Developer/Platforms/MacOSX.*/Developer/SDKs/MacOSX.sdk/usr/include/zstd_errors.h; ls -l other_include/zstd_errors.h; grep getErrorCode other_include/zstd_errors.h
+
     - name: Configure KTX software build for Linux and macOS
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
       if: ${{ !startsWith(matrix.os, 'windows') }}
