@@ -23,9 +23,13 @@ extern "C" {
 #ifndef ZSTDERRORLIB_VISIBILITY
 #  if defined(__GNUC__) && (__GNUC__ >= 4)
 #    define ZSTDERRORLIB_VISIBILITY __attribute__ ((visibility ("default")))
+#warning "Setting _GNUC_ visibility to default"
 #  else
 #    define ZSTDERRORLIB_VISIBILITY
+#warning "Setting VISIBILITY to empty."
 #  endif
+#else
+#warning "Visibility already set"
 #endif
 #if defined(ZSTD_DLL_EXPORT) && (ZSTD_DLL_EXPORT==1)
 #  define ZSTDERRORLIB_API __declspec(dllexport) ZSTDERRORLIB_VISIBILITY
