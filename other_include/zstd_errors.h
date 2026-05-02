@@ -8,8 +8,10 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
+#warning "In expected zstd_errors.h"
 #ifndef ZSTD_ERRORS_H_398273423
 #define ZSTD_ERRORS_H_398273423
+#warning "In expected zstd_errors.h after include guard"
 
 #if defined (__cplusplus)
 extern "C" {
