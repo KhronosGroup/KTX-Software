@@ -51,20 +51,20 @@ jobs:
     - name: Configure KTX software build for Linux and macOS
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
       if: ${{ !startsWith(matrix.os, 'windows') }}
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }}'
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }}
 
     - name: Configure KTX software build for Windows
       if: startsWith(matrix.generator, 'Visual Studio')
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_OPTIONS }}'
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_OPTIONS }}
 
     - name: Configure KTX software for MinGW build
       if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio')
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_OPTIONS }}'
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_OPTIONS }}
 
     - name: Build KTX software
-      run: echo 'cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools'
+      run: cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools
 
     - name: Run KTX tools CTS
       continue-on-error: true
-      run: echo 'ctest --output-on-failure --test-dir ${{ env.BUILD_DIR }} -C Release -R ktxToolsTest'
+      run: ctest --output-on-failure --test-dir ${{ env.BUILD_DIR }} -C Release -R ktxToolsTest
 
