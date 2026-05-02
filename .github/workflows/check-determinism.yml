@@ -24,16 +24,22 @@ jobs:
           # how to change the behaviour. Use VS.
           - os: windows-latest
             generator: 'Visual Studio 17 2022'
-            toolset: [v143, CLangCL]
+            toolset: v143
+          - os: windows-latest
+            generator: 'Visual Studio 17 2022'
+            toolset: CLangCL
           - os: windows-11-arm
             generator: 'Visual Studio 17 2022'
-            toolset: [v143, CLangCL]
+            toolset: v143
+          - os: windows-11-arm
+            generator: 'Visual Studio 17 2022'
+            toolset: CLangCL
 
     runs-on: ${{ matrix.os }}
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       BUILD_DIR: build
-      STANDARD_CONFIG: '-D KTX_WERROR=ON -D LIBKTX_VERSION_READ_ONLY=OFF -D KTX_FEATURE_TOOLS=ON -D KTX_FEATURE_TOOLS_CTS=ON -D KTX_TOOLS_CTS_PRIMARY_PLATFORM=ON -D KTX_FEATURE_TESTS'
+      STANDARD_OPTIONS: '-D KTX_WERROR=ON -D LIBKTX_VERSION_READ_ONLY=OFF -D KTX_FEATURE_TOOLS=ON -D KTX_FEATURE_TOOLS_CTS=ON -D KTX_TOOLS_CTS_PRIMARY_PLATFORM=ON -D KTX_FEATURE_TESTS'
 
     steps:
     - uses: actions/checkout@v6
@@ -43,16 +49,16 @@ jobs:
         fetch-depth: 0
 
     - name: Configure KTX software build for macOS/Linux
-      if: ${{ !startsWith(matrix.os, 'windows') }}
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_CONFIG }}'
+      if: !startsWith(matrix.os, 'windows')
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }}'
 
     - name: Configure KTX software build for Windows
-      if: ${{ startsWith(matrix.generator, 'Visual Studio') }}
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_CONFIG }}'
+      if: startsWith(matrix.generator, 'Visual Studio')
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_OPTIONS }}'
 
     - name: Configure KTX software for MinGW build
       if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio')
-      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_CONFIG }}'
+      run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_OPTIONS }}'
 
     - name: Build KTX software
       run: echo 'cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools'
