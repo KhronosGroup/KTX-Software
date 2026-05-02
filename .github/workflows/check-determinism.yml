@@ -48,8 +48,9 @@ jobs:
         # included (used for version creation)
         fetch-depth: 0
 
-    - name: Configure KTX software build for macOS/Linux
-      if: ${{ !startsWith(matrix.os, 'windows') }}
+    - name: Configure KTX software build for macOS and Linux
+      #if: ${{ !startsWith(matrix.os, 'windows') }}
+      if: !startsWith(matrix.os, 'windows')
       run: echo 'cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }}'
 
     - name: Configure KTX software build for Windows
