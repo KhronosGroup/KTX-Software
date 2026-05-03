@@ -197,6 +197,10 @@ add_compile_options( ${fp_options} )
 
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
+# As a reminder for future struggles to know which include file is being
+# included, a very useful CLI option to know for Clang and GNUC is -H which
+# makes the compiler dump the full path of each include file it has found.
+
 # Macro for common lib settings
 
 macro(common_libktx_settings target enable_write library_type)
@@ -558,8 +562,6 @@ if(LIBKTX_VERSION_READ_ONLY)
 #    add_custom_target(debug_ktx_read_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx_read include dirs = '${includes}'")
 endif()
 
-set_source_files_properties(src/texture2.c src/writer2.c PROPERTIES COMPILE_OPTIONS "$<$<C_COMPILER_ID:AppleClang>:-H;-Wno-error>")
-
 create_version_header(src ktx)
 if(PROJECT_IS_TOP_LEVEL)
     create_version_file()
@@ -619,7 +621,6 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
 endif()
 
-cmake_print_variables(CMAKE_OSX_ARCHITECTURES ASTCENC_ISA_AVX2 ASTCENC_ISA_SSE2 ASTCENC_ISA_SSE2)
 # If we detect the user is doing a universal build defer to astc-encoder
 # to pick the architectures. If a universal build has not been requested,
 # present options to the user to turn off SIMD and, if running on x86_64

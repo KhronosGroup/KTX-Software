@@ -54,14 +54,14 @@ jobs:
         # For the CTS submodule.
         submodules: true
 
-    - name: check files for debugging
+    - name: Set macOS astcenc ISA override for x86_64
       if: matrix.os == 'macos-15-intel'
-      run: cat /usr/local/include/zstd_errors.h
+      run: echo ISA_OVERRIDE='-D ASTCENC_ISA_SSE41=ON' >> $GITHUB_ENV
 
     - name: Configure KTX software build for Linux and macOS
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
       if: ${{ !startsWith(matrix.os, 'windows') }}
-      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }}
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }} ${{ env.ISA_OVERRIDE }}
 
     - name: Configure KTX software build for Windows
       if: startsWith(matrix.generator, 'Visual Studio')
