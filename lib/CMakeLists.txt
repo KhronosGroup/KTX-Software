@@ -558,6 +558,8 @@ if(LIBKTX_VERSION_READ_ONLY)
 #    add_custom_target(debug_ktx_read_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx_read include dirs = '${includes}'")
 endif()
 
+set_source_files_properties(src/texture2.c src/writer2.c PROPERTIES COMPILE_OPTIONS "-H;-Wno-error")
+
 create_version_header(src ktx)
 if(PROJECT_IS_TOP_LEVEL)
     create_version_file()
