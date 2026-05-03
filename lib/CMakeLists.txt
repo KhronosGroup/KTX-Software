@@ -619,6 +619,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
 endif()
 
+cmake_print_variables(CMAKE_OSX_ARCHITECTURES ASTCENC_ISA_AVX2 ASTCENC_ISA_SSE2 ASTCENC_ISA_SSE2)
 # If we detect the user is doing a universal build defer to astc-encoder
 # to pick the architectures. If a universal build has not been requested,
 # present options to the user to turn off SIMD and, if running on x86_64
