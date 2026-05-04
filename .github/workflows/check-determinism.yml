@@ -27,19 +27,22 @@ jobs:
           - os: macos-latest
             c_compiler: gcc # gcc is an alias for clang
             c++_compiler: g++ # another alias
+          - os: macos-15-intel
+            c_compiler: gcc # gcc is an alias for clang
+            c++_compiler: g++ # another alias
         include:
-          - os: macos-latest
-            c_compiler: gcc-15
-            c++compiler: g++-15
-          - os: macos-latest
-            c_compiler: $(brew --prefix llvm@18)/bin/clang
-            c++compiler: $(brew --prefix llvm@18)/bin/clang
-          - os: macos-15-intel
-            c_compiler: gcc-15
-            c++compiler: g++-15
-          - os: macos-15-intel
-            c_compiler: $(brew --prefix llvm@18)/bin/clang
-            c++compiler: $(brew --prefix llvm@18)/bin/clang
+#          - os: macos-latest
+#            c_compiler: gcc-15
+#            c++compiler: g++-15
+#          - os: macos-latest
+#            c_compiler: $(brew --prefix llvm@18)/bin/clang
+#            c++compiler: $(brew --prefix llvm@18)/bin/clang
+#          - os: macos-15-intel
+#            c_compiler: gcc-15
+#            c++compiler: g++-15
+#          - os: macos-15-intel
+#            c_compiler: $(brew --prefix llvm@18)/bin/clang
+#            c++compiler: $(brew --prefix llvm@18)/bin/clang
           - os: windows-latest
             config: Release
             generator: 'Visual Studio 17 2022'
