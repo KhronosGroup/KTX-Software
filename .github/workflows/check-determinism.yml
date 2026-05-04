@@ -61,14 +61,14 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: |
         clang --version
-        $((brew --prefix llvm@18)/bin/clang --version
+        $(brew --prefix llvm@18)/bin/clang --version
         gcc --version
         gcc-13 --version
         gcc-14 --version
         gcc-15 --version
 
     - name: Check languages on Linux runners
-      if: startsWith(matrix.os, 'linux')
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
         clang --version
         clang-16 --version
