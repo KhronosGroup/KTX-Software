@@ -10,6 +10,9 @@ name: Check Determinism of Encoder Results Across Plaforms and Compilers
 on:
   workflow_dispatch:
 
+# macOS runners: clang 17, clang 18 available on $(brew --prefix llvm@18)/bin/clang  & gcc-{13,14,15}
+# Linux runners: clang 16, 17, 18 & gcc-{12,13,14}
+# Windows runners: 
 jobs:
   check-determinism:
     strategy:
@@ -54,6 +57,33 @@ jobs:
         fetch-depth: 0
         # For the CTS submodule.
         submodules: true
+    - name: Check languages on macOS runners
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        clang --version
+        $((brew --prefix llvm@18)/bin/clang --version
+        gcc --version
+        gcc-13 --version
+        gcc-14 --version
+        gcc-15 --version
+
+    - name: Check languages on Linux runners
+      if: startsWith(matrix.os, 'linux')
+      run: |
+        clang --version
+        clang-16 --version
+        clang-17 --version
+        clang-18 --version
+        gcc --version
+        gcc-13 --version
+        gcc-14 --version
+        gcc-15 --version
+
+    - name: Check languages on Windows runners
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        clang --version
+        gcc --version
 
     - name: Set macOS astcenc ISA override for x86_64
       if: matrix.os == 'macos-15-intel'
