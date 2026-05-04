@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm ]
         compiler:
-          - [ clang, clang ]
+          - [ clang, clang++ ]
           - [ gcc, g++ ]
         config: [ Release ]
         generator: [ 'Ninja Multi-Config' ]
@@ -35,7 +35,7 @@ jobs:
             config: Release
             generator: 'Ninja Multi-Config'
           - os: macos-latest
-            compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang ]
+            compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang++ ]
             config: Release
             generator: 'Ninja Multi-Config'
           - os: macos-15-intel
@@ -43,7 +43,7 @@ jobs:
             config: Release
             generator: 'Ninja Multi-Config'
           - os: macos-15-intel
-            compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang ]
+            compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang++ ]
             config: Release
             generator: 'Ninja Multi-Config'
           - os: windows-latest
