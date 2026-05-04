@@ -101,18 +101,14 @@ jobs:
       if: matrix.os == 'macos-15-intel'
       run: echo ISA_OVERRIDE='-D ASTCENC_ISA_SSE41=ON' >> $GITHUB_ENV
 
-    - name: Configure KTX software build for Linux and macOS
+    - name: Configure KTX software build for all but Visual Studio
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
-      if: ${{ !startsWith(matrix.os, 'windows') }}
-      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" ${{ env.STANDARD_OPTIONS }} ${{ env.ISA_OVERRIDE }}
+      if: ${{ !startsWith(matrix.generator, 'Visual Studio') }}
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" CMAKE_C_COMPILER=${{ matrix.compiler[0] }} -D CMAKE_CXX_COMPILER=${{ matrix.compiler[1] }} ${{ env.STANDARD_OPTIONS }} ${{ env.ISA_OVERRIDE }}
 
-    - name: Configure KTX software build for Windows
+    - name: Configure KTX software build for Visual Studio build
       if: startsWith(matrix.generator, 'Visual Studio')
       run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -T ${{ matrix.toolset }} ${{ env.STANDARD_OPTIONS }}
-
-    - name: Configure KTX software for MinGW build
-      if: startsWith(matrix.os, 'windows') && !startsWith(matrix.generator, 'Visual Studio')
-      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ ${{env.STANDARD_OPTIONS }}
 
     - name: Build KTX software
       run: cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools
