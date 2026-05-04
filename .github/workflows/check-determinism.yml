@@ -21,15 +21,14 @@ jobs:
         os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm ]
         config: [ Release ]
         generator: [ 'Ninja Multi-Config' ]
-        c_compiler: [ clang, gcc ]
-        c++_compiler: [ clang, g++ ]
+        compiler:
+          - [ clang, clang ]
+          - [ gcc, g++ ]
         exclude:
           - os: macos-latest
-            c_compiler: gcc # gcc is an alias for clang
-            c++_compiler: g++ # another alias
+            compiler: [ gcc, g++ ] # gcc is an alias for clang
           - os: macos-15-intel
-            c_compiler: gcc # gcc is an alias for clang
-            c++_compiler: g++ # another alias
+            compiler: [ gcc, g++ ] # gcc is an alias for clang
         include:
 #          - os: macos-latest
 #            c_compiler: gcc-15
