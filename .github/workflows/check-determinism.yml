@@ -32,20 +32,20 @@ jobs:
         include:
           - os: macos-latest
             compiler: [ gcc-15, g++-15 ]
-            config: [ Release ]
-            generator: [ 'Ninja Multi-Config' ]
+            config: Release
+            generator: 'Ninja Multi-Config'
           - os: macos-latest
             compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang ]
-            config: [ Release ]
-            generator: [ 'Ninja Multi-Config' ]
+            config: Release
+            generator: 'Ninja Multi-Config'
           - os: macos-15-intel
             compiler: [ gcc-15, g++-15 ]
-            config: [ Release ]
-            generator: [ 'Ninja Multi-Config' ]
+            config: Release
+            generator: 'Ninja Multi-Config'
           - os: macos-15-intel
             compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang ]
-            config: [ Release ]
-            generator: [ 'Ninja Multi-Config' ]
+            config: Release
+            generator: 'Ninja Multi-Config'
           - os: windows-latest
             config: Release
             generator: 'Visual Studio 17 2022'
