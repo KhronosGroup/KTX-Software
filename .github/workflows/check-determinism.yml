@@ -13,6 +13,7 @@ on:
 jobs:
   check-determinism:
     strategy:
+      fail-fast: false
       matrix:
         os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-latest, windows-11-arm ]
         config: [ Release ]
@@ -75,6 +76,5 @@ jobs:
       run: cmake --build ${{ env.BUILD_DIR }} --config=${{ matrix.config }} --target=ktxtools
 
     - name: Run KTX tools CTS
-      continue-on-error: true
       run: ctest --output-on-failure --test-dir ${{ env.BUILD_DIR }} -C Release -R ktxToolsTest
 
