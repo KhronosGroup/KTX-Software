@@ -104,7 +104,7 @@ jobs:
     - name: Configure KTX software build for all but Visual Studio
       # Without the ${{ }}, this line generates a YAML syntax error. Do not understand why.
       if: ${{ !startsWith(matrix.generator, 'Visual Studio') }}
-      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" CMAKE_C_COMPILER=${{ matrix.compiler[0] }} -D CMAKE_CXX_COMPILER=${{ matrix.compiler[1] }} ${{ env.STANDARD_OPTIONS }} ${{ env.ISA_OVERRIDE }}
+      run: cmake -B ${{ env.BUILD_DIR }} -G "${{ matrix.generator }}" -D CMAKE_C_COMPILER=${{ matrix.compiler[0] }} -D CMAKE_CXX_COMPILER=${{ matrix.compiler[1] }} ${{ env.STANDARD_OPTIONS }} ${{ env.ISA_OVERRIDE }}
 
     - name: Configure KTX software build for Visual Studio build
       if: startsWith(matrix.generator, 'Visual Studio')
