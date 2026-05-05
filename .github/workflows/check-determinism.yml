@@ -3,9 +3,14 @@
 name: Check Determinism of Encoder Results Across Plaforms and Compilers
 
 # The purpose of this is to show whether the encoding results are
-# deterministic across platforms and compilers. Do this by building
-# and running the library and tools then running the CTS with an
-# option set so it will expect an exact match and won't use ktxdiff.
+# deterministic across platforms and compilers. It does this by building
+# the library and tools then running the CTS with an option set that
+# requires an exact match and won't use ktxdiff.
+#
+# The test is run across macOS, Ubuntu and Windows on both arm64 and x86_64
+# processors using ktx and libktx compiled with clang and gcc. They are,
+# in addition, compiled with AppleClang on macOS and with ClangCL and msvc
+# on Windows.
 
 on:
   workflow_dispatch:
@@ -26,9 +31,9 @@ jobs:
         generator: [ 'Ninja Multi-Config' ]
         exclude:
           - os: macos-latest
-            compiler: [ gcc, g++ ] # gcc is an alias for clang
+            compiler: [ gcc, g++ ] # Here gcc is an alias for clang
           - os: macos-15-intel
-            compiler: [ gcc, g++ ] # gcc is an alias for clang
+            compiler: [ gcc, g++ ] # ditto
         include:
           - os: macos-latest
             compiler: [ gcc-15, g++-15 ]
