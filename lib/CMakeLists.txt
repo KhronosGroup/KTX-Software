@@ -197,6 +197,10 @@ add_compile_options( ${fp_options} )
 
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
+# As a reminder for future struggles to know which include file is being
+# included, a very useful CLI option to know for Clang and GNUC is -H which
+# makes the compiler dump the full path of each include file it has found.
+
 # Macro for common lib settings
 
 macro(common_libktx_settings target enable_write library_type)
