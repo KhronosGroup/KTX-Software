@@ -3257,6 +3257,95 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
     runTest(u8"astc_8x8_unorm_array_7.ktx2");
 }
 
+//-------------------------------------------------
+// Template for base fixture for BCn decode tests.
+//-------------------------------------------------
+
+class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
+  public:
+    void runTest(const std::u8string& bcnFileName) {
+        ktxTexture2* texture;
+        KTX_error_code result;
+
+        fs::path bcnPath = ktx2Path;
+        bcnPath.replace_filename(bcnFileName);
+        result = ktxTexture2_CreateFromNamedFile(
+            reinterpret_cast<const char*>(bcnPath.u8string().c_str()),
+            KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
+                      from_u8string(bcnPath.u8string()), ktxErrorString(result));
+        EXPECT_NE(texture, nullptr);
+
+        // Check the input file is valid BCn (TODO)
+        khr_df_model_e colormodel = ktxTexture2_GetColorModel_e(texture);
+        ASSERT_TRUE(colormodel == KHR_DF_MODEL_BC1A || colormodel == KHR_DF_MODEL_BC3 ||
+                    colormodel == KHR_DF_MODEL_BC4 || colormodel == KHR_DF_MODEL_BC5 ||
+                    colormodel == KHR_DF_MODEL_BC7)
+            << format(
+                   "Color model of \"{}\" {} is not a BC1, BC3, BC4, BC5, or BC7 encoded test file",
+                   from_u8string(bcnPath.u8string()), dfdToStringColorModel(colormodel));
+        ASSERT_TRUE(texture->isCompressed);
+        ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
+        ASSERT_TRUE(texture->pDfd != nullptr);
+
+        auto height = texture->baseHeight;
+        auto width = texture->baseWidth;
+        auto depth = texture->baseDepth;
+        ASSERT_TRUE(depth == 1);
+        auto numLayers = texture->numLayers;
+        auto isArray = texture->isArray;
+        auto isHdr = ktxTexture2_IsHDR(texture);
+        auto isPremultipliedAlpha = ktxTexture2_GetPremultipliedAlpha(texture);
+        uint32_t* pBdb = texture->pDfd + 1;
+        auto isFloat = (KHR_DFDSVAL(pBdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0U;
+        auto isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+
+        EXPECT_FALSE(isSrgb && isFloat);
+
+        result = ktxTexture2_DecodeBCn(texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS)
+            << format("ktxTexture2_DecodeBCn failed: {}", ktxErrorString(result));
+        // Get the pointer to the updated DFD
+        ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
+        ASSERT_FALSE(texture->isCompressed);
+        ASSERT_TRUE(texture->pDfd != nullptr);
+        pBdb = texture->pDfd + 1;
+        if (isFloat) {
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R16G16B16A16_SFLOAT);
+            EXPECT_NE((KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT), 0U);
+            EXPECT_FALSE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+        } else if (isSrgb)
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
+        else
+            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_UNORM);
+
+        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd + 1, MODEL));
+        EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+        EXPECT_EQ(height, texture->baseHeight);
+        EXPECT_EQ(width, texture->baseWidth);
+        EXPECT_EQ(depth, texture->baseDepth);
+        EXPECT_EQ(numLayers, texture->numLayers);
+        EXPECT_EQ(isArray, texture->isArray);
+        EXPECT_EQ(isHdr, ktxTexture2_IsHDR(texture));
+        EXPECT_EQ(isPremultipliedAlpha, ktxTexture2_GetPremultipliedAlpha(texture));
+
+        if (texture) {
+            ktxTexture2_Destroy(texture);
+        }
+    }
+};
+
+// Test fixtures for BCn decode tests.
+
+////////////////////////////////////////////
+// BCn decode tests
+///////////////////////////////////////////
+
+TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc1) { runTest(u8"color_grid_bc1.ktx2"); }
+
 }  // namespace
 
 

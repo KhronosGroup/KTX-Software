@@ -57,6 +57,7 @@ option( LIBKTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
 option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
+option( LIBKTX_FEATURE_BCN_DECODER "BCn decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
 # when they are useful.
@@ -135,6 +136,7 @@ endif()
 set(LIBKTX_MAIN_SRC
     include/ktx.h
     src/astc_codec.cpp
+    src/bcn_codec.cpp
     src/basis_sgd.h
     src/basis_transcode.cpp
     src/miniz_wrapper.cpp
@@ -176,6 +178,15 @@ set(LIBKTX_MAIN_SRC
 
 if (LIBKTX_FEATURE_ETC_UNPACK)
     list( APPEND LIBKTX_MAIN_SRC ../external/etcdec/etcdec.cxx )
+endif()
+
+if (LIBKTX_FEATURE_BCN_DECODER)
+    list( APPEND LIBKTX_MAIN_SRC 
+        ../external/bc7enc_rdo/rgbcx.h
+        ../external/bc7enc_rdo/rgbcx.cpp
+        ../external/bc7enc_rdo/bc7decomp.h
+        ../external/bc7enc_rdo/bc7decomp.cpp
+    )
 endif()
 
 if(LIBKTX_FEATURE_GL_UPLOAD)
