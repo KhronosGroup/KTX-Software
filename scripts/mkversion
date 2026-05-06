@@ -23,6 +23,10 @@ depth=..
 workdir=$(pwd)
 cd $(dirname $0)/$depth
 
+bash --version
+echo "workdir = $workdir"
+echo "cwd = $(pwd)"
+
 # `man 7 gitrevisions` for the meaning of the output from git describe.
 function genversion() {
   # Try git-describe, then default.
