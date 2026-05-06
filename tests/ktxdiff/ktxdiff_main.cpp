@@ -222,9 +222,8 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
         const auto rhsFloat = imageio::half_to_float(rhs[i]);
         const auto diff = std::abs(lhsFloat - rhsFloat);
         const auto absMin = std::min(std::abs(lhsFloat), std::abs(rhsFloat));
-        const auto calcTolerance = tolerance * absMin;
-        //const auto diff = std::abs(imageio::half_to_float(lhs[i]) - imageio::half_to_float(rhs[i]));
-        if (diff > calcTolerance) //tolerance * absMin)
+        //const auto calcTolerance = tolerance * absMin;
+        if (diff > tolerance * absMin)
             return CompareResult{false, diff, i, i * element_size};
     }
 
