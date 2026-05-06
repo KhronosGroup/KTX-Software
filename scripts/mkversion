@@ -27,6 +27,12 @@ bash --version
 echo "workdir = $workdir"
 echo "cwd = $(pwd)"
 
+if which cygpath > /dev/null ; then
+  workdir=$(cygpath -u $workdir)
+  echo "workdir = $workdir"
+fi
+
+
 # `man 7 gitrevisions` for the meaning of the output from git describe.
 function genversion() {
   # Try git-describe, then default.
