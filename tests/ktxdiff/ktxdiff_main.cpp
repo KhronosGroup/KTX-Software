@@ -204,7 +204,7 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(lhs[i] - rhs[i]);
         const auto absMin = std::min(std::abs(lhs[1]), std::abs(rhs[1]));
-        if (diff > tolerance * absMin / 100.0)
+        if (diff > tolerance * absMin)
             return CompareResult{false, diff, i, i * element_size};
     }
 
@@ -222,10 +222,10 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
         const auto rhsFloat = imageio::half_to_float(rhs[i]);
         const auto diff = std::abs(lhsFloat - rhsFloat);
         const auto absMin = std::min(std::abs(lhsFloat), std::abs(rhsFloat));
-        const auto calcTolerance = tolerance * absMin / 100.0;
+        const auto calcTolerance = tolerance * absMin;
         //const auto diff = std::abs(imageio::half_to_float(lhs[i]) - imageio::half_to_float(rhs[i]));
-        if (diff > calcTolerance) //tolerance * absMin / 100.0)
-            /*return*/ (void)CompareResult{false, diff, i, i * element_size};
+        if (diff > calcTolerance) //tolerance * absMin)
+            return CompareResult{false, diff, i, i * element_size};
     }
 
     return CompareResult{};
@@ -426,6 +426,8 @@ int main(int argc, char* argv[]) {
     if (argc < 3) {
         fmt::print("Missing input file arguments\n");
         fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance]\n");
+        fmt::print("  For normalized formats tolerance is the normalized absolute value of the acceptable difference.\n");
+        fmt::print("  For unnormalized formats it is the fraction of the minimum of the values being compared that is acceptable.\n");
         return EXIT_FAILURE;
     }
 
