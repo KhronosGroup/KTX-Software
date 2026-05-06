@@ -43,7 +43,7 @@ if which cygpath > /dev/null ; then
   #
   # A, presumably, similar call earlier in the build with a current
   # directory of D:\...KTX-Software\lib and a target of src does not
-  # have this problem. I say presumable because since call works the
+  # have this problem. I say presumably because since call works the
   # log does not show the actual command.
   #
   # I have been unable to reproduce the problem on my Windows system
