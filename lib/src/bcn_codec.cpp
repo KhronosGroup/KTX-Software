@@ -16,36 +16,18 @@
  * @author Wasim Abbas , www.arm.com
  */
 
+
+#include "bcn_codec.h"
 #include <assert.h>
 #include <cstring>
 #include <inttypes.h>
 #include <KHR/khr_df.h>
 
-#include "dfdutils/dfd.h"
-#include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
-#include "vkformat_enum.h"
 
-#include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
+// #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
 #include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
-
-#define BCN_BLOCK_SIZE 4
-
-#define BC1_BLOCK_SIZE 8
-#define BC2_BLOCK_SIZE 16
-#define BC3_BLOCK_SIZE 16
-#define BC4_BLOCK_SIZE 8
-#define BC5_BLOCK_SIZE 16
-#define BC6H_BLOCK_SIZE 16
-#define BC7_BLOCK_SIZE 16
-
-#define BC1_OUTPUT_NCHANNELS 4
-#define BC3_OUTPUT_NCHANNELS 4
-#define BC4_OUTPUT_NCHANNELS 1
-#define BC5_OUTPUT_NCHANNELS 2
-#define BC6H_OUTPUT_NCHANNELS 4
-#define BC7_OUTPUT_NCHANNELS 4
 
 //************************************************************************
 //*              Functions common to decoder and encoder                 *
@@ -154,36 +136,6 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void* payload) {
 //*                          Decoder functions                           *
 //************************************************************************
 
-/**
- * @memberof ktxTexture
- * @internal
- * @ingroup reader
- * @~English
- * @brief       Should be used to get uncompressed version of BCn VkFormat
- *
- * The decompressed format is calculated from corresponding BCn format. There are
- * only 3 possible options currently supported. RGBA8, SRGBA8 and RGBA16.
- *
- * @return      Uncompressed version of VKFormat for a specific BCn VkFormat or
- *              VK_FORMAT_UNDEFINED in case the ktxTexture2's vkFormat does not
- *              reflect a BCn compressed texture.
- */
-inline VkFormat
-getUncompressedFormat(ktxTexture2* This) noexcept {
-    switch (This->vkFormat) {
-    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-    case VK_FORMAT_BC3_SRGB_BLOCK:
-    case VK_FORMAT_BC7_SRGB_BLOCK:
-        return VK_FORMAT_R8G8B8A8_SRGB;
-    case VK_FORMAT_BC4_UNORM_BLOCK:
-        return VK_FORMAT_R8_UNORM;
-    case VK_FORMAT_BC5_UNORM_BLOCK:
-        return VK_FORMAT_R8G8_UNORM;
-    default:
-        return VK_FORMAT_UNDEFINED;
-    }
-}
-
 /*
  * Cannot use DECLARE_PRIVATE macro declared in texture.h because it calls the
  * variable `private` which is obviously a no-no in c++. TODO: consider changing.
@@ -232,12 +184,17 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         if (!(channelId == KHR_DF_CHANNEL_BC1A_COLOR || channelId == KHR_DF_CHANNEL_BC1A_ALPHA)) {
             return KTX_FILE_DATA_ERROR;
         }
+        // TODO: expose as parameter
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
     case KHR_DF_MODEL_BC3:
+        rgbcx::init();
         break;
     case KHR_DF_MODEL_BC4:
+        rgbcx::init();
         break;
     case KHR_DF_MODEL_BC5:
+        rgbcx::init();
         break;
     case KHR_DF_MODEL_BC7:
         break;
@@ -257,7 +214,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
 
     DECLARE_PRIVATE_EX(priv, This);
 
-    ktx_uint32_t vkformat = (ktx_uint32_t)getUncompressedFormat(This);
+    ktx_uint32_t vkformat = (ktx_uint32_t)getBCnUncompressedFormat(This->vkFormat);
     if (vkformat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;  // Not in BCn decodable format
     }
@@ -303,6 +260,9 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         }
     }
 
+    // Create intermediate storage to store decoded blocks. Not all blocks
+    // necessarily decode to 4x4x4 but this is enough to hold all possible
+    // combinations (at least for LDR - i.e., not for BC6H formats).
     const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * BC1_OUTPUT_NCHANNELS;
     ktx_uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 64 bytes */
 
@@ -315,8 +275,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
             for (uint32_t faceIndex = 0; faceIndex < This->numFaces; ++faceIndex) {
                 for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths;
                      ++depthSliceIndex) {
-                    ktx_size_t levelImageSizeIn = ktxTexture_calcImageSize(
-                        ktxTexture(This), levelIndex, KTX_FORMAT_VERSION_TWO);
+                    // ktx_size_t levelImageSizeIn = ktxTexture_calcImageSize(
+                    //     ktxTexture(This), levelIndex, KTX_FORMAT_VERSION_TWO);
 
                     ktx_size_t imageOffsetIn;
                     ktx_size_t imageOffsetOut;
@@ -337,13 +297,16 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                     for (size_t y{0}; y < imageHeight; y += BCN_BLOCK_SIZE) {
                         for (size_t x{0}; x < imageWidth; x += BCN_BLOCK_SIZE) {
                             switch (colorModel) {
-                            // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
                             case KHR_DF_MODEL_BC1A:
+                                // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
                                 rgbcx::unpack_bc1(src_blocks, rgba, true);
                                 src_blocks += BC1_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC3:
+                                // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
+                                rgbcx::unpack_bc3(src_blocks, rgba);
+                                src_blocks += BC3_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC4:

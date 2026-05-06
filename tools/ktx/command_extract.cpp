@@ -2,6 +2,7 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "bc7enc_rdo/bc7decomp.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "format_descriptor.h"
@@ -27,6 +28,9 @@
 #include "lodepng/lodepng.h"
 #include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
+
+#include "bc7enc_rdo/rgbcx.h"  // for BC1-BC5 decoders
+#include "bcn_codec.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -184,6 +188,9 @@ private:
                            const FormatDescriptor& format, uint32_t width, uint32_t height,
                            float scale, float offset, const char* data, std::size_t size);
     void unpackAndSave422(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
+    void decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
+                          uint32_t width, uint32_t height, const char* compressedData,
+                          std::size_t compressedSize);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -590,6 +597,180 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             createFormatDescriptor(uncompressedVkFormat, *this),
             width,
             height);
+}
+
+void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
+                                      uint32_t width, uint32_t height, const char* compressedData,
+                                      std::size_t compressedSize) {
+    VkFormat uncompressedVkFormat;
+    std::size_t nchannels;
+    std::size_t expectedCompressedSize;
+    const std::size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
+                                ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
+
+    switch (vkFormat) {
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+        // TODO: for the moment map this to RGBA so that we don't have to add
+        // an additional loop in the decoding code below (rgbcx::unpack_bc1
+        // decodes into RGBA block).
+        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+        nchannels = BC1_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
+        rgbcx::init();
+        break;
+
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC1_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
+        rgbcx::init();
+        break;
+
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+    case VK_FORMAT_BC3_SRGB_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC3_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
+        rgbcx::init();
+        break;
+
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+    case VK_FORMAT_BC4_SNORM_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R8_UNORM;
+        nchannels = BC4_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC4_BLOCK_SIZE * nBlocks;
+        rgbcx::init();
+        break;
+
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+    case VK_FORMAT_BC5_SNORM_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R8G8_UNORM;
+        nchannels = BC5_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC5_BLOCK_SIZE * nBlocks;
+        rgbcx::init();
+        break;
+
+#if 0
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+        break;
+#endif
+
+    case VK_FORMAT_BC7_UNORM_BLOCK:
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC7_OUTPUT_NCHANNELS;
+        expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
+        break;
+
+    default:  // should never occur
+        fatal(rc::RUNTIME_ERROR, "Provided format is not a BCn block-compressed format: {}",
+              static_cast<ktx_uint32_t>(vkFormat));
+        return;
+    }
+
+    // Before doing anything, be absolutely certain that we won't overflow the
+    // compressedData buffer
+    if (compressedSize != expectedCompressedSize) {
+        fatal(rc::RUNTIME_ERROR,
+              "BCn decoding failed. Provided compressed data size does not match the expected "
+              "size. Expected: {} bytes but got: {} bytes",
+              expectedCompressedSize, compressedSize);
+    }
+
+    const std::size_t uncompressedSize = width * height * nchannels;
+    const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
+    auto* bufferPtr = uncompressedBuffer.get();
+
+    // Create intermediate storage to store decoded blocks. Not all blocks
+    // necessarily decode to 4x4x4 but this is enough to hold all possible
+    // combinations (at least for LDR - i.e., not for BC6H formats).
+    const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * 4; /* 4x4 */
+    ktx_uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 4x4x4 = 64 bytes */
+#if 0
+    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];
+#endif
+
+    const ktx_size_t dst_pitch = width * nchannels;
+    const char* src_blocks = compressedData;
+
+    for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
+        for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+            switch (vkFormat) {
+            case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+            case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+            case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+            case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+                // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha is 1-bit encoded or ignored)
+                // Keep set_alpha true otherwise we get a transparent picture
+                // (i.e., we have to set alpha ourselves).
+                rgbcx::unpack_bc1(src_blocks, rgba,
+                                  /* set_alpha */ true);
+                src_blocks += BC1_BLOCK_SIZE;
+                break;
+
+            case VK_FORMAT_BC3_UNORM_BLOCK:
+            case VK_FORMAT_BC3_SRGB_BLOCK:
+                // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
+                rgbcx::unpack_bc3(src_blocks, rgba);
+                src_blocks += BC3_BLOCK_SIZE;
+                break;
+
+            case VK_FORMAT_BC4_UNORM_BLOCK:
+            case VK_FORMAT_BC4_SNORM_BLOCK:
+                // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
+                rgbcx::unpack_bc4(src_blocks, rgba, /* stride */ BC4_OUTPUT_NCHANNELS);
+                src_blocks += BC4_BLOCK_SIZE;
+                break;
+
+            case VK_FORMAT_BC5_UNORM_BLOCK:
+            case VK_FORMAT_BC5_SNORM_BLOCK:
+                // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
+                rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
+                                  /* stride */ BC5_OUTPUT_NCHANNELS);
+                src_blocks += BC5_BLOCK_SIZE;
+                break;
+
+#if 0
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+        break;
+#endif
+
+            case VK_FORMAT_BC7_UNORM_BLOCK:
+            case VK_FORMAT_BC7_SRGB_BLOCK:
+                // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
+                bc7decomp::unpack_bc7(src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
+                src_blocks += BC7_BLOCK_SIZE;
+                break;
+
+            default:
+                return;  // should never occur
+            }
+
+            // now we copy the decoded block into the actual texture image while
+            // taking into consideration that dims may not be a multiple of 4.
+            const ktx_uint8_t* pSrc = rgba;
+            ktx_uint8_t* pDst = bufferPtr + y * dst_pitch + nchannels * x;
+            int cols = fmin(BCN_BLOCK_SIZE, width - x);
+            for (ktx_size_t py{0}; py < BCN_BLOCK_SIZE && y + py < height; ++py) {
+                memcpy(pDst, pSrc, cols * nchannels);
+                pSrc += rgba_pitch;
+                pDst += dst_pitch;
+            }
+        }
+    }
+
+    std::cout << vkFormat << '\n';
+
+    // Range mapping has been handled here so no need to pass the parameters on to
+    // this recursive call.
+    saveImageFile(std::move(filepath), appendExtension,
+                  reinterpret_cast<const char*>(uncompressedBuffer.get()), uncompressedSize,
+                  uncompressedVkFormat, createFormatDescriptor(uncompressedVkFormat, *this), width,
+                  height);
 }
 
 using namespace imageio;
@@ -1378,11 +1559,32 @@ void CommandExtract::saveImageFile(
         saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, {TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF}, data, size);
         break;
 
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_SNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_SNORM_BLOCK: [[fallthrough]];
+#if 0
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK: [[fallthrough]];
+#endif
+    case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        // BCn decode will recurse into this function with the uncompressed data and format
+        decodeAndSaveBCn(std::move(filepath), appendExtension, vkFormat, width, height, data, size);
+        break;
+
     default:
-        fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.", toString(vkFormat));
+        fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.",
+              toString(vkFormat));
     }
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxExtract, ktx::CommandExtract)
