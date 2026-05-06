@@ -23,6 +23,33 @@ depth=..
 workdir=$(pwd)
 cd $(dirname $0)/$depth
 
+if which cygpath > /dev/null ; then
+  # In GHA Windows runner image version 20260428.110.2, the pwd
+  # call to set workdir sometimes returns a Windows style path
+  # which causes the RE near the end of the script to find no
+  # match. Instead of spending time investigating what has been
+  # broken and where, if cygpath exists use it to ensure a unix
+  # style path.
+  workdir=$(cygpath -u $workdir)
+
+  # More details.
+  #
+  # In GHA runners cmake always finds the Git 4 Windows bash, which is
+  # the MinGW version originating from cygwin. The broken runner image
+  # has bash 5.3.9(1)-release and Git 4 Windows 2.54. The call that
+  # has the problem is
+  #
+  # C:\Windows\system32\cmd.exe /C "cd /D D:\a\KTX-Software\KTX-Software && "C:\Program Files\Git\bin\bash.exe" -- D:/a/KTX-Software/KTX-Software/cmake/../scripts/mkversion -o version.h tools/ktx"
+  #
+  # A, presumably, similar call earlier in the build with a current
+  # directory of D:\...KTX-Software\lib and a target of src does not
+  # have this problem. I say presumably because since the call works
+  # the log does not show the actual command.
+  #
+  # I have been unable to reproduce the problem on my Windows system
+  # having the same versions of bash and Git 4 Windows.
+fi
+
 # `man 7 gitrevisions` for the meaning of the output from git describe.
 function genversion() {
   # Try git-describe, then default.
