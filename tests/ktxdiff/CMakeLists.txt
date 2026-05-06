@@ -25,6 +25,7 @@ target_include_directories(
     SYSTEM
 PRIVATE
     $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:imageio,INCLUDE_DIRECTORIES>
     ${PROJECT_SOURCE_DIR}/lib/src
     ${PROJECT_SOURCE_DIR}/other_include
 )

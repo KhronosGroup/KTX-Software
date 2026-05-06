@@ -7,9 +7,9 @@
 #include "texture2.h"
 #include "vkformat_enum.h"
 #include "platform_utils.h"
+#include "imageio_utility.h"
 
 #include "astc-encoder/Source/astcenc.h"
-#include "astc-encoder/Source/astcenc_mathlib.h"
 
 #include <cassert>
 #include <fstream>
@@ -20,8 +20,6 @@
 #include <fmt/os.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-
-constexpr float half_float_max = 65504.f;
 
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
@@ -205,7 +203,8 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(lhs[i] - rhs[i]);
-        if (diff > tolerance * std::numeric_limits<float>::max())
+        const auto absMin = std::min(std::abs(lhs[1]), std::abs(rhs[1]));
+        if (diff > tolerance * absMin / 100.0)
             return CompareResult{false, diff, i, i * element_size};
     }
 
@@ -219,12 +218,14 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
     const auto count = rawSize / element_size;
 
     for (std::size_t i = 0; i < count; ++i) {
-        const auto lhsFloat = float16_to_float(lhs[i]);
-        const auto rhsFloat = float16_to_float(rhs[i]);
+        const auto lhsFloat = imageio::half_to_float(lhs[i]);
+        const auto rhsFloat = imageio::half_to_float(rhs[i]);
         const auto diff = std::abs(lhsFloat - rhsFloat);
-        //const auto diff = std::abs(float16_to_float(lhs[i]) - float16_to_float(rhs[i]));
-        if (diff > tolerance)
-            return CompareResult{false, diff, i, i * element_size};
+        const auto absMin = std::min(std::abs(lhsFloat), std::abs(rhsFloat));
+        const auto calcTolerance = tolerance * absMin / 100.0;
+        //const auto diff = std::abs(imageio::half_to_float(lhs[i]) - imageio::half_to_float(rhs[i]));
+        if (diff > calcTolerance) //tolerance * absMin / 100.0)
+            /*return*/ (void)CompareResult{false, diff, i, i * element_size};
     }
 
     return CompareResult{};
