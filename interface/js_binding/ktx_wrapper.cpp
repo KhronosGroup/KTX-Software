@@ -583,7 +583,7 @@ namespace ktx
  Javascript bindings are provided to:
 
  @li @subpage libktx_js "libktx (in libktx.js)"
- @li @subpage msc_basis_transcoder "Basis Universal Transcoder (in msc_basis_transcoder.js)
+ @li @subpage msc_basis_transcoder "Basis Universal Transcoder (in msc_basis_transcoder.js)"
 
 
  ---
