@@ -3257,6 +3257,187 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
     runTest(u8"astc_8x8_unorm_array_7.ktx2");
 }
 
+//------------------------------------------------------------
+// Template for base fixture for BCn encode and decode tests.
+//------------------------------------------------------------
+
+template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
+class ktxTexture2BCnEncodeDecodeTestBase
+    : public ktxTexture2TestBase<component_type, numComponents, internalformat> {
+  protected:
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::helper;
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFile;
+    using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
+
+  public:
+    void runTest(khr_df_model_e bcn) {
+        ktxTexture2* texture;
+        KTX_error_code result;
+        auto tmpDir = fs::temp_directory_path();
+
+        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+        ASSERT_TRUE(result == KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL)
+            << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        ktx_uint32_t compressedFormat;
+        ktx_uint32_t expectedDecompressedFormat;
+
+        const bool isSRGB = KHR_DFDVAL(texture->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+
+        fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
+        fs::path original;
+        fs::path decoded;
+
+        switch (bcn) {
+          case KHR_DF_MODEL_BC1A:
+            original = tmpDir / "CompressToBC1ThenDecode_original.ktx2";
+            decoded = tmpDir / "CompressToBC1ThenDecode_decoded.ktx2";
+            if (isSRGB) {
+              compressedFormat = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            } else {
+              compressedFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            }
+            break;
+
+          case KHR_DF_MODEL_BC3:
+            original = tmpDir / "CompressToBC3ThenDecode_original.ktx2";
+            decoded = tmpDir / "CompressToBC3ThenDecode_decoded.ktx2";
+            if (isSRGB) {
+              compressedFormat = VK_FORMAT_BC3_SRGB_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            } else {
+              compressedFormat = VK_FORMAT_BC3_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            }
+            break;
+
+          case KHR_DF_MODEL_BC4:
+            original = tmpDir / "CompressToBC4ThenDecode_original.ktx2";
+            decoded = tmpDir / "CompressToBC4ThenDecode_decoded.ktx2";
+            ASSERT_FALSE(isSRGB); // should never occur
+            if (texture->vkFormat == VK_FORMAT_R8_UNORM) {
+              compressedFormat = VK_FORMAT_BC4_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
+            } else {  /* this is tested below */
+              compressedFormat = VK_FORMAT_BC4_SNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8_SNORM;
+            }
+            break;
+
+          case KHR_DF_MODEL_BC5:
+            original = tmpDir / "CompressToBC5ThenDecode_original.ktx2";
+            decoded = tmpDir / "CompressToBC5ThenDecode_decoded.ktx2";
+            ASSERT_FALSE(isSRGB); // should never occur
+            if (texture->vkFormat == VK_FORMAT_R8G8_UNORM) {
+              compressedFormat = VK_FORMAT_BC5_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
+            } else {  /* this is tested below */
+              compressedFormat = VK_FORMAT_BC5_SNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
+            }
+            break;
+
+          case KHR_DF_MODEL_BC7:
+            original = tmpDir / "CompressToBC7ThenDecode_original.ktx2";
+            decoded = tmpDir / "CompressToBC7ThenDecode_decoded.ktx2";
+            if (isSRGB) {
+              compressedFormat = VK_FORMAT_BC7_SRGB_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            } else {
+              compressedFormat = VK_FORMAT_BC7_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            }
+            break;
+
+          default:
+            return;
+        }
+
+        ASSERT_EQ(texture->vkFormat, expectedDecompressedFormat);
+
+        if (ktxMemFile == NULL) {
+          return;
+        }
+
+        result = ktxTexture2_WriteToNamedFile(texture, original.string().c_str());
+        ASSERT_TRUE(result == KTX_SUCCESS);
+
+        auto depth = texture->baseDepth;
+        auto height = texture->baseHeight;
+        auto width = texture->baseWidth;
+        auto dataSize = texture->dataSize;
+
+        ASSERT_TRUE(depth == 1);
+
+        ktxBCnParams params;
+        params.structSize = sizeof(params);
+        params.threadCount = 1;
+        params.bcn = bcn;
+        params.qualityLevel = 10;
+        params.normalMap = false;
+        params.perceptual = false;
+        result = ktxTexture2_CompressBCnEx(texture, &params);
+
+        EXPECT_EQ(result, KTX_SUCCESS);
+        EXPECT_TRUE(texture->vkFormat == compressedFormat);
+
+        uint32_t* pBdb = texture->pDfd + 1;
+        if (isSRGB) {
+            EXPECT_TRUE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
+        }
+        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
+        EXPECT_EQ(model, bcn);
+        EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
+        EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
+        EXPECT_EQ(texture->numLevels, helper.numLevels);
+        EXPECT_EQ(texture->baseDepth, depth);
+        EXPECT_EQ(texture->baseHeight, height);
+        EXPECT_EQ(texture->baseWidth, width);
+        EXPECT_LT(texture->dataSize, dataSize);
+
+        result = ktxTexture2_DecodeBCn(texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << format("ktxTexture2_DecodeBCn failed with error code: {}", ktxErrorString(result));
+        EXPECT_EQ(texture->vkFormat, expectedDecompressedFormat);
+        model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd + 1, MODEL));
+        EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
+        EXPECT_EQ(depth, texture->baseDepth);
+        result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
+        EXPECT_EQ(texture->baseHeight, height);
+        EXPECT_EQ(texture->baseWidth, width);
+        if (texture) {
+            ktxTexture_Destroy(ktxTexture(texture));
+            fs::remove(original);
+            fs::remove(decoded);
+            fs::remove(ktxdiffOut);
+        }
+    }
+};
+
+// Test fixtures for BCn encode and decode tests.
+
+class ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8_ALPHA8> {};
+class ktxTexture2_BC4EncodeDecodeTestR8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 1, GL_R8> {};
+class ktxTexture2_BC5EncodeDecodeTestR8G8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 2, GL_RG8> {};
+
+////////////////////////////////////////////
+// BCn encode & decode tests
+///////////////////////////////////////////
+
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC1ThenDecode) { runTest(KHR_DF_MODEL_BC1A); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC3ThenDecode) { runTest(KHR_DF_MODEL_BC3); }
+TEST_F(ktxTexture2_BC4EncodeDecodeTestR8_UNORM, CompressToBC4ThenDecode) { runTest(KHR_DF_MODEL_BC4); }
+TEST_F(ktxTexture2_BC5EncodeDecodeTestR8G8_UNORM, CompressToBC5ThenDecode) { runTest(KHR_DF_MODEL_BC5); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC7ThenDecode) { runTest(KHR_DF_MODEL_BC7); }
+// TODO: BCn RDO tests (also some tests with some parameters)
+
 //-------------------------------------------------
 // Template for base fixture for BCn decode tests.
 //-------------------------------------------------
@@ -3266,17 +3447,18 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
     void runTest(const std::u8string& bcnFileName) {
         ktxTexture2* texture;
         KTX_error_code result;
-
+        ktx_uint32_t expectedDecompressedFormat;
         fs::path bcnPath = ktx2Path;
         bcnPath.replace_filename(bcnFileName);
+
         result = ktxTexture2_CreateFromNamedFile(
             reinterpret_cast<const char*>(bcnPath.u8string().c_str()),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
 
-        EXPECT_EQ(result, KTX_SUCCESS)
+        ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
                       from_u8string(bcnPath.u8string()), ktxErrorString(result));
-        EXPECT_NE(texture, nullptr);
+        ASSERT_NE(texture, nullptr);
 
         // Check the input file is valid BCn (TODO)
         khr_df_model_e colormodel = ktxTexture2_GetColorModel_e(texture);
@@ -3284,8 +3466,46 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
                     colormodel == KHR_DF_MODEL_BC4 || colormodel == KHR_DF_MODEL_BC5 ||
                     colormodel == KHR_DF_MODEL_BC7)
             << format(
-                   "Color model of \"{}\" {} is not a BC1, BC3, BC4, BC5, or BC7 encoded test file",
+                   "Color model of \"{}\" {} is not a BC1, BC3, BC4, BC5, or BC7 encoded ktx test file",
                    from_u8string(bcnPath.u8string()), dfdToStringColorModel(colormodel));
+
+        switch (texture->vkFormat) {
+          case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+          case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+          case VK_FORMAT_BC3_UNORM_BLOCK:
+          case VK_FORMAT_BC7_UNORM_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
+              break;
+
+          case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+          case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+          case VK_FORMAT_BC3_SRGB_BLOCK:
+          case VK_FORMAT_BC7_SRGB_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
+              break;
+
+          case VK_FORMAT_BC4_UNORM_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
+            break;
+
+          case VK_FORMAT_BC4_SNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8_SNORM;
+            break;
+
+          case VK_FORMAT_BC5_UNORM_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
+              break;
+
+          case VK_FORMAT_BC5_SNORM_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
+              break;
+
+          default:
+            ASSERT_TRUE(false) <<
+              format("VkFormat {} is not of a supported BCn block compression format.", texture->vkFormat);
+            break; // should never occur because of colormodel check above
+        }
+
         ASSERT_TRUE(texture->isCompressed);
         ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
         ASSERT_TRUE(texture->pDfd != nullptr);
@@ -3298,31 +3518,18 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         auto isArray = texture->isArray;
         auto isHdr = ktxTexture2_IsHDR(texture);
         auto isPremultipliedAlpha = ktxTexture2_GetPremultipliedAlpha(texture);
-        uint32_t* pBdb = texture->pDfd + 1;
-        auto isFloat = (KHR_DFDSVAL(pBdb, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0U;
-        auto isSrgb = KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB;
-
-        EXPECT_FALSE(isSrgb && isFloat);
 
         result = ktxTexture2_DecodeBCn(texture);
 
-        EXPECT_EQ(result, KTX_SUCCESS)
+        ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_DecodeBCn failed: {}", ktxErrorString(result));
         // Get the pointer to the updated DFD
         ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
         ASSERT_FALSE(texture->isCompressed);
         ASSERT_TRUE(texture->pDfd != nullptr);
-        pBdb = texture->pDfd + 1;
-        if (isFloat) {
-            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R16G16B16A16_SFLOAT);
-            EXPECT_NE((KHR_DFDSVAL(pBdb, 1, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT), 0U);
-            EXPECT_FALSE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
-        } else if (isSrgb)
-            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_SRGB);
-        else
-            EXPECT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8G8B8A8_UNORM);
-
-        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd + 1, MODEL));
+        uint32_t* pBdb = texture->pDfd + 1;
+        EXPECT_EQ(texture->vkFormat, expectedDecompressedFormat);
+        khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
         EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
         EXPECT_EQ(height, texture->baseHeight);
         EXPECT_EQ(width, texture->baseWidth);
@@ -3345,9 +3552,12 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 ///////////////////////////////////////////
 
 TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc1) { runTest(u8"color_grid_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc3) { runTest(u8"color_grid_bc3.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc4) { runTest(u8"color_grid_bc4.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc5) { runTest(u8"color_grid_bc5.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc7) { runTest(u8"color_grid_bc7.ktx2"); }
 
 }  // namespace
-
 
 GTEST_API_ int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);

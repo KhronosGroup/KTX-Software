@@ -16,18 +16,22 @@
  * @author Wasim Abbas , www.arm.com
  */
 
-
 #include "bcn_codec.h"
 #include <assert.h>
 #include <cstring>
 #include <inttypes.h>
 #include <KHR/khr_df.h>
 
+#include "bc7enc_rdo/bc7enc.h" /* for BC7 encoder */
+#include "bc7enc_rdo/bc7decomp.h"
+
+#include "vkformat_enum.h"
+#include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
 
 // #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
-#include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
+#include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
 
 //************************************************************************
 //*              Functions common to decoder and encoder                 *
@@ -69,69 +73,6 @@ pthread_join(pthread_t thread, void** value) {
 }
 #endif
 
-/**
- * @internal
- * @~English
- * @brief Worker thread helper payload for launchThreads.
- */
-struct LaunchDesc {
-    /** The native thread handle. */
-    pthread_t threadHandle;
-    /** The total number of threads in the thread pool. */
-    int threadCount;
-    /** The thread index in the thread pool. */
-    int threadId;
-    /** The user thread function to execute. */
-    void (*func)(int, int, void*);
-    /** The user thread payload. */
-    void* payload;
-};
-
-/**
- * @internal
- * @~English
- * @brief Helper function to translate thread entry points.
- *
- * Convert a (void*) thread entry to an (int, void*) thread entry, where the
- * integer contains the thread ID in the thread pool.
- *
- * @param p The thread launch helper payload.
- */
-static void*
-launchThreadsHelper(void* p) {
-    LaunchDesc* ltd = (LaunchDesc*)p;
-    ltd->func(ltd->threadCount, ltd->threadId, ltd->payload);
-    return nullptr;
-}
-
-static void
-launchThreads(int threadCount, void (*func)(int, int, void*), void* payload) {
-    // Directly execute single threaded workloads on this thread
-    if (threadCount <= 1) {
-        func(1, 0, payload);
-        return;
-    }
-
-    // Otherwise spawn worker threads
-    LaunchDesc* threadDescs = new LaunchDesc[threadCount];
-    for (int i = 0; i < threadCount; i++) {
-        threadDescs[i].threadCount = threadCount;
-        threadDescs[i].threadId = i;
-        threadDescs[i].payload = payload;
-        threadDescs[i].func = func;
-
-        pthread_create(&(threadDescs[i].threadHandle), nullptr, launchThreadsHelper,
-                       (void*)&(threadDescs[i]));
-    }
-
-    // ... and then wait for them to complete
-    for (int i = 0; i < threadCount; i++) {
-        pthread_join(threadDescs[i].threadHandle, nullptr);
-    }
-
-    delete[] threadDescs;
-}
-
 //************************************************************************
 //*                          Decoder functions                           *
 //************************************************************************
@@ -149,10 +90,13 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void* payload) {
  * @ingroup reader
  * @brief Decodes a ktx2 texture object, if it is BCn encoded (i.e., BC1, BC3,
  * BC4, BC5, or BC7 encoded).
-
- * The decompressed format is calculated from corresponding BCn format. There
- * are only 3 possible options currently supported: RGBA8, SRGBA8 and RGBA32.
- * @note 3d textures are decoded to a multi-slice 3d texture.
+ *
+ * The decompressed format is calculated from corresponding BCn format.
+ * For BC1, BC3, and BC7 the decompressed VkFormat is:
+ * VK_FORMAT_R8G8B8A8_[UNORM|SRGB] depending on the original color space.
+ * For BC4: VK_FORMAT_R8_UNORM
+ * For BC5: VK_FORMAT_R8G8_UNORM
+ *
  *
  * Updates @p This with the decoded image.
  *
@@ -164,9 +108,14 @@ launchThreads(int threadCount, void (*func)(int, int, void*), void* payload) {
  *                              DFD is incorrect: supercompression scheme or
  *                              sample's channelId do not match BCn colorModel.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are not in BCn format.
+ *                              The texture's images are not in BCn format
+ *                              (i.e., either color model is not set to BCn or
+ *                              This->vkFormat does not correspond to the set
+ *                              BCn color model).
  * @exception KTX_INVALID_OPERATION
- *                              The texture object does not contain any data.
+ *                              The texture object does not contain any data
+ *                              (i.e., This->pData is NULL and there is no
+ *                              pending data load).
  * @exception KTX_OUT_OF_MEMORY
  *                              Not enough memory to carry out decoding.
  * @exception KTX_UNSUPPORTED_FEATURE
@@ -179,25 +128,96 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
+    ktx_size_t nchannels;
+    ktx_uint32_t decompressedVkFormat;
+
     switch (colorModel) {
     case KHR_DF_MODEL_BC1A:
         if (!(channelId == KHR_DF_CHANNEL_BC1A_COLOR || channelId == KHR_DF_CHANNEL_BC1A_ALPHA)) {
             return KTX_FILE_DATA_ERROR;
         }
+        nchannels = BC1_OUTPUT_NCHANNELS; /* 4 */
+        // further sanity check on vkFormat
+        switch (This->vkFormat) {
+        case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+        case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+        case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC1)
+        }
         // TODO: expose as parameter
         rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
+
     case KHR_DF_MODEL_BC3:
-        rgbcx::init();
+        nchannels = BC3_OUTPUT_NCHANNELS; /* 4 */
+        switch (This->vkFormat) {
+        case VK_FORMAT_BC3_UNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC3)
+        }
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
+
     case KHR_DF_MODEL_BC4:
-        rgbcx::init();
+        nchannels = BC4_OUTPUT_NCHANNELS; /* 1 */
+        switch (This->vkFormat) {
+        case VK_FORMAT_BC4_UNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8_UNORM;
+            break;
+        case VK_FORMAT_BC4_SNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8_SNORM;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC4)
+        }
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
+
     case KHR_DF_MODEL_BC5:
-        rgbcx::init();
+        nchannels = BC5_OUTPUT_NCHANNELS; /* 2 */
+        switch (This->vkFormat) {
+        case VK_FORMAT_BC5_UNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8_UNORM;
+            break;
+        case VK_FORMAT_BC5_SNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8_SNORM;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC5)
+        }
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
+
+#if 0
+    case KHR_DF_MODEL_BC6H:
+        break;
+#endif
+
     case KHR_DF_MODEL_BC7:
+        nchannels = BC7_OUTPUT_NCHANNELS; /* 4 */
+        switch (This->vkFormat) {
+        case VK_FORMAT_BC7_UNORM_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+        case VK_FORMAT_BC7_SRGB_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC7)
+        }
         break;
+
     default:
         return KTX_INVALID_OPERATION;  // Not in BCn decodable format
     }
@@ -214,17 +234,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
 
     DECLARE_PRIVATE_EX(priv, This);
 
-    ktx_uint32_t vkformat = (ktx_uint32_t)getBCnUncompressedFormat(This->vkFormat);
-    if (vkformat == VK_FORMAT_UNDEFINED) {
-        return KTX_INVALID_OPERATION;  // Not in BCn decodable format
-    }
-
     // Create a prototype texture to use for calculating sizes in the target
     // format and, as useful side effects, provide us with a properly sized
     // data allocation and the DFD for the target format.
     ktxTextureCreateInfo createInfo;
     createInfo.glInternalformat = 0;
-    createInfo.vkFormat = vkformat;
+    createInfo.vkFormat = decompressedVkFormat;
     createInfo.baseWidth = This->baseWidth;
     createInfo.baseHeight = This->baseHeight;
     createInfo.baseDepth = This->baseDepth;
@@ -275,9 +290,6 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
             for (uint32_t faceIndex = 0; faceIndex < This->numFaces; ++faceIndex) {
                 for (uint32_t depthSliceIndex = 0; depthSliceIndex < imageDepths;
                      ++depthSliceIndex) {
-                    // ktx_size_t levelImageSizeIn = ktxTexture_calcImageSize(
-                    //     ktxTexture(This), levelIndex, KTX_FORMAT_VERSION_TWO);
-
                     ktx_size_t imageOffsetIn;
                     ktx_size_t imageOffsetOut;
 
@@ -287,11 +299,10 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                     ktxTexture2_GetImageOffset(prototype, levelIndex, layerIndex,
                                                faceIndex + depthSliceIndex, &imageOffsetOut);
 
-                    auto* imageDataIn = This->pData + imageOffsetIn;
-                    auto* imageDataOut = prototype->pData + imageOffsetOut;
+                    const ktx_uint8_t* imageDataIn = This->pData + imageOffsetIn;
+                    ktx_uint8_t* imageDataOut = prototype->pData + imageOffsetOut;
 
-                    const ktx_size_t dst_pitch = imageWidth * BC1_OUTPUT_NCHANNELS;
-
+                    const ktx_size_t dst_pitch = imageWidth * nchannels;
                     const ktx_uint8_t* src_blocks = imageDataIn;
 
                     for (size_t y{0}; y < imageHeight; y += BCN_BLOCK_SIZE) {
@@ -310,12 +321,24 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                                 break;
 
                             case KHR_DF_MODEL_BC4:
+                                // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
+                                rgbcx::unpack_bc4(src_blocks, rgba,
+                                                  /* stride */ BC4_OUTPUT_NCHANNELS);
+                                src_blocks += BC4_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC5:
+                                // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
+                                rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
+                                                  /* stride */ BC5_OUTPUT_NCHANNELS);
+                                src_blocks += BC5_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC7:
+                                // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
+                                bc7decomp::unpack_bc7(
+                                    src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
+                                src_blocks += BC7_BLOCK_SIZE;
                                 break;
 
                             default:
@@ -326,26 +349,20 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                             // texture image while taking into consideration
                             // that dimenions may not be a multiple of 4.
                             const ktx_uint8_t* pSrc = rgba;
-                            ktx_uint8_t* pDst =
-                                imageDataOut + y * dst_pitch + BC1_OUTPUT_NCHANNELS * x;
-                            int cols = fmin(BCN_BLOCK_SIZE, imageWidth - x);
+                            ktx_uint8_t* pDst = imageDataOut + y * dst_pitch + nchannels * x;
+                            ktx_size_t cols = fmin(BCN_BLOCK_SIZE, imageWidth - x);
                             for (ktx_size_t py{0}; py < BCN_BLOCK_SIZE && y + py < imageHeight;
                                  ++py) {
-                                memcpy(pDst, pSrc, cols * BC1_OUTPUT_NCHANNELS);
+                                memcpy(pDst, pSrc, cols * nchannels);
                                 pSrc += rgba_pitch;
                                 pDst += dst_pitch;
                             }
-                        }
-                    }
-
-                    // astcenc_decompress_image(work.context, work.data, work.data_len;
-                }
-            }
-        }
+                        }  // x blocks
+                    }  // y blocks
+                }  // depth slices
+            }  // faces
+        }  // layers
     }
-
-    // We are done with astcdecoder
-    // astcenc_context_free(astc_context);
 
     if (result == KTX_SUCCESS) {
         // Fix up the current texture
@@ -353,13 +370,15 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         DECLARE_PRIVATE_EX(protoPriv, prototype);
         DECLARE_PROTECTED_EX(protoPrtctd, prototype);
         memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
-        This->vkFormat = vkformat;
+        This->vkFormat = decompressedVkFormat;
         This->isCompressed = prototype->isCompressed;
         This->supercompressionScheme = KTX_SS_NONE;
         priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
+
         // Copy the levelIndex from the prototype to This.
         memcpy(priv._levelIndex, protoPriv._levelIndex,
                This->numLevels * sizeof(ktxLevelIndexEntry));
+
         // Move the DFD and data from the prototype to This.
         free(This->pDfd);
         This->pDfd = prototype->pDfd;
@@ -369,6 +388,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         This->dataSize = prototype->dataSize;
         prototype->pData = 0;
         prototype->dataSize = 0;
+
         // Free SGD data
         This->_private->_sgdByteLength = 0;
         if (This->_private->_supercompressionGlobalData) {
@@ -388,24 +408,27 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
- * @brief Encode and compress a ktx texture with uncompressed images to astc.
+ * @brief Encode and compress a ktx texture with uncompressed images to provided
+ *        BCn format. Currently, only BC1, BC3, BC4, BC5, and BC7 target formats
+ *        are supported.
  *
- * The images are encoded to ASTC block-compressed format. The encoded images
+ * The images are encoded to BCn block-compressed format. The encoded images
  * replace the original images and the texture's fields including the DFD are
  * modified to reflect the new state.
  *
  * Such textures can be directly uploaded to a GPU via a graphics API.
  *
  * @param[in]   This   pointer to the ktxTexture2 object of interest.
- * @param[in]   params pointer to ASTC params object.
+ * @param[in]   params pointer to BCn params object.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are in a block compressed
- *                              format.
+ *                              The texture's images are already in a block
+ *                              compressed format (i.e., This->isCompressed is
+ *                              true).
  * @exception KTX_INVALID_OPERATION
  *                              The texture image's format is a packed format
  *                              (e.g. RGB565).
@@ -414,191 +437,323 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
  *                              8-bits.
  * @exception KTX_INVALID_OPERATION
  *                              The texture's images are 1D. Only 2D images can
- *                              be supercompressed.
+ *                              be block compressed.
  * @exception  KTX_INVALID_OPERATION
- *                              Transfer function of @c This is not sRGB or Linear.
+ *                              Transfer function of @c This is not sRGB or
+ *                              Linear.
  * @exception  KTX_INVALID_OPERATION
  *                              @c params->mode  is HDR but transfer function
  *                              of @c This is sRGB.
- * @exception KTX_INVALID_OPERATION
- *                              ASTC encoder failed to compress image.
- *                              Possibly due to incorrect floating point
- *                              compilation settings. Should not happen
- *                              in release package.
  * @exception KTX_INVALID_OPERATION
  *                              This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
  * @exception KTX_UNSUPPORTED_FEATURE
  *                              @c params->mode is HDR mode which is not
  *                              yet implemented.
- * @exception KTX_UNSUPPORTED_FEATURE
- *                              ASTC encoder not compiled with enough
- *                              capacity for requested block size. Should
- *                              not happen in release package.
  */
-// extern "C" KTX_error_code
-// ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
-//     assert(This->classId == ktxTexture2_c && "Only support ktx2 ASTC.");
-//
-//     ktx_error_code_e result;
-//     ktx_pack_astc_encoder_mode_e mode;
-//
-//     if (!params) return KTX_INVALID_VALUE;
-//
-//     if (params->structSize != sizeof(struct ktxAstcParams)) return KTX_INVALID_VALUE;
-//
-//     if (This->generateMipmaps) return KTX_INVALID_OPERATION;
-//
-//     if (This->supercompressionScheme != KTX_SS_NONE)
-//         return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
-//
-//     if (This->isCompressed)
-//         return KTX_INVALID_OPERATION;  // Only non-block compressed formats
-//                                        // can be encoded into an ASTC format.
-//
-//     if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
-//         return KTX_INVALID_OPERATION;
-//
-//     // Basic descriptor block begins after the total size field.
-//     const uint32_t* BDB = This->pDfd + 1;
-//
-//     uint32_t num_components, component_size;
-//     getDFDComponentInfoUnpacked(This->pDfd, &num_components, &component_size);
-//     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-//     bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
-//     ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
-//
-//     if (component_size != 1)
-//         return KTX_UNSUPPORTED_FEATURE;  // Can only deal with 8-bit components at the moment
-//     if (params->mode == KTX_PACK_ASTC_ENCODER_MODE_DEFAULT) {
-//         if (component_size == 1 || sRGB)
-//             mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
-//         else
-//             mode = KTX_PACK_ASTC_ENCODER_MODE_HDR;
-//     } else {
-//         mode = static_cast<ktx_pack_astc_encoder_mode_e>(params->mode);
-//     }
-//
-//     if (mode == KTX_PACK_ASTC_ENCODER_MODE_HDR && sRGB) return KTX_INVALID_OPERATION;
-//
-//     if (!(sRGB || transfer == KHR_DF_TRANSFER_LINEAR)) return KTX_INVALID_OPERATION;
-//
-//     if (This->pData == NULL) {
-//         result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
-//
-//         if (result != KTX_SUCCESS) return result;
-//     }
-//
-//     ktx_uint32_t threadCount = params->threadCount;
-//     if (threadCount < 1) threadCount = 1;
-//
-//     // VkFormat vkFormat = astcVkFormat(params->blockDimension, sRGB);
-//
-//     // This->numLevels = 0 not allowed for block compressed formats
-//     // But just in case make sure its not zero
-//     This->numLevels = MAX(1, This->numLevels);
-//
-//     // Create a prototype texture to use for calculating sizes in the target
-//     // format and, as useful side effects, provide us with a properly sized
-//     // data allocation and the DFD for the target format.
-//     ktxTextureCreateInfo createInfo;
-//     createInfo.glInternalformat = 0;
-//     // createInfo.vkFormat = vkFormat;
-//     createInfo.baseWidth = This->baseWidth;
-//     createInfo.baseHeight = This->baseHeight;
-//     createInfo.baseDepth = This->baseDepth;
-//     createInfo.generateMipmaps = This->generateMipmaps;
-//     createInfo.isArray = This->isArray;
-//     createInfo.numDimensions = This->numDimensions;
-//     createInfo.numFaces = This->numFaces;
-//     createInfo.numLayers = This->numLayers;
-//     createInfo.numLevels = This->numLevels;
-//     createInfo.pDfd = nullptr;
-//
-//     ktxTexture2* prototype;
-//     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
-//
-//     if (result != KTX_SUCCESS) {
-//         assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
-//         return result;
-//     }
-//
-//     uint32_t block_size_x{6};
-//     uint32_t block_size_y{6};
-//     uint32_t block_size_z{1};
-//     float quality{0};
-//     // uint32_t flags{params->normalMap ? ASTCENC_FLG_MAP_NORMAL : 0};
-//
-//     // Walk in reverse on levels so we don't have to do this later
-//     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
-//
-//     if (!prototype->pData) {
-//         return KTX_OUT_OF_MEMORY;
-//     }
-//
-//     uint8_t* buffer_out = prototype->pData;
-//
-//     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
-//         uint32_t width = MAX(1, This->baseWidth >> level);
-//         uint32_t height = MAX(1, This->baseHeight >> level);
-//         uint32_t depth = MAX(1, This->baseDepth >> level);
-//         ktx_size_t levelImageSizeIn = 0;
-//         ktx_size_t levelImageSizeOut = 0;
-//         ktx_uint32_t levelImages = 0;
-//
-//         levelImages = This->numLayers * This->numFaces * depth;
-//         levelImageSizeIn =
-//             ktxTexture_calcImageSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
-//         levelImageSizeOut =
-//             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
-//         ktx_size_t offset = ktxTexture2_levelDataOffset(This, level);
-//
-//         for (uint32_t image = 0; image < levelImages; image++) {
-//         }
-//     }
-//
-//     // We are done with astcencoder
-//
-//     assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == KHR_DF_MODEL_ASTC &&
-//            "Invalid dfd generated for ASTC image\n");
-//     assert((transfer == KHR_DF_TRANSFER_SRGB
-//                 ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
-//                       KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
-//                 : true) &&
-//            "Not a valid sRGB image\n");
-//
-// // Fix up the current (This) texture
-// #undef DECLARE_PRIVATE
-// #undef DECLARE_PROTECTED
-// #define DECLARE_PRIVATE(n, t2) ktxTexture2_private& n = *(t2->_private)
-// #define DECLARE_PROTECTED(n, t2) ktxTexture_protected& n = *(t2->_protected)
-//
-//     DECLARE_PROTECTED(thisPrtctd, This);
-//     DECLARE_PRIVATE(protoPriv, prototype);
-//     DECLARE_PROTECTED(protoPrtctd, prototype);
-//     memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
-//     // This->vkFormat = vkFormat;
-//     This->isCompressed = prototype->isCompressed;
-//     This->supercompressionScheme = KTX_SS_NONE;
-//     This->_private->_requiredLevelAlignment = protoPriv._requiredLevelAlignment;
-//     // Copy the levelIndex from the prototype to This.
-//     memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
-//            This->numLevels * sizeof(ktxLevelIndexEntry));
-//     // Move the DFD and data from the prototype to This.
-//     free(This->pDfd);
-//     This->pDfd = prototype->pDfd;
-//     prototype->pDfd = 0;
-//     free(This->pData);
-//     This->pData = prototype->pData;
-//     This->dataSize = prototype->dataSize;
-//     prototype->pData = 0;
-//     prototype->dataSize = 0;
-//
-//     ktxTexture2_Destroy(prototype);
-//
-//     KHR_DFDSETVAL(This->pDfd + 1, FLAGS, alphaMode);  // Restore alphaMode flags
-//     return KTX_SUCCESS;
-// }
+extern "C" KTX_error_code
+ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
+    assert(This->classId == ktxTexture2_c && "Only support ktx2 BCn.");
+
+    ktx_error_code_e result;
+
+    if (!params) return KTX_INVALID_VALUE;
+
+    if (params->structSize != sizeof(struct ktxBCnParams)) return KTX_INVALID_VALUE;
+
+    // TODO: why?
+    if (This->generateMipmaps) return KTX_INVALID_OPERATION;
+
+    if (This->supercompressionScheme != KTX_SS_NONE)
+        return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
+
+    if (This->isCompressed)
+        return KTX_INVALID_OPERATION;  // Only non-block compressed formats
+                                       // can be encoded into a BCn format.
+
+    if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
+        return KTX_INVALID_OPERATION;
+
+    // Basic descriptor block begins after the total size field.
+    const uint32_t* BDB = This->pDfd + 1;
+
+    // ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    // bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
+    ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
+    size_t nchannels;
+    VkFormat compressedVkFormat;
+    bc7enc_compress_block_params bc7_cmp_params;
+
+    switch (params->bcn) {
+    case KHR_DF_MODEL_BC1A:
+        // Currently we can only encode RGBA uncompressed textures into BC1
+        // (TODO: I think this makes sense, if we have an R8 channel then using
+        // BC1 makes no sense in the first place).
+        switch (This->vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            compressedVkFormat = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1
+        }
+        nchannels = BC1_OUTPUT_NCHANNELS;
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        break;
+
+    case KHR_DF_MODEL_BC3:
+        switch (This->vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC3_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            compressedVkFormat = VK_FORMAT_BC3_SRGB_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC3
+        }
+        nchannels = BC3_OUTPUT_NCHANNELS;
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        break;
+
+    case KHR_DF_MODEL_BC4:
+        switch (This->vkFormat) {
+        case VK_FORMAT_R8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC4_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8_SNORM:
+            compressedVkFormat = VK_FORMAT_BC4_SNORM_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC4
+        }
+        nchannels = BC4_OUTPUT_NCHANNELS;
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        break;
+
+    case KHR_DF_MODEL_BC5:
+        switch (This->vkFormat) {
+        case VK_FORMAT_R8G8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC5_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8G8_SNORM:
+            compressedVkFormat = VK_FORMAT_BC5_SNORM_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC5
+        }
+        nchannels = BC5_OUTPUT_NCHANNELS;
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        break;
+
+    case KHR_DF_MODEL_BC7:
+        switch (This->vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC7_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            compressedVkFormat = VK_FORMAT_BC7_SRGB_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC7
+        }
+        nchannels = BC7_OUTPUT_NCHANNELS;
+        // MUST be called before calling bc7enc_compress_block() (or you'll get artifacts).
+        bc7enc_compress_block_init();
+        bc7enc_compress_block_params_init(&bc7_cmp_params);
+        break;
+
+    default:
+        return KTX_INVALID_VALUE;  // Provided color model is not BCn
+    }
+
+    if (This->pData == NULL) {
+        result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
+        if (result != KTX_SUCCESS) return result;
+    }
+
+    ktx_uint32_t threadCount = params->threadCount;
+    if (threadCount < 1) threadCount = 1;
+
+    // This->numLevels = 0 not allowed for block compressed formats
+    // But just in case make sure it's not zero
+    This->numLevels = MAX(1, This->numLevels);
+
+    // Create a prototype texture to use for calculating sizes in the target
+    // format and, as useful side effects, provide us with a properly sized
+    // data allocation and the DFD for the target format.
+    ktxTextureCreateInfo createInfo;
+    createInfo.glInternalformat = 0;
+    createInfo.vkFormat = compressedVkFormat;
+    createInfo.baseWidth = This->baseWidth;
+    createInfo.baseHeight = This->baseHeight;
+    createInfo.baseDepth = This->baseDepth;
+    createInfo.generateMipmaps = This->generateMipmaps;
+    createInfo.isArray = This->isArray;
+    createInfo.numDimensions = This->numDimensions;
+    createInfo.numFaces = This->numFaces;
+    createInfo.numLayers = This->numLayers;
+    createInfo.numLevels = This->numLevels;
+    createInfo.pDfd = nullptr;
+
+    ktxTexture2* prototype;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+
+    if (result != KTX_SUCCESS) {
+        assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
+        return result;
+    }
+
+    assert(prototype->dataSize && "Prototype texture size not initialized.\n");
+
+    if (!prototype->pData) {
+        return KTX_OUT_OF_MEMORY;
+    }
+
+    // This is where the decoded LDR BCn block is saved.
+    const size_t pixels_pitch{BCN_BLOCK_SIZE * 4};   // 4 x 4
+    uint8_t pPixels[BCN_BLOCK_SIZE * pixels_pitch];  // 4 x 4 x 4
+
+#if 0
+    uint16_t pPixelsHdr [BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
+#endif
+
+    // TODO: why in reverse?
+    for (int32_t level = This->numLevels - 1; level >= 0; --level) {
+        uint32_t width = MAX(1, This->baseWidth >> level);
+        uint32_t height = MAX(1, This->baseHeight >> level);
+        uint32_t depth = MAX(1, This->baseDepth >> level);
+        ktx_size_t levelImageSizeIn = 0;
+        ktx_size_t levelImageSizeOut = 0;
+        const ktx_uint32_t levelImages = This->numLayers * This->numFaces * depth;
+
+        levelImageSizeIn =
+            ktxTexture_calcImageSize(ktxTexture(This), level, KTX_FORMAT_VERSION_TWO);
+        levelImageSizeOut =
+            ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
+
+        const size_t levelDataOffsetIn = ktxTexture2_levelDataOffset(This, level);
+
+        // Points to start of raw source/destination compressed blocks image
+        // data within this miplevl (e.g., for 3D texture and for miplevel 0,
+        // this initially points to start of first depth slice image data, then
+        // this gets update to point to next slice and so on until we exit this
+        // loop and this gets initialized again to point to start of depth slice
+        // 0 withing next mip level)
+        const ktx_uint8_t* pSrcLevelImage = This->pData + levelDataOffsetIn;
+
+        // points to start of destination image within this miplevel
+        ktx_uint8_t* pDstLevelImage = prototype->pData /* + levelDataOffset */;
+        const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+
+        for (uint32_t image = 0; image < levelImages; image++) {
+            // Row-major loop over blocks
+            for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
+                for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+                    // Extract/Copy source block
+                    for (size_t i{0}; i < BCN_BLOCK_SIZE; ++i) {
+                        // copy 4 pixels (32bpp) to pPixels
+                        memcpy(pPixels + i * pixels_pitch,
+                               pSrcLevelImage + (y + i) * width * nchannels + x * nchannels,
+                               pixels_pitch);
+                    }
+
+                    const auto xBlock = x / BCN_BLOCK_SIZE;
+                    const auto yBlock = y / BCN_BLOCK_SIZE;
+
+                    switch (params->bcn) {
+                    case KHR_DF_MODEL_BC1A:
+                        // BC1: 4 x 4 x 4 = 64 bytes -> 8 bytes
+                        rgbcx::encode_bc1(
+                            10, pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
+                            reinterpret_cast<const uint8_t*>(pPixels), true, false);
+                        break;
+
+                    case KHR_DF_MODEL_BC3:
+                        // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
+                        rgbcx::encode_bc3(
+                            10, pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
+                            reinterpret_cast<const uint8_t*>(pPixels));
+                        break;
+
+                    case KHR_DF_MODEL_BC4:
+                        // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
+                        rgbcx::encode_bc4(
+                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
+                            reinterpret_cast<const uint8_t*>(pPixels),
+                            /* stride */ BC4_OUTPUT_NCHANNELS);
+                        break;
+
+                    case KHR_DF_MODEL_BC5:
+                        // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
+                        rgbcx::encode_bc5(
+                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
+                            reinterpret_cast<const uint8_t*>(pPixels), 0, 1,
+                            /* stride */ BC5_OUTPUT_NCHANNELS);
+                        break;
+
+                    case KHR_DF_MODEL_BC7:
+                        // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
+                        bc7enc_compress_block(
+                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
+                            reinterpret_cast<const uint8_t*>(pPixels), &bc7_cmp_params);
+                        break;
+
+                    default:
+                        return KTX_INVALID_VALUE;  // should never occur
+                    }
+                }  // x blocks
+            }  // y blocks
+
+            pDstLevelImage += levelImageSizeOut;  // next destination image within this miplevel
+            pSrcLevelImage += levelImageSizeIn;   // next source image within this miplevel
+        }
+    }
+
+    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == params->bcn &&
+           "Invalid dfd generated for BCn image\n");
+    // assert((transfer == KHR_DF_TRANSFER_SRGB
+    //             ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
+    //                   KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
+    //             : true) &&
+    //        "Not a valid sRGB image\n");
+
+// Fix up the current (This) texture
+#undef DECLARE_PRIVATE
+#undef DECLARE_PROTECTED
+#define DECLARE_PRIVATE(n, t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED(n, t2) ktxTexture_protected& n = *(t2->_protected)
+
+    DECLARE_PROTECTED(thisPrtctd, This);
+    DECLARE_PRIVATE(protoPriv, prototype);
+    DECLARE_PROTECTED(protoPrtctd, prototype);
+    memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
+    This->vkFormat = prototype->vkFormat;
+    This->isCompressed = prototype->isCompressed;
+    This->supercompressionScheme = KTX_SS_NONE;
+    This->_private->_requiredLevelAlignment = protoPriv._requiredLevelAlignment;
+
+    // Copy the levelIndex from the prototype to This.
+    memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
+           This->numLevels * sizeof(ktxLevelIndexEntry));
+
+    // Move the DFD and data from the prototype to This.
+    free(This->pDfd);
+    This->pDfd = prototype->pDfd;
+    prototype->pDfd = 0;
+    free(This->pData);
+    This->pData = prototype->pData;
+    This->dataSize = prototype->dataSize;
+    prototype->pData = 0;
+    prototype->dataSize = 0;
+
+    ktxTexture2_Destroy(prototype);
+
+    KHR_DFDSETVAL(This->pDfd + 1, FLAGS, alphaMode);  // Restore alphaMode flags
+    return KTX_SUCCESS;
+}
 
 /**
  * @memberof ktxTexture2
@@ -636,17 +791,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
  *                              be supercompressed.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out supercompression.
  */
-// extern "C" KTX_error_code
-// ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality) {
-//     return ktxTexture2_CompressAstcEx(This, NULL);
-// }
+extern "C" KTX_error_code
+ktxTexture2_CompressBcnEx(ktxTexture2*, ktxBCnParams) {
+    return KTX_INVALID_OPERATION;
+}
 
-// extern "C" KTX_error_code
-// ktxTexture2_CompressBcnEx(ktxTexture2*) {
-//     return KTX_INVALID_OPERATION;
-// }
-//
-// extern "C" KTX_error_code
-// ktxTexture2_CompressBcn(ktxTexture2*, ktx_uint32_t) {
-//     return KTX_INVALID_OPERATION;
-// }
+extern "C" KTX_error_code
+ktxTexture2_CompressBcn(ktxTexture2*, ktx_uint32_t) {
+    return KTX_INVALID_OPERATION;
+}

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "utils.h"
 
 #define ERT_FAVOR_CONT_AND_REP0_MATCHES (1)
 #define ERT_FAVOR_REP0_MATCHES (0)

@@ -1389,6 +1389,40 @@ typedef struct ktxAstcParams {
           */
 } ktxAstcParams;
 
+typedef struct ktxBCnParams {
+    ktx_uint32_t structSize;
+        /*!< Size of this struct. Used so library can tell which version
+             of struct is being passed.
+         */
+
+    ktx_uint32_t threadCount;
+        /*!< Number of threads used for compression. Default is 1.
+         */
+
+    khr_df_model_e bcn;
+        /*!< BCn format to compress to. E.g., for BC7 this should be set to:
+         * KHR_DF_MODEL_BC7
+         */
+
+    ktx_uint32_t qualityLevel;
+        /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive
+         */
+
+    ktx_bool_t normalMap;
+        /*!< Tunes codec parameters for better quality on normal maps
+          In this mode normals are compressed to X,Y components
+          Discarding Z component, reader will need to generate Z
+          component in shaders.
+         */
+
+    ktx_bool_t perceptual;
+        /*!< The codec should optimize for perceptual error, instead of direct
+           RMS error. This aims to improves perceived image quality, but
+           typically lowers the measured PSNR score. Perceptual methods are
+           currently only available for normal maps and RGB color data.
+         */
+} ktxBCnParams;
+
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params);
 
@@ -1400,6 +1434,14 @@ ktxTexture2_DecodeAstc(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeBCn(ktxTexture2* This);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params);
+
+#if 0
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_CompressBCn(ktxTexture2* This /*, ktx_bcn_compression_e bcn, ktx_uint32_t quality */);
+#endif
 
 /**
  * @~English

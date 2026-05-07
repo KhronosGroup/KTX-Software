@@ -763,8 +763,6 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
         }
     }
 
-    std::cout << vkFormat << '\n';
-
     // Range mapping has been handled here so no need to pass the parameters on to
     // this recursive call.
     saveImageFile(std::move(filepath), appendExtension,
