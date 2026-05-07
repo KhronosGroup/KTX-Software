@@ -1,6 +1,5 @@
-// Copyright 2022-2023 The Khronos Group Inc.
+// Copyright 2022-2026 The Khronos Group Inc.
 // Copyright 2022-2023 RasterGrid Kft.
-// float16_to_float32 code Copyright 2011-2021 Arm Limited
 // SPDX-License-Identifier: Apache-2.0
 
 #include "ktx.h"
@@ -8,6 +7,7 @@
 #include "texture2.h"
 #include "vkformat_enum.h"
 #include "platform_utils.h"
+#include "imageio_utility.h"
 
 #include "astc-encoder/Source/astcenc.h"
 
@@ -20,7 +20,6 @@
 #include <fmt/os.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
-
 
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
@@ -38,86 +37,6 @@ template <class To, class From>
     To dst;
     std::memcpy(&dst, &src, sizeof(To));
     return dst;
-}
-
-[[nodiscard]] constexpr inline bool isFormatAstc(VkFormat format) noexcept {
-    switch (format) {
-    case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_3x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x3x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x3_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_4x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x4x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x4_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_5x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x5x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x5_SFLOAT_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x6_UNORM_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x6_SRGB_BLOCK_EXT: [[fallthrough]];
-    case VK_FORMAT_ASTC_6x6x6_SFLOAT_BLOCK_EXT:
-        return true;
-    default:
-        return false;
-    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -237,146 +156,6 @@ void Texture::loadMetadata() {
 
 // -------------------------------------------------------------------------------------------------
 
-// float16 to float conversion code is taken from ARM's ASTC encoder under
-// its Apache 2.0 license. Copyright is credited at the top of this file.
-
-// Union for manipulation of float bit patterns
-typedef union
-{
-    uint32_t u;
-    int32_t s;
-    float f;
-} if32;
-
-typedef uint16_t sf16;
-typedef uint32_t sf32;
-
-#if defined(__GNUC__) && (defined(__i386) || defined(__amd64))
-#elif defined(__arm__) && defined(__ARMCC_VERSION)
-#elif defined(__arm__) && defined(__GNUC__)
-#else
-	/* table used for the slow default versions. */
-	static const uint8_t clz_table[256] =
-	{
-		8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
-		3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-	};
-#endif
-
-/* 32-bit count-leading-zeros function: use the Assembly instruction whenever possible. */
-static uint32_t clz32(uint32_t inp)
-{
-	#if defined(__GNUC__) && (defined(__i386) || defined(__amd64))
-		uint32_t bsr;
-		__asm__("bsrl %1, %0": "=r"(bsr):"r"(inp | 1));
-		return 31 - bsr;
-	#else
-		#if defined(__arm__) && defined(__ARMCC_VERSION)
-			return __clz(inp);			/* armcc builtin */
-		#else
-			#if defined(__arm__) && defined(__GNUC__)
-				uint32_t lz;
-				__asm__("clz %0, %1": "=r"(lz):"r"(inp));
-				return lz;
-			#else
-				/* slow default version */
-				uint32_t summa = 24;
-				if (inp >= UINT32_C(0x10000))
-				{
-					inp >>= 16;
-					summa -= 16;
-				}
-				if (inp >= UINT32_C(0x100))
-				{
-					inp >>= 8;
-					summa -= 8;
-				}
-				return summa + clz_table[inp];
-			#endif
-		#endif
-	#endif
-}
-
-/* convert from FP16 to FP32. */
-static sf32 sf16_to_sf32(sf16 inp)
-{
-	uint32_t inpx = inp;
-
-	/*
-		This table contains, for every FP16 sign/exponent value combination,
-		the difference between the input FP16 value and the value obtained
-		by shifting the correct FP32 result right by 13 bits.
-		This table allows us to handle every case except denormals and NaN
-		with just 1 table lookup, 2 shifts and 1 add.
-	*/
-
-	#define WITH_MSB(a) (UINT32_C(a) | (1u << 31))
-	static const uint32_t tbl[64] =
-	{
-		WITH_MSB(0x00000), 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
-		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
-		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000,          0x1C000,
-		         0x1C000,  0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, 0x1C000, WITH_MSB(0x38000),
-		WITH_MSB(0x38000), 0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
-		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
-		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000,          0x54000,
-		         0x54000,  0x54000, 0x54000, 0x54000, 0x54000, 0x54000, 0x54000, WITH_MSB(0x70000)
-	};
-
-	uint32_t res = tbl[inpx >> 10];
-	res += inpx;
-
-	/* Normal cases: MSB of 'res' not set. */
-	if ((res & WITH_MSB(0)) == 0)
-	{
-		return res << 13;
-	}
-
-	/* Infinity and Zero: 10 LSB of 'res' not set. */
-	if ((res & 0x3FF) == 0)
-	{
-		return res << 13;
-	}
-
-	/* NaN: the exponent field of 'inp' is non-zero. */
-	if ((inpx & 0x7C00) != 0)
-	{
-		/* All NaNs are quietened. */
-		return (res << 13) | 0x400000;
-	}
-
-	/* Denormal cases */
-	uint32_t sign = (inpx & 0x8000) << 16;
-	uint32_t mskval = inpx & 0x7FFF;
-	uint32_t leadingzeroes = clz32(mskval);
-	mskval <<= leadingzeroes;
-	return (mskval >> 8) + ((0x85 - leadingzeroes) << 23) + sign;
-}
-
-/* convert from half-float to native-float */
-float float16_to_float(uint16_t h)
-{
-    if32 i;
-    i.u = sf16_to_sf32(h);
-    return i.f;
-}
-
-// -------------------------------------------------------------------------------------------------
-
 struct CompareResult {
     bool match = true;
     float difference = 0.f;
@@ -399,6 +178,23 @@ CompareResult compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t 
     return CompareResult{};
 }
 
+CompareResult compareUnorm16(const char* rawLhs, const char* rawRhs, std::size_t rawSize,
+                            float tolerance) {
+    const auto* lhs = reinterpret_cast<const uint16_t*>(rawLhs);
+    const auto* rhs = reinterpret_cast<const uint16_t*>(rawRhs);
+    const auto element_size = sizeof(uint16_t);
+    const auto count = rawSize / element_size;
+
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto diff =
+            std::abs(static_cast<float>(lhs[i]) / 65535.f - static_cast<float>(rhs[i]) / 65535.f);
+        if (diff > tolerance) return CompareResult{false, diff, i, i * element_size};
+    }
+
+    return CompareResult{};
+}
+
+
 CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
     const auto* lhs = reinterpret_cast<const float*>(rawLhs);
     const auto* rhs = reinterpret_cast<const float*>(rawRhs);
@@ -407,7 +203,8 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(lhs[i] - rhs[i]);
-        if (diff > tolerance)
+        const auto absMin = std::min(std::abs(lhs[1]), std::abs(rhs[1]));
+        if (diff > tolerance * absMin)
             return CompareResult{false, diff, i, i * element_size};
     }
 
@@ -421,8 +218,12 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
     const auto count = rawSize / element_size;
 
     for (std::size_t i = 0; i < count; ++i) {
-        const auto diff = std::abs(float16_to_float(lhs[i]) - float16_to_float(rhs[i]));
-        if (diff > tolerance)
+        const auto lhsFloat = imageio::half_to_float(lhs[i]);
+        const auto rhsFloat = imageio::half_to_float(rhs[i]);
+        const auto diff = std::abs(lhsFloat - rhsFloat);
+        const auto absMin = std::min(std::abs(lhsFloat), std::abs(rhsFloat));
+        //const auto calcTolerance = tolerance * absMin;
+        if (diff > tolerance * absMin)
             return CompareResult{false, diff, i, i * element_size};
     }
 
@@ -513,14 +314,18 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
     const auto blockSizeY = texelBlockDimension1 + 1u;
     const auto blockSizeZ = texelBlockDimension2 + 1u;
     const bool isFormatSRGB = KHR_DFDVAL(bdfd, TRANSFER) == KHR_DF_TRANSFER_SRGB;
+    const bool isFormatAstc = KHR_DFDVAL(bdfd, MODEL) == KHR_DF_MODEL_ASTC;
 
     const bool isSigned = (KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_SIGNED) != 0;
     const bool isFloat = (KHR_DFDSVAL(bdfd, 0, QUALIFIERS) & KHR_DF_SAMPLE_DATATYPE_FLOAT) != 0;
-    const bool isNormalized = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER) == (isFloat ? bit_cast<uint32_t>(1.0f) : 1u);
+    const bool isNormalized = KHR_DFDSVAL(bdfd, 0, SAMPLEUPPER) != (isFloat ? bit_cast<uint32_t>(1.0f) : 1u);
     const bool is32Bit = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1 == 32;
+    const bool is16Bit = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1 == 16;
     const bool is8Bit = KHR_DFDSVAL(bdfd, 0, BITLENGTH) + 1 == 8;
     const bool isFormatSFloat32 = isSigned && isFloat && is32Bit && vkFormat != VK_FORMAT_D32_SFLOAT_S8_UINT;
+    const bool isFormatSFloat16 = isSigned && isFloat && is16Bit;
     const bool isFormatUNORM8 = !isSigned && !isFloat && is8Bit && isNormalized;
+    const bool isFormatUNORM16 = !isSigned && !isFloat && is16Bit && isNormalized;
 
     const auto mismatch = [&](const auto& fmt, auto&&... args) {
         fmt::print("ktxdiff: ");
@@ -556,8 +361,8 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         if (lhs.sgdSize != rhs.sgdSize || std::memcmp(lhs.sgdData, rhs.sgdData, lhs.sgdSize) != 0)
             return mismatch("Mismatching SGD");
 
-    // If the tolerance is 1 or above accept every image data as matching
-    if (tolerance >= 1.0f)
+    // If the tolerance is 1 or above and data is normalized, accept every image data as matching
+    if (isNormalized && tolerance >= 1.0f)
         return true;
 
     for (uint32_t levelIndex = 0; levelIndex < lhs->numLevels; ++levelIndex) {
@@ -578,13 +383,15 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
                     CompareResult result;
                     if ((lhs.transcoded && !isFloat) || isFormatUNORM8) {
                         result = compareUnorm8(imageDataLhs, imageDataRhs, imageSize, tolerance);
-                   } else if (lhs.transcoded && isFloat) {
+                    } else if ((lhs.transcoded && isFloat) || isFormatSFloat16) {
                         result = compareSFloat16(imageDataLhs, imageDataRhs, imageSize, tolerance);
-                   } else if (isFormatAstc(vkFormat)) {
-                        result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth, imageHeight,
-                                lhs.filepath, rhs.filepath,
-                                isFloat, isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
-                                tolerance);
+                    } else if (isFormatUNORM16) {
+                        result = compareUnorm16(imageDataLhs, imageDataRhs, imageSize, tolerance);
+                    } else if (isFormatAstc) {
+                        result = compareAstc(imageDataLhs, imageDataRhs, imageSize, imageWidth,
+                                             imageHeight, lhs.filepath, rhs.filepath, isFloat,
+                                             isFormatSRGB, blockSizeX, blockSizeY, blockSizeZ,
+                                             tolerance);
                     } else if (isFormatSFloat32) {
                         result = compareSFloat32(imageDataLhs, imageDataRhs, imageSize, tolerance);
                     } else {
@@ -618,6 +425,8 @@ int main(int argc, char* argv[]) {
     if (argc < 3) {
         fmt::print("Missing input file arguments\n");
         fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance]\n");
+        fmt::print("  For normalized formats tolerance is the normalized absolute value of the acceptable difference.\n");
+        fmt::print("  For unnormalized formats it is the fraction of the minimum of the values being compared that is acceptable.\n");
         return EXIT_FAILURE;
     }
 

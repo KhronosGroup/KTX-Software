@@ -18,14 +18,15 @@ target_include_directories(
 PRIVATE
     .
     $<TARGET_PROPERTY:ktx,INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
+    ${PROJECT_SOURCE_DIR}/lib/src
+    ${PROJECT_SOURCE_DIR}/tools/imageio
 )
 
 target_include_directories(
     ktxdiff
-    SYSTEM
+SYSTEM
 PRIVATE
-    $<TARGET_PROPERTY:objUtil,INTERFACE_INCLUDE_DIRECTORIES>
-    ${PROJECT_SOURCE_DIR}/lib/src
     ${PROJECT_SOURCE_DIR}/other_include
 )
 
