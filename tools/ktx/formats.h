@@ -894,4 +894,32 @@ namespace ktx {
     }
 }
 
+[[nodiscard]] constexpr inline bool isFormatBCn(VkFormat format) noexcept {
+    switch (format) {
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
+#if 0
+    case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
+#endif
+    case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_SNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_SNORM_BLOCK: [[fallthrough]];
+#if 0
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+#endif
+    case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        return true;
+    default:
+        return false;
+    }
+}
+
 } // namespace ktx

@@ -1389,38 +1389,89 @@ typedef struct ktxAstcParams {
           */
 } ktxAstcParams;
 
+/**
+ * @~English
+ * @brief Options specifiying BC1/BC3 encoding/decoding approximation modes.
+ */
+typedef enum ktx_bc1_approx_mode_e {
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL = 0,
+        /*!< The default mode. No rounding for 4-color colors 2,3. This matches
+           the D3D10 docs on BC1.
+         */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA = 1,
+        /*!< NVidia GPU mode. May produce artifacts on non-NVidia GPUs. */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD = 2,
+        /*!< AMD GPU mode. May produce artifacts on non-AMD GPUs. */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4 = 3,
+        /*!< Matches AMD Compressonator's output. Rounds 4-color colors 2,3 (not
+           3-color color 2). This matches the D3D9 docs on DXT1.
+         */
+} ktx_bc1_approx_mode_e;
+
+/**
+ * @~English
+ * @brief Options specifiying BC1/BC3 encoding quality levels.
+ */
+typedef enum ktx_pack_bc1_quality_levels_e {
+    KTX_PACK_BC1_QUALITY_LEVEL_FASTEST  = 0U,
+        /*!< Fastest compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_FAST   = 5U,
+        /*!< Fast compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM   = 10U,
+        /*!< Medium compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH   = 15U,
+        /*!< Slower compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE = 19U,
+        /*!< Very slow compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_MAX = KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Maximum supported quality level. */
+} ktx_pack_bc1_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_bc1_quality_levels;
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing extended parameters to
+ *        ktxTexture2_CompressBCnEx.
+ *
+ * Since it makes no sense to set the target BCn format to some default value,
+ * this struct does not have a default initializer. I.e., initializing this 0
+ * (e.g. " = {0};") is not supported.
+ */
 typedef struct ktxBCnParams {
     ktx_uint32_t structSize;
         /*!< Size of this struct. Used so library can tell which version
              of struct is being passed.
          */
 
+    // TODO: add comment about RDO (because RDO has its own integrated MT...)
     ktx_uint32_t threadCount;
-        /*!< Number of threads used for compression. Default is 1.
-         */
+        /*!< Number of threads used for compression. Default is 1. */
 
     khr_df_model_e bcn;
         /*!< BCn format to compress to. E.g., for BC7 this should be set to:
-         * KHR_DF_MODEL_BC7
+           KHR_DF_MODEL_BC7. Only options related to the provided target BCn
+           format are used.
          */
 
-    ktx_uint32_t qualityLevel;
-        /*!< astcenc supports -fastest, -fast, -medium, -thorough, -exhaustive
+    ktx_bc1_approx_mode_e bc1ApproxMode;
+        /*!< BC1/BC3 approximation mode (for both: encoding and decoding).
+           Default is KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL.
+          
+           If you encode textures for a specific vendor's GPU's, beware that
+           using that texture data on other GPU's may result in ugly artifacts.
+           Encode to KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL unless you know the
+           texture data will only be deployed or used on a specific vendor's
+           GPU.
          */
 
-    ktx_bool_t normalMap;
-        /*!< Tunes codec parameters for better quality on normal maps
-          In this mode normals are compressed to X,Y components
-          Discarding Z component, reader will need to generate Z
-          component in shaders.
+    ktx_uint32_t bc1CompressionQuality;
+        /*!< BC1/BC3 compression quality. Range is [0,19]. Default is 5. 
+           Lower values give faster compression speed but potentially lower
+           quality. Higher values give slower compression speed but potentially
+           better quality.
          */
-
-    ktx_bool_t perceptual;
-        /*!< The codec should optimize for perceptual error, instead of direct
-           RMS error. This aims to improves perceived image quality, but
-           typically lowers the measured PSNR score. Perceptual methods are
-           currently only available for normal maps and RGB color data.
-         */
+        
 } ktxBCnParams;
 
 KTX_API KTX_error_code KTX_APIENTRY

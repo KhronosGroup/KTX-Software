@@ -11,9 +11,11 @@
  * @file
  * @~English
  *
- * @brief Functions for compressing a texture to ASTC format and decoding one in ASTC format..
+ * @brief Functions for compressing a texture to BCn format and decoding one in
+ *        BCn format. Currently supported BCn formats are: BC1, BC3, BC4, BC5,
+ *        and BC7.
  *
- * @author Wasim Abbas , www.arm.com
+ * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
  */
 
 #include "bcn_codec.h"
@@ -22,16 +24,14 @@
 #include <inttypes.h>
 #include <KHR/khr_df.h>
 
-#include "bc7enc_rdo/bc7enc.h" /* for BC7 encoder */
-#include "bc7enc_rdo/bc7decomp.h"
+#include "bc7enc_rdo/bc7enc.h"    /* for BC7 encoder */
+#include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
+#include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
 
 #include "vkformat_enum.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture2.h"
-
-// #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
-#include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
 
 //************************************************************************
 //*              Functions common to decoder and encoder                 *
@@ -302,6 +302,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                     const ktx_uint8_t* imageDataIn = This->pData + imageOffsetIn;
                     ktx_uint8_t* imageDataOut = prototype->pData + imageOffsetOut;
 
+                    // Probably very little benefit of using multithreading here
+
                     const ktx_size_t dst_pitch = imageWidth * nchannels;
                     const ktx_uint8_t* src_blocks = imageDataIn;
 
@@ -310,6 +312,9 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                             switch (colorModel) {
                             case KHR_DF_MODEL_BC1A:
                                 // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
+                                // TODO: BC1 with punchthrough alpha should already be supported,
+                                // right? (since we already right to 4x4x4 block and then to an RGBA
+                                // texture)?
                                 rgbcx::unpack_bc1(src_blocks, rgba, true);
                                 src_blocks += BC1_BLOCK_SIZE;
                                 break;
@@ -476,9 +481,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     // Basic descriptor block begins after the total size field.
     const uint32_t* BDB = This->pDfd + 1;
-
-    // ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    // bool sRGB = transfer == KHR_DF_TRANSFER_SRGB;
     ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
     size_t nchannels;
     VkFormat compressedVkFormat;
@@ -500,7 +502,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1
         }
         nchannels = BC1_OUTPUT_NCHANNELS;
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
     case KHR_DF_MODEL_BC3:
@@ -515,7 +517,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC3
         }
         nchannels = BC3_OUTPUT_NCHANNELS;
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
     case KHR_DF_MODEL_BC4:
@@ -530,7 +532,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC4
         }
         nchannels = BC4_OUTPUT_NCHANNELS;
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
     case KHR_DF_MODEL_BC5:
@@ -545,7 +547,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC5
         }
         nchannels = BC5_OUTPUT_NCHANNELS;
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
     case KHR_DF_MODEL_BC7:
@@ -648,6 +650,9 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         ktx_uint8_t* pDstLevelImage = prototype->pData /* + levelDataOffset */;
         const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
 
+        // TODO: add and profile multithreading (contrary to decoding, encoding
+        // BC7 takes singnificantly much longer).
+
         for (uint32_t image = 0; image < levelImages; image++) {
             // Row-major loop over blocks
             for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
@@ -667,14 +672,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                     case KHR_DF_MODEL_BC1A:
                         // BC1: 4 x 4 x 4 = 64 bytes -> 8 bytes
                         rgbcx::encode_bc1(
-                            10, pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
+                            params->bc1CompressionQuality,
+                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
                             reinterpret_cast<const uint8_t*>(pPixels), true, false);
                         break;
 
                     case KHR_DF_MODEL_BC3:
                         // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
                         rgbcx::encode_bc3(
-                            10, pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
+                            params->bc1CompressionQuality,
+                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
                             reinterpret_cast<const uint8_t*>(pPixels));
                         break;
 

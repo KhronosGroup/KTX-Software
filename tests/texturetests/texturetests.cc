@@ -3378,9 +3378,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         params.structSize = sizeof(params);
         params.threadCount = 1;
         params.bcn = bcn;
-        params.qualityLevel = 10;
-        params.normalMap = false;
-        params.perceptual = false;
+        params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
         EXPECT_EQ(result, KTX_SUCCESS);
