@@ -4700,13 +4700,13 @@ namespace basisu
 #if BASISU_WASI_THREADS
 	// Default to 8 - seems reasonable.
 	static int g_num_wasi_threads = 8;
-#else
-	static int g_num_wasi_threads = 0;
 #endif
 
 	void set_num_wasi_threads(uint32_t num_threads)
 	{
+#ifdef __wasi__
 		g_num_wasi_threads = num_threads;
+#endif
 	}
 
 	int get_num_hardware_threads()
