@@ -746,7 +746,9 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
 
     enum_<basis_tex_format>("TextureFormat")
         .value("ETC1S", basis_tex_format::cETC1S)
-        .value("UASTC4x4", basis_tex_format::cUASTC4x4)
+        .value("UASTC_LDR_4x4", basis_tex_format::cUASTC4x4)
+        .value("UASTC_HDR_4x4", basis_tex_format::cUASTC_HDR_4x4)
+        .value("UASTC_HDR_6x6_INTERMEDIATE", basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE)
     ;
 
     enum_<msc::TranscodeFlagBits>("TranscodeFlagBits")
