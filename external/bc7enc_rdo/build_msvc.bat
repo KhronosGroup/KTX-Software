@@ -1,0 +1,1 @@
+cmake -D SUPPORT_BC7E=TRUE .
