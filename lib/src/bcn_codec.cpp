@@ -139,6 +139,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         nchannels = BC1_OUTPUT_NCHANNELS; /* 4 */
         // further sanity check on vkFormat
         switch (This->vkFormat) {
+        // TODO: encode BC1 RGB (no Alpha) into RGB
         case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
         case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
             decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
@@ -313,7 +314,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                             case KHR_DF_MODEL_BC1A:
                                 // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
                                 // TODO: BC1 with punchthrough alpha should already be supported,
-                                // right? (since we already right to 4x4x4 block and then to an RGBA
+                                // right? (since we already write to 4x4x4 block and then to an RGBA
                                 // texture)?
                                 rgbcx::unpack_bc1(src_blocks, rgba, true);
                                 src_blocks += BC1_BLOCK_SIZE;
@@ -492,6 +493,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         // (TODO: I think this makes sense, if we have an R8 channel then using
         // BC1 makes no sense in the first place).
         switch (This->vkFormat) {
+        case VK_FORMAT_R8G8B8_UNORM:
+            compressedVkFormat = VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+            break;
+        case VK_FORMAT_R8G8B8_SRGB:
+            compressedVkFormat = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+            break;
         case VK_FORMAT_R8G8B8A8_UNORM:
             compressedVkFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
             break;

@@ -1471,6 +1471,10 @@ typedef struct ktxBCnParams {
            quality. Higher values give slower compression speed but potentially
            better quality.
          */
+
+    ktx_bool_t normalMap;
+        /*!< Currently un-used (added for same code structure with ASTC
+         * encoder). */
         
 } ktxBCnParams;
 

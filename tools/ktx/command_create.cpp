@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "command.h"
+#include "encode_utils_bcn.h"
 #include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
@@ -151,7 +152,7 @@ struct OptionsCreate {
                     "\n    R16G16B16_SFLOAT"
                     "\n    R16G16B16A16_SFLOAT"
                     "\nIf the format is an ASTC format the ASTC encoder specific options become valid,"
-                    " otherwise they are ignored."
+                    " otherwise they are ignored. Likewise for a BCn format."
                     "\nThe format will be used to verify and load all input files into a texture before encoding."
                     " Case insensitive. Required.", cxxopts::value<std::string>(), "<enum>")
                 (k1D, "Create a 1D texture. If not set the texture will be a 2D or 3D texture.")
@@ -580,6 +581,16 @@ struct OptionsCreate {
                 VK_FORMAT_B8G8R8A8_SRGB,
                 VK_FORMAT_A8B8G8R8_UNORM_PACK32,
                 VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+                VK_FORMAT_BC1_RGB_UNORM_BLOCK,
+                VK_FORMAT_BC1_RGB_SRGB_BLOCK,
+                VK_FORMAT_BC1_RGBA_UNORM_BLOCK,
+                VK_FORMAT_BC1_RGBA_SRGB_BLOCK,
+                VK_FORMAT_BC3_UNORM_BLOCK,
+                VK_FORMAT_BC3_SRGB_BLOCK,
+                VK_FORMAT_BC4_UNORM_BLOCK,
+                VK_FORMAT_BC5_UNORM_BLOCK,
+                VK_FORMAT_BC7_UNORM_BLOCK,
+                VK_FORMAT_BC7_SRGB_BLOCK,
                 VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
                 VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
                 VK_FORMAT_ASTC_5x4_UNORM_BLOCK,
@@ -1142,6 +1153,7 @@ Create a KTX2 file from various input files.
     encoder has been selected. Common encoder options become valid when an
     encoder they apply to has been selected. Otherwise they are ignored.
     @snippet{doc} ktx/encode_utils_astc.h command options_encode_astc
+    @snippet{doc} ktx/encode_utils_bcn.h command options_encode_bcn
     @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
     @snippet{doc} ktx/encode_utils_common.h command options_encode_common
     @snippet{doc} ktx/metrics_utils.h command options_metrics
@@ -1242,7 +1254,7 @@ Transfer function handling proceeds as follows:
 */
 class CommandCreate : public Command {
 private:
-    Combine<OptionsCreate, OptionsEncodeASTC, OptionsEncodeBasis<false>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
+    Combine<OptionsCreate, OptionsEncodeASTC, OptionsEncodeBCn, OptionsEncodeBasis<false>, OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsMultiInSingleOut, OptionsGeneric> options;
 
     uint32_t targetChannelCount = 0; // Derived from VkFormat
 
@@ -1263,6 +1275,7 @@ private:
     void executeCreate();
     void encodeBasis(KTXTexture2& texture, OptionsEncodeBasis<false>& opts);
     void encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts);
+    void encodeBCn(KTXTexture2& texture, OptionsEncodeBCn& opts);
     void compress(KTXTexture2& texture, const OptionsDeflate& opts);
 
 private:
@@ -1289,6 +1302,8 @@ private:
 
     void checkNumInputImages();
     void checkSpecsMatch(const ImageInput& current, const ImageSpec& firstSpec);
+
+    VkFormat decompressedBCnFormat(VkFormat format) const;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -1345,14 +1360,25 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         checkNumInputImages();
     }
 
-    if (!isFormatAstc(options.vkFormat)) {
+    const bool isASTC = isFormatAstc(options.vkFormat);
+    const bool isBCn = isFormatBCn(options.vkFormat);
+
+    if (!isASTC && !isBCn) {
         for (const char* astcOption : OptionsEncodeASTC::kAstcOptions)
             if (args[astcOption].count())
                 fatal_usage("--{} can only be used with ASTC formats.", astcOption);
-    } else {
+        for (const char* bcnOption : OptionsEncodeBCn::kBCnOptions)
+            if (args[bcnOption].count())
+                fatal_usage("--{} can only be used with BCn formats.", bcnOption);
+    } else if (isASTC) {
         fillOptionsCodecAstc<decltype(options)>(options);
         if (options.OptionsEncodeCommon::noSSE)
             fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
+    } else /* isBCn */ {
+        // TODO: I have just copied this from ASTC above - need to verify this
+        fillOptionsCodecBCn<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with BCn encode", OptionsEncodeCommon::kNoSse);
     }
 
     if (options.selectedCodec == BasisCodec::BasisLZ) {
@@ -1415,8 +1441,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                             options.selectedCodec == BasisCodec::UASTC_LDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
-    const auto astcCodec = isFormatAstc(options.vkFormat);
-    const auto canCompare = basisCodec || astcCodec;
+    const auto canCompare = basisCodec || isASTC || isBCn;
 
     if (basisCodec)
         fillOptionsCodecBasis<decltype(options)>(options);
@@ -1426,7 +1451,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (options.compare_psnr && !canCompare)
         fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
 
-    if (isFormatAstc(options.vkFormat) && !options.raw) {
+    if (isASTC && !options.raw) {
         options.encodeASTC = true;
 
         switch (options.vkFormat) {
@@ -1506,8 +1531,50 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         }
     }
 
-    if (options._1d && options.encodeASTC)
-        fatal_usage("ASTC format {} cannot be used for 1 dimensional textures (indicated by --1d).",
+    if (isBCn && !options.raw) {
+        options.encodeBCn = true;
+
+        switch (options.vkFormat) {
+          case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC1A;
+            break;
+#if 0
+          case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC2_SRGB_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC2;
+            break;
+#endif
+          case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC3_SRGB_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC3;
+            break;
+          case VK_FORMAT_BC4_UNORM_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC4;
+            break;
+          case VK_FORMAT_BC5_UNORM_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC5;
+            break;
+#if 0
+          case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC6H;
+            break;
+#endif
+          case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
+          case VK_FORMAT_BC7_SRGB_BLOCK:
+            options.bcn = KHR_DF_MODEL_BC7;
+            break;
+        default:
+            fatal(rc::NOT_SUPPORTED, "{} is unsupported for BCn encoding.", toString(options.vkFormat));
+            break;
+        }
+    }
+
+    if (options._1d && (options.encodeASTC || options.encodeBCn))
+        fatal_usage("{} format {} cannot be used for 1 dimensional textures (indicated by --1d).", options.encodeASTC ? "ASTC" : "BCn",
                 toString(options.vkFormat));
 
 }
@@ -1673,8 +1740,12 @@ void CommandCreate::executeCreate() {
 
                 checkNumInputImages();
 
+                // Overwrite options' vkFormat because ASTC/BCn encoding is performed by first creating an RGBA8 texture
+                // then encoding it using ktxTexture2_CompressAstcEx/ktxTexture2_CompressBCnEx
                 if (options.encodeASTC)
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
+                if (options.encodeBCn)
+                  options.vkFormat = decompressedBCnFormat(options.vkFormat);
 
                 firstImageSpec = inputImageFile->spec();
 
@@ -2034,13 +2105,15 @@ void CommandCreate::executeCreate() {
         encodeBasis(texture, options);
     if (options.encodeASTC)
         encodeASTC(texture, options);
+    if (options.encodeBCn)
+        encodeBCn(texture, options);
 
     metrics.decodeAndCalculateMetrics(texture, options, *this);
 
     compress(texture, options);
 
-    // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    // Add KTXwriterScParams metadata if ASTC encoding, BCn encoding, BasisU encoding, or other supercompression was used
+    const auto writerScParams = fmt::format("{}{}{}{}{}", options.astcOptions, options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
@@ -2071,6 +2144,12 @@ void CommandCreate::encodeASTC(KTXTexture2& texture, OptionsEncodeASTC& opts) {
     const auto ret = ktxTexture2_CompressAstcEx(texture, &opts);
     if (ret != KTX_SUCCESS)
         fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec ASTC. KTX Error: {}", ktxErrorString(ret));
+}
+
+void CommandCreate::encodeBCn(KTXTexture2& texture, OptionsEncodeBCn& opts) {
+    const auto ret = ktxTexture2_CompressBCnEx(texture, &opts);
+    if (ret != KTX_SUCCESS)
+        fatal(rc::KTX_FAILURE, "Failed to encode KTX2 file with codec BCn. KTX Error: {}", ktxErrorString(ret));
 }
 
 void CommandCreate::compress(KTXTexture2& texture, const OptionsDeflate& opts) {
@@ -2344,6 +2423,20 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
 
         // Input files that have 16-bit components must be truncated to
         // 8 bits with a right-shift and a warning must be generated in the stderr.
+
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+    case VK_FORMAT_BC3_SRGB_BLOCK:
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+    case VK_FORMAT_BC7_UNORM_BLOCK:
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        requireUNORM(8);
+        assert(false && "Internal error");
+        return {};
 
     case VK_FORMAT_ASTC_4x4_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_ASTC_4x4_SRGB_BLOCK: [[fallthrough]];
@@ -3117,6 +3210,33 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
                 currentFile.filename(), toString(currentFile.spec().origin()), toString(firstSpec.origin()));
         }
     }
+}
+
+VkFormat CommandCreate::decompressedBCnFormat(VkFormat format) const {
+  switch (format) {
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+      return VK_FORMAT_R8G8B8A8_UNORM;
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+      return VK_FORMAT_R8G8B8A8_SRGB;
+    case VK_FORMAT_BC2_UNORM_BLOCK:
+    case VK_FORMAT_BC2_SRGB_BLOCK:
+      return VK_FORMAT_UNDEFINED;
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+      return VK_FORMAT_R8G8B8A8_UNORM;
+    case VK_FORMAT_BC3_SRGB_BLOCK:
+      return VK_FORMAT_R8G8B8A8_SRGB;
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+      return VK_FORMAT_R8_UNORM;
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+      return VK_FORMAT_R8G8_UNORM;
+    case VK_FORMAT_BC7_UNORM_BLOCK:
+      return VK_FORMAT_R8G8B8A8_UNORM;
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+      return VK_FORMAT_R8G8B8A8_SRGB;
+    default: return VK_FORMAT_UNDEFINED;
+  }
 }
 
 } // namespace ktx
