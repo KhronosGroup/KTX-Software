@@ -2,7 +2,8 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
+# TODO: revert this before merging!!
 [submodule "tests/cts"]
 	path = tests/cts
-	url = https://github.com/KhronosGroup/KTX-Software-CTS.git
+	url = https://github.com/walcht/KTX-Software-CTS.git
 	branch = main

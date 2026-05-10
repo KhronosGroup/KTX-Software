@@ -55,8 +55,7 @@
 //
 // To reduce the compiled size of the encoder, set #define RGBCX_USE_SMALLER_TABLES to 1 before including this header.
 //
-#ifndef RGBCX_INCLUDE_H
-#define RGBCX_INCLUDE_H
+#pragma once
 
 #ifdef _MSC_VER
 #pragma warning (disable:4201) //nameless struct/union
@@ -424,10 +423,6 @@ namespace rgbcx
 	};
 
 }
-#endif // #ifndef RGBCX_INCLUDE_H
-
-#ifdef RGBCX_IMPLEMENTATION
-#endif //#ifdef RGBCX_IMPLEMENTATION
 
 /*
 ------------------------------------------------------------------------------
