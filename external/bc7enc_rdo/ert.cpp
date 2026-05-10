@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "utils.h"
 
 #define ERT_FAVOR_CONT_AND_REP0_MATCHES (1)
 #define ERT_FAVOR_REP0_MATCHES (0)
@@ -366,7 +365,8 @@ namespace ert
 			memcpy(best_block, pOrig_block, block_size_to_optimize_in_bytes);
 
 			float best_t = cur_t;
-			uint32_t best_match_len = 0, best_match_src_window_ofs = 0, best_match_dst_window_ofs = 0, best_match_src_block_ofs = 0, best_match_dst_block_ofs = 0;
+			uint32_t best_match_len = 0, best_match_src_window_ofs = 0, best_match_dst_window_ofs = 0, best_match_dst_block_ofs = 0;
+      [[maybe_unused]] uint32_t best_match_src_block_ofs = 0;
 			float best_match_bits = 0;
 
 			// Don't let thresh_ms_err be 0 to let zero error blocks have slightly increased distortion
@@ -557,7 +557,8 @@ namespace ert
 
 			if (best_t < cur_t)
 			{
-				uint32_t best_second_match_len = 0, best_second_match_src_window_ofs = 0, best_second_match_dst_window_ofs = 0, best_second_match_src_block_ofs = 0, best_second_match_dst_block_ofs = 0;
+				uint32_t best_second_match_len = 0, best_second_match_src_window_ofs = 0, best_second_match_dst_window_ofs = 0, best_second_match_dst_block_ofs = 0;
+        [[maybe_unused]] uint32_t best_second_match_src_block_ofs = 0;
 								
 				// Try injecting a second match, being sure it does't overlap with the first.
 				if ((params.m_try_two_matches) && (best_match_len <= (block_size_to_optimize_in_bytes - 3)))

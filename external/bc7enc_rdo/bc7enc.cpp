@@ -11,22 +11,22 @@
 static inline int32_t clampi(int32_t value, int32_t low, int32_t high) { if (value < low) value = low; else if (value > high) value = high;	return value; }
 static inline float clampf(float value, float low, float high) { if (value < low) value = low; else if (value > high) value = high;	return value; }
 static inline float saturate(float value) { return clampf(value, 0, 1.0f); }
-static inline uint8_t minimumub(uint8_t a, uint8_t b) { return (a < b) ? a : b; }
+[[maybe_unused]] static inline uint8_t minimumub(uint8_t a, uint8_t b) { return (a < b) ? a : b; }
 static inline int32_t minimumi(int32_t a, int32_t b) { return (a < b) ? a : b; }
 static inline uint32_t minimumu(uint32_t a, uint32_t b) { return (a < b) ? a : b; }
 static inline float minimumf(float a, float b) { return (a < b) ? a : b; }
-static inline uint8_t maximumub(uint8_t a, uint8_t b) { return (a > b) ? a : b; }
+[[maybe_unused]] static inline uint8_t maximumub(uint8_t a, uint8_t b) { return (a > b) ? a : b; }
 static inline uint32_t maximumu(uint32_t a, uint32_t b) { return (a > b) ? a : b; }
-static inline int32_t maximumi(int32_t a, int32_t b) { return (a > b) ? a : b; }
+[[maybe_unused]] static inline int32_t maximumi(int32_t a, int32_t b) { return (a > b) ? a : b; }
 static inline float maximumf(float a, float b) { return (a > b) ? a : b; }
 static inline int squarei(int i) { return i * i; }
 static inline float squaref(float i) { return i * i; }
 template <typename T0, typename T1> inline T0 lerp(T0 a, T0 b, T1 c) { return a + (b - a) * c; }
 
 static inline int32_t iabs32(int32_t v) { uint32_t msk = v >> 31; return (v ^ msk) - msk; }
-static inline void swapub(uint8_t* a, uint8_t* b) { uint8_t t = *a; *a = *b; *b = t; }
+[[maybe_unused]] static inline void swapub(uint8_t* a, uint8_t* b) { uint8_t t = *a; *a = *b; *b = t; }
 static inline void swapu(uint32_t* a, uint32_t* b) { uint32_t t = *a; *a = *b; *b = t; }
-static inline void swapf(float* a, float* b) { float t = *a; *a = *b; *b = t; }
+[[maybe_unused]] static inline void swapf(float* a, float* b) { float t = *a; *a = *b; *b = t; }
 
 struct vec4F { float m_c[4]; };
 
@@ -2456,7 +2456,7 @@ static const uint8_t g_tdefl_large_dist_extra[128] =
 	13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13
 };
 
-static inline uint32_t compute_match_cost_estimate(uint32_t dist, uint32_t match_len_in_bytes)
+[[maybe_unused]] static inline uint32_t compute_match_cost_estimate(uint32_t dist, uint32_t match_len_in_bytes)
 {
 	assert(match_len_in_bytes <= 258);
 
@@ -2508,7 +2508,7 @@ private:
 	uint64_t m_total2;
 };
 
-static inline float compute_block_max_std_dev(const color_rgba* pPixels)
+[[maybe_unused]] static inline float compute_block_max_std_dev(const color_rgba* pPixels)
 {
 	tracked_stat r_stats, g_stats, b_stats, a_stats;
 
