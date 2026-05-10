@@ -176,9 +176,9 @@ jobs:
       # Earlier runner images only have NSIS 3.08 so install latest everywhere.
       # install-nsis v1.1.0 also installs long string support.
       if: matrix.options.package == 'YES'
-      uses: repolevedavaj/install-nsis@v1.1.0
+      uses: repolevedavaj/install-nsis@v1.2
       with:
-        nsis-version: '3.11'
+        nsis-version: '3.12'
 
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
