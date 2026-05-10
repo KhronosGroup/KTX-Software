@@ -4702,12 +4702,14 @@ namespace basisu
 	static int g_num_wasi_threads = 8;
 #endif
 
+#ifdef __wasi__
 	void set_num_wasi_threads(uint32_t num_threads)
 	{
-#ifdef __wasi__
 		g_num_wasi_threads = num_threads;
-#endif
 	}
+#else
+    void set_num_wasi_threads(uint32_t) { }
+#endif
 
 	int get_num_hardware_threads()
 	{
