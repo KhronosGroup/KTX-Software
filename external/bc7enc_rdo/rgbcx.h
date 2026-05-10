@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020, Richard Geldreich <richgel99@gmail.com>
+ * SPDX-License-Identifier: MIT
+ */
+
 // rgbcx.h v1.13
 // High-performance scalar encoders and RDO (Rate Distortion Optimization) post processors for BC1-5.
 // Public Domain or MIT license (you choose - see below), written by Richard Geldreich 2020 <richgel99@gmail.com>.

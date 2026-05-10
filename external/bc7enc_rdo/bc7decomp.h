@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020, Richard Geldreich <richgel99@gmail.com>
+ * SPDX-License-Identifier: MIT
+ */
+
 #pragma once
 
 #ifdef _MSC_VER

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020, Richard Geldreich <richgel99@gmail.com>
+ * SPDX-License-Identifier: MIT
+ */
+
 // File: bc7enc.h - Richard Geldreich, Jr. - MIT license or public domain (see end of bc7enc.c)
 // If you use this software in a product, attribution / credits is requested but not required.
 

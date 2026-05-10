@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020, Richard Geldreich <richgel99@gmail.com>
+ * SPDX-License-Identifier: MIT
+ */
+
 // File: bc7decomp.c - Richard Geldreich, Jr. 3/31/2020 - MIT license or public domain (see end of file)
 #include "bc7decomp.h"
 #include <string.h>
