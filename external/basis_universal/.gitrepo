@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/KhronosGroup/basis_universal.git
 	branch = fixes_for_ktx
-	commit = 975391104d9c5bd896935303feeb6fea5bbaa1ae
-	parent = b0e5077581382bd6e92c191a5082ce7822acb2f9
+	commit = a660e7be16d667a2569890430e630ce66d31ac59
+	parent = bfd353b065c46bee379812eef91fd8768ff93c6a
 	method = merge
 	cmdver = 0.4.9
