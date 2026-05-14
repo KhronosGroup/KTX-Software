@@ -873,14 +873,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         g_cpu_supports_sse41 = false;
 #endif
 
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    if (transfer == KHR_DF_TRANSFER_SRGB) {
-        cparams.m_perceptual = true;
-        cparams.m_ktx2_and_basis_srgb_transfer_function = true;
-    } else {
-        cparams.m_perceptual = false;
-        cparams.m_ktx2_and_basis_srgb_transfer_function = false;
-    }
+    // This is more robust to future changes than setting the parameters individually.
+    cparams.set_srgb_options(KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
 
     cparams.m_mip_gen = false; // We provide the mip levels.
     
