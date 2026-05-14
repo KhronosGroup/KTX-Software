@@ -30,7 +30,7 @@
 #include "astc-encoder/Source/astcenc.h"
 
 #include "bc7enc_rdo/rgbcx.h"  // for BC1-BC5 decoders
-#include "bcn_codec.h"
+#include "bcn_common.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -672,12 +672,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
 
     // Before doing anything, be absolutely certain that we won't overflow the
     // compressedData buffer
-    if (compressedSize != expectedCompressedSize) {
-        fatal(rc::RUNTIME_ERROR,
-              "BCn decoding failed. Provided compressed data size does not match the expected "
-              "size. Expected: {} bytes but got: {} bytes",
-              expectedCompressedSize, compressedSize);
-    }
+    assert(compressedSize == expectedCompressedSize);
 
     const std::size_t uncompressedSize = width * height * nchannels;
     const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
@@ -686,17 +681,17 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * 4; /* 4x4 */
-    ktx_uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 4x4x4 = 64 bytes */
+    ktx_uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4]; /* 4x4x4 = 64 bytes */
 #if 0
     ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];
 #endif
 
-    const ktx_size_t dst_pitch = width * nchannels;
     const char* src_blocks = compressedData;
 
     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+            // decode into the intermediary block (i.e., the rgba stack array
+            // with 4x4x4 bytes)
             switch (vkFormat) {
             case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
             case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
@@ -749,16 +744,8 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                 return;  // should never occur
             }
 
-            // now we copy the decoded block into the actual texture image while
-            // taking into consideration that dims may not be a multiple of 4.
-            const ktx_uint8_t* pSrc = rgba;
-            ktx_uint8_t* pDst = bufferPtr + y * dst_pitch + nchannels * x;
-            int cols = fmin(BCN_BLOCK_SIZE, width - x);
-            for (ktx_size_t py{0}; py < BCN_BLOCK_SIZE && y + py < height; ++py) {
-                memcpy(pDst, pSrc, cols * nchannels);
-                pSrc += rgba_pitch;
-                pDst += dst_pitch;
-            }
+            // copy the decoded block into the actual texture image
+            insert_block(bufferPtr, rgba, x, y, width, height, nchannels);
         }
     }
 

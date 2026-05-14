@@ -14,6 +14,7 @@
 #include <cstring>
 #include "bc7enc_rdo/ert.h"
 #include "ktx.h"
+
 #define BCN_BLOCK_SIZE 4
 
 #define BC1_BLOCK_SIZE 8
@@ -49,12 +50,16 @@ lerp(F a, F b, F s) {
 }
 
 //
-// Extracts/Copies a [4 x 4 x nchannels] unpacked/uncompressed block of data from
-// provided pSrc to provided pDst. For each row of the source block, performs a
-// memcpy to the destination block while accounting for potential
+// Extracts/Copies a [4 x 4 x nchannels] unpacked/uncompressed block of data
+// from provided pSrc to provided pDst. For each row of the source block,
+// performs a memcpy to the destination block while accounting for potential
 // non-multiple-of-block-size destination dimensions.
 //
 // Source and destination SHOULD have the same stride (i.e., nchannels).
+// Texles/Pixels noted by 'x' are filled by clamp-to-edge method (i.e., for each
+// raw, repeat the last pixel).
+//
+// This is the inverse (in terms of source/destination) of insert_block().
 //
 // Source: (width x height x nchannels)
 //
@@ -64,8 +69,8 @@ lerp(F a, F b, F s) {
 //  |                                            |
 //  |                                            |
 //  | pSrc + y * src_pitch + x * nchannels -> +--|---+ <- source block
-//  |                                         |  |XXX|
-//  |                                         |  |XXX|
+//  |                                         |  |xxx|
+//  |                                         |  |xxx|
 //  |                                         +--|---+
 //  |                                            |
 //  |                                            |
@@ -78,16 +83,16 @@ lerp(F a, F b, F s) {
 //  <-------------- block size ------------->
 //  +---------------------------------------+
 //  | pDst + 0 | ... | pDst + dst_pitch - 1 | <-- row: 0
-//  |                   XXXXXXXXXXXXXXXXXXX |
-//  |          | ... |  XXXXXXXXXXXXXXXXXXX |
-//  |                   XXXXXXXXXXXXXXXXXXX |
-//  |          | ... |  XXXXXXXXXXXXXXXXXXX |
-//  |                   XXXXXXXXXXXXXXXXXXX |
-//  |          | ... |  XXXXXXXXXXXXXXXXXXX |
-//  |                   XXXXXXXXXXXXXXXXXXX |
-//  |          | ... |  XXXXXXXXXXXXXXXXXXX |
-//  |                   XXXXXXXXXXXXXXXXXXX |
-//  |          | ... |  XXXXXXXXXXXXXXXXXXX | <-- row: block_size - 1
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx | <-- row: block_size - 1
 //  +---------------------------------------+
 //
 //
@@ -125,6 +130,68 @@ extract_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width
     for (int py{0}; py < remaining_raws; ++py) {
         const uint8_t* pDstLastRaw = dst + (kBlockSize - remaining_raws) * dst_pitch;
         memcpy(pDst, pDstLastRaw, dst_pitch);
+    }
+}
+
+//
+// Inserts/Copies a [4 x 4 x nchannels] unpacked/uncompressed block from
+// provided pSrc to provided pDst. For each row of the source block, performs a
+// memcpy to the destination block while accounting for potential
+// non-multiple-of-block-size destination dimensions.
+//
+// Source and destination SHOULD have the same stride (i.e., nchannels).
+// Texles/Pixels noted by 'x' are discarded (i.e., not copied).
+//
+// This is the inverse (in terms of source/destination) of extract_block().
+//
+// Source: (4 x 4 x nchannels)
+//
+//  <-------------- block size ------------->
+//  +---------------------------------------+
+//  | pSrc + 0 | ... | pSrc + src_pitch - 1 | <-- row: 0
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
+//  |                   xxxxxxxxxxxxxxxxxxx |
+//  |          | ... |  xxxxxxxxxxxxxxxxxxx | <-- row: block_size - 1
+//  +---------------------------------------+
+//
+// Destination: (width x height x nchannels)
+//
+//  <-------------------- width ----------------->
+//  +--------------------------------------------+
+//  | pDst    | ... | pDst + dst_pitch - 1       | <-- row: 0
+//  |                                            |
+//  |                                            |
+//  | pDst + y * dst_pitch + x * nchannels -> +--|---+ <- source block
+//  |                                         |  |xxx|
+//  |                                         |  |xxx|
+//  |                                         +--|---+
+//  |                                            |
+//  |                                            |
+//  |                                            |
+//  |                                            | <-- row: height - 1
+//  +--------------------------------------------+
+//
+inline void
+insert_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width, size_t height,
+             size_t nchannels /* stride */) {
+    // TODO: expose this as parameter for usage with other block sizes
+    constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
+    const size_t src_pitch = kBlockSize * nchannels;   // nbr bytes per raw of src
+    const size_t dst_pitch = width * nchannels;        // nbr bytes per raw of dst
+    const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
+    const uint8_t* pSrc = src;
+    uint8_t* pDst = dst + y * dst_pitch + nchannels * x;
+    for (ktx_size_t py{0}; py < kBlockSize && y + py < height; ++py) {
+        memcpy(pDst, pSrc, cols * nchannels);
+        pSrc += src_pitch;
+        pDst += dst_pitch;
     }
 }
 

@@ -1636,15 +1636,15 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeAstc(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture2_DecodeBCn(ktxTexture2* This);
-
-KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params);
 
-#if 0
+#if 0  // TODO: add simplified CompressBCn function
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBCn(ktxTexture2* This /*, ktx_bcn_compression_e bcn, ktx_uint32_t quality */);
 #endif
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_DecodeBCn(ktxTexture2* This);
 
 /**
  * @~English
