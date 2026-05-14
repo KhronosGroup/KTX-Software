@@ -19,7 +19,6 @@
  */
 
 #include "bcn_codec.h"
-#include <iostream>
 
 #include "bc7enc_rdo/bc7enc.h"    /* for BC7 encoder */
 #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
@@ -619,10 +618,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
         const size_t levelDataOffsetIn = ktxTexture2_levelDataOffset(This, level);
         const size_t levelDataOffsetOut = ktxTexture2_levelDataOffset(prototype, level);
-
-        std::cout << "bcn encoder stats for level: " << level << '\n';
-        std::cout << "levelDataOffsetIn: " << levelDataOffsetIn << '\n';
-        std::cout << "levelDataOffsetOut: " << levelDataOffsetOut << '\n';
 
         // Points to start of raw source/destination compressed blocks image
         // data within this miplevl (e.g., for 3D texture and for miplevel 0,

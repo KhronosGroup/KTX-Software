@@ -169,11 +169,6 @@ bool unpack_bc7(const void *pBlock, color_rgba *pPixels);
 
 } // namespace bc7decomp
 
-namespace bc7decomp_ref
-{
-	bool unpack_bc7(const void* pBlock, bc7decomp::color_rgba* pPixels);
-} // namespace bc7decomp_ref
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
