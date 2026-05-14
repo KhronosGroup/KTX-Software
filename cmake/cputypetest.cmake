@@ -109,28 +109,27 @@ function(set_target_processor_type out)
         else()
             # Apple's clang is a single compiler whose target is determined by
             # its -arch <architecture> or --target=<architecture> options
-            # defaulting to the processor of the Mac it is running on. CMake does
-            # not set this directly when generating for Xcode. (I don't know what
-            # it does when generating makefiles. Therefore, in the Xcode case,
-            # compiling cputypetest.c with CMAKE_{C,CXX}_COMPILER results in
-            # processor being set to x86_86 or arm64 depending on the Mac it is
-            # running on.
+            # defaulting to the processor of the Mac it is running on. CMake
+            # does not set this directly when generating for Xcode, so probing
+            # cputypetest.c with CMAKE_{C,CXX}_COMPILER yields the host arch
+            # (x86_64 or arm64).
             #
-            # When building for iOS, only CMAKE_SYSTEN_NAME is specified during
-            # configuration. CMake leaves it up to Xcode or to the user passing
-            # a -sdk argument to xcbuild to make sure the correct <architecture>
-            # is set when calling the compiler.
+            # For iOS/tvOS/visionOS, CMake only sets CMAKE_SYSTEM_NAME during
+            # configuration. The actual ARM target is selected later by Xcode
+            # or by an -sdk argument to xcodebuild.
             #
-            # When building for macOS (and possibly for iOS, not tested) the
-            # user can specify CMAKE_OSX_ARCHITECTURES if they want to compile
-            # for something different than the current processor. This could be
-            # set to $(ARCHS_STANDARD) an Xcode build setting whose value in
-            # recent Xcode versions is "x86_64 arm64" to create universal binaries.
-            # This is passed to Xcode which calls the compiler twice passing the
-            # same set of target_definitions each time so in this case we have
-            # to choose BASISU_SUPPORT_SSE=OFF or the arm64 compile will fail.
+            # For macOS the caller may set CMAKE_OSX_ARCHITECTURES to a single
+            # arch (e.g. "x86_64" or "arm64") or to a list ("arm64;x86_64") to
+            # request a universal build. The literal "$(ARCHS_STANDARD)" is
+            # rejected by the root CMakeLists.txt because CMake stores it
+            # unexpanded and breaks $<TARGET_OBJECTS:...> paths.
             #
-            # The following code reflects all this.
+            # Multi-arch (universal) note: CPU_ARCHITECTURE here is just one
+            # representative arch — the universal-aware code paths in
+            # lib/CMakeLists.txt key off `universal_build` and the per-arch
+            # `arch_arm64`/`arch_x86_64` flags instead. In particular,
+            # BASISU_SSE is forced off for universal builds and the x86_64
+            # slice gets -msse4.1 re-enabled per-arch via -Xarch_x86_64.
             if(APPLE AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
                 # Building for iOS, iPadOS, etc. Since we don't care what
                 # type of ARM processor, arbitrarily set armv8.
@@ -138,22 +137,11 @@ function(set_target_processor_type out)
                 # that is dropping loadtests for Apple Silicon arm64.
                 set(processor armv8)
             elseif(APPLE AND CMAKE_OSX_ARCHITECTURES)
-                string(STRIP "${CMAKE_OSX_ARCHITECTURES}" architectures)
-                if("${architectures}" STREQUAL "$(ARCHS_STANDARD)")
-                    # Choose arm64 so SSE support is disabled.
-                    set(processor arm64)
-                elseif("${architectures}" MATCHES "[^ ]+[ ]+[^ ]+")
-                    # Multiple words, choose arm64 so SSE support is disabled.
-                    set(processor arm64)
-                elseif(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
-                    set(processor x86_64)
-                elseif(APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-                    set(processor arm64)
-                else()
-                    # Choose arm64 so SSE support is disabled.
-                    set(processor arm64)
-                endif()
-                unset(architectures)
+                # Single-arch builds use that arch directly. For multi-arch
+                # universal builds, just pick the first listed arch as a
+                # representative value (callers must not depend on it for
+                # arch-sensitive decisions; see the multi-arch note above).
+                list(GET CMAKE_OSX_ARCHITECTURES 0 processor)
             else()
                 # This will distinguish between M1 and Intel Macs
                 set(C_PREPROCESS ${CMAKE_C_COMPILER} -E -P)
