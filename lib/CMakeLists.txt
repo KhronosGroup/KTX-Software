@@ -532,7 +532,13 @@ endmacro(add_lib_dependencies)
 
 set(BASISU_TOOL FALSE)
 set(BASISU_EXAMPLES FALSE)
-if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+# Force BASISU_SSE off when basisu's compile would otherwise apply -msse4.1
+# unconditionally to a slice that can't take it. That is true for
+# non-x86_64 single-arch builds (obvious) and for any multi-arch macOS
+# universal build (the arm64 slice would fail). For universal builds the
+# x86_64 slice still gets SSE re-enabled per-arch via -Xarch_x86_64 in the
+# block further down this file, so we lose no functionality here.
+if(universal_build OR NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
