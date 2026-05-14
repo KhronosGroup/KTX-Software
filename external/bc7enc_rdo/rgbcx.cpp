@@ -3078,6 +3078,3 @@ namespace rgbcx
 	}
 		
 } // namespace rgbcx
-
-
-

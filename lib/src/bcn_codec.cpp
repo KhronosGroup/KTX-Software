@@ -20,27 +20,21 @@
 
 #include "bcn_codec.h"
 
-#include "bc7enc_rdo/bc7enc.h"    /* for BC7 encoder */
 #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
-#include "bc7enc_rdo/ert.h"
-#include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
-
-#include "vkformat_enum.h"
+#include "bc7enc_rdo/ert.h"       /* for RDO */
+#include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
+#include "transcoder/basisu_transcoder.h"
+#include "transcoder/basisu_transcoder_internal.h" /* for BC7 encoder */
+#include "vkformat_enum.h"                         /* for VkFormat enum */
 #include "ktxint.h"
 #include "texture2.h"
+
+#define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
 //************************************************************************
 //*                          Decoder functions                           *
 //************************************************************************
-
-/*
- * Cannot use DECLARE_PRIVATE macro declared in texture.h because it calls the
- * variable `private` which is obviously a no-no in c++. TODO: consider changing.
- * Declare our own similar macros. Cognizant that the using functions handle both
- * This and a prototype object, pass the object as a parameter.
- */
-#define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
-#define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
 /**
  * @ingroup reader
@@ -442,7 +436,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     size_t nchannels;
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
-    bc7enc_compress_block_params bc7_cmp_params;
 
     switch (params->bcn) {
     case KHR_DF_MODEL_BC1A:
@@ -531,9 +524,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         }
         nchannels = BC7_NCHANNELS;
         blocksize_in_bytes = BC7_BLOCK_SIZE;
-        // MUST be called before calling bc7enc_compress_block() (or you'll get artifacts).
-        bc7enc_compress_block_init();
-        bc7enc_compress_block_params_init(&bc7_cmp_params);
+        basist::basisu_transcoder_init();
         break;
 
     default:
@@ -585,7 +576,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     // This is the intermediate store for decoded LDR BCn block
     const size_t pixels_pitch = BCN_BLOCK_SIZE * 4;  // 4 x 4
-    uint8_t pPixels[BCN_BLOCK_SIZE * pixels_pitch];  // 4 x 4 x 4
+    uint8_t rgba[BCN_BLOCK_SIZE * pixels_pitch];     // 4 x 4 x 4
 
 #if 0  // for BC6H blocks
     uint16_t pPixelsHdr [BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
@@ -639,10 +630,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
                     // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
                     // via clamping to edge).
-                    extract_block(pPixels, pSrcLevelImage, x, y, width, height, nchannels);
+                    extract_block(rgba, pSrcLevelImage, x, y, width, height, nchannels);
 
                     const auto xBlock = x / BCN_BLOCK_SIZE;
                     const auto yBlock = y / BCN_BLOCK_SIZE;
+
+                    const uint8_t* pPixels = rgba;
 
                     switch (params->bcn) {
                     case KHR_DF_MODEL_BC1A:
@@ -650,7 +643,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                         rgbcx::encode_bc1(
                             params->bc1CompressionQuality,
                             pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
-                            reinterpret_cast<const uint8_t*>(pPixels), true, false);
+                            pPixels, true, false);
                         break;
 
                     case KHR_DF_MODEL_BC3:
@@ -658,31 +651,32 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                         rgbcx::encode_bc3(
                             params->bc1CompressionQuality,
                             pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
-                            reinterpret_cast<const uint8_t*>(pPixels));
+                            pPixels);
                         break;
 
                     case KHR_DF_MODEL_BC4:
                         // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
                         rgbcx::encode_bc4(
                             pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
-                            reinterpret_cast<const uint8_t*>(pPixels),
-                            /* stride */ BC4_NCHANNELS);
+                            pPixels, /* stride */ BC4_NCHANNELS);
                         break;
 
                     case KHR_DF_MODEL_BC5:
                         // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
                         rgbcx::encode_bc5(
                             pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
-                            reinterpret_cast<const uint8_t*>(pPixels), 0, 1,
+                            pPixels, 0, 1,
                             /* stride */ BC5_NCHANNELS);
                         break;
 
-                    case KHR_DF_MODEL_BC7:
+                    case KHR_DF_MODEL_BC7: {
                         // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
-                        bc7enc_compress_block(
+                        basist::bc7f::fast_pack_bc7_auto_rgba(
                             pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
-                            reinterpret_cast<const uint8_t*>(pPixels), &bc7_cmp_params);
+                            reinterpret_cast<const basist::color_rgba*>(pPixels),
+                            params->bc7CompressionQuality);
                         break;
+                    }
 
                     default:
                         return KTX_INVALID_VALUE;  // should never occur
@@ -700,7 +694,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 rdo_p.ert_p.m_debug_output = true;
                 rdo_p.ert_p.m_try_two_matches = false;
                 rdo_p.ert_p.m_allow_relative_movement = false;
-                rdo_p.ert_p.m_skip_zero_mse_blocks = false;  // always set to false
+                rdo_p.ert_p.m_skip_zero_mse_blocks =
+                    false;  // always set to false in original code...
                 rdo_p.auto_smooth_block_max_mse_scale = params->rdoAutoSmoothBlockMaxMSEScale;
                 rdo_p.bc1_approx_mode = params->bc1ApproxMode;
                 rdo_p.allow_3color_mode = true;
@@ -768,8 +763,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
  *        being passed to the underlying RDO subroutine. The reason for this is
  *        that, depending on the BCn compression, some values make no sense and
  *        may kill efficiency.
- *
- *
  *
  * @param[in]   unpacked_img pointer to the source unpacked data.
  * @param[in]   unpacked_img_size size of source unpacked data in bytes.

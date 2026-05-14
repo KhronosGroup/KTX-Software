@@ -1394,15 +1394,15 @@ typedef struct ktxAstcParams {
  * @brief Options specifiying BC1/BC3 encoding/decoding approximation modes.
  */
 typedef enum ktx_bc1_approx_mode_e {
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL = 0,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL          = 0,
         /*!< The default mode. No rounding for 4-color colors 2,3. This matches
            the D3D10 docs on BC1.
          */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA = 1,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA         = 1,
         /*!< NVidia GPU mode. May produce artifacts on non-NVidia GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD = 2,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD            = 2,
         /*!< AMD GPU mode. May produce artifacts on non-AMD GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4 = 3,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4  = 3,
         /*!< Matches AMD Compressonator's output. Rounds 4-color colors 2,3 (not
            3-color color 2). This matches the D3D9 docs on DXT1.
          */
@@ -1413,20 +1413,52 @@ typedef enum ktx_bc1_approx_mode_e {
  * @brief Options specifiying BC1/BC3 encoding quality levels.
  */
 typedef enum ktx_pack_bc1_quality_levels_e {
-    KTX_PACK_BC1_QUALITY_LEVEL_FASTEST  = 0U,
+    KTX_PACK_BC1_QUALITY_LEVEL_FASTEST    = 0U,
         /*!< Fastest compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_FAST   = 5U,
+    KTX_PACK_BC1_QUALITY_LEVEL_FAST       = 5U,
         /*!< Fast compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM   = 10U,
+    KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM     = 10U,
         /*!< Medium compression. */
     KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH   = 15U,
         /*!< Slower compression. */
     KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE = 19U,
         /*!< Very slow compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_MAX = KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE,
+    KTX_PACK_BC1_QUALITY_LEVEL_MAX        = KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE,
         /*!< Maximum supported quality level. */
 } ktx_pack_bc1_quality_levels_e;
 typedef ktx_uint32_t ktx_pack_bc1_quality_levels;
+
+/**
+ * @~English
+ * @brief Options specifiying high-level BC7 encoding quality levels.
+ */
+typedef enum ktx_pack_bc7_quality_levels_e {
+    KTX_PACK_BC7_QUALITY_LEVEL_FASTEST    = 128U,
+        /*!< Fastest compression. Very weak particularly on alpha, mode 6 only
+           for RGB/RGBA. Maps to: cPackBC7FlagDefaultFastest.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_FASTER     = 176U,
+        /*!< Faster compression. Mode 6 with pbits for RGB, Modes 4,5,6 for
+           alpha. Maps to: cPackBC7FlagDefaultFaster.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_FAST       = 179U,
+        /*!< Fast compression. Maps to: cPackBC7FlagDefaultFast. */
+    KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM     = 255U,
+        /*!< Medium compression. Maps to: cPackBC7FlagDefault. */
+    KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH   = 1023U,
+        /*!< Slower compression. Partially analytical BC7 defaults (slower).
+          Maps to cPackBC7FlagDefaultPartiallyAnalytical.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE = 3967U,
+        /*!< Very slow compression. Non-analytical BC7 defaults (very slow).
+           In reality the encoder is still analytical on the mode pairs, but at
+           the highest level is non-analytical.
+           Maps to cPackBC7FlagDefaultNonAnalytical.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_MAX        = KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Maximum supported quality level. */
+} ktx_pack_bc7_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
 
 /**
  * @memberof ktxTexture
@@ -1455,6 +1487,12 @@ typedef struct ktxBCnParams {
            format are used.
          */
 
+    ktx_bool_t normalMap;
+        /*!< Currently unused (added for same code structure with ASTC encoder).
+         */
+
+    /* BC1-5 params */
+
     ktx_bc1_approx_mode_e bc1ApproxMode;
         /*!< BC1/BC3 approximation mode (for both: encoding and decoding).
            Default is KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL.
@@ -1473,9 +1511,13 @@ typedef struct ktxBCnParams {
            better quality.
          */
 
-    ktx_bool_t normalMap;
-        /*!< Currently un-used (added for same code structure with ASTC
-           encoder).
+    /* BC7 encoder params */
+
+    ktx_pack_bc7_quality_levels_e bc7CompressionQuality;
+        /*!< BC7 compression quality. Default is
+           KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM. Lower values give faster
+           compression speed at the expense of potentially lower quality. Higher
+           values give slower compression speed but potentially better quality.
          */
 
     /* RDO params */
@@ -1520,7 +1562,7 @@ typedef struct ktxBCnParams {
     float rdoMaxSmoothBlockMseScale;
         /*!< RDO max MSE scaling factor for blocks considered to be smooth/flat.
            A value of 1.0 means no smooth block error scaling which may cause
-           very noticeable artifcats for smooth/flat blocks (e.g., kodim23 test
+           very noticeable artifacts for smooth/flat blocks (e.g., kodim23 test
            image). This value can be automatically computed based on the set
            RDO lamba by setting rdoAutomaticSmoothBlock. rdoMaxSmoothBlockStdDev
            is used to compute, for a given block, the MSE scale factor in
@@ -1549,7 +1591,7 @@ typedef struct ktxBCnParams {
 
     ktx_bool_t rdoUltrasmoothBlockHandling;
         /*!< Detect extremely smooth blocks and encode them with a significantly
-           higher MSE scale factor. When enabled, a a per-block mask image is
+           higher MSE scale factor. When enabled, a per-block mask image is
            computed, filtered, then an array of per-block MSE scale factors is
            supplied to the ERT. The end result is much less significant
            artifacts on regions containing very smooth blocks (e.g., gradients).

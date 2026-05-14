@@ -182,13 +182,11 @@ endif()
 
 if (LIBKTX_FEATURE_BCN_DECODER)
     list( APPEND LIBKTX_MAIN_SRC 
-        ../external/bc7enc_rdo/rgbcx.h  # BC1, BC3, BC4 and BC5 encoders/decoders
+        ../external/bc7enc_rdo/rgbcx.h        # BC1, BC3, BC4 and BC5 encoders/decoders
         ../external/bc7enc_rdo/rgbcx.cpp
-        ../external/bc7enc_rdo/bc7decomp.h  # BC7 decoder
+        ../external/bc7enc_rdo/bc7decomp.h    # BC7 decoder
         ../external/bc7enc_rdo/bc7decomp.cpp
-        ../external/bc7enc_rdo/bc7enc.h  # BC7 encoder
-        ../external/bc7enc_rdo/bc7enc.cpp
-        ../external/bc7enc_rdo/ert.h  # RDO post processing step
+        ../external/bc7enc_rdo/ert.h          # RDO post processing step
         ../external/bc7enc_rdo/ert.cpp
     )
 endif()

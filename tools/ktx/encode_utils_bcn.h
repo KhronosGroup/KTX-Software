@@ -64,6 +64,7 @@ GPUs.                                                                      </td>
 struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kBC1Mode = "bc1-mode";
     inline static const char* kBC1Quality = "bc1-quality";
+    inline static const char* kBC7Quality = "bc7-quality";
     inline static const char* kRDO = "rdo";
     inline static const char* kRDOLambda = "rdo-lambda";
     inline static const char* kRDOWindowLoopbackSize = "rdo-window-loopback-size";
@@ -72,6 +73,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kRDOMaxSmoothBlockStdDev = "rdo-max-smooth-block-std-dev";
     inline static const char* kBCnOptions[] = {kBC1Mode,
                                                kBC1Quality,
+                                               kBC7Quality,
                                                kRDO,
                                                kRDOLambda,
                                                kRDOWindowLoopbackSize,
@@ -103,37 +105,51 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             " for BC1/BC3 encoder. Default is 10. The quality level can be"
             " set between fastest (0) and exhaustive (19) via the following",
             cxxopts::value<std::string>(),
-            "<level>")(kRDO,
-                       "Enable rate distortion optimization (RDO) post processing step on"
-                       " BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM"
-                       " optimizations. This is primarily used to reduce size on disk by"
-                       " applying a further compression, mainly: Deflate, LZMA, or LZHAM."
-                       " RDO options only take effect if this is set to true.",
+            "<level>")(kBC7Quality,
+                       "The quality level configures the quality-performance tradeoff"
+                       " for BC7 encoder. Default is 'medium'. The quality level can be"
+                       " set between fastest and exhaustive via the following fixed"
+                       " quality presets where each preset is an OR'ed set of flags:\n\n"
+                       "    Level      |  Quality\n"
+                       "    ---------- | ----------------------------\n"
+                       "    fastest    | (equivalent to flags =  128)\n"
+                       "    faster     | (equivalent to flags =  176)\n"
+                       "    fast       | (equivalent to flags =  179)\n"
+                       "    medium     | (equivalent to flags =  255)\n"
+                       "    thorough   | (equivalent to flags = 1023)\n"
+                       "    exhaustive | (equivalent to flags = 3967)",
+                       cxxopts::value<std::string>(), "<level>")(
+            kRDO,
+            "Enable rate distortion optimization (RDO) post processing step on"
+            " BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM"
+            " optimizations. This is primarily used to reduce size on disk by"
+            " applying a further compression, mainly: Deflate, LZMA, or LZHAM."
+            " RDO options only take effect if this is set to true.",
+            cxxopts::value<bool>(),
+            "<level>")(kRDOLambda,
+                       "RDO quality scalar (lambda). Lower values yield higher"
+                       " quality/larger LZ compressed files, higher values yield lower"
+                       " quality/smaller LZ compressed files. A good range to try is [0.20,4.00]."
+                       " Full range is [0.10,50.0]. Default is 1.0.",
+                       cxxopts::value<float>(), "<level>")(
+            kRDOWindowLoopbackSize,
+            "The number of bytes the encoder can look back from each block to"
+            " find matches. The larger this value, the slower the encoder but the"
+            " higher the quality per LZ compressed bit. You don't need a huge"
+            " window to get large gains. Even 64-512 byte windows are fine."
+            " Default is 128.",
+            cxxopts::value<uint32_t>(),
+            "<level>")(kRDOAutoMSEScale,
+                       "Whether to try to compute a max smooth block factor based off the"
+                       " supplied lambda setting. There is no single calculation/set of"
+                       " settings that work perfectly on all input textures, but the formula"
+                       " in the code works OK for most textures at low-ish lambdas (For an"
+                       " example of a difficult texture the currently formulas/settings"
+                       " doesn't handle so well, try encoding kodim03 at"
+                       " lambdas 1-3.). Smooth block handling is tuned so lambdas at or near"
+                       " 1 looks OK on textures with smooth gradients, skies, etc. If this is"
+                       " set, rdo-max-mse-scale option is ignored. Default is true.",
                        cxxopts::value<bool>(), "<level>")(
-            kRDOLambda,
-            "RDO quality scalar (lambda). Lower values yield higher"
-            " quality/larger LZ compressed files, higher values yield lower"
-            " quality/smaller LZ compressed files. A good range to try is [0.20,4.00]."
-            " Full range is [0.10,50.0]. Default is 1.0.",
-            cxxopts::value<float>(),
-            "<level>")(kRDOWindowLoopbackSize,
-                       "The number of bytes the encoder can look back from each block to"
-                       " find matches. The larger this value, the slower the encoder but the"
-                       " higher the quality per LZ compressed bit. You don't need a huge"
-                       " window to get large gains. Even 64-512 byte windows are fine."
-                       " Default is 128.",
-                       cxxopts::value<uint32_t>(), "<level>")(
-            kRDOAutoMSEScale,
-            "Whether to try to compute a max smooth block factor based off the"
-            " supplied lambda setting. There is no single calculation/set of"
-            " settings that work perfectly on all input textures, but the formula"
-            " in the code works OK for most textures at low-ish lambdas (For an"
-            " example of a difficult texture the currently formulas/settings"
-            " doesn't handle so well, try encoding kodim03 at"
-            " lambdas 1-3.). Smooth block handling is tuned so lambdas at or near"
-            " 1 looks OK on textures with smooth gradients, skies, etc. If this is"
-            " set, rdo-max-mse-scale option is ignored. Default is true.",
-            cxxopts::value<bool>(), "<level>")(
             kRDOMaxSmoothBlockMSEScale,
             "RDO max MSE scaling factor for blocks considered to be smooth/flat."
             " A value of 1.0 means no smooth block error scaling which may cause"
@@ -205,12 +221,33 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
         }
 
+        /* BC7 params */
+
+        if (args[kBC7Quality].count()) {
+            static std::unordered_map<std::string, ktx_pack_bc7_quality_levels_e>
+                bc7_quality_mapping{{"fastest", KTX_PACK_BC7_QUALITY_LEVEL_FASTEST},
+                                    {"faster", KTX_PACK_BC7_QUALITY_LEVEL_FASTER},
+                                    {"fast", KTX_PACK_BC7_QUALITY_LEVEL_FAST},
+                                    {"medium", KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM},
+                                    {"thorough", KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH},
+                                    {"exhaustive", KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE}};
+            const auto qualityLevelStr =
+                to_lower_copy(captureBCnOption<std::string>(args, kBC7Quality));
+            const auto it = bc7_quality_mapping.find(qualityLevelStr);
+            if (it == bc7_quality_mapping.end())
+                report.fatal_usage("Invalid bc7-quality: \"{}\"", qualityLevelStr);
+            bc7CompressionQuality = it->second;
+        } else {
+            bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
+        }
+
         /* RDO params */
 
         rdo = args[kRDO].count() ? captureBCnOption<bool>(args, kRDO) : false;
         rdoAutoSmoothBlockMaxMSEScale =
             args[kRDOAutoMSEScale].count() ? captureBCnOption<bool>(args, kRDOAutoMSEScale) : true;
 
+        // TODO: Use ClampedOptions instead of this manual range check...
         if (args[kRDOLambda].count()) {
             auto val = captureBCnOption<float>(args, kRDOLambda);
             if (val < 0.1f || val > 50.0f)
