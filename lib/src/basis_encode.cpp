@@ -877,9 +877,10 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     if (transfer == KHR_DF_TRANSFER_SRGB) {
         cparams.m_perceptual = true;
         cparams.m_ktx2_and_basis_srgb_transfer_function = true;
-    }
-    else
+    } else {
         cparams.m_perceptual = false;
+        cparams.m_ktx2_and_basis_srgb_transfer_function = false;
+    }
 
     cparams.m_mip_gen = false; // We provide the mip levels.
     
