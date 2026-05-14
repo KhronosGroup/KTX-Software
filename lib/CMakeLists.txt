@@ -48,6 +48,21 @@ include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
 
 include(GNUInstallDirs) # Must be after project.
 
+
+# Detect macOS multi-architecture universal build.
+set(universal_build OFF)
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
+    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" arch_arm64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" arch_x86_64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" arch_x86_64h)
+    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
+    if(${archs_standard} OR architecture_count GREATER 1)
+        set(universal_build ON)
+    endif()
+endif()
+
 # OPTIONS
 
 option( LIBKTX_VERSION_READ_ONLY "Build the read only library" OFF)
@@ -65,7 +80,7 @@ option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 CMAKE_DEPENDENT_OPTION( BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64"
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR universal_build"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_OPENCL
@@ -600,27 +615,7 @@ endif()
 
 # Determine most of the ASTC-related settings automatically.
 
-# On Linux and Windows only one architecture is supported at once. On
-# macOS simultaneous multiple architectures are supported by the ASTC
-# encoder but not by the BasisU encoder. The latter supports only SSE
-# SIMD that is enabled by compile time defines which makes it not amenable
-# to a standard Xcode universal binary build. To ensure BASISU_SSE
-# is disabled when building for multiple architectures use only the
-# value of CMAKE_OSX_ARCHITECTURES to decide if a universal build
-# has been requested. Do not expose the astc-encoder's
-# ASTCENC_UNIVERSAL_BUILD configuration option.
-
-set(universal_build OFF)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
-    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" arch_arm64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" arch_x86_64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" arch_x86_64h)
-    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(${archs_standard} OR architecture_count GREATER 1)
-        set(universal_build ON)
-    endif()
     # Set ordinary variable to override astc-encoder option's ON default
     # and hide the option.
     set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
