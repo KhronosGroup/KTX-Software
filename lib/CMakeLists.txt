@@ -16,6 +16,8 @@ if(NOT DEFINED KTX_VERSION)
     include(${KTX_ROOT_DIR}/cmake/version.cmake)
 endif()
 
+include(${KTX_ROOT_DIR}/cmake/macros.cmake)
+
 project(libktx
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
@@ -362,7 +364,7 @@ macro(common_libktx_settings target enable_write library_type)
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
             # in-use JVM installations have at least this VC runtime. Remove
-            # also from ASTCENC_LIB_TARGET settings around line 1169.
+            # also from ASTCENC_LIB_TARGETS settings around line 1169.
             $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
             $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
         PUBLIC # only for basisu_c_binding.
@@ -611,9 +613,12 @@ endif()
 set(universal_build OFF)
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
+    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" arch_arm64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" arch_x86_64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" arch_x86_64h)
     list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
+    if(${archs_standard} OR architecture_count GREATER 1)
         set(universal_build ON)
     endif()
     # Set ordinary variable to override astc-encoder option's ON default
@@ -642,6 +647,7 @@ if(NOT ${universal_build})
 
     # "" in the CACHE sets causes use of the existing documentation string.
     if(${ASTCENC_ISA_NONE})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         set(ASTCENC_LIB_TARGET astcenc-none-static)
         if(CPU_ARCHITECTURE STREQUAL x86_64)
             set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
@@ -649,30 +655,39 @@ if(NOT ${universal_build})
             set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
         endif()
     else()
-        if(CPU_ARCHITECTURE STREQUAL x86_64)
+        if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86_64h)
             if (${ASTCENC_ISA_SSE41})
-                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             elseif (${ASTCENC_ISA_SSE2})
-                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse2-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
             else()
-                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
                 set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
             set(ASTCENC_ISA_NEON ON)
             set(ASTCENC_ISA_NONE OFF CACHE BOOL "" FORCE)
         else()
             message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
             set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
-            set(ASTCENC_LIB_TARGET astcenc-none-static)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         endif()
+    endif()
+else()
+    if(${arch_x86_64h})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
+    elseif(${arch_x86_64} OR ${archs_standard})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
+    endif()
+    if(${arch_arm64} OR ${archs_standard})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
     endif()
 endif()
 
@@ -684,17 +699,19 @@ set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(../external/astc-encoder astc-encoder)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
-set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-target_compile_definitions(
-    ${ASTCENC_LIB_TARGET}
-PRIVATE
-    # ASTC encoder uses std::mutex. For more info. see comment about same
-    # setting in common_libktx_settings starting about line 355. To be eventually
-    # removed as noted in that comment.
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-)
+foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+    set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(
+        ${ASTCENC_LIB_TARGET}
+    PRIVATE
+        # ASTC encoder uses std::mutex. For more info. see comment about
+        # same setting in libktx starting about line 618. To be eventually
+        # removed as noted in that comment.
+        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    )
+endforeach()
 
 if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
     # ktxdiff needs access to this variable to find the ASTC
@@ -703,10 +720,47 @@ if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
 endif()
 
 if(LIBKTX_VERSION_FULL)
-    add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+    foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+        add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+    endforeach()
 endif()
 if(LIBKTX_VERSION_READ_ONLY)
-    add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
+    foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+        add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
+    endforeach()
+endif()
+
+####################################################
+# Per-architecture SSE 4.1 in universal macOS builds.
+####################################################
+# basisu_encoder cannot enable SSE for the whole project in a universal build
+# (the -msse4.1 flag would break the arm64 slice). With BASISU_SSE OFF, basisu
+# emits BASISU_SUPPORT_SSE=0 PUBLIC and no -msse4.1; we then use Xcode
+# arch-qualified build settings to inject -msse4.1 and override
+# BASISU_SUPPORT_SSE to 1 only for the x86_64 slice. Xcode emits -D flags from
+# GCC_PREPROCESSOR_DEFINITIONS before OTHER_*FLAGS, so -U/-D in OTHER_*FLAGS
+# overrides the prior define without warnings.
+if(universal_build AND ${arch_x86_64} AND CMAKE_GENERATOR STREQUAL "Xcode")
+    set(_x86_sse_flags "$(inherited) -msse4.1 -UBASISU_SUPPORT_SSE -DBASISU_SUPPORT_SSE=1")
+    set_property(TARGET basisu_encoder PROPERTY
+        XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "${_x86_sse_flags}"
+    )
+    set_property(TARGET basisu_encoder PROPERTY
+        XCODE_ATTRIBUTE_OTHER_CFLAGS[arch=x86_64] "${_x86_sse_flags}"
+    )
+    set(_x86_sse_consumer_flags "$(inherited) -UBASISU_SUPPORT_SSE -DBASISU_SUPPORT_SSE=1")
+    foreach(t ktx ktx_read)
+        if(TARGET ${t})
+            set_property(TARGET ${t} PROPERTY
+                XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "${_x86_sse_consumer_flags}"
+            )
+            set_property(TARGET ${t} PROPERTY
+                XCODE_ATTRIBUTE_OTHER_CFLAGS[arch=x86_64] "${_x86_sse_consumer_flags}"
+            )
+        endif()
+    endforeach()
+    unset(_x86_sse_flags)
+    unset(_x86_sse_consumer_flags)
 endif()
 
 # Install
