@@ -21,6 +21,7 @@
  * rg: Removed external dependencies, minor fix to decompress() so it converts non-sRGB
  * output to 8-bits correctly. I've compared this decoder's output
  * vs. astc-codec with random inputs.
+ * See https://raw.githubusercontent.com/KhronosGroup/DataFormat/refs/heads/main/astc.txt
  *
  *//*!
  * \file
@@ -836,10 +837,12 @@ void decodeISETritBlock (ISEDecodedResult* dst, int numValues, BitAccessStream& 
     m[4]            = data.getNext(numBits);
     deUint32 T7     = data.getNext(1);
 
+#ifndef __clang__
 #ifndef __EMSCRIPTEN__
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+#endif
 #endif
 #endif
     switch (numValues)
@@ -853,9 +856,11 @@ void decodeISETritBlock (ISEDecodedResult* dst, int numValues, BitAccessStream& 
         default:
             DE_ASSERT(false);
     }
+#ifndef __clang__
 #ifndef __EMSCRIPTEN__
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 #endif
 #endif
 
@@ -902,10 +907,12 @@ void decodeISEQuintBlock (ISEDecodedResult* dst, int numValues, BitAccessStream&
     m[2]            = data.getNext(numBits);
     deUint32 Q56    = data.getNext(2);
 
+#ifndef __clang__
 #ifndef __EMSCRIPTEN__
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+#endif
 #endif
 #endif
     switch (numValues)
@@ -917,9 +924,12 @@ void decodeISEQuintBlock (ISEDecodedResult* dst, int numValues, BitAccessStream&
         default:
             DE_ASSERT(false);
     }
+
+#ifndef __clang__
 #ifndef __EMSCRIPTEN__
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 #endif
 #endif
 
@@ -1966,7 +1976,7 @@ float half_to_float(half_float hval)
 } // anonymous
 
 // See https://registry.khronos.org/DataFormat/specs/1.3/dataformat.1.3.inline.html#_hdr_endpoint_decoding
-static void convert_to_half_prec(uint32_t n, float* pVals)
+static void convert_from_half_to_float_prec(uint32_t n, float* pVals)
 {
 #if 0
     const int prev_dir = fesetround(FE_TOWARDZERO);
@@ -1989,6 +1999,7 @@ static void convert_to_half_prec(uint32_t n, float* pVals)
 #endif
 }
 
+// Assumes the decode_unorm8 extension is active (only upper 8 bits used).
 bool decompress_ldr(uint8_t *pDst, const uint8_t * data, bool isSRGB, int blockWidth, int blockHeight)
 {
     float linear[MAX_BLOCK_WIDTH * MAX_BLOCK_HEIGHT * 4];
@@ -2029,7 +2040,7 @@ bool decompress_hdr(float* pDstRGBA, const uint8_t* data, int blockWidth, int bl
         return false;
     }
 
-    convert_to_half_prec(blockWidth * blockHeight * 4, pDstRGBA);
+    convert_from_half_to_float_prec(blockWidth * blockHeight * 4, pDstRGBA);
 
     return true;
 }

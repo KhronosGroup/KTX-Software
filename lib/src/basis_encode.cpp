@@ -653,7 +653,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     case ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE:
         cparams.m_uastc = true;
         cparams.m_hdr = true;
-        cparams.m_hdr_mode = basisu::hdr_modes::cASTC_HDR_6X6_INTERMEDIATE;
+        cparams.m_hdr_mode = basisu::hdr_modes::cUASTC_HDR_6X6_INTERMEDIATE;
         break;
     default:
         break;
@@ -873,13 +873,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         g_cpu_supports_sse41 = false;
 #endif
 
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    if (transfer == KHR_DF_TRANSFER_SRGB) {
-        cparams.m_perceptual = true;
-        cparams.m_ktx2_srgb_transfer_func = true;
-    }
-    else
-        cparams.m_perceptual = false;
+    // This is more robust to future changes than setting the parameters individually.
+    cparams.set_srgb_options(KHR_DFDVAL(BDB, TRANSFER) == KHR_DF_TRANSFER_SRGB);
 
     cparams.m_mip_gen = false; // We provide the mip levels.
     
@@ -929,7 +924,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         // indicate the parameter has not been set by the caller. (If we
         // leave m_compression_level unset it will default to 1. We don't
         // want the default to differ from `basisu` so 0 can't be the default.
-        cparams.m_compression_level = params->etc1sCompressionLevel;
+      cparams.m_etc1s_compression_level = params->etc1sCompressionLevel;
 
         // There's no default for m_quality_level. `basisu` tool overrides
         // any explicit m_{endpoint,selector}_clusters settings with those
@@ -953,11 +948,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         } else if (params->qualityLevel != 0) {
             cparams.m_etc1s_max_endpoint_clusters = 0;
             cparams.m_etc1s_max_selector_clusters = 0;
-            cparams.m_etc1s_quality_level = params->qualityLevel;
+            cparams.m_quality_level = params->qualityLevel;
         } else {
             cparams.m_etc1s_max_endpoint_clusters = 0;
             cparams.m_etc1s_max_selector_clusters = 0;
-            cparams.m_etc1s_quality_level = 128;
+            cparams.m_quality_level = 128;
         }
 
         if (params->endpointRDOThreshold > 0)
@@ -1101,7 +1096,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     std::vector<uint32_t> level_file_offsets(This->numLevels);
 
     if (cparams.m_uastc) {
-        if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cASTC_HDR_6X6_INTERMEDIATE) {
+      if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cUASTC_HDR_6X6_INTERMEDIATE) {
             uint32_t image_desc_size = sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
             bgd_size = image_desc_size * num_images;
             bgd = new ktx_uint8_t[bgd_size];
@@ -1368,7 +1363,7 @@ cleanup:
 }
 
 extern "C" KTX_API const ktx_uint32_t KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL
-                                      = BASISU_DEFAULT_COMPRESSION_LEVEL;
+                                      = BASISU_DEFAULT_ETC1S_COMPRESSION_LEVEL;
 
 /**
  * @memberof ktxTexture2
