@@ -735,32 +735,27 @@ endif()
 ####################################################
 # basisu_encoder cannot enable SSE for the whole project in a universal build
 # (the -msse4.1 flag would break the arm64 slice). With BASISU_SSE OFF, basisu
-# emits BASISU_SUPPORT_SSE=0 PUBLIC and no -msse4.1; we then use Xcode
-# arch-qualified build settings to inject -msse4.1 and override
-# BASISU_SUPPORT_SSE to 1 only for the x86_64 slice. Xcode emits -D flags from
-# GCC_PREPROCESSOR_DEFINITIONS before OTHER_*FLAGS, so -U/-D in OTHER_*FLAGS
-# overrides the prior define without warnings.
-if(universal_build AND ${arch_x86_64} AND CMAKE_GENERATOR STREQUAL "Xcode")
-    set(_x86_sse_flags "$(inherited) -msse4.1 -UBASISU_SUPPORT_SSE -DBASISU_SUPPORT_SSE=1")
-    set_property(TARGET basisu_encoder PROPERTY
-        XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "${_x86_sse_flags}"
+# emits BASISU_SUPPORT_SSE=0 PUBLIC and no -msse4.1; we then use clang's
+# -Xarch_<arch> driver option to inject -msse4.1 and override
+# BASISU_SUPPORT_SSE to 1 only for the x86_64 sub-invocation. -Xarch_x86_64
+# applies to the immediately-following argument only, so each flag needs its
+# own prefix. Works with any generator (Xcode, Ninja, Make) on Apple.
+if(universal_build AND ${arch_x86_64})
+    # SHELL: prevents CMake from deduplicating the repeated -Xarch_x86_64
+    # tokens, which would otherwise leave only the first flag arch-qualified.
+    target_compile_options(basisu_encoder PRIVATE
+        "SHELL:-Xarch_x86_64 -msse4.1"
+        "SHELL:-Xarch_x86_64 -UBASISU_SUPPORT_SSE"
+        "SHELL:-Xarch_x86_64 -DBASISU_SUPPORT_SSE=1"
     )
-    set_property(TARGET basisu_encoder PROPERTY
-        XCODE_ATTRIBUTE_OTHER_CFLAGS[arch=x86_64] "${_x86_sse_flags}"
-    )
-    set(_x86_sse_consumer_flags "$(inherited) -UBASISU_SUPPORT_SSE -DBASISU_SUPPORT_SSE=1")
     foreach(t ktx ktx_read)
         if(TARGET ${t})
-            set_property(TARGET ${t} PROPERTY
-                XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "${_x86_sse_consumer_flags}"
-            )
-            set_property(TARGET ${t} PROPERTY
-                XCODE_ATTRIBUTE_OTHER_CFLAGS[arch=x86_64] "${_x86_sse_consumer_flags}"
+            target_compile_options(${t} PRIVATE
+                "SHELL:-Xarch_x86_64 -UBASISU_SUPPORT_SSE"
+                "SHELL:-Xarch_x86_64 -DBASISU_SUPPORT_SSE=1"
             )
         endif()
     endforeach()
-    unset(_x86_sse_flags)
-    unset(_x86_sse_consumer_flags)
 endif()
 
 # Install
