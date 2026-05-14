@@ -190,7 +190,6 @@ if (LIBKTX_FEATURE_BCN_DECODER)
         ../external/bc7enc_rdo/bc7enc.cpp
         ../external/bc7enc_rdo/ert.h  # RDO post processing step
         ../external/bc7enc_rdo/ert.cpp
-        # ../external/bc7enc_rdo/bc7e.ispc  # SIMD (i.e., fast) BC7 encoder
     )
 endif()
 

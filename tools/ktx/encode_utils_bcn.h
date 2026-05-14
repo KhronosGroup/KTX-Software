@@ -64,7 +64,20 @@ GPUs.                                                                      </td>
 struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kBC1Mode = "bc1-mode";
     inline static const char* kBC1Quality = "bc1-quality";
-    inline static const char* kBCnOptions[] = {kBC1Mode, kBC1Quality};
+    inline static const char* kRDO = "rdo";
+    inline static const char* kRDOLambda = "rdo-lambda";
+    inline static const char* kRDOWindowLoopbackSize = "rdo-window-loopback-size";
+    inline static const char* kRDOAutoMSEScale = "rdo-auto-mse-scale";
+    inline static const char* kRDOMaxSmoothBlockMSEScale = "rdo-max-smooth-block-mse-scale";
+    inline static const char* kRDOMaxSmoothBlockStdDev = "rdo-max-smooth-block-std-dev";
+    inline static const char* kBCnOptions[] = {kBC1Mode,
+                                               kBC1Quality,
+                                               kRDO,
+                                               kRDOLambda,
+                                               kRDOWindowLoopbackSize,
+                                               kRDOAutoMSEScale,
+                                               kRDOMaxSmoothBlockMSEScale,
+                                               kRDOMaxSmoothBlockStdDev};
 
     std::string bcnOptions{};
     // This is added here so that when OptionsEncodeBCn is combined with other
@@ -87,17 +100,65 @@ struct OptionsEncodeBCn : public ktxBCnParams {
                                        "<level>")(
             kBC1Quality,
             "The quality level configures the quality-performance tradeoff"
-            " for BC1/BC3 encoder. Default is 'medium'. The quality level can be"
-            " set between fastest (0) and exhaustive (19) via the following"
-            " fixed quality presets:\n\n"
-            "    Level      |  Quality\n"
-            "    ---------- | -----------------------------\n"
-            "    fastest    | (equivalent to quality =   0)\n"
-            "    fast       | (equivalent to quality =   5)\n"
-            "    medium     | (equivalent to quality =  10)\n"
-            "    thorough   | (equivalent to quality =  15)\n"
-            "    exhaustive | (equivalent to quality =  19)",
-            cxxopts::value<std::string>(), "<level>");
+            " for BC1/BC3 encoder. Default is 10. The quality level can be"
+            " set between fastest (0) and exhaustive (19) via the following",
+            cxxopts::value<std::string>(),
+            "<level>")(kRDO,
+                       "Enable rate distortion optimization (RDO) post processing step on"
+                       " BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM"
+                       " optimizations. This is primarily used to reduce size on disk by"
+                       " applying a further compression, mainly: Deflate, LZMA, or LZHAM."
+                       " RDO options only take effect if this is set to true.",
+                       cxxopts::value<bool>(), "<level>")(
+            kRDOLambda,
+            "RDO quality scalar (lambda). Lower values yield higher"
+            " quality/larger LZ compressed files, higher values yield lower"
+            " quality/smaller LZ compressed files. A good range to try is [0.20,4.00]."
+            " Full range is [0.10,50.0]. Default is 1.0.",
+            cxxopts::value<float>(),
+            "<level>")(kRDOWindowLoopbackSize,
+                       "The number of bytes the encoder can look back from each block to"
+                       " find matches. The larger this value, the slower the encoder but the"
+                       " higher the quality per LZ compressed bit. You don't need a huge"
+                       " window to get large gains. Even 64-512 byte windows are fine."
+                       " Default is 128.",
+                       cxxopts::value<uint32_t>(), "<level>")(
+            kRDOAutoMSEScale,
+            "Whether to try to compute a max smooth block factor based off the"
+            " supplied lambda setting. There is no single calculation/set of"
+            " settings that work perfectly on all input textures, but the formula"
+            " in the code works OK for most textures at low-ish lambdas (For an"
+            " example of a difficult texture the currently formulas/settings"
+            " doesn't handle so well, try encoding kodim03 at"
+            " lambdas 1-3.). Smooth block handling is tuned so lambdas at or near"
+            " 1 looks OK on textures with smooth gradients, skies, etc. If this is"
+            " set, rdo-max-mse-scale option is ignored. Default is true.",
+            cxxopts::value<bool>(), "<level>")(
+            kRDOMaxSmoothBlockMSEScale,
+            "RDO max MSE scaling factor for blocks considered to be smooth/flat."
+            " A value of 1.0 means no smooth block error scaling which may cause"
+            " very noticeable artifcats for smooth/flat blocks (e.g., kodim23 test"
+            " image). This value can be automatically computed based on the set"
+            " RDO lamba by setting rdo-auto-mse-scale. TODO"
+            " is used to compute, for a given block, the MSE scale factor in"
+            " the range: 1.0 (i.e., not a smooth block) up to this max MSE scale"
+            " factor. As to why an MSE factor has to be applied to smooth/flat blocks, the"
+            " MSE for these blocks is too low relative to the visual impact they"
+            " have when they get distorted. The solution implemented here is to "
+            " compute the max std dev. of any component and use a linear function"
+            " of that to scale block/trial MSE."
+            " Range is [1,300]. Default is 18.0.",
+            cxxopts::value<float>(),
+            "<level>")(kRDOMaxSmoothBlockStdDev,
+                       "RDO max smooth/flat block standard deviation. If the std dev."
+                       " of a block exceeds this value, then it won't be considered"
+                       " as a smooth block (i.e., the smooth block MSE scale factor will be"
+                       " set to 1 for this block). The smaller the ratio of the std dev."
+                       " of this block to this value the more the smooth block MSE"
+                       " scale factor approaches rdoMaxSmoothBlockMseScale."
+                       " Range is [.01,65536.0]. Larger values expand the range of blocks"
+                       " considered smooth. Default is 10.0.",
+                       cxxopts::value<float>(), "<level>");
     }
 
     void captureBCnOption(const char* name) { bcnOptions += fmt::format(" --{}", name); }
@@ -142,6 +203,57 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             bc1CompressionQuality = it->second;
         } else {
             bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
+        }
+
+        /* RDO params */
+
+        rdo = args[kRDO].count() ? captureBCnOption<bool>(args, kRDO) : false;
+        rdoAutoSmoothBlockMaxMSEScale =
+            args[kRDOAutoMSEScale].count() ? captureBCnOption<bool>(args, kRDOAutoMSEScale) : true;
+
+        if (args[kRDOLambda].count()) {
+            auto val = captureBCnOption<float>(args, kRDOLambda);
+            if (val < 0.1f || val > 50.0f)
+                report.fatal_usage("Invalid rdo-lambda: \"{}\". Should be in range: [0.1, 50.0]",
+                                   val);
+            rdoQualityScalar = val;
+        } else {
+            rdoQualityScalar = 1.0f;
+        }
+
+        if (args[kRDOWindowLoopbackSize].count()) {
+            auto val = captureBCnOption<uint32_t>(args, kRDOWindowLoopbackSize);
+            if (val < 64u || val > 65536u)
+                report.fatal_usage(
+                    "Invalid rdo-window-loopback-size: \"{}\". Should be in range: [64, 65536]",
+                    val);
+            rdoWindowLoopbackSize = val;
+        } else {
+            rdoWindowLoopbackSize = 128;
+        }
+
+        if (args[kRDOMaxSmoothBlockMSEScale].count()) {
+            auto val = captureBCnOption<float>(args, kRDOMaxSmoothBlockMSEScale);
+            if (val < 1.0f || val > 300.0f)
+                report.fatal_usage(
+                    "Invalid rdo-max-smooth-block-mse-scale: \"{}\". Should be in range: [1.0, "
+                    "300.0]",
+                    val);
+            rdoMaxSmoothBlockMseScale = val;
+        } else {
+            rdoMaxSmoothBlockMseScale = 18.0f;
+        }
+
+        if (args[kRDOMaxSmoothBlockStdDev].count()) {
+            auto val = captureBCnOption<float>(args, kRDOMaxSmoothBlockStdDev);
+            if (val < 0.01f || val > 65536.0f)
+                report.fatal_usage(
+                    "Invalid rdo-max-smooth-block-std-dev: \"{}\". Should be in range: [0.01, "
+                    "65536.0]",
+                    val);
+            rdoMaxSmoothBlockStdDev = val;
+        } else {
+            rdoMaxSmoothBlockStdDev = 10.0f;
         }
     }
 };

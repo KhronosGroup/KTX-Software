@@ -614,7 +614,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
         // an additional loop in the decoding code below (rgbcx::unpack_bc1
         // decodes into RGBA block).
         uncompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-        nchannels = BC1_OUTPUT_NCHANNELS;
+        nchannels = BC1_NCHANNELS;
         expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
         rgbcx::init();
         break;
@@ -622,7 +622,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
     case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
         uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC1_OUTPUT_NCHANNELS;
+        nchannels = BC1_NCHANNELS;
         expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
         rgbcx::init();
         break;
@@ -630,7 +630,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case VK_FORMAT_BC3_UNORM_BLOCK:
     case VK_FORMAT_BC3_SRGB_BLOCK:
         uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC3_OUTPUT_NCHANNELS;
+        nchannels = BC3_NCHANNELS;
         expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
         rgbcx::init();
         break;
@@ -638,7 +638,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case VK_FORMAT_BC4_UNORM_BLOCK:
     case VK_FORMAT_BC4_SNORM_BLOCK:
         uncompressedVkFormat = VK_FORMAT_R8_UNORM;
-        nchannels = BC4_OUTPUT_NCHANNELS;
+        nchannels = BC4_NCHANNELS;
         expectedCompressedSize = BC4_BLOCK_SIZE * nBlocks;
         rgbcx::init();
         break;
@@ -646,7 +646,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case VK_FORMAT_BC5_UNORM_BLOCK:
     case VK_FORMAT_BC5_SNORM_BLOCK:
         uncompressedVkFormat = VK_FORMAT_R8G8_UNORM;
-        nchannels = BC5_OUTPUT_NCHANNELS;
+        nchannels = BC5_NCHANNELS;
         expectedCompressedSize = BC5_BLOCK_SIZE * nBlocks;
         rgbcx::init();
         break;
@@ -660,7 +660,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case VK_FORMAT_BC7_UNORM_BLOCK:
     case VK_FORMAT_BC7_SRGB_BLOCK:
         uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC7_OUTPUT_NCHANNELS;
+        nchannels = BC7_NCHANNELS;
         expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
         break;
 
@@ -720,7 +720,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
             case VK_FORMAT_BC4_UNORM_BLOCK:
             case VK_FORMAT_BC4_SNORM_BLOCK:
                 // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
-                rgbcx::unpack_bc4(src_blocks, rgba, /* stride */ BC4_OUTPUT_NCHANNELS);
+                rgbcx::unpack_bc4(src_blocks, rgba, /* stride */ BC4_NCHANNELS);
                 src_blocks += BC4_BLOCK_SIZE;
                 break;
 
@@ -728,7 +728,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
             case VK_FORMAT_BC5_SNORM_BLOCK:
                 // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
                 rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
-                                  /* stride */ BC5_OUTPUT_NCHANNELS);
+                                  /* stride */ BC5_NCHANNELS);
                 src_blocks += BC5_BLOCK_SIZE;
                 break;
 
