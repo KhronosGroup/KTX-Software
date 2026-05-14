@@ -77,7 +77,7 @@ option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
 # when they are useful.
-CMAKE_DEPENDENT_OPTION( BASISU_SSE
+CMAKE_DEPENDENT_OPTION( LIBKTX_FEATURE_BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
     "CPU_ARCHITECTURE STREQUAL x86_64 OR universal_build"
@@ -108,6 +108,8 @@ CMAKE_DEPENDENT_OPTION( BUILD_SHARED_LIBS
 
 # Used to reset BUILD_SHARED_LIBS after forcing static builds
 set( BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS} )
+
+set( BASISU_SSE ${LIBKTX_FEATURE_BASISU_SSE} )
 
 # Platform specific settings
 
@@ -731,7 +733,7 @@ if(LIBKTX_VERSION_READ_ONLY)
     endforeach()
 endif()
 
-if(APPLE_MAC_OS)
+if(APPLE_MAC_OS AND LIBKTX_FEATURE_BASISU_SSE)
     ####################################################
     # Per-architecture SSE 4.1 in universal macOS builds.
     ####################################################
