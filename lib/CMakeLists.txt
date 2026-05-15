@@ -717,9 +717,13 @@ foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
 endforeach()
 
 if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
-    # ktxdiff needs access to this variable to find the ASTC
-    # library to link with so set it in parent.
-    set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
+    # ktxdiff and the ktx CLI call astcenc_* directly. With static libs
+    # the symbols ride along inside libktx, but with shared libs (Windows
+    # default) they are not exported from ktx.dll and the consumers have
+    # to link astcenc themselves. Propagate the full list — universal
+    # builds need every per-arch variant available so the linker can
+    # pick the matching slice.
+    set(ASTCENC_LIB_TARGETS ${ASTCENC_LIB_TARGETS} PARENT_SCOPE)
 endif()
 
 if(LIBKTX_VERSION_FULL)
