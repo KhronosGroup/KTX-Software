@@ -26,7 +26,7 @@ project(libktx
 if(APPLE)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set( APPLE_LOCKED_OS ON )
-    else()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set( APPLE_MAC_OS ON )
     endif()
 endif()
