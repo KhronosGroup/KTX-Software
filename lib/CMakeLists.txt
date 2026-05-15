@@ -50,16 +50,16 @@ include(GNUInstallDirs) # Must be after project.
 
 
 # Detect macOS multi-architecture universal build.
-set(universal_build OFF)
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+set(APPLE_MAC_OS_UNIVERSAL OFF)
+if(APPLE_MAC_OS)
     # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
-    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" arch_arm64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" arch_x86_64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" arch_x86_64h)
+    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" APPLE_MAC_OS_ARCH_STANDARD)
+    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" APPLE_MAC_OS_ARCH_arm64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" APPLE_MAC_OS_ARCH_x86_64)
+    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" APPLE_MAC_OS_ARCH_x86_64h)
     list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(${archs_standard} OR architecture_count GREATER 1)
-        set(universal_build ON)
+    if(APPLE_MAC_OS_ARCH_STANDARD OR architecture_count GREATER 1)
+        set(APPLE_MAC_OS_UNIVERSAL ON)
     endif()
 endif()
 
@@ -80,7 +80,7 @@ option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 CMAKE_DEPENDENT_OPTION( LIBKTX_FEATURE_BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "CPU_ARCHITECTURE STREQUAL x86_64 OR universal_build"
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR APPLE_MAC_OS_UNIVERSAL"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_OPENCL
@@ -540,7 +540,7 @@ set(BASISU_EXAMPLES FALSE)
 # universal build (the arm64 slice would fail). For universal builds the
 # x86_64 slice still gets SSE re-enabled per-arch via -Xarch_x86_64 in the
 # block further down this file, so we lose no functionality here.
-if(universal_build OR NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
+if(APPLE_MAC_OS_UNIVERSAL OR NOT "${CPU_ARCHITECTURE}" STREQUAL "x86_64")
     # Basisu sets this TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
@@ -623,10 +623,10 @@ endif()
 
 # Determine most of the ASTC-related settings automatically.
 
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+if(APPLE_MAC_OS_UNIVERSAL)
     # Set ordinary variable to override astc-encoder option's ON default
     # and hide the option.
-    set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
+    set(ASTCENC_APPLE_MAC_OS_UNIVERSAL ON)
 endif()
 
 # If we detect the user is doing a universal build defer to astc-encoder
@@ -639,7 +639,16 @@ endif()
 # choose ASTCENC_ISA_AVX2. If ASTCENC_ISA_AVX2 fails to compile user must
 # choose another x86_64 option.
 
-if(NOT ${universal_build})
+if(APPLE_MAC_OS_UNIVERSAL)
+    if(APPLE_MAC_OS_ARCH_x86_64h)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
+    elseif(APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_STANDARD)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
+    endif()
+    if(APPLE_MAC_OS_ARCH_arm64 OR APPLE_MAC_OS_ARCH_STANDARD)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
+    endif()
+else()
     set(ASTCENC_ISA_NATIVE OFF)
     set(ASTCENC_ISA_NEON OFF)
     if(NOT CPU_ARCHITECTURE STREQUAL x86_64)
@@ -682,15 +691,6 @@ if(NOT ${universal_build})
             set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
             list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         endif()
-    endif()
-else()
-    if(${arch_x86_64h})
-        list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
-    elseif(${arch_x86_64} OR ${archs_standard})
-        list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
-    endif()
-    if(${arch_arm64} OR ${archs_standard})
-        list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
     endif()
 endif()
 
@@ -744,7 +744,7 @@ if(APPLE_MAC_OS AND LIBKTX_FEATURE_BASISU_SSE)
     # BASISU_SUPPORT_SSE to 1 only for the x86_64 sub-invocation. -Xarch_x86_64
     # applies to the immediately-following argument only, so each flag needs its
     # own prefix. Works with any generator (Xcode, Ninja, Make) on Apple.
-    if(universal_build AND ${arch_x86_64})
+    if(APPLE_MAC_OS_UNIVERSAL AND APPLE_MAC_OS_ARCH_x86_64)
         # SHELL: prevents CMake from deduplicating the repeated -Xarch_x86_64
         # tokens, which would otherwise leave only the first flag arch-qualified.
         target_compile_options(basisu_encoder PRIVATE
