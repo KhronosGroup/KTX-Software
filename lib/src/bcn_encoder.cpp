@@ -251,30 +251,33 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-        std::vector<ert::color_rgba> block_pixels(nBlocksTotal * BCN_BLOCK_SIZE * BCN_BLOCK_SIZE);
+        std::vector<ert::color_rgba> block_pixels_rgb(nBlocksTotal * BCN_BLOCK_SIZE *
+                                                      BCN_BLOCK_SIZE);
+        std::vector<ert::color_rgba> block_pixels_a(block_pixels_rgb.size());
         for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
             for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC3_NCHANNELS);
                 // Now flatten the extracted block into block_pixels
-                ert::color_rgba* p_dst =
-                    block_pixels.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (size_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
-                    memcpy(p_dst + py * BCN_BLOCK_SIZE, rgba + py * rgba_pitch,
-                           BCN_BLOCK_SIZE * BC3_NCHANNELS);
-                }
+                const uint8_t* pSrc = rgba;
+                ert::color_rgba* pDstRGB =
+                    block_pixels_rgb.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
+                ert::color_rgba* pDstA =
+                    block_pixels_a.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
+                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                    pDstRGB[0].m_c[0] = pSrc[0];
+                    pDstRGB[0].m_c[1] = pSrc[1];
+                    pDstRGB[0].m_c[2] = pSrc[2];
+                    pDstRGB[0].m_c[3] = 0;
+                    pDstA[0].m_c[0] = pSrc[3];  // alpha
+                    pDstA[0].m_c[1] = 0;
+                    pDstA[0].m_c[2] = 0;
+                    pDstA[0].m_c[3] = 0;
+                    pSrc += BC3_NCHANNELS; /* pSrc += 4 */
+                    ++pDstRGB;
+                    ++pDstA;
+                }  // i
             }
-        }
-
-        // TODO: optimize this - currently we have to copy the whole array
-        // because ert::reduce_entropy expects an rgba array even if we are only
-        // using the alpha channel.
-        std::vector<ert::color_rgba> block_pixels_a(block_pixels.size());
-        for (size_t i{0}; i < block_pixels_a.size(); ++i) {
-            block_pixels_a[i].m_c[0] = block_pixels[i].m_c[3];  // alpha
-            block_pixels_a[i].m_c[1] = 0u;
-            block_pixels_a[i].m_c[2] = 0u;
-            block_pixels_a[i].m_c[3] = 0u;
         }
 
         clock_t rdo_start_t = clock();
@@ -290,8 +293,9 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             //  then the BC1 block ...
             ert::reduce_entropy(packed_img + BC4_BLOCK_SIZE, nBlocksTotal,
                                 BC3_BLOCK_SIZE /* 2 x 8 */, BC1_BLOCK_SIZE, BCN_BLOCK_SIZE,
-                                BCN_BLOCK_SIZE, 3 /* alpha channel ignored */, block_pixels.data(),
-                                ert_p, total_modified_local_rgb, unpack_block_bc1_func, &params);
+                                BCN_BLOCK_SIZE, 3 /* alpha channel ignored */,
+                                block_pixels_rgb.data(), ert_p, total_modified_local_rgb,
+                                unpack_block_bc1_func, &params);
         }
         clock_t rdo_end_t = clock();
 
@@ -339,11 +343,11 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
                     block_pixels.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 const uint8_t* pSrc = r;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDst[0].m_c[0] = pSrc[0];
+                    pDst[0].m_c[0] = pSrc[0];  // alpha
                     pDst[0].m_c[1] = 0;
                     pDst[0].m_c[2] = 0;
                     pDst[0].m_c[3] = 0;
-                    ++pSrc;
+                    pSrc += BC4_NCHANNELS; /* pSrc += 1 */
                     ++pDst;
                 }  // i
             }
@@ -369,6 +373,78 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
     }  // BC4
 
     case KHR_DF_MODEL_BC5: {
+        // One BC4 block for R followed by one BC4 block for G
+        assert(unpacked_img_size == width * height * BC5_NCHANNELS);
+        assert(packed_img_size == nBlocksTotal * BC5_BLOCK_SIZE);
+
+        ert_p.m_color_weights[1] = 0;
+        ert_p.m_color_weights[2] = 0;
+        ert_p.m_color_weights[3] = 0;
+
+        if (params.auto_smooth_block_max_mse_scale) {
+            ert_p.m_smooth_block_max_mse_scale =
+                lerp(10.0f, 30.0f, std::min(1.0f, ert_p.m_lambda / 4.0f));
+            // uncomment for debugging
+            if (ert_p.m_debug_output) {
+                printf("Using an automatically computed smooth block error scale of %f\n",
+                       ert_p.m_smooth_block_max_mse_scale);
+            }
+        }
+
+        std::vector<ert::color_rgba> block_pixels_r(nBlocksTotal * BCN_BLOCK_SIZE * BCN_BLOCK_SIZE);
+        std::vector<ert::color_rgba> block_pixels_g(block_pixels_r.size());
+        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
+            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+                // Extract block (non-multiple-of-4 texture dimensions are handled).
+                extract_block(rgba, unpacked_img, x, y, width, height, BC5_NCHANNELS);
+                // Now flatten the extracted block into block_pixels
+                const uint8_t* pSrc = rgba;
+                ert::color_rgba* pDstR =
+                    block_pixels_r.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
+                ert::color_rgba* pDstG =
+                    block_pixels_g.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
+                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                    pDstR[0].m_c[0] = pSrc[0];  // R
+                    pDstR[0].m_c[1] = 0;
+                    pDstR[0].m_c[2] = 0;
+                    pDstR[0].m_c[3] = 0;
+                    pDstG[0].m_c[0] = pSrc[1];  // G
+                    pDstG[0].m_c[1] = 0;
+                    pDstG[0].m_c[2] = 0;
+                    pDstG[0].m_c[3] = 0;
+                    pSrc += BC5_NCHANNELS; /* pSrc += 2 */
+                    ++pDstR;
+                    ++pDstG;
+                }  // i
+            }
+        }
+
+        clock_t rdo_start_t = clock();
+        uint32_t total_modified_local_r = 0;
+        uint32_t total_modified_local_g = 0;
+        {
+            // One BC4 block for R followed by one BC4 block for G
+            // reduce entropy for the BC4 R block ...
+            ert::reduce_entropy(packed_img, nBlocksTotal, BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */,
+                                BC4_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1,
+                                block_pixels_r.data(), ert_p, total_modified_local_r,
+                                unpack_block_bc4_func, &params);
+            // then reduce entropy for the BC4 G block ...
+            ert::reduce_entropy(packed_img + BC4_BLOCK_SIZE, nBlocksTotal,
+                                BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */, BC4_BLOCK_SIZE,
+                                BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1, block_pixels_g.data(), ert_p,
+                                total_modified_local_g, unpack_block_bc4_func, &params);
+        }
+        clock_t rdo_end_t = clock();
+
+        // uncomment for debugging
+        if (ert_p.m_debug_output) {
+            printf("ERT params:\n");
+            ert_p.print();
+            printf("Total RDO time: %f secs\n", (double)(rdo_end_t - rdo_start_t) / CLOCKS_PER_SEC);
+            printf("Total nbr modified R blocks: %i\n", total_modified_local_r);
+            printf("Total nbr modified G blocks: %i\n", total_modified_local_g);
+        }
         break;
     }  // BC5
 
