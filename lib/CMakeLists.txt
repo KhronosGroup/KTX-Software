@@ -118,7 +118,7 @@ set(bitness 64)
 if(NOT DEFINED CPU_ARCHITECTURE)
     set_target_processor_type(CPU_ARCHITECTURE)
 endif()
-if (CPU_ARCHITECTURE STREQUAL x86)
+if (CPU_ARCHITECTURE STREQUAL x86 AND NOT ANDROID)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 
