@@ -1514,10 +1514,10 @@ typedef struct ktxBCnParams {
     /* BC7 encoder params */
 
     ktx_pack_bc7_quality_levels_e bc7CompressionQuality;
-        /*!< BC7 compression quality. Default is
-           KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM. Lower values give faster
-           compression speed at the expense of potentially lower quality. Higher
-           values give slower compression speed but potentially better quality.
+        /*!< BC7 compression quality. Lower values give faster compression speed
+           at the expense of potentially lower quality. Higher values give
+           slower compression speed but potentially better quality.
+           Default is KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM.
          */
 
     /* RDO params */
@@ -1533,18 +1533,17 @@ typedef struct ktxBCnParams {
          */
 
     float rdoQualityScalar;
-        /*!< RDO quality scalar (lambda). Lower values yield higher
-           quality/larger LZ compressed files, higher values yield lower
-           quality/smaller LZ compressed files. A good range to try is [.2,3].
-           Full range is [0.1,50.0]. Default is 1.0.
+        /*!< RDO quality scalar (lambda). Controls rate vs. distortion tradeoff.
+           Lower values yield higher quality/larger LZ compressed files, higher
+           values yield lower quality/smaller LZ compressed files. A good range
+           to try is [0.25,8]. Full range is [0.1,50.0]. Default is 1.0.
 
            The post-processor tries to reduce:
            distortion*smooth_block_scale + rate*lambda
-           (rate is approximate LZ bits and distortion is scaled MS error
-           multiplied against the smooth block MSE weighting factor).
-		   Larger values push the postprocessor towards optimizing more for
-           lower rate, and smaller values more for distortion.
-           0=minimal distortion.
+           (rate is approximate LZ bits and distortion is scaled MSE multiplied
+           against the smooth block MSE weighting factor). Larger values push
+           the postprocessor towards optimizing more for lower rate, and smaller
+           values more for distortion. 0=minimal distortion.
          */
 
     ktx_bool_t rdoAutoSmoothBlockMaxMSEScale;
@@ -1597,7 +1596,6 @@ typedef struct ktxBCnParams {
            artifacts on regions containing very smooth blocks (e.g., gradients).
            This does hurt rate-distortion performance. Default is false.
          */
-
 
     float rdoMaxAllowedRMSIncreaseRatio;
         /*!< How much the RMS error of a block is allowed to increase before a

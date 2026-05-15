@@ -138,6 +138,7 @@ set(LIBKTX_MAIN_SRC
     src/astc_codec.cpp
     src/bcn_encoder.cpp
     src/bcn_decoder.cpp
+    src/multithreading.cpp
     src/basis_sgd.h
     src/basis_transcode.cpp
     src/miniz_wrapper.cpp

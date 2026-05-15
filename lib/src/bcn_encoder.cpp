@@ -31,9 +31,96 @@
     #include "vkformat_enum.h" /* for VkFormat enum */
     #include "ktxint.h"
     #include "texture2.h"
+    #include "multithreading.h"
 
     #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
     #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
+
+struct CompressionWorkload {
+    uint32_t width;
+    uint32_t height;
+    uint32_t nchannels;
+    const ktxBCnParams* params;
+    const uint8_t* data_in;
+    uint8_t* data_out;
+};
+
+static void
+compressionWorkloadRunner(int threadCount, int threadId, void* payload) {
+    CompressionWorkload* work = static_cast<CompressionWorkload*>(payload);
+    const auto width = work->width;
+    const auto height = work->height;
+    const auto nchannels = work->nchannels;
+
+    const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const size_t nbrBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const size_t nbrBlocksTotal = nbrBlocksX * nbrBlocksY;
+
+    // Each thread takes a set of contiguous blocks to encode
+    const bool is_last_thread = threadId == (threadCount - 1);
+    const size_t nbr_blocks_per_thread = nbrBlocksTotal / threadCount;
+    // Computer [block_start_idx, block_end_idx[ range for current thread
+    const size_t block_start_idx = threadId * nbr_blocks_per_thread;
+    const size_t block_end_idx =
+        is_last_thread ? nbrBlocksTotal : (threadId + 1) * nbr_blocks_per_thread;
+
+    // Intermediate store for decoded LDR BCn block
+    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
+
+    uint8_t* pDstLevelImage = work->data_out;
+
+    for (size_t block_idx = block_start_idx; block_idx < block_end_idx; ++block_idx) {
+        const size_t xBlock = block_idx % nbrBlocksX;
+        const size_t yBlock = block_idx / nbrBlocksX;
+
+        // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
+        // via clamping to edge).
+        extract_block(rgba, work->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE, width,
+                      height, nchannels);
+        const uint8_t* pPixels = rgba;
+
+        switch (work->params->bcn) {
+        case KHR_DF_MODEL_BC1A:
+            // BC1: 4 x 4 x 4 = 64 bytes -> 8 bytes
+            rgbcx::encode_bc1(work->params->bc1CompressionQuality,
+                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
+                              pPixels, true, false);
+            break;
+
+        case KHR_DF_MODEL_BC3:
+            // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
+            rgbcx::encode_bc3(work->params->bc1CompressionQuality,
+                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
+                              pPixels);
+            break;
+
+        case KHR_DF_MODEL_BC4:
+            // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
+            rgbcx::encode_bc4(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
+                              pPixels, /* stride */ BC4_NCHANNELS);
+            break;
+
+        case KHR_DF_MODEL_BC5:
+            // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
+            rgbcx::encode_bc5(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
+                              pPixels, 0, 1,
+                              /* stride */ BC5_NCHANNELS);
+            break;
+
+        case KHR_DF_MODEL_BC7: {
+            // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
+            basist::bc7f::fast_pack_bc7_auto_rgba(
+                pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
+                reinterpret_cast<const basist::color_rgba*>(pPixels),
+                work->params->bc7CompressionQuality);
+            break;
+        }
+
+        default:
+            return;  // should never occur
+        }
+    }
+}
 
 /**
  * @~English
@@ -669,10 +756,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         return KTX_OUT_OF_MEMORY;
     }
 
-    // This is the intermediate store for decoded LDR BCn block
-    const size_t pixels_pitch = BCN_BLOCK_SIZE * 4;  // 4 x 4
-    uint8_t rgba[BCN_BLOCK_SIZE * pixels_pitch];     // 4 x 4 x 4
-
     #if 0  // for BC6H blocks
     uint16_t pPixelsHdr [BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
     #endif
@@ -686,6 +769,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t depth = MAX(1, This->baseDepth >> level);
         const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
         const size_t nbrBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+
         ktx_size_t levelImageSizeIn = 0;
         ktx_size_t levelImageSizeOut = 0;
         const ktx_uint32_t levelImages = This->numLayers * This->numFaces * depth;
@@ -720,64 +804,15 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         // BC7 takes singnificantly much longer).
 
         for (uint32_t image = 0; image < levelImages; image++) {
-            // Row-major loop over blocks
-            for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
-                for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
-                    // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
-                    // via clamping to edge).
-                    extract_block(rgba, pSrcLevelImage, x, y, width, height, nchannels);
+            CompressionWorkload work;
+            work.width = width;
+            work.height = height;
+            work.nchannels = nchannels;
+            work.params = params;
+            work.data_in = pSrcLevelImage;
+            work.data_out = pDstLevelImage;
 
-                    const auto xBlock = x / BCN_BLOCK_SIZE;
-                    const auto yBlock = y / BCN_BLOCK_SIZE;
-
-                    const uint8_t* pPixels = rgba;
-
-                    switch (params->bcn) {
-                    case KHR_DF_MODEL_BC1A:
-                        // BC1: 4 x 4 x 4 = 64 bytes -> 8 bytes
-                        rgbcx::encode_bc1(
-                            params->bc1CompressionQuality,
-                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
-                            pPixels, true, false);
-                        break;
-
-                    case KHR_DF_MODEL_BC3:
-                        // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
-                        rgbcx::encode_bc3(
-                            params->bc1CompressionQuality,
-                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
-                            pPixels);
-                        break;
-
-                    case KHR_DF_MODEL_BC4:
-                        // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
-                        rgbcx::encode_bc4(
-                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
-                            pPixels, /* stride */ BC4_NCHANNELS);
-                        break;
-
-                    case KHR_DF_MODEL_BC5:
-                        // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
-                        rgbcx::encode_bc5(
-                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
-                            pPixels, 0, 1,
-                            /* stride */ BC5_NCHANNELS);
-                        break;
-
-                    case KHR_DF_MODEL_BC7: {
-                        // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
-                        basist::bc7f::fast_pack_bc7_auto_rgba(
-                            pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
-                            reinterpret_cast<const basist::color_rgba*>(pPixels),
-                            params->bc7CompressionQuality);
-                        break;
-                    }
-
-                    default:
-                        return KTX_INVALID_VALUE;  // should never occur
-                    }
-                }  // x blocks
-            }  // y blocks
+            launchThreads(threadCount, compressionWorkloadRunner, &work);
 
             // post process the encoded blocks using RDO (if enabled)
             if (params->rdo) {
