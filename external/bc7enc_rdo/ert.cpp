@@ -280,7 +280,7 @@ namespace ert
 	bool reduce_entropy(void* pBlocks, uint32_t num_blocks,
 		uint32_t total_block_stride_in_bytes, uint32_t block_size_to_optimize_in_bytes, uint32_t block_width, uint32_t block_height, uint32_t num_comps,
 		const color_rgba* pBlock_pixels, const reduce_entropy_params& params, uint32_t& total_modified,
-		pUnpack_block_func pUnpack_block_func, void* pUnpack_block_func_user_data,
+		pUnpack_block_func pUnpack_block_func, void* pUnpack_block_func_user_data, ert::reduce_entropy_stats& stats,
 		std::vector<float>* pBlock_mse_scales)
 	{
 		assert(total_block_stride_in_bytes && block_size_to_optimize_in_bytes);
@@ -312,11 +312,12 @@ namespace ert
 
 		std::vector<uint32_t> len_hist(MAX_BLOCK_SIZE_IN_BYTES + 1);
 		std::vector<uint32_t> second_len_hist(MAX_BLOCK_SIZE_IN_BYTES + 1);
-		uint32_t total_second_matches = 0;
+
+		stats.total_second_matches = 0;
+		stats.total_smooth_blocks = 0;
 
 		int prev_match_window_ofs_to_favor_cont = -1, prev_match_dist_to_favor = -1;
 				
-		uint32_t total_smooth_blocks = 0;
 
 		const uint32_t HASH_SIZE = 8192;
 		uint32_t hash[HASH_SIZE];
@@ -353,7 +354,7 @@ namespace ert
 			}
 			
 			if (smooth_block_mse_scale > 1.0f)
-				total_smooth_blocks++;
+				stats.total_smooth_blocks++;
 						
 			float cur_bits = (LITERAL_BITS * block_size_to_optimize_in_bytes);
 			float cur_t = cur_mse * smooth_block_mse_scale + cur_bits * params.m_lambda;
@@ -675,7 +676,7 @@ namespace ert
 				if (best_second_match_len)
 				{
 					second_len_hist[best_second_match_len]++;
-					total_second_matches++;
+					stats.total_second_matches++;
 				}
 			}
 			else
@@ -685,20 +686,6 @@ namespace ert
 						
 		} // block_index
 				
-		if (params.m_debug_output)
-		{
-			printf("Total smooth blocks: %3.2f%%\n", total_smooth_blocks * 100.0f / num_blocks);
-
-			printf("Match length histogram:\n");
-			for (uint32_t i = MIN_MATCH_LEN; i <= block_size_to_optimize_in_bytes; i++)
-				printf("%u%c", len_hist[i], (i < block_size_to_optimize_in_bytes) ? ',' : '\n');
-
-			printf("Total second matches: %u %3.2f%%\n", total_second_matches, total_second_matches * 100.0f / num_blocks);
-			printf("Secod match length histogram:\n");
-			for (uint32_t i = MIN_MATCH_LEN; i <= block_size_to_optimize_in_bytes; i++)
-				printf("%u%c", second_len_hist[i], (i < block_size_to_optimize_in_bytes) ? ',' : '\n');
-		}
-		
 		return true;
 	}
 
