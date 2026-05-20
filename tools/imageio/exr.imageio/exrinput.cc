@@ -258,6 +258,8 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
                                   " images for each face and use those to create your KTX file.");
          }
     }
+    if (header.tiled && header.tile_level_mode != TINYEXR_TILE_ONE_LEVEL)
+        throw std::runtime_error(fmt::format("Multi-level tiled EXR images are not supported."));
     if ((header.tiled && image.tiles == nullptr) || (!header.tiled && image.images == nullptr))
         throw std::runtime_error(fmt::format("Invalid EXR file. {}",
             header.tiled ? "Tiled with no tiles" : "scanline with no images."));
@@ -297,8 +299,8 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         };
 
         for(int32_t tile = 0; tile < image.num_tiles; ++tile) {
-            for (int32_t ty = 0; ty < header.tile_size_y; ++ty) {
-                for (int32_t tx = 0; tx < header.tile_size_x; ++tx) {
+            for (int32_t ty = 0; ty < image.tiles[tile].height; ++ty) {
+                for (int32_t tx = 0; tx < image.tiles[tile].width; ++tx) {
                     auto x = image.tiles[tile].offset_x * header.tile_size_x + tx;
                     auto y = image.tiles[tile].offset_y * header.tile_size_y + ty;
                     auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
