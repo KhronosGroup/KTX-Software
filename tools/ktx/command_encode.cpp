@@ -305,7 +305,7 @@ void CommandEncode::executeEncode() {
             // Allowed formats
             break;
         default:
-            fatal_usage("Only RGB16 SNORM can be encoded to BC6HU, but format is {}.",
+            fatal_usage("Only RGB16 SFLOAT can be encoded to BC6HU, but format is {}.",
                         toString(VkFormat(texture->vkFormat)));
             break;
         }
