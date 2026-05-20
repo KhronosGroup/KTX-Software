@@ -193,7 +193,7 @@ include(${KTX_ROOT_DIR}/cmake/fp-settings.cmake)
 # The root KTX-Software project also sets these. Rather than figuring out
 # what the parent project is, let CMake's option de-duplication do its work.
 get_fp_compile_options(fp_options)
-add_compile_options( ${fp_options} )
+#add_compile_options( ${fp_options} )
 
 include(${KTX_ROOT_DIR}/cmake/compiler_query_genexs.cmake)
 
@@ -275,9 +275,9 @@ macro(common_libktx_settings target enable_write library_type)
         message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")
     endif()
 
-    # To influence the FP settings of apps depending on us do this. Unsure if that is
-    # a wise thing hence commented.
-    #target_compile_options( ${target} PUBLIC ${fp_options} )
+    # To influence the FP settings of apps depending on us change PRIVATE to PUBLIC. Unsure if
+    # that is a wise thing hence using PRIVATE.
+    target_compile_options( ${target} PRIVATE ${fp_options} )
 
     target_compile_definitions(
         ${target}

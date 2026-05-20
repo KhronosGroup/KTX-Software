@@ -195,9 +195,9 @@ else()
 endif()
 
 # To improve output determinism, enable precise floating point operations globally
-include(cmake/fp-settings.cmake)
-get_fp_compile_options(fp_options)
-add_compile_options( ${fp_options} )
+#include(cmake/fp-settings.cmake)
+#get_fp_compile_options(fp_options)
+#add_compile_options( ${fp_options} )
 
 # Set output directories
 set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
