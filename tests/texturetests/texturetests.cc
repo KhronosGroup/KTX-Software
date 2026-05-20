@@ -3398,7 +3398,12 @@ class ktxTexture2BCnEncodeDecodeTestBase
         EXPECT_EQ(texture->baseWidth, width);
         EXPECT_LT(texture->dataSize, dataSize);
 
-        result = ktxTexture2_DecodeBCn(texture);
+        ktxBC1UnpackParams bc1_unpack_params;
+        bc1_unpack_params.allow_3color_mode = true;
+        bc1_unpack_params.use_3color_mode_for_black = false;
+        bc1_unpack_params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
+        result = ktxTexture2_DecodeBCn(texture, &bc1_unpack_params);
+
         ASSERT_EQ(result, KTX_SUCCESS) << format("ktxTexture2_DecodeBCn failed with error code: {}", ktxErrorString(result));
         EXPECT_EQ(texture->vkFormat, expectedDecompressedFormat);
         model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd + 1, MODEL));
@@ -3517,7 +3522,11 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         auto isHdr = ktxTexture2_IsHDR(texture);
         auto isPremultipliedAlpha = ktxTexture2_GetPremultipliedAlpha(texture);
 
-        result = ktxTexture2_DecodeBCn(texture);
+        ktxBC1UnpackParams bc1_unpack_params;
+        bc1_unpack_params.allow_3color_mode = true;
+        bc1_unpack_params.use_3color_mode_for_black = false;
+        bc1_unpack_params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
+        result = ktxTexture2_DecodeBCn(texture, &bc1_unpack_params);
 
         ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_DecodeBCn failed: {}", ktxErrorString(result));

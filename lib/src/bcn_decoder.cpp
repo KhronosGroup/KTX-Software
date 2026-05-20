@@ -11,9 +11,8 @@
  * @file
  * @~English
  *
- * @brief Functions for compressing a texture to BCn format and decoding one in
- *        BCn format. Currently supported BCn formats are: BC1, BC3, BC4, BC5,
- *        and BC7.
+ * @brief Functions for decoding a BCn-compressed texture. Currently supported
+ * BCn formats are: BC1, BC3, BC4, BC5, BC6HU, BC6HS, and BC7.
  *
  * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
  */
@@ -22,7 +21,6 @@
 
 #include "bc7enc_rdo/bc7decomp.h"  /* for BC7 decoder */
 #include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
-#include "bc7enc_rdo/rgbcx.h"      /* for BC1-BC5 encoders/decoders */
 #include "vkformat_enum.h"         /* for VkFormat enum */
 #include "ktxint.h"
 #include "texture2.h"
@@ -32,51 +30,80 @@
 
 /**
  * @ingroup reader
- * @brief Decodes a ktx2 texture object, if it is BCn encoded (i.e., BC1, BC3,
- * BC4, BC5, or BC7 encoded).
+ * @brief Decodes a ktx2 texture object, if it is BCn encoded. Currently, BC1,
+ *        BC3, BC4, BC5, BC6HU, BC6HS, or BC7 formats are supported.
  *
- * The decompressed format is calculated from corresponding BCn format.
- * For BC1, BC3, and BC7 the decompressed VkFormat is:
- * VK_FORMAT_R8G8B8A8_[UNORM|SRGB] depending on the original color space.
- * For BC4: VK_FORMAT_R8_UNORM
- * For BC5: VK_FORMAT_R8G8_UNORM
+ *        The decompressed format is calculated from corresponding BCn format.
+ *        - For BC1, BC3, and BC7:
+ *            VK_FORMAT_R8G8B8A8_[UNORM|SRGB] depending on the original color
+ *            space.
+ *        - For BC4:
+ *            VK_FORMAT_R8_UNORM
+ *        - For BC5:
+ *            VK_FORMAT_R8G8_UNORM
+ *        - For BC6HU, BC6HS:
+ *            VK_FORMAT_R16G16B16_SFLOAT
  *
- * Updates @p This with the decoded image.
+ *        The images are decompressed from BCn block-compressed format. The
+ *        decompressed images replace the original images and the texture's
+ *        fields including the DFD are modified to reflect the new state.
  *
- * @param This     The texture to decode
+ *        Such textures can be directly uploaded to the GPU as raw
+ *        (decompressed) formats.
  *
- * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
+ *        Decoding into non-multiple-of-4 texture dimensions is also supported
+ *        (decoded blocks that fall out of the texture's dimensions are simply
+ *        discarded).
  *
- * @exception KTX_FILE_DATA_ERROR
- *                              DFD is incorrect: supercompression scheme or
- *                              sample's channelId do not match BCn colorModel.
+ * @param [in] This     pointer to the ktxTexture2 object of interest.
+ * @param [in] params   pointer to BC1 unpack parameters that are provided to
+ *                      BC1 and BC3 block unpackers.
+ *
+ * @return              KTX_SUCCESS on success, other KTX_* enum values on
+ *                      error.
+ *
+ * @exception KTX_INVALID_VALUE
+ *                      @p params is NULL but @p This texture is BC1 or BC3
+ *                      compressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are not in BCn format
- *                              (i.e., either color model is not set to BCn or
- *                              This->vkFormat does not correspond to the set
- *                              BCn color model).
+ *                      The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture object does not contain any data
- *                              (i.e., This->pData is NULL and there is no
- *                              pending data load).
+ *                      The texture is not compressed.
+ * @exception KTX_INVALID_OPERATION
+ *                      The texture's images are not in BCn format (i.e., either
+ *                      color model is not set to BCn or This->vkFormat does not
+ *                      correspond to the set BCn color model).
+ * @exception KTX_INVALID_OPERATION
+ *                      The texture object does not contain any data (i.e.,
+ *                      @c This->pData is @c NULL and there is no pending data
+ *                      load).
+ * @exception KTX_INVALID_OPERATION
+ *                      Decoder/Unpacker returned an error exit code or a
+ *                      non-success return flag. Only occurs for BC1, BC3 (which
+ *                      calls BC1 decoder), and BC7.
  * @exception KTX_OUT_OF_MEMORY
- *                              Not enough memory to carry out decoding.
- * @exception KTX_UNSUPPORTED_FEATURE
- *                              The texture's images are supercompressed with an
- *                              unsupported scheme.
+ *                      Not enough memory to carry out decoding.
  */
-KTX_error_code
-ktxTexture2_DecodeBCn(ktxTexture2* This) {
-    // Decompress This using bc7enc_rdo
+extern "C" KTX_error_code
+ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
-    ktx_size_t nchannels;
-    ktx_uint32_t decompressedVkFormat;
+    size_t nchannels;
+    uint32_t decompressedVkFormat;
     bool is_signed_bc6h = false;
+    KTX_error_code result;
+
+    if (This->supercompressionScheme != KTX_SS_NONE)
+        return KTX_INVALID_OPERATION;  // TODO: does it have to be not supercompressed?
+
+    // Other schemes are decoded in ktxTexture2_LoadImageData.
+
+    if (!This->isCompressed) return KTX_INVALID_OPERATION;
 
     switch (colorModel) {
     case KHR_DF_MODEL_BC1A:
+        if (!params) return KTX_INVALID_VALUE;
         if (!(channelId == KHR_DF_CHANNEL_BC1A_COLOR || channelId == KHR_DF_CHANNEL_BC1A_ALPHA)) {
             return KTX_FILE_DATA_ERROR;
         }
@@ -95,11 +122,11 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         default:
             return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC1)
         }
-        // TODO: expose as parameter
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
         break;
 
     case KHR_DF_MODEL_BC3:
+        if (!params) return KTX_INVALID_VALUE;
         nchannels = BC3_NCHANNELS; /* 4 */
         switch (This->vkFormat) {
         case VK_FORMAT_BC3_UNORM_BLOCK:
@@ -111,7 +138,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         default:
             return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC3)
         }
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
         break;
 
     case KHR_DF_MODEL_BC4:
@@ -126,7 +153,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         default:
             return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC4)
         }
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(/* bc1_approx_mode doesn't matter here */);
         break;
 
     case KHR_DF_MODEL_BC5:
@@ -141,7 +168,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         default:
             return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC5)
         }
-        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
+        rgbcx::init(/* bc1_approx_mode doesn't matter here */);
         break;
 
     case KHR_DF_MODEL_BC6H:
@@ -179,15 +206,15 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         return KTX_INVALID_OPERATION;  // Not in BCn decodable format
     }
 
-    if (This->supercompressionScheme == KTX_SS_BASIS_LZ ||
-        This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
-        return KTX_FILE_DATA_ERROR;  // Not a valid file.
+    if (This->pData == NULL) {
+        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
+            // Load pending. Complete it.
+            result = ktxTexture2_LoadImageData(This, NULL, 0);
+            if (result != KTX_SUCCESS) return result;
+        } else {
+            return KTX_INVALID_OPERATION;  // No data to decode.
+        }
     }
-    // Safety check.
-    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
-        return KTX_UNSUPPORTED_FEATURE;  // Unsupported scheme.
-    }
-    // Other schemes are decoded in ktxTexture2_LoadImageData.
 
     DECLARE_PRIVATE_EX(priv, This);
 
@@ -208,28 +235,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
-    KTX_error_code result;
     ktxTexture2* prototype;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
 
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY);  // The only run time error
         return result;
-    }
-
-    if (!This->pData) {
-        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
-            // Load pending. Complete it.
-            result = ktxTexture2_LoadImageData(This, NULL, 0);
-            if (result != KTX_SUCCESS) {
-                ktxTexture2_Destroy(prototype);
-                return result;
-            }
-        } else {
-            // No data to decode.
-            ktxTexture2_Destroy(prototype);
-            return KTX_INVALID_OPERATION;
-        }
     }
 
     // Create intermediate storage to store decoded blocks. Not all blocks
@@ -252,7 +263,6 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                     ktx_size_t imageOffsetIn;
                     ktx_size_t imageOffsetOut;
 
-                    // TODO: are we sure these can't fail? (i.e., return != KTX_SUCCESS)
                     ktxTexture2_GetImageOffset(This, levelIndex, layerIndex,
                                                faceIndex + depthSliceIndex, &imageOffsetIn);
                     ktxTexture2_GetImageOffset(prototype, levelIndex, layerIndex,
@@ -261,57 +271,66 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                     const ktx_uint8_t* imageDataIn = This->pData + imageOffsetIn;
                     ktx_uint8_t* imageDataOut = prototype->pData + imageOffsetOut;
 
-                    // Probably very little benefit of using multithreading here
-
                     const ktx_uint8_t* src_blocks = imageDataIn;
 
                     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
                         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+                            bool rv = true;
                             switch (colorModel) {
                             case KHR_DF_MODEL_BC1A:
                                 // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
                                 // TODO: BC1 with punchthrough alpha should already be supported,
                                 // right? (since we already write to 4x4x4 block and then to an RGBA
                                 // texture)?
-                                rgbcx::unpack_bc1(src_blocks, rgba, true);
+                                rv = unpack_block_bc1(src_blocks,
+                                                      reinterpret_cast<ert::color_rgba*>(rgba),
+                                                      0 /* ignored */, &params);
                                 src_blocks += BC1_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC3:
                                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                                rgbcx::unpack_bc3(src_blocks, rgba);
+                                rv = rgbcx::unpack_bc3(src_blocks, rgba);
                                 src_blocks += BC3_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC4:
                                 // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
-                                rgbcx::unpack_bc4(src_blocks, rgba,
-                                                  /* stride */ BC4_NCHANNELS);
+                                /* always succeeds */ rgbcx::unpack_bc4(src_blocks, rgba,
+                                                                        /* stride */ BC4_NCHANNELS);
                                 src_blocks += BC4_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC5:
                                 // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
-                                rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
-                                                  /* stride */ BC5_NCHANNELS);
+                                /* always succeeds */ rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
+                                                                        /* stride */ BC5_NCHANNELS);
                                 src_blocks += BC5_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC6H:
                                 // BC6H: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, rgbh_pitch, is_signed_bc6h);
+                                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(
+                                    src_blocks, rgbh, rgbh_pitch, is_signed_bc6h);
                                 src_blocks += BC6H_BLOCK_SIZE;
                                 break;
 
                             case KHR_DF_MODEL_BC7:
                                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                                bc7decomp::unpack_bc7(
+                                rv = bc7decomp::unpack_bc7(
                                     src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
                                 src_blocks += BC7_BLOCK_SIZE;
                                 break;
 
-                            default:
-                                break;  // should never occur
+                            default:  // should never occur
+                                rv = false;
+                                break;
+                            }
+                            // If any of the decoders/unpackers returned false
+                            // => something went wrong
+                            if (!rv) {
+                                ktxTexture2_Destroy(prototype);
+                                return KTX_INVALID_OPERATION;  // decoder failure
                             }
                             // copy the decoded block into the actual texture image
                             colorModel == KHR_DF_MODEL_BC6H

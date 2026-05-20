@@ -1463,6 +1463,17 @@ typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
 /**
  * @memberof ktxTexture
  * @~English
+ * @brief Structure for passing BC1 unpack parameters to ktxTexture2_DecodeBCn.
+ */
+typedef struct ktxBC1UnpackParams {
+    ktx_bool_t allow_3color_mode;
+    ktx_bool_t use_3color_mode_for_black;
+    ktx_bc1_approx_mode_e bc1_approx_mode;
+} ktxBC1UnpackParams;
+
+/**
+ * @memberof ktxTexture
+ * @~English
  * @brief Structure for passing extended parameters to
  *        ktxTexture2_CompressBCnEx.
  *
@@ -1642,7 +1653,7 @@ ktxTexture2_CompressBCn(ktxTexture2* This /*, ktx_bcn_compression_e bcn, ktx_uin
 #endif
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture2_DecodeBCn(ktxTexture2* This);
+ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params);
 
 /**
  * @~English

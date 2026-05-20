@@ -11,23 +11,25 @@
  * @file
  * @~English
  *
- * @brief Functions for compressing a texture to BCn format and decoding one in
- *        BCn format. Currently supported BCn formats are: BC1, BC3, BC4, BC5,
- *        and BC7.
+ * @brief Functions for encoding an uncompressed texture to a BCn format with an
+ *        optional RDO post-processing step to significantly (50% or more)
+ *        reduce bit rate when supercompressed with Deflate (Zlib or ZSTD).
+ *        Currently supported BCn formats are: BC1, BC3, BC4, BC5, BC6HU*, and
+ *        BC7.
+ *
+ *        *: support for BC6HU is limited because the encoder currently fails
+ *        when given signed half float values.
  *
  * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
  */
 
-#include <atomic>
-#include <chrono>
-#include <iostream>
 #include "ktx.h"
 
 #if KTX_FEATURE_WRITE
 
     #include "bcn_common.h"
 
-    #include "bc7enc_rdo/bc7decomp.h"            /* for BC7 decoder */
+    #include "bc7enc_rdo/bc7decomp.h"            /* for BC7 decoder (needed for RDO) */
     #include "bc7enc_rdo/ert.h"                  /* for RDO */
     #include "bc7enc_rdo/rgbcx.h"                /* for BC1-BC5 encoders/decoders */
     #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
@@ -36,7 +38,14 @@
     #include "ktxint.h"
     #include "texture2.h"
     #include "multithreading.h"
-    #include "chrono"
+
+    // #define DEBUG_PRINT_STATS 1               /* uncomment to print RDO stats */
+    #ifdef DEBUG_PRINT_STATS
+        #include "chrono"
+        #include <atomic>
+        #include <chrono>
+        #include <iostream>
+    #endif
 
     #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
     #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
@@ -44,33 +53,6 @@
 static inline bool
 unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
     return bc7decomp::unpack_bc7(pBlock, reinterpret_cast<bc7decomp::color_rgba*>(pPixels));
-};
-
-static inline bool
-unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* pUser_data) {
-    auto bc1_usr_data = reinterpret_cast<unpack_block_bc1_user_data*>(pUser_data);
-    assert(bc1_usr_data->allow_3color_mode);
-    assert(!bc1_usr_data->use_3color_mode_for_black);
-    bool used_3color = rgbcx::unpack_bc1(
-        pBlock, pPixels, true, static_cast<rgbcx::bc1_approx_mode>(bc1_usr_data->bc1_approx_mode));
-    // This check is copied from the original code at: rdo_bc_encoder.h
-    if (used_3color) {
-        if (!bc1_usr_data->allow_3color_mode) return false;
-        if (!bc1_usr_data->use_3color_mode_for_black) {
-            rgbcx::bc1_block* pBC1_block = (rgbcx::bc1_block*)pBlock;
-            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y) {
-                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x) {
-                    if (pBC1_block->get_selector(x, y) == 3) {
-                        // TODO: why does this assert fail but when removed this if statement never
-                        // enters (probably compiler optimized something?)...
-                        // assert(false);
-                        return false;
-                    }
-                }
-            }
-        }
-    }
-    return true;
 };
 
 static inline bool
@@ -111,8 +93,8 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     block_end_idx = block_start_idx + num_blocks;
 
     // Intermediate store for decoded LDR BCn block
-    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];
+    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];   // 4 x 4 x 4
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];  // 4 x 4 x 3 x 2
 
     basist::astc_6x6_hdr::fast_bc6h_params bc6h_params;
     bc6h_params.init();
@@ -156,7 +138,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
                               /* stride */ BC5_NCHANNELS);
             break;
         case KHR_DF_MODEL_BC6H:
-            // this doesn't work with signed SFLOAT inputs ... :(
+            // TODO: this currently errors out (assert fails) on signed input.
+            // Need to handle this the same way that UASTC HDR handles it or
+            // just use another encoder?
             basist::astc_6x6_hdr::fast_encode_bc6h(
                 rgbh,
                 reinterpret_cast<basist::bc6h_block*>(
@@ -171,7 +155,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
                 workload->params.bc7CompressionQuality);
             break;
         default:
-            assert(false);  // should never occur
+            return;  // should never occur
         }
     }
 }
@@ -197,7 +181,6 @@ rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
         workload->m_total_second_matches_rgb += stats_local.total_second_matches;
     } else {
         workload->m_success = false;
-        std::cerr << "ert::reduce_entropy failed" << '\n';
     }
 }
 
@@ -328,6 +311,7 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     }
 }
 
+    #ifdef DEBUG_PRINT_STATS
 [[maybe_unused]] static inline void
 print_rdo_params(const rdo_params& params) {
     std::cout << "rdo lambda: " << params.ert_p.m_lambda << '\n';
@@ -347,37 +331,47 @@ print_rdo_params(const rdo_params& params) {
     std::cout << "rdo allow relative movement: " << params.ert_p.m_allow_relative_movement << '\n';
     std::cout << "rdo skip zero MSE blocks: " << params.ert_p.m_skip_zero_mse_blocks << '\n';
 };
+    #endif
 
 /**
  * @~English
- * @brief Performs rate distorion optimization (RDO) on the provided BCn-encoded
- *        blocks to reduce entropy for a potential subsequent Deflate step.
- *        BC2 and BC6H formats are currently not supported.
+ * @brief Performs rate distortion optimization (RDO) on the provided
+ *        BCn-encoded blocks to reduce entropy for a potential subsequent
+ *        Deflate step (i.e., significant bit rate reduction can be achieved
+ *        when further supercompressed with Zlib/ZSTD). BC2 and BC6H formats are
+ *        currently not supported.
  *
  *        Some values of the reduce_entropy_params struct may be adjusted before
  *        being passed to the underlying RDO subroutine. The reason for this is
  *        that, depending on the BCn compression, some values make no sense and
  *        may kill efficiency.
  *
- * @param[in]   unpacked_img_0 pointer to the source unpacked data.
- * @param[in]   unpacked_img_size size of source unpacked data in bytes.
- *              Internal sanity checks are performed on this provided size.
- * @param[in,out]   packed_img pointer to the packed/encoded image data.
- *              These packed/encoded blocks are modified to reduce bit/texel
- *              rate which is measured via an LZ (Deflate) compression
- *              simulation while keeping distorion minimal (i.e., difference
- *              between decoded/unpacked and actual source image data pointed
- *              to by unpacked_img_0).
- * @param[in]   packed_img_size size of packed/encoded data in bytes.
- *              Internal sanity checks are performed on this provided size.
- * @param[in]   ert_p.
- *              No sanitation/checks are performed on the provided
- *              reduce_entropy_params. The called has to make sure that provided
- *              params are valid (i.e., in range for floats).
- * @param[in]   bcn used to determine the BCn compression of the provided
- *              compressed blocks.
- * @param[in]   width image width (in texels/pixels).
- * @param[in]   height image height (in texels/pixels).
+ * @param [in] unpacked_img_0       pointer to the source unpacked data.
+ * @param [in] unpacked_img_size    size of source unpacked data in bytes.
+ *                                  Internal sanity checks are performed on this
+ *                                  provided size.
+ * @param [in,out] packed_img       pointer to the packed/encoded image data.
+ *                                  These packed/encoded blocks are modified to
+ *                                  reduce bit/texel rate which is measured via
+ *                                  an LZ (Deflate) compression simulation while
+ *                                  keeping distortion minimal (i.e., difference
+ *                                  between decoded/unpacked and actual source
+ *                                  image data pointed to by @p unpacked_img_0).
+ * @param [in] packed_img_size      size of packed/encoded data in bytes.
+ *                                  Internal sanity checks are performed on this
+ *                                  provided size.
+ * @param [in] params               RDO parameters. No sanitation/checks are
+ *                                  performed on the provided reduce entropy
+ *                                  params (ert). The caller has to make sure
+ *                                  that provided params are valid (i.e., in
+ *                                  range for floats).
+ * @param [in] bcn                  used to determine the BCn compression of the
+ *                                  provided compressed blocks.
+ * @param [in] width                image width (in texels).
+ * @param [in] height               image height (in texels).
+ * @param [in] threads              number of threads to dispatch for RDO.
+ *                                  Setting this to 1 disables multithreading
+ *                                  and simply runs RDO within this main thread.
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  */
@@ -427,17 +421,19 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
             }
         }
 
+    #ifdef DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
+    #endif
+
         rdo_bc1_workload workload(width, height, packed_img, block_pixels.data(), ert_p,
                                   params.bc1_params);
         launchThreads(threads, rdo_bc1_workload_runner, &workload);
+        success = workload.m_success;
+
+    #ifdef DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-        success = workload.m_success;
-
-        // uncomment for debugging/prints
         print_rdo_params(params);
         std::cout << "total rdo time (s): " << total_rdo_time / 1000.0f << '\n';
         std::cout << "total nbr modified blocks (%): "
@@ -445,6 +441,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_rgb) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_rgb << '\n';
+    #endif
 
         break;
     }  // BC1
@@ -496,17 +493,19 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
             }
         }
 
+    #ifdef DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
+    #endif
+
         rdo_bc3_workload workload(width, height, packed_img, block_pixels_rgbx.data(),
                                   block_pixels_axxx.data(), ert_p, ert_p_a, params.bc1_params);
         launchThreads(threads, rdo_bc3_workload_runner, &workload);
+        success = workload.m_success;
+
+    #ifdef DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-        success = workload.m_success;
-
-        // uncomment for debugging/prints
         print_rdo_params(params);
         std::cout << "total rdo time (s): " << total_rdo_time / 1000.0f << '\n';
         std::cout << "total nbr modified BC1 RGB blocks (%): "
@@ -521,6 +520,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
                   << workload.m_total_second_matches_rgb << '\n';
         std::cout << "total second matches for BC4 A blocks: " << workload.m_total_second_matches_a
                   << '\n';
+    #endif
 
         break;
     }  // BC3
@@ -563,16 +563,18 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
             }
         }
 
+    #ifdef DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
+    #endif
+
         rdo_bc4_workload workload(width, height, packed_img, block_pixels_rxxx.data(), ert_p);
         launchThreads(threads, rdo_bc4_workload_runner, &workload);
+        success = workload.m_success;
+
+    #ifdef DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-        success = workload.m_success;
-
-        // uncomment for debugging/prints
         print_rdo_params(params);
         std::cout << "total rdo time (s): " << total_rdo_time / 1000.0f << '\n';
         std::cout << "total nbr modified blocks (%): "
@@ -580,6 +582,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_r) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_r << '\n';
+    #endif
 
         break;
     }  // BC4
@@ -627,17 +630,20 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
             }
         }
 
+    #ifdef DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
+    #endif
+
         rdo_bc5_workload workload(width, height, packed_img, block_pixels_rxxx.data(),
                                   block_pixels_gxxx.data(), ert_p, ert_p);
         launchThreads(threads, rdo_bc5_workload_runner, &workload);
-        auto finish = std::chrono::high_resolution_clock::now();
-        const auto total_rdo_time =
-            std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
 
         success = workload.m_success;
 
-        // uncomment for debugging/prints
+    #ifdef DEBUG_PRINT_STATS
+        auto finish = std::chrono::high_resolution_clock::now();
+        const auto total_rdo_time =
+            std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
         print_rdo_params(params);
         std::cout << "total rdo time (s): " << total_rdo_time / 1000.0f << '\n';
         std::cout << "total nbr modified BC4 R blocks (%): "
@@ -652,9 +658,13 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
                   << '\n';
         std::cout << "total second matches for BC4 G blocks: " << workload.m_total_second_matches_g
                   << '\n';
+    #endif
 
         break;
     }  // BC5
+
+        // TODO: add BC6H RDO support. Requires changes to ert::reduce_entropy to
+        // handle half float channels (i.e., f16) instead of 1 byte per channel.
 
     case KHR_DF_MODEL_BC7: {
         // Some sanity checks
@@ -689,16 +699,18 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
             }
         }
 
+    #ifdef DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
+    #endif
+
         rdo_bc7_workload workload(width, height, packed_img, block_pixels_rgba.data(), ert_p);
         launchThreads(threads, rdo_bc7_workload_runner, &workload);
+        success = workload.m_success;
+
+    #ifdef DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-
-        success = workload.m_success;
-
-        // uncomment for debugging/prints
         print_rdo_params(params);
         std::cout << "total rdo time (s): " << total_rdo_time / 1000.0f << '\n';
         std::cout << "total nbr modified blocks (%): "
@@ -706,6 +718,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_rgba) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_rgba << '\n';
+    #endif
 
         break;
     }  // BC7
@@ -721,54 +734,58 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
- * @brief Encode and compress a ktx texture with uncompressed images to provided
- *        BCn format. Currently, only BC1, BC3, BC4, BC5, and BC7 target formats
- *        are supported.
+ * @brief Compress a ktx texture with uncompressed images to provided BCn
+ *        format. Currently, only BC1, BC3, BC4, BC5, BC6HU*, and BC7 target
+ *        formats are supported.
  *
- * The images are encoded to BCn block-compressed format. The encoded images
- * replace the original images and the texture's fields including the DFD are
- * modified to reflect the new state.
+ *        The images are encoded to provided BCn block-compressed format. The
+ *        encoded images replace the original images and the texture's fields
+ *        including the DFD are modified to reflect the new state.
  *
- * Such textures can be directly uploaded to a GPU via a graphics API.
+ *        Such textures can be directly uploaded to a GPU via a graphics API.
  *
- * @param[in]   This   pointer to the ktxTexture2 object of interest.
- * @param[in]   params pointer to BCn params object.
+ *        Encoding non-multiple-of-4 texture dimensions is supported. Block
+ *        pixels/texels that are out of the texture's dimensions are
+ *        simply filled via a clamp-to-edge strategy. This strategy is easier
+ *        for the encoder to handle since no abrupt changes are introduced in
+ *        image boundaries.
  *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @param [in] This     pointer to the ktxTexture2 object of interest.
+ * @param [in] params   pointer to BCn parameters object. These
+ *                      parameters, among other things, control the
+ *                      compression quality and whether to apply an RDO
+ *                      post-processing step to significantly reduce
+ *                      bit rate when @p This texture gets supercompressed
+ *                      with Deflate (i.e., Zlib/ZSTD).
  *
+ * @return              KTX_SUCCESS on success, other KTX_* enum values on
+ *                      error.
+ *
+ * @exception KTX_INVALID_VALUE
+ *                      @p params is @c NULL or used with incompatible
+ *                      @p params.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are supercompressed.
+ *                      The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                              The texture's images are already in a block
- *                              compressed format (i.e., This->isCompressed is
- *                              true).
+ *                       The texture's images are already in a block compressed
+ *                       format (i.e., @c This->isCompressed is true).
  * @exception KTX_INVALID_OPERATION
- *                              The texture image's format is a packed format
- *                              (e.g. RGB565).
+ *                       The texture image's format is a packed format (e.g.,
+ *                       RGB565).
  * @exception KTX_INVALID_OPERATION
- *                              The texture image format's component size is not
- *                              8-bits.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's images are 1D. Only 2D images can
- *                              be block compressed.
+ *                       The texture's images are not 2D. Only 2D images can be
+ *                       block compressed.
  * @exception  KTX_INVALID_OPERATION
- *                              Transfer function of @c This is not sRGB or
- *                              Linear.
- * @exception  KTX_INVALID_OPERATION
- *                              @c params->mode  is HDR but transfer function
- *                              of @c This is sRGB.
+ *                        VkFormat of @p This texture is not supported or does
+ *                        not match that of the set BCn color model.
  * @exception KTX_INVALID_OPERATION
- *                              This->generateMipmaps is set.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out compression.
- * @exception KTX_UNSUPPORTED_FEATURE
- *                              @c params->mode is HDR mode which is not
- *                              yet implemented.
+ *                        This->generateMipmaps is set.
+ * @exception KTX_OUT_OF_MEMORY
+ *                        Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     assert(This->classId == ktxTexture2_c && "Only support ktx2 BCn.");
-
-    ktx_error_code_e result;
 
     if (!params) return KTX_INVALID_VALUE;
 
@@ -777,12 +794,13 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     // TODO: why?
     if (This->generateMipmaps) return KTX_INVALID_OPERATION;
 
+    if (This->numDimensions != 2) return KTX_INVALID_OPERATION;
+
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
 
-    if (This->isCompressed)
-        return KTX_INVALID_OPERATION;  // Only non-block compressed formats
-                                       // can be encoded into a BCn format.
+    // Only non-block compressed formats can be encoded into a BCn format.
+    if (This->isCompressed) return KTX_INVALID_OPERATION;
 
     if (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_PACKED_BIT)
         return KTX_INVALID_OPERATION;
@@ -790,10 +808,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     // Basic descriptor block begins after the total size field.
     const uint32_t* BDB = This->pDfd + 1;
     ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
+    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     size_t nchannels;
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
     bool is_hdr = false;
+    ktx_error_code_e result;
 
     switch (params->bcn) {
     case KHR_DF_MODEL_BC1A:
@@ -873,7 +893,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         switch (This->vkFormat) {
         case VK_FORMAT_R16G16B16_SFLOAT:
             // TODO: go figure. If I map this to an SFLOAT, I get full white EXR
-            // pictures ...
+            // pictures ... (A. because used encoder doesn't support signed BC6H)
             compressedVkFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
             break;
         default:
@@ -882,7 +902,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC6H_NCHANNELS;
         blocksize_in_bytes = BC6H_BLOCK_SIZE;
         is_hdr = true;
-        // TODO: is this needed?
         basist::basisu_transcoder_init();
         break;
 
@@ -969,7 +988,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
 
         // TODO: all of this needs robust verification. Is the data whithin a given
-        // level compact or are there instances where a padding is added?
+        // level compact or are there instances where a padding is added (e.g.,
+        // because graphics API has a different data layout requirements)?
         assert(levelImageSizeIn == width * height * nchannels * (is_hdr ? 2 : 1) &&
                "Probably non-compact data (i.e., some padding)");
         assert(levelImageSizeOut == nbrBlocksX * nbrBlocksY * blocksize_in_bytes &&
@@ -1005,11 +1025,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 rdo_p.ert_p.m_lookback_window_size = params->rdoWindowLoopbackSize;
                 rdo_p.ert_p.m_smooth_block_max_mse_scale = params->rdoMaxSmoothBlockMseScale;
                 rdo_p.ert_p.m_max_smooth_block_std_dev = params->rdoMaxSmoothBlockStdDev;
-                rdo_p.ert_p.m_try_two_matches = false;
-                rdo_p.ert_p.m_allow_relative_movement = false;
+                rdo_p.ert_p.m_try_two_matches = params->rdoTry2Matches;
+                rdo_p.ert_p.m_allow_relative_movement = params->rdoAllowRelativeMovement;
                 rdo_p.ert_p.m_skip_zero_mse_blocks = false;
                 rdo_p.auto_smooth_block_max_mse_scale = params->rdoAutoSmoothBlockMaxMSEScale;
-                rdo_p.bc1_params.bc1_approx_mode = params->bc1ApproxMode;
+                rdo_p.bc1_params.bc1_approx_mode =
+                    static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode);
                 rdo_p.bc1_params.allow_3color_mode = true;           // hardcoded
                 rdo_p.bc1_params.use_3color_mode_for_black = false;  // hardcoded
                 auto res =
@@ -1026,13 +1047,13 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == params->bcn &&
            "Invalid dfd generated for BCn image\n");
-    // assert((transfer == KHR_DF_TRANSFER_SRGB
-    //             ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
-    //                   KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
-    //             : true) &&
-    //        "Not a valid sRGB image\n");
+    assert((transfer == KHR_DF_TRANSFER_SRGB
+                ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
+                      KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
+                : true) &&
+           "Not a valid sRGB image\n");
 
-    // Fix up the current (This) texture (this is copied as is from ASTC encoder - see
+    // Fix up the current (This) texture (this is copied from ASTC encoder - see
     // astc_codec.cpp)
     #undef DECLARE_PRIVATE
     #undef DECLARE_PROTECTED
@@ -1060,9 +1081,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     free(This->pDfd);
     This->pDfd = prototype->pDfd;
     prototype->pDfd = 0;
-
-    // TODO: this causes crashes for certain inputs but no fault of this
-    // particular encoder (rather a KTX bug somewhere...)
     free(This->pData);
     This->pData = prototype->pData;
     This->dataSize = prototype->dataSize;

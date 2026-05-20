@@ -14,9 +14,10 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
-#include "KHR/khr_df.h"
-#include "bc7enc_rdo/ert.h"
 #include "ktx.h"
+#include "KHR/khr_df.h"
+#include "bc7enc_rdo/ert.h"   /* for RDO */
+#include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
 
 #define BCN_BLOCK_SIZE 4
 
@@ -38,7 +39,7 @@
 struct unpack_block_bc1_user_data {
     ktx_bool_t allow_3color_mode;
     ktx_bool_t use_3color_mode_for_black;
-    ktx_bc1_approx_mode_e bc1_approx_mode;
+    rgbcx::bc1_approx_mode bc1_approx_mode;
 };
 
 /* Since this is used to pass parameters/data to thread runners, make sure all
@@ -447,6 +448,24 @@ insert_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t heig
         pDst += dst_pitch;
     }
 }
+
+static inline bool
+unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* pUser_data) {
+    auto bc1_usr_data = reinterpret_cast<unpack_block_bc1_user_data*>(pUser_data);
+    bool used_3color = rgbcx::unpack_bc1(
+        pBlock, pPixels, true, static_cast<rgbcx::bc1_approx_mode>(bc1_usr_data->bc1_approx_mode));
+    // This check is copied from the original code at: rdo_bc_encoder.h
+    if (used_3color) {
+        if (!bc1_usr_data->allow_3color_mode) return false;
+        if (!bc1_usr_data->use_3color_mode_for_black) {
+            rgbcx::bc1_block* pBC1_block = (rgbcx::bc1_block*)pBlock;
+            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y)
+                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x)
+                    if (pBC1_block->get_selector(x, y) == 3) return false;
+        }
+    }
+    return true;
+};
 
 // TODO: this is meant to be called within a C++ context only (no C support) so
 // maybe improve this? (use spans?)

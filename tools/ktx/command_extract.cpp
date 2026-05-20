@@ -731,10 +731,12 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                 break;
 
             case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+                // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
                 bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, false);
                 src_blocks += BC6H_BLOCK_SIZE;
                 break;
             case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+                // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
                 bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, true);
                 src_blocks += BC6H_BLOCK_SIZE;
                 break;

@@ -590,9 +590,7 @@ struct OptionsCreate {
                 VK_FORMAT_BC4_UNORM_BLOCK,
                 VK_FORMAT_BC5_UNORM_BLOCK,
                 VK_FORMAT_BC6H_UFLOAT_BLOCK,
-#if 0
                 VK_FORMAT_BC6H_SFLOAT_BLOCK,
-#endif
                 VK_FORMAT_BC7_UNORM_BLOCK,
                 VK_FORMAT_BC7_SRGB_BLOCK,
                 VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
