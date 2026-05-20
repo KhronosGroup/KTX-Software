@@ -32,7 +32,7 @@
 #define BC3_NCHANNELS 4
 #define BC4_NCHANNELS 1
 #define BC5_NCHANNELS 2
-#define BC6H_NCHANNELS 4
+#define BC6H_NCHANNELS 3
 #define BC7_NCHANNELS 4
 
 struct unpack_block_bc1_user_data {
@@ -346,8 +346,9 @@ lerp(F a, F b, F s) {
 //  +---------------------------------------+
 //
 //
+template <typename T>
 inline void
-extract_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width, size_t height,
+extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t height,
               size_t nchannels /* stride */) {
     // TODO: expose this as parameter for usage with other block sizes
     constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
@@ -363,14 +364,15 @@ extract_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width
     // clamp-to-edge-y generated for src
     const int remaining_raws = std::max((size_t)0, (y + kBlockSize) - height);
 
-    const uint8_t* pSrc = src + y * src_pitch + x * nchannels;
-    uint8_t* pDst = dst;
+    const T* pSrc = src + y * src_pitch + x * nchannels;
+    T* pDst = dst;
 
     for (size_t py{0}; py < kBlockSize && y + py < height; ++py) {
-        memcpy(pDst, pSrc, cols * nchannels);
+        memcpy(pDst, pSrc, cols * nchannels * sizeof(T));
         // Add padding for this raw (it needed) - CLAMP_TO_EDGE_X
         for (int i = 0; i < remaining_cols; ++i) {
-            memcpy(pDst + (cols + i) * nchannels, pSrc + (cols - 1) * nchannels, nchannels);
+            memcpy(pDst + (cols + i) * nchannels, pSrc + (cols - 1) * nchannels,
+                   nchannels * sizeof(T));
         }
         pSrc += src_pitch;
         pDst += dst_pitch;
@@ -378,8 +380,8 @@ extract_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width
 
     // Add padding raws (if needed) CLAMP_TO_EDGE_Y
     for (int py{0}; py < remaining_raws; ++py) {
-        const uint8_t* pDstLastRaw = dst + (kBlockSize - remaining_raws) * dst_pitch;
-        memcpy(pDst, pDstLastRaw, dst_pitch);
+        const T* pDstLastRaw = dst + (kBlockSize - remaining_raws) * dst_pitch;
+        memcpy(pDst, pDstLastRaw, dst_pitch * sizeof(T));
     }
 }
 
@@ -428,18 +430,19 @@ extract_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width
 //  |                                            | <-- row: height - 1
 //  +--------------------------------------------+
 //
+template <typename T>
 inline void
-insert_block(uint8_t* dst, const uint8_t* src, size_t x, size_t y, size_t width, size_t height,
+insert_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t height,
              size_t nchannels /* stride */) {
     // TODO: expose this as parameter for usage with other block sizes
     constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
     const size_t src_pitch = kBlockSize * nchannels;   // nbr bytes per raw of src
     const size_t dst_pitch = width * nchannels;        // nbr bytes per raw of dst
     const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
-    const uint8_t* pSrc = src;
-    uint8_t* pDst = dst + y * dst_pitch + nchannels * x;
+    const T* pSrc = src;
+    T* pDst = dst + y * dst_pitch + nchannels * x;
     for (ktx_size_t py{0}; py < kBlockSize && y + py < height; ++py) {
-        memcpy(pDst, pSrc, cols * nchannels);
+        memcpy(pDst, pSrc, cols * nchannels * sizeof(T));
         pSrc += src_pitch;
         pDst += dst_pitch;
     }

@@ -589,6 +589,10 @@ struct OptionsCreate {
                 VK_FORMAT_BC3_SRGB_BLOCK,
                 VK_FORMAT_BC4_UNORM_BLOCK,
                 VK_FORMAT_BC5_UNORM_BLOCK,
+                VK_FORMAT_BC6H_UFLOAT_BLOCK,
+#if 0
+                VK_FORMAT_BC6H_SFLOAT_BLOCK,
+#endif
                 VK_FORMAT_BC7_UNORM_BLOCK,
                 VK_FORMAT_BC7_SRGB_BLOCK,
                 VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
@@ -1557,12 +1561,10 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
           case VK_FORMAT_BC5_UNORM_BLOCK:
             options.bcn = KHR_DF_MODEL_BC5;
             break;
-#if 0
           case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
           case VK_FORMAT_BC6H_SFLOAT_BLOCK:
             options.bcn = KHR_DF_MODEL_BC6H;
             break;
-#endif
           case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
           case VK_FORMAT_BC7_SRGB_BLOCK:
             options.bcn = KHR_DF_MODEL_BC7;
@@ -1742,10 +1744,17 @@ void CommandCreate::executeCreate() {
 
                 // Overwrite options' vkFormat because ASTC/BCn encoding is performed by first creating an RGBA8 texture
                 // then encoding it using ktxTexture2_CompressAstcEx/ktxTexture2_CompressBCnEx
-                if (options.encodeASTC)
+                if (options.encodeASTC) {
                     selectASTCMode(inputImageFile->spec().format().largestChannelBitLength());
-                if (options.encodeBCn)
-                  options.vkFormat = decompressedBCnFormat(options.vkFormat);
+                }
+
+                if (options.encodeBCn) {
+                  auto decompressed_format = decompressedBCnFormat(options.vkFormat);
+                  if (decompressed_format == VK_FORMAT_UNDEFINED) {
+                    fatal(rc::INVALID_FILE, "Failed to get decompressed BCn format from: {}", toString(options.vkFormat));
+                  }
+                  options.vkFormat = decompressed_format;
+                }
 
                 firstImageSpec = inputImageFile->spec();
 
@@ -3214,13 +3223,13 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
 
 VkFormat CommandCreate::decompressedBCnFormat(VkFormat format) const {
   switch (format) {
-    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
       return VK_FORMAT_R8G8B8A8_UNORM;
-    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
       return VK_FORMAT_R8G8B8A8_SRGB;
-    case VK_FORMAT_BC2_UNORM_BLOCK:
+    case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC2_SRGB_BLOCK:
       return VK_FORMAT_UNDEFINED;
     case VK_FORMAT_BC3_UNORM_BLOCK:
@@ -3231,6 +3240,9 @@ VkFormat CommandCreate::decompressedBCnFormat(VkFormat format) const {
       return VK_FORMAT_R8_UNORM;
     case VK_FORMAT_BC5_UNORM_BLOCK:
       return VK_FORMAT_R8G8_UNORM;
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+      return VK_FORMAT_R16G16B16_SFLOAT;
     case VK_FORMAT_BC7_UNORM_BLOCK:
       return VK_FORMAT_R8G8B8A8_UNORM;
     case VK_FORMAT_BC7_SRGB_BLOCK:

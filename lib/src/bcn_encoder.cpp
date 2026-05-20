@@ -27,11 +27,12 @@
 
     #include "bcn_common.h"
 
-    #include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
-    #include "bc7enc_rdo/ert.h"       /* for RDO */
-    #include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
-    #include "transcoder/basisu_transcoder.h"
-    #include "vkformat_enum.h" /* for VkFormat enum */
+    #include "bc7enc_rdo/bc7decomp.h"            /* for BC7 decoder */
+    #include "bc7enc_rdo/ert.h"                  /* for RDO */
+    #include "bc7enc_rdo/rgbcx.h"                /* for BC1-BC5 encoders/decoders */
+    #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
+    #include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
+    #include "vkformat_enum.h"                   /* for VkFormat enum */
     #include "ktxint.h"
     #include "texture2.h"
     #include "multithreading.h"
@@ -111,6 +112,10 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
     // Intermediate store for decoded LDR BCn block
     uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];
+
+    basist::astc_6x6_hdr::fast_bc6h_params bc6h_params;
+    bc6h_params.init();
 
     uint8_t* pDstLevelImage = workload->data_out;
 
@@ -119,8 +124,12 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
         const size_t yBlock = block_idx / nbrBlocksX;
         // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
         // via clamping to edge).
-        extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
-                      width, height, nchannels);
+        workload->params.bcn == KHR_DF_MODEL_BC6H
+            ? extract_block<uint16_t>(rgbh, reinterpret_cast<const uint16_t*>(workload->data_in),
+                                      xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE, width,
+                                      height, nchannels)
+            : extract_block<uint8_t>(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE,
+                                     yBlock * BCN_BLOCK_SIZE, width, height, nchannels);
         const uint8_t* pPixels = rgba;
         switch (workload->params.bcn) {
         case KHR_DF_MODEL_BC1A:
@@ -145,6 +154,14 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             rgbcx::encode_bc5(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
                               pPixels, 0, 1,
                               /* stride */ BC5_NCHANNELS);
+            break;
+        case KHR_DF_MODEL_BC6H:
+            // this doesn't work with signed SFLOAT inputs ... :(
+            basist::astc_6x6_hdr::fast_encode_bc6h(
+                rgbh,
+                reinterpret_cast<basist::bc6h_block*>(
+                    pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC6H_BLOCK_SIZE),
+                bc6h_params);
             break;
         case KHR_DF_MODEL_BC7:
             // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
@@ -776,6 +793,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     size_t nchannels;
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
+    bool is_hdr = false;
 
     switch (params->bcn) {
     case KHR_DF_MODEL_BC1A:
@@ -851,6 +869,23 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
+    case KHR_DF_MODEL_BC6H:
+        switch (This->vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+            // TODO: go figure. If I map this to an SFLOAT, I get full white EXR
+            // pictures ...
+            compressedVkFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC6H
+        }
+        nchannels = BC6H_NCHANNELS;
+        blocksize_in_bytes = BC6H_BLOCK_SIZE;
+        is_hdr = true;
+        // TODO: is this needed?
+        basist::basisu_transcoder_init();
+        break;
+
     case KHR_DF_MODEL_BC7:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
@@ -903,21 +938,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     ktxTexture2* prototype;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
-
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
         return result;
     }
-
     assert(prototype->dataSize && "Prototype texture size not initialized.\n");
+    if (!prototype->pData) return KTX_OUT_OF_MEMORY;
 
-    if (!prototype->pData) {
-        return KTX_OUT_OF_MEMORY;
-    }
-
-    #if 0  // for BC6H blocks
-    uint16_t pPixelsHdr [BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  // 4 x 4 x 4
-    #endif
+    bcn_compression_workload work;
+    work.nchannels = nchannels;
+    work.params = *params;
 
     // ASTC encoder does this loop in reverse to (probably) avoid having to add
     // levelDataOffsetOut (which has no additional cost whatsoever)
@@ -940,7 +970,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
         // TODO: all of this needs robust verification. Is the data whithin a given
         // level compact or are there instances where a padding is added?
-        assert(levelImageSizeIn == width * height * nchannels * sizeof(uint8_t) &&
+        assert(levelImageSizeIn == width * height * nchannels * (is_hdr ? 2 : 1) &&
                "Probably non-compact data (i.e., some padding)");
         assert(levelImageSizeOut == nbrBlocksX * nbrBlocksY * blocksize_in_bytes &&
                "Probably non-compact data (i.e., some padding) for BCn compressed texture");
@@ -959,15 +989,10 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         // points to start of destination image within this miplevel
         ktx_uint8_t* pDstLevelImage = prototype->pData + levelDataOffsetOut;
 
-        // TODO: add and profile multithreading (contrary to decoding, encoding
-        // BC7 takes singnificantly much longer).
+        work.width = width;
+        work.height = height;
 
         for (uint32_t image = 0; image < levelImages; image++) {
-            bcn_compression_workload work;
-            work.width = width;
-            work.height = height;
-            work.nchannels = nchannels;
-            work.params = *params;
             work.data_in = pSrcLevelImage;
             work.data_out = pDstLevelImage;
 
@@ -1023,6 +1048,10 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     This->supercompressionScheme = KTX_SS_NONE;
     This->_private->_requiredLevelAlignment = protoPriv._requiredLevelAlignment;
 
+    // Copy typesize otherwise `ktx info` and `ktx validate` fails and
+    // complains that block-compressed types should have a typesize of 1.
+    This->_protected->_typeSize = prototype->_protected->_typeSize;
+
     // Copy the levelIndex from the prototype to This.
     memcpy(This->_private->_levelIndex, protoPriv._levelIndex,
            This->numLevels * sizeof(ktxLevelIndexEntry));
@@ -1031,6 +1060,9 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     free(This->pDfd);
     This->pDfd = prototype->pDfd;
     prototype->pDfd = 0;
+
+    // TODO: this causes crashes for certain inputs but no fault of this
+    // particular encoder (rather a KTX bug somewhere...)
     free(This->pData);
     This->pData = prototype->pData;
     This->dataSize = prototype->dataSize;

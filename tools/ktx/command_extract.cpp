@@ -29,7 +29,8 @@
 #include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
-#include "bc7enc_rdo/rgbcx.h"  // for BC1-BC5 decoders
+#include "bc7enc_rdo/rgbcx.h"      /* for BC1-BC5 decoders */
+#include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
 #include "bcn_common.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -606,6 +607,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     std::size_t expectedCompressedSize;
     const std::size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
                                 ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
+    bool is_hdr = false;
 
     switch (vkFormat) {
     case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
@@ -651,11 +653,14 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
         rgbcx::init();
         break;
 
-#if 0
+        // TODO: no idea what to map this to. This seems to be the only that makes sense...
     case VK_FORMAT_BC6H_UFLOAT_BLOCK:
     case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+        uncompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
+        nchannels = BC6H_NCHANNELS;
+        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        is_hdr = true;
         break;
-#endif
 
     case VK_FORMAT_BC7_UNORM_BLOCK:
     case VK_FORMAT_BC7_SRGB_BLOCK:
@@ -674,17 +679,15 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     // compressedData buffer
     assert(compressedSize == expectedCompressedSize);
 
-    const std::size_t uncompressedSize = width * height * nchannels;
+    const std::size_t uncompressedSize = width * height * nchannels * (is_hdr ? 2 : 1);
     const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
-    auto* bufferPtr = uncompressedBuffer.get();
+    uint8_t* bufferPtr = uncompressedBuffer.get();
 
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    ktx_uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4]; /* 4x4x4 = 64 bytes */
-#if 0
-    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];
-#endif
+    ktx_uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4x4x4 = 64 bytes */
+    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4x4x3x2 = 96 bytes */
 
     const char* src_blocks = compressedData;
 
@@ -727,11 +730,14 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                 src_blocks += BC5_BLOCK_SIZE;
                 break;
 
-#if 0
-    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-        break;
-#endif
+            case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, false);
+                src_blocks += BC6H_BLOCK_SIZE;
+                break;
+            case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, true);
+                src_blocks += BC6H_BLOCK_SIZE;
+                break;
 
             case VK_FORMAT_BC7_UNORM_BLOCK:
             case VK_FORMAT_BC7_SRGB_BLOCK:
@@ -745,16 +751,19 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
             }
 
             // copy the decoded block into the actual texture image
-            insert_block(bufferPtr, rgba, x, y, width, height, nchannels);
+            is_hdr ? insert_block<uint16_t>(reinterpret_cast<uint16_t*>(bufferPtr), rgbh, x, y,
+                                            width, height, nchannels)
+                   : insert_block<uint8_t>(bufferPtr, rgba, x, y, width, height, nchannels);
         }
     }
-
-    // Range mapping has been handled here so no need to pass the parameters on to
-    // this recursive call.
-    saveImageFile(std::move(filepath), appendExtension,
-                  reinterpret_cast<const char*>(uncompressedBuffer.get()), uncompressedSize,
-                  uncompressedVkFormat, createFormatDescriptor(uncompressedVkFormat, *this), width,
-                  height);
+    is_hdr ? saveEXR(std::move(filepath), appendExtension, uncompressedVkFormat,
+                     createFormatDescriptor(uncompressedVkFormat, *this), width, height,
+                     TINYEXR_PIXELTYPE_HALF,
+                     reinterpret_cast<const char*>(uncompressedBuffer.get()), uncompressedSize)
+           : saveImageFile(std::move(filepath), appendExtension,
+                           reinterpret_cast<const char*>(uncompressedBuffer.get()),
+                           uncompressedSize, uncompressedVkFormat,
+                           createFormatDescriptor(uncompressedVkFormat, *this), width, height);
 }
 
 using namespace imageio;
@@ -1547,16 +1556,18 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
+#if 0
+    case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
+#endif
     case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC4_SNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC5_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC5_SNORM_BLOCK: [[fallthrough]];
-#if 0
     case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC6H_SFLOAT_BLOCK: [[fallthrough]];
-#endif
     case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC7_SRGB_BLOCK:
         // BCn decode will recurse into this function with the uncompressed data and format

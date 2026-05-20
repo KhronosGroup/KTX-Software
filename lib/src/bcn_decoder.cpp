@@ -20,9 +20,10 @@
 
 #include "bcn_common.h"
 
-#include "bc7enc_rdo/bc7decomp.h" /* for BC7 decoder */
-#include "bc7enc_rdo/rgbcx.h"     /* for BC1-BC5 encoders/decoders */
-#include "vkformat_enum.h"        /* for VkFormat enum */
+#include "bc7enc_rdo/bc7decomp.h"  /* for BC7 decoder */
+#include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
+#include "bc7enc_rdo/rgbcx.h"      /* for BC1-BC5 encoders/decoders */
+#include "vkformat_enum.h"         /* for VkFormat enum */
 #include "ktxint.h"
 #include "texture2.h"
 
@@ -72,6 +73,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
     ktx_size_t nchannels;
     ktx_uint32_t decompressedVkFormat;
+    bool is_signed_bc6h = false;
 
     switch (colorModel) {
     case KHR_DF_MODEL_BC1A:
@@ -142,10 +144,22 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
 
-#if 0
     case KHR_DF_MODEL_BC6H:
+        nchannels = BC6H_NCHANNELS; /* 3 */
+        switch (This->vkFormat) {
+            // TODO: UFLOAT is also mapped to VK_FORMAT_R16G16B16_SFLOAT?
+        case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
+            is_signed_bc6h = true;
+            break;
+        case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+            decompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
+            is_signed_bc6h = false;
+            break;
+        default:
+            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC6H)
+        }
         break;
-#endif
 
     case KHR_DF_MODEL_BC7:
         nchannels = BC7_NCHANNELS; /* 4 */
@@ -221,8 +235,11 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * BC1_NCHANNELS;
+    const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * 4;
     ktx_uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 64 bytes */
+
+    const ktx_size_t rgbh_pitch = BCN_BLOCK_SIZE * 3;
+    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * rgbh_pitch];
 
     for (uint32_t levelIndex = 0; levelIndex < This->numLevels; ++levelIndex) {
         const uint32_t width = std::max(This->baseWidth >> levelIndex, 1u);
@@ -280,6 +297,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                                 src_blocks += BC5_BLOCK_SIZE;
                                 break;
 
+                            case KHR_DF_MODEL_BC6H:
+                                // BC6H: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
+                                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, rgbh_pitch, is_signed_bc6h);
+                                src_blocks += BC6H_BLOCK_SIZE;
+                                break;
+
                             case KHR_DF_MODEL_BC7:
                                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
                                 bc7decomp::unpack_bc7(
@@ -291,7 +314,11 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                                 break;  // should never occur
                             }
                             // copy the decoded block into the actual texture image
-                            insert_block(imageDataOut, rgba, x, y, width, height, nchannels);
+                            colorModel == KHR_DF_MODEL_BC6H
+                                ? insert_block<uint16_t>(reinterpret_cast<uint16_t*>(imageDataOut),
+                                                         rgbh, x, y, width, height, nchannels)
+                                : insert_block<uint8_t>(imageDataOut, rgba, x, y, width, height,
+                                                        nchannels);
                         }  // x blocks
                     }  // y blocks
                 }  // depth slices

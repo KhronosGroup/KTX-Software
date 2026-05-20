@@ -251,8 +251,10 @@ void CommandEncode::executeEncode() {
     if (model == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
+    const auto is_hdr = ktxTexture2_IsHDR(texture);
+
     if ((model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC3 || model == KHR_DF_MODEL_BC4 ||
-         model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC7) &&
+         model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H || model == KHR_DF_MODEL_BC7) &&
         options.encodeBCn)
         fatal_usage(
             "Encoding from BCn format {} to another BCn format {} is not supported. "
@@ -260,7 +262,8 @@ void CommandEncode::executeEncode() {
             "encode back into your target BCn format.",
             toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
-    if (options.selectedCodec == BasisCodec::NONE || options.selectedCodec == BasisCodec::BasisLZ ||
+    if ((options.selectedCodec == BasisCodec::NONE && !is_hdr) ||
+        options.selectedCodec == BasisCodec::BasisLZ ||
         options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
         switch (texture->vkFormat) {
         case VK_FORMAT_R8_UNORM:
@@ -294,6 +297,16 @@ void CommandEncode::executeEncode() {
                 "but format is {}.",
                 toString(options.selectedCodec), 
                 toString(VkFormat(texture->vkFormat)));
+            break;
+        }
+    } else if (options.encodeBCn && is_hdr /* means BC6HU */) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage("Only RGB16 SNORM can be encoded to BC6HU, but format is {}.",
+                        toString(VkFormat(texture->vkFormat)));
             break;
         }
     }
@@ -348,10 +361,10 @@ void CommandEncode::executeEncode() {
         case VK_FORMAT_BC5_SNORM_BLOCK:
             options.bcn = KHR_DF_MODEL_BC5;
             break;
-#if 0
         case VK_FORMAT_BC6H_UFLOAT_BLOCK:
         case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-#endif
+            options.bcn = KHR_DF_MODEL_BC6H;
+            break;
         case VK_FORMAT_BC7_UNORM_BLOCK:
         case VK_FORMAT_BC7_SRGB_BLOCK:
             options.bcn = KHR_DF_MODEL_BC7;

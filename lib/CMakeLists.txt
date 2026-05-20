@@ -188,6 +188,8 @@ if (LIBKTX_FEATURE_BCN_DECODER)
         ../external/bc7enc_rdo/rgbcx.cpp
         ../external/bc7enc_rdo/bc7decomp.h    # BC7 decoder
         ../external/bc7enc_rdo/bc7decomp.cpp
+        ../external/bc7enc_rdo/bc6hdecomp.h   # BC6H decoder
+        ../external/bc7enc_rdo/bc6hdecomp.cpp
         ../external/bc7enc_rdo/ert.h          # RDO post processing step
         ../external/bc7enc_rdo/ert.cpp
     )
