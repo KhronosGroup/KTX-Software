@@ -277,7 +277,7 @@ macro(common_libktx_settings target enable_write library_type)
 
     # To influence the FP settings of apps depending on us change PRIVATE to PUBLIC. Unsure if
     # that is a wise thing hence using PRIVATE.
-    target_compile_options( ${target} PRIVATE ${fp_options} )
+    #target_compile_options( ${target} PRIVATE ${fp_options} )
 
     target_compile_definitions(
         ${target}
@@ -522,6 +522,7 @@ endif()
 set(BASISU_STATIC TRUE)
 set(BASISU_ZSTD TRUE)
 add_subdirectory(../external/basis_universal basisu-encoder)
+target_compile_options( basisu_encoder PRIVATE ${fp_options} )
 
 set(DFDUTILS_DOCS OFF)
 set(DFDUTILS_INSTALL OFF)
