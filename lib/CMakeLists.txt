@@ -277,7 +277,7 @@ macro(common_libktx_settings target enable_write library_type)
 
     # To influence the FP settings of apps depending on us change PRIVATE to PUBLIC. Unsure if
     # that is a wise thing hence using PRIVATE.
-    #target_compile_options( ${target} PRIVATE ${fp_options} )
+    target_compile_options( ${target} PUBLIC ${fp_options} )
 
     target_compile_definitions(
         ${target}
