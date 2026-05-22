@@ -304,6 +304,7 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
                     auto x = image.tiles[tile].offset_x * header.tile_size_x + tx;
                     auto y = image.tiles[tile].offset_y * header.tile_size_y + ty;
                     auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
+                    assert(targetPixel < ptr + bufferByteCount && "outputBuffer overrun loading tiled .exr");
                     for (uint32_t c = 0; c < numTargetChannels; ++c) {
                         if (channels[c].has_value()) {
                             std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], tile, tx, ty), dataSize);
@@ -325,6 +326,7 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
+                assert(targetPixel < ptr + bufferByteCount && "outputBuffer overrun loading scanline .exr");
                 for (uint32_t c = 0; c < numTargetChannels; ++c) {
                     if (channels[c].has_value()) {
                         std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], x, y), dataSize);
