@@ -134,6 +134,9 @@ typedef VkResult(*ktxVulkanTexture_subAllocatorBindImageFuncPtr)(VkImage image, 
 typedef VkResult(*ktxVulkanTexture_subAllocatorMemoryMapFuncPtr)(uint64_t allocId, uint64_t pageNumber, VkDeviceSize *mapLength, void** dataPtr);
 typedef void (*ktxVulkanTexture_subAllocatorMemoryUnmapFuncPtr)(uint64_t allocId, uint64_t pageNumber);
 typedef void (*ktxVulkanTexture_subAllocatorFreeMemFuncPtr)(uint64_t allocId);
+typedef void (*ktxVulkanTexture_queueLockFuncPtr)();
+typedef void (*ktxVulkanTexture_queueUnlockFuncPtr)();
+
 /**
  * @class ktxVulkanTexture_subAllocatorCallbacks
  * @~English
@@ -234,6 +237,32 @@ KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destruct(ktxVulkanDeviceInfo* This);
 KTX_API void KTX_APIENTRY
 ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
+
+
+/**
+ * @class ktxVulkanTexture_queueGuardCallbacks
+ * @~English
+ * @brief Struct that contains callbacks necessary for guarding access to the supplied queue in vdi.
+ * 
+ *        Needs to be used in conjunction with suballocator callbacks that are also guarded for thread-safety. Together they can make UploadEx fully thread-safe in an efficient manner.
+ *        The suballocator callbacks need to guard around memory objects and if sparse binding support is introduced, will need to guard around both memory and queue objects.
+ *        As of now, guarding for external bookkeeping mechanisms are also a necessity in a threaded environment.
+ *
+ */
+typedef struct {
+    ktxVulkanTexture_queueLockFuncPtr queueLockFuncPtr; /*!< Pointer to function for commencing mutually exclusive access to the vdi queue. */
+    ktxVulkanTexture_queueUnlockFuncPtr queueUnlockFuncPtr; /*!< Pointer to function for ending mutually exclusive access to the vdi queue. */
+} ktxVulkanTexture_QueueGuardCallbacks;
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                                    ktxVulkanTexture* vkTexture,
+                                                    VkImageTiling tiling,
+                                                    VkImageUsageFlags usageFlags,
+                                                    VkImageLayout finalLayout,
+                                                    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                    ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks);
+
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
                                        ktxVulkanTexture* vkTexture,
@@ -251,6 +280,14 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
 KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                                                     ktxVulkanTexture* vkTexture,
+                                                     VkImageTiling tiling,
+                                                     VkImageUsageFlags usageFlags,
+                                                     VkImageLayout finalLayout,
+                                                     ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                     ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks);
+KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUploadEx_WithSuballocator(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
                                         ktxVulkanTexture* vkTexture,
                                         VkImageTiling tiling,
@@ -266,6 +303,14 @@ ktxTexture1_VkUploadEx(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                     ktxVulkanTexture *vkTexture);
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                                                     ktxVulkanTexture* vkTexture,
+                                                     VkImageTiling tiling,
+                                                     VkImageUsageFlags usageFlags,
+                                                     VkImageLayout finalLayout,
+                                                     ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                     ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks);
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_VkUploadEx_WithSuballocator(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                                         ktxVulkanTexture* vkTexture,

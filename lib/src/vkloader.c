@@ -794,6 +794,12 @@ linearTilingPadCallback(int miplevel, int face,
  *                                        They use a uint64_t stored in the @c allocationId
  *                                        field of the structure pointed at by @a vkTexture
  *                                        to reference allocated page(s).
+ * @param [in] queueMutexCallbacks        If used in conjunction with suballocator callbacks
+ *                                        that guard against simultaneous access to memory
+ *                                        (or additionally queue if sparse binding support
+ *                                        is added) and external suballocation managements
+ *                                        objects, it can make UploadEx fully thread-safe
+ *                                        and efficiently so.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -819,12 +825,13 @@ linearTilingPadCallback(int miplevel, int face,
  * @sa @ref ktxVulkanDeviceInfo::ktxVulkanDeviceInfo\_Construct "ktxVulkanDeviceInfo_Construct()"
  */
 KTX_error_code
-ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
-                                       ktxVulkanTexture* vkTexture,
-                                       VkImageTiling tiling,
-                                       VkImageUsageFlags usageFlags,
-                                       VkImageLayout finalLayout,
-                                       ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
+ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                                    ktxVulkanTexture* vkTexture,
+                                                    VkImageTiling tiling,
+                                                    VkImageUsageFlags usageFlags,
+                                                    VkImageLayout finalLayout,
+                                                    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                    ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks)
 {
     KTX_error_code           kResult;
     VkFilter                 blitFilter = VK_FILTER_LINEAR;
@@ -853,6 +860,7 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
     ktx_uint32_t elementSize = ktxTexture_GetElementSize(This);
     ktx_bool_t               canUseFasterPath;
     ktx_bool_t               useSuballocator = false;
+    ktx_bool_t               useQueueMutex = false;
     if (subAllocatorCallbacks) {
         if (subAllocatorCallbacks->allocMemFuncPtr &&
             subAllocatorCallbacks->bindBufferFuncPtr &&
@@ -861,6 +869,13 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
             subAllocatorCallbacks->memoryUnmapFuncPtr &&
             subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
+        else
+            return KTX_INVALID_VALUE;
+    }
+    if (queueMutexCallbacks) {
+        if (queueMutexCallbacks->queueLockFuncPtr && 
+            queueMutexCallbacks->queueUnlockFuncPtr)
+                useQueueMutex = true;
         else
             return KTX_INVALID_VALUE;
     }
@@ -1293,8 +1308,10 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
+        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr();
         VK_CHECK_RESULT(
                 vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
+        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr();
 
         VK_CHECK_RESULT(
                 vdi->vkFuncs.vkWaitForFences(vdi->device, 1, &copyFence,
@@ -1445,10 +1462,24 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
+        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr();
         VK_CHECK_RESULT(vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
         VK_CHECK_RESULT(vdi->vkFuncs.vkQueueWaitIdle(vdi->queue));
+        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr();
     }
     return KTX_SUCCESS;
+}
+
+KTX_error_code
+ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vdi,
+                                       ktxVulkanTexture* vkTexture,
+                                       VkImageTiling tiling,
+                                       VkImageUsageFlags usageFlags,
+                                       VkImageLayout finalLayout,
+                                       ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks)
+{
+    return ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(This, vdi, vkTexture, tiling, usageFlags,
+                                                            finalLayout, subAllocatorCallbacks, NULL);
 }
 
 /** @memberof ktxTexture
@@ -1488,6 +1519,29 @@ ktxTexture_VkUpload(ktxTexture* texture, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+/** @memberof ktxTexture1
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture1 object.
+ *
+ * This simply calls @ref ktxTexture::ktxTexture\_VkUploadEx_WithSuballocatorAndQueueGuard
+ * "ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard()"
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard
+ */
+KTX_error_code
+ktxTexture1_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture1* This, ktxVulkanDeviceInfo* vdi,
+                                                     ktxVulkanTexture* vkTexture,
+                                                     VkImageTiling tiling,
+                                                     VkImageUsageFlags usageFlags,
+                                                     VkImageLayout finalLayout,
+                                                     ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                     ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks)
+{
+    return ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture(This), vdi, vkTexture,
+                                                            tiling, usageFlags, finalLayout,
+                                                            subAllocatorCallbacks, queueMutexCallbacks);
 }
 
 /** @memberof ktxTexture1
@@ -1546,6 +1600,29 @@ ktxTexture1_VkUpload(ktxTexture1* texture, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Create a Vulkan image object from a ktxTexture2 object.
+ *
+ * This simplly calls @ref ktxTexture::ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard
+ * "ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard()".
+ *
+ * @copydetails ktxTexture::ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard
+ */
+KTX_error_code
+ktxTexture2_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
+                                                     ktxVulkanTexture* vkTexture,
+                                                     VkImageTiling tiling,
+                                                     VkImageUsageFlags usageFlags,
+                                                     VkImageLayout finalLayout,
+                                                     ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                                                     ktxVulkanTexture_QueueGuardCallbacks* queueMutexCallbacks)
+{
+    return ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture(This), vdi, vkTexture,
+                                                            tiling, usageFlags, finalLayout,
+                                                            subAllocatorCallbacks, queueMutexCallbacks);
 }
 
 /** @memberof ktxTexture2
