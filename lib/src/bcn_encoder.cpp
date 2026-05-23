@@ -29,7 +29,6 @@
 
     #include "bcn_common.h"
 
-    #include "bc7enc_rdo/bc7decomp.h"            /* for BC7 decoder (needed for RDO) */
     #include "bc7enc_rdo/ert.h"                  /* for RDO */
     #include "bc7enc_rdo/rgbcx.h"                /* for BC1-BC5 encoders/decoders */
     #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
@@ -52,7 +51,7 @@
 
 static inline bool
 unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
-    return bc7decomp::unpack_bc7(pBlock, reinterpret_cast<bc7decomp::color_rgba*>(pPixels));
+    return basist::bc7u::unpack_bc7(pBlock, reinterpret_cast<basist::color_rgba*>(pPixels));
 };
 
 static inline bool

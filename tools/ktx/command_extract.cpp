@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "bcn_common.h"
-#include "bc7enc_rdo/bc7decomp.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "fragment_uri.h"
 #include "sbufstream.h"
+#include "transcoder/basisu_transcoder_internal.h"
 #include "utility.h"
 #include "validate.h"
 #include "metadata_utils.h"
@@ -719,8 +719,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
 
             case KTX_BCN_COMPRESSION_BC7:
                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = bc7decomp::unpack_bc7(src_blocks,
-                                           reinterpret_cast<bc7decomp::color_rgba*>(rgba));
+                rv = basist::bc7u::unpack_bc7(src_blocks, reinterpret_cast<basist::color_rgba*>(rgba));
                 src_blocks += BC7_BLOCK_SIZE;
                 break;
 

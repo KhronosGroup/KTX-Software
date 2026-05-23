@@ -19,9 +19,9 @@
 
 #include "bcn_common.h"
 
-#include "bc7enc_rdo/bc7decomp.h"  /* for BC7 decoder */
 #include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
-#include "vkformat_enum.h"         /* for VkFormat enum */
+#include "transcoder/basisu_transcoder_internal.h"
+#include "vkformat_enum.h" /* for VkFormat enum */
 #include "ktxint.h"
 #include "texture2.h"
 
@@ -237,8 +237,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
 
                             case KTX_BCN_COMPRESSION_BC7:
                                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                                rv = bc7decomp::unpack_bc7(
-                                    src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
+                                rv = basist::bc7u::unpack_bc7(
+                                    src_blocks, reinterpret_cast<basist::color_rgba*>(rgba));
                                 src_blocks += BC7_BLOCK_SIZE;
                                 break;
 
