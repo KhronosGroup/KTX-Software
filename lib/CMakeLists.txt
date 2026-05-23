@@ -528,6 +528,28 @@ macro(add_lib_dependencies target lib)
     endif()
 endmacro(add_lib_dependencies)
 
+
+macro(add_xcode_macos_archs_standard_check target)
+    if(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK)
+        add_custom_command(TARGET ${target} PRE_BUILD
+            COMMAND /bin/sh -c [[
+                expected="arm64 x86_64"
+                actual="$ARCHS_STANDARD"
+                if [ "$actual" != "$expected" ]; then
+                    echo "ARCHS_STANDARD mismatch: got [$actual], expected [$expected]" >&2
+                    echo "Please report this issue with your Xcode version and targeted macOS version." >&2
+                    echo "To fix it, explicitly set CMAKE_OSX_ARCHITECTURES=\"${actual// /;}\"" >&2
+                    exit 1
+                else
+                    echo "ARCHS_STANDARD check passed: [$actual]"
+                fi
+            ]]
+            VERBATIM
+        )
+        message(STATUS "Xcode ARCHS_STANDARD check enabled on target '${target}'")
+    endif()
+endmacro(add_xcode_macos_archs_standard_check)
+
 ####################################################
 # Basis Universal Encoder.
 ####################################################
@@ -569,6 +591,8 @@ if(LIBKTX_VERSION_FULL)
     add_lib_dependencies(ktx basisu_encoder)
     add_lib_dependencies(ktx dfdutils)
 
+    add_xcode_macos_archs_standard_check(ktx)
+
 #    get_target_property(includes ktx INTERFACE_INCLUDE_DIRECTORIES)
 #    # Need this because ${INTERFACE_INCLUDE_DIRECTORIES} is a genex.
 #    add_custom_target(debug_ktx_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx include dirs = '${includes}'")
@@ -582,6 +606,8 @@ if(LIBKTX_VERSION_READ_ONLY)
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
     add_lib_dependencies(ktx_read dfdutils)
+
+    add_xcode_macos_archs_standard_check(ktx_read)
 
 #    get_target_property(includes ktx_read INTERFACE_INCLUDE_DIRECTORIES)
 #    add_custom_target(debug_ktx_read_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx_read include dirs = '${includes}'")

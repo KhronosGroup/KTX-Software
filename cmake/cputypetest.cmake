@@ -119,10 +119,10 @@ function(set_target_processor_type out)
             # or by an -sdk argument to xcodebuild.
             #
             # For macOS the caller may set CMAKE_OSX_ARCHITECTURES to a single
-            # arch (e.g. "x86_64" or "arm64") or to a list ("arm64;x86_64") to
-            # request a universal build. The literal "$(ARCHS_STANDARD)" is
-            # rejected by the root CMakeLists.txt (see its handling of 
-            # CMAKE_OSX_ARCHITECTURES for details).
+            # arch (e.g. "x86_64" or "arm64") or to a list ("arm64;x86_64")/to
+            # the literal "$(ARCHS_STANDARD)" to request a universal build. 
+            # See handling of CMAKE_OSX_ARCHITECTURES in the root CMakeLists.txt
+            # for details.
             #
             # Multi-arch (universal) note: CPU_ARCHITECTURE here is just one
             # representative arch — the universal-aware code paths in
