@@ -182,12 +182,17 @@ if (LIBKTX_FEATURE_ETC_UNPACK)
     list( APPEND LIBKTX_MAIN_SRC ../external/etcdec/etcdec.cxx )
 endif()
 
+# Why include another dependency when Basisu already has these functions?
+# A. Basisu has BC1-BC5 encoders/decoders but the ones provided by bc7enc_rdo
+# are more capable. As for RDO post-processing, basisu's UASTC RDO is very
+# tightly coupled with UASTC blocks (i.e., it only accepts UASTC-encoded blocks
+# and is not possible to use without significant code changes). It is also less
+# capable than the bc7enc_rdo's RDO (which is also block-agnostic - i.e., can
+# accept any blocks).
 if (LIBKTX_FEATURE_BCN_DECODER)
     list( APPEND LIBKTX_MAIN_SRC 
         ../external/bc7enc_rdo/rgbcx.h        # BC1, BC3, BC4 and BC5 encoders/decoders
         ../external/bc7enc_rdo/rgbcx.cpp
-        ../external/bc7enc_rdo/bc6hdecomp.h   # BC6H decoder
-        ../external/bc7enc_rdo/bc6hdecomp.cpp
         ../external/bc7enc_rdo/ert.h          # RDO post processing step
         ../external/bc7enc_rdo/ert.cpp
     )

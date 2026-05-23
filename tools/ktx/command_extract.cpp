@@ -30,8 +30,8 @@
 #include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
-#include "bc7enc_rdo/rgbcx.h"      /* for BC1-BC5 decoders */
-#include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
+#include "bc7enc_rdo/rgbcx.h"           /* for BC1-BC5 decoders */
+#include "encoder/basisu_gpu_texture.h" /* for BC6HU/BC6HS decoders */
 
 // -------------------------------------------------------------------------------------------------
 
@@ -705,21 +705,20 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
 
             case KTX_BCN_COMPRESSION_BC6HU:
                 // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
-                                                                  BCN_BLOCK_SIZE * 3, false);
+                rv = basisu::unpack_bc6h(src_blocks, rgbh, false, BCN_BLOCK_SIZE * 3);
                 src_blocks += BC6H_BLOCK_SIZE;
                 break;
 
             case KTX_BCN_COMPRESSION_BC6HS:
                 // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
-                                                                  BCN_BLOCK_SIZE * 3, true);
+                rv = basisu::unpack_bc6h(src_blocks, rgbh, true, BCN_BLOCK_SIZE * 3);
                 src_blocks += BC6H_BLOCK_SIZE;
                 break;
 
             case KTX_BCN_COMPRESSION_BC7:
                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = basist::bc7u::unpack_bc7(src_blocks, reinterpret_cast<basist::color_rgba*>(rgba));
+                rv = basist::bc7u::unpack_bc7(src_blocks,
+                                              reinterpret_cast<basist::color_rgba*>(rgba));
                 src_blocks += BC7_BLOCK_SIZE;
                 break;
 

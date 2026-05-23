@@ -19,7 +19,7 @@
 
 #include "bcn_common.h"
 
-#include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
+#include "encoder/basisu_gpu_texture.h" /* for BC6HU/BC6HS decoders */
 #include "transcoder/basisu_transcoder_internal.h"
 #include "vkformat_enum.h" /* for VkFormat enum */
 #include "ktxint.h"
@@ -223,15 +223,13 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
 
                             case KTX_BCN_COMPRESSION_BC6HU:
                                 // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(
-                                    src_blocks, rgbh, rgbh_pitch, false);
+                                rv = basisu::unpack_bc6h(src_blocks, rgbh, false, rgbh_pitch);
                                 src_blocks += BC6H_BLOCK_SIZE;
                                 break;
 
                             case KTX_BCN_COMPRESSION_BC6HS:
                                 // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
-                                                                                  rgbh_pitch, true);
+                                rv = basisu::unpack_bc6h(src_blocks, rgbh, true, rgbh_pitch);
                                 src_blocks += BC6H_BLOCK_SIZE;
                                 break;
 
