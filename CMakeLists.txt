@@ -31,23 +31,26 @@ if(APPLE)
         set( APPLE_MAC_OS ON )
     endif()
 
-    # Reject CMAKE_OSX_ARCHITECTURES containing the literal $(ARCHS_STANDARD)
-    # Xcode build setting. CMake stores the unexpanded string and embeds it into
-    # $<TARGET_OBJECTS:...> paths; at build time Xcode expands it to a
-    # space-separated arch list (e.g. "arm64 x86_64") which is not a real
-    # Objects-normal/<arch> directory, so dependent objects (basisu_encoder,
-    # dfdutils) silently drop out of any libktx*.a using the OBJECT-embedding
-    # variant of add_lib_dependencies, and the link of consumers like ktxdiff
-    # fails with undefined symbols. Auto-rewriting to a hardcoded list would not
-    # track future Xcode changes to ARCHS_STANDARD, so require the caller to
-    # spell out the architectures they actually want.
-    if(CMAKE_OSX_ARCHITECTURES MATCHES "\\$\\(ARCHS_STANDARD\\)")
-        message(FATAL_ERROR
-            "CMAKE_OSX_ARCHITECTURES must not contain the Xcode build setting "
-            "\"\$(ARCHS_STANDARD)\" -- CMake does not expand it and the literal "
-            "ends up in object-file paths, breaking universal static-lib builds. "
-            "Pass an explicit semicolon-separated list instead, e.g. "
-            "-DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\".")
+    if(APPLE_MAC_OS AND CMAKE_OSX_ARCHITECTURES MATCHES "\\$\\(ARCHS_STANDARD\\)")
+        # Replace the literal $(ARCHS_STANDARD) with the expected values
+        # of "arm64;x86_64". Otherwise CMake stores the unexpanded string and 
+        # embeds it into $<TARGET_OBJECTS:...> paths; at build time Xcode 
+        # expands it to a space-separated arch list (e.g. "arm64 x86_64") which
+        # is not a real Objects-normal/<arch> directory, so dependent objects
+        # (basisu_encoder, dfdutils) silently drop out of any libktx*.a using 
+        # the OBJECT-embedding variant of add_lib_dependencies, and the link of
+        # consumers like ktxdiff fails with undefined symbols.
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+        message(STATUS "CMAKE_OSX_ARCHITECTURES set to '${CMAKE_OSX_ARCHITECTURES}'")
+
+        if(CMAKE_GENERATOR STREQUAL "Xcode")
+            # This flag adds a custom pre-build command that certifies that the
+            # $(ARCHS_STANDARD) matches our expected values.
+            # For example, should Apple drop support for x86_64 the substitute
+            # value above needs to be updated (depending on target version in 
+            # CMAKE_OSX_DEPLOYMENT_TARGET).
+            set(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK ON)
+        endif()
     endif()
 endif()
 
