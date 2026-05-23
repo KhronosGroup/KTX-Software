@@ -38,9 +38,9 @@
  *            VK_FORMAT_R8G8B8A8_[UNORM|SRGB] depending on the original color
  *            space.
  *        - For BC4:
- *            VK_FORMAT_R8_UNORM
+ *            VK_FORMAT_R8_[UNORM|SNORM]
  *        - For BC5:
- *            VK_FORMAT_R8G8_UNORM
+ *            VK_FORMAT_R8G8_[UNORM|SNORM]
  *        - For BC6HU, BC6HS:
  *            VK_FORMAT_R16G16B16_SFLOAT
  *
@@ -87,124 +87,36 @@
 extern "C" KTX_error_code
 ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     uint32_t* BDB = This->pDfd + 1;
-    khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    // khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    // bool is_hdr = false;
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
-    size_t nchannels;
-    uint32_t decompressedVkFormat;
-    bool is_signed_bc6h = false;
+    int nchannels;
+    VkFormat decompressedVkFormat;
     KTX_error_code result;
 
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;  // TODO: does it have to be not supercompressed?
 
-    // Other schemes are decoded in ktxTexture2_LoadImageData.
-
     if (!This->isCompressed) return KTX_INVALID_OPERATION;
 
-    switch (colorModel) {
-    case KHR_DF_MODEL_BC1A:
-        if (!params) return KTX_INVALID_VALUE;
-        if (!(channelId == KHR_DF_CHANNEL_BC1A_COLOR || channelId == KHR_DF_CHANNEL_BC1A_ALPHA)) {
-            return KTX_FILE_DATA_ERROR;
-        }
-        nchannels = BC1_NCHANNELS; /* 4 */
-        // further sanity check on vkFormat
-        switch (This->vkFormat) {
-        // TODO: encode BC1 RGB (no Alpha) into RGB
-        case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-        case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-            break;
-        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-        case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC1)
-        }
+    ktx_bcn_compression_e bcn = get_bcn_compression_kind(static_cast<VkFormat>(This->vkFormat),
+                                                         decompressedVkFormat, nchannels);
+
+    if (bcn == KTX_BCN_COMPRESSION_NONE) return KTX_INVALID_OPERATION;
+
+    if ((bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
+         bcn == KTX_BCN_COMPRESSION_BC3) &&
+        (params == NULL))
+        return KTX_INVALID_VALUE;
+
+    if ((bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A) &&
+        !(channelId == KHR_DF_CHANNEL_BC1A_COLOR || channelId == KHR_DF_CHANNEL_BC1A_ALPHA))
+        return KTX_FILE_DATA_ERROR;
+
+    if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
+        bcn == KTX_BCN_COMPRESSION_BC3 || bcn == KTX_BCN_COMPRESSION_BC4 ||
+        bcn == KTX_BCN_COMPRESSION_BC5)
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
-        break;
-
-    case KHR_DF_MODEL_BC3:
-        if (!params) return KTX_INVALID_VALUE;
-        nchannels = BC3_NCHANNELS; /* 4 */
-        switch (This->vkFormat) {
-        case VK_FORMAT_BC3_UNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-            break;
-        case VK_FORMAT_BC3_SRGB_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC3)
-        }
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
-        break;
-
-    case KHR_DF_MODEL_BC4:
-        nchannels = BC4_NCHANNELS; /* 1 */
-        switch (This->vkFormat) {
-        case VK_FORMAT_BC4_UNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8_UNORM;
-            break;
-        case VK_FORMAT_BC4_SNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8_SNORM;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC4)
-        }
-        rgbcx::init(/* bc1_approx_mode doesn't matter here */);
-        break;
-
-    case KHR_DF_MODEL_BC5:
-        nchannels = BC5_NCHANNELS; /* 2 */
-        switch (This->vkFormat) {
-        case VK_FORMAT_BC5_UNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8_UNORM;
-            break;
-        case VK_FORMAT_BC5_SNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8_SNORM;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC5)
-        }
-        rgbcx::init(/* bc1_approx_mode doesn't matter here */);
-        break;
-
-    case KHR_DF_MODEL_BC6H:
-        nchannels = BC6H_NCHANNELS; /* 3 */
-        switch (This->vkFormat) {
-            // TODO: UFLOAT is also mapped to VK_FORMAT_R16G16B16_SFLOAT?
-        case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
-            is_signed_bc6h = true;
-            break;
-        case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
-            is_signed_bc6h = false;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC6H)
-        }
-        break;
-
-    case KHR_DF_MODEL_BC7:
-        nchannels = BC7_NCHANNELS; /* 4 */
-        switch (This->vkFormat) {
-        case VK_FORMAT_BC7_UNORM_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-            break;
-        case VK_FORMAT_BC7_SRGB_BLOCK:
-            decompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // invalid vkFormat (should be BC7)
-        }
-        break;
-
-    default:
-        return KTX_INVALID_OPERATION;  // Not in BCn decodable format
-    }
 
     if (This->pData == NULL) {
         if (ktxTexture_isActiveStream((ktxTexture*)This)) {
@@ -252,6 +164,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     const ktx_size_t rgbh_pitch = BCN_BLOCK_SIZE * 3;
     ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * rgbh_pitch];
 
+    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* only for BC1 */
+
     for (uint32_t levelIndex = 0; levelIndex < This->numLevels; ++levelIndex) {
         const uint32_t width = std::max(This->baseWidth >> levelIndex, 1u);
         const uint32_t height = std::max(This->baseHeight >> levelIndex, 1u);
@@ -272,50 +186,56 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                     ktx_uint8_t* imageDataOut = prototype->pData + imageOffsetOut;
 
                     const ktx_uint8_t* src_blocks = imageDataIn;
+                    size_t nbr_written_bytes_total = 0;
 
                     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
                         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
                             bool rv = true;
-                            switch (colorModel) {
-                            case KHR_DF_MODEL_BC1A:
-                                // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes
-                                // TODO: BC1 with punchthrough alpha should already be supported,
-                                // right? (since we already write to 4x4x4 block and then to an RGBA
-                                // texture)?
+                            switch (bcn) {
+                            case KTX_BCN_COMPRESSION_BC1:
+                            case KTX_BCN_COMPRESSION_BC1A:
+                                // BC1A: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha 1-bit encoded)
                                 rv = unpack_block_bc1(src_blocks,
                                                       reinterpret_cast<ert::color_rgba*>(rgba),
                                                       0 /* ignored */, &params);
                                 src_blocks += BC1_BLOCK_SIZE;
                                 break;
 
-                            case KHR_DF_MODEL_BC3:
+                            case KTX_BCN_COMPRESSION_BC3:
                                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
                                 rv = rgbcx::unpack_bc3(src_blocks, rgba);
                                 src_blocks += BC3_BLOCK_SIZE;
                                 break;
 
-                            case KHR_DF_MODEL_BC4:
+                            case KTX_BCN_COMPRESSION_BC4:
                                 // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
                                 /* always succeeds */ rgbcx::unpack_bc4(src_blocks, rgba,
                                                                         /* stride */ BC4_NCHANNELS);
                                 src_blocks += BC4_BLOCK_SIZE;
                                 break;
 
-                            case KHR_DF_MODEL_BC5:
+                            case KTX_BCN_COMPRESSION_BC5:
                                 // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
                                 /* always succeeds */ rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
                                                                         /* stride */ BC5_NCHANNELS);
                                 src_blocks += BC5_BLOCK_SIZE;
                                 break;
 
-                            case KHR_DF_MODEL_BC6H:
-                                // BC6H: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
+                            case KTX_BCN_COMPRESSION_BC6HU:
+                                // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
                                 /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(
-                                    src_blocks, rgbh, rgbh_pitch, is_signed_bc6h);
+                                    src_blocks, rgbh, rgbh_pitch, false);
                                 src_blocks += BC6H_BLOCK_SIZE;
                                 break;
 
-                            case KHR_DF_MODEL_BC7:
+                            case KTX_BCN_COMPRESSION_BC6HS:
+                                // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
+                                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
+                                                                                  rgbh_pitch, true);
+                                src_blocks += BC6H_BLOCK_SIZE;
+                                break;
+
+                            case KTX_BCN_COMPRESSION_BC7:
                                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
                                 rv = bc7decomp::unpack_bc7(
                                     src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
@@ -326,20 +246,35 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                                 rv = false;
                                 break;
                             }
+
                             // If any of the decoders/unpackers returned false
                             // => something went wrong
                             if (!rv) {
                                 ktxTexture2_Destroy(prototype);
                                 return KTX_INVALID_OPERATION;  // decoder failure
                             }
+
                             // copy the decoded block into the actual texture image
-                            colorModel == KHR_DF_MODEL_BC6H
-                                ? insert_block<uint16_t>(reinterpret_cast<uint16_t*>(imageDataOut),
-                                                         rgbh, x, y, width, height, nchannels)
-                                : insert_block<uint8_t>(imageDataOut, rgba, x, y, width, height,
-                                                        nchannels);
+                            size_t nbr_written_bytes = 0;
+                            if (bcn == KTX_BCN_COMPRESSION_BC6HU ||
+                                bcn == KTX_BCN_COMPRESSION_BC6HS) {
+                                nbr_written_bytes =
+                                    insert_block(reinterpret_cast<uint16_t*>(imageDataOut), rgbh, x,
+                                                 y, width, height, nchannels);
+                            } else if (bcn == KTX_BCN_COMPRESSION_BC1) {
+                                extract_rgb_from_rgba_block(rgb, rgba);
+                                nbr_written_bytes =
+                                    insert_block(imageDataOut, rgb, x, y, width, height, nchannels);
+                            } else {
+                                nbr_written_bytes = insert_block(imageDataOut, rgba, x, y, width,
+                                                                 height, nchannels);
+                            }
+                            nbr_written_bytes_total += nbr_written_bytes;
                         }  // x blocks
                     }  // y blocks
+                    size_t expected_nbr_written_bytes_total =
+                        ktxTexture2_GetImageSize(prototype, levelIndex);
+                    assert(nbr_written_bytes_total == expected_nbr_written_bytes_total);
                 }  // depth slices
             }  // faces
         }  // layers

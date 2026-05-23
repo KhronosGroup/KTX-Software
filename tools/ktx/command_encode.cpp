@@ -2,6 +2,7 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <bcn_common.h>
 #include "command.h"
 #include "encode_utils_astc.h"
 #include "encode_utils_bcn.h"
@@ -338,44 +339,17 @@ void CommandEncode::executeEncode() {
     } else if (options.vkFormat != VK_FORMAT_UNDEFINED && options.encodeBCn) {
         // Encode to BCn
         // First we have to set the target BCn target format in options
-        switch (options.vkFormat) {
-        case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-        case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-        case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC1A;
-            break;
-#if 0
-        case VK_FORMAT_BC2_UNORM_BLOCK:
-        case VK_FORMAT_BC2_SRGB_BLOCK:
-#endif
-        case VK_FORMAT_BC3_UNORM_BLOCK:
-        case VK_FORMAT_BC3_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC3;
-            break;
-        case VK_FORMAT_BC4_UNORM_BLOCK:
-        case VK_FORMAT_BC4_SNORM_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC4;
-            break;
-        case VK_FORMAT_BC5_UNORM_BLOCK:
-        case VK_FORMAT_BC5_SNORM_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC5;
-            break;
-        case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-        case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC6H;
-            break;
-        case VK_FORMAT_BC7_UNORM_BLOCK:
-        case VK_FORMAT_BC7_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC7;
-            break;
-        default:  // should never occur - just for safety
-            fatal(
-                rc::IO_FAILURE,
-                "Failed to encode KTX2 file to BCn. Target format is not a supported BCn format {}",
-                vkFormatString(options.vkFormat));
-            break;
-        }
+        int nchannels;
+        VkFormat decompressed_format;
+        options.bcn = get_bcn_compression_kind(options.vkFormat, decompressed_format, nchannels);
+        if (options.bcn == KTX_BCN_COMPRESSION_NONE)
+          fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to BCn. Target format is not a supported BCn format {}",
+              vkFormatString(options.vkFormat));
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC1A)
+          fatal(rc::IO_FAILURE, "Punch-through alpha encoding for BC1 format is not supported. Consider supplying an RGB8 input format instead.");
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC6HS)
+          fatal(rc::IO_FAILURE, "Encoding to signed BC6H HDR format (BC6HS) is not supported.");
+
         ret = ktxTexture2_CompressBCnEx(texture, &options);
         if (ret != KTX_SUCCESS)
             fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to BCn. KTX Error: {}",

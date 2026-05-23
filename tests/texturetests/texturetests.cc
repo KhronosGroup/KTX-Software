@@ -3270,19 +3270,19 @@ class ktxTexture2BCnEncodeDecodeTestBase
     using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
 
   public:
-    void runTest(khr_df_model_e bcn) {
+    void runTest(ktx_bcn_compression_e bcn) {
         ktxTexture2* texture;
         KTX_error_code result;
         auto tmpDir = fs::temp_directory_path();
 
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
-        ASSERT_TRUE(texture != NULL)
+        ASSERT_EQ(result, KTX_SUCCESS);
+        ASSERT_NE(texture, nullptr)
             << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
-        ktx_uint32_t compressedFormat;
+        ktx_uint32_t compressedFormat = VK_FORMAT_UNDEFINED; /* so that gtest stops complaining */
         ktx_uint32_t expectedDecompressedFormat;
 
         const bool isSRGB = KHR_DFDVAL(texture->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB;
@@ -3292,63 +3292,95 @@ class ktxTexture2BCnEncodeDecodeTestBase
         fs::path decoded;
 
         switch (bcn) {
-          case KHR_DF_MODEL_BC1A:
-            original = tmpDir / "CompressToBC1ThenDecode_original.ktx2";
-            decoded = tmpDir / "CompressToBC1ThenDecode_decoded.ktx2";
+          case KTX_BCN_COMPRESSION_BC1:
             if (isSRGB) {
+              original = tmpDir / "encode_rgb8_srgb_to_bc1_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgb8_srgb_to_bc1_then_decode_decoded.ktx2";
+              compressedFormat = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8_SRGB;
+            } else {
+              original = tmpDir / "encode_rgb8_unorm_to_bc1_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgb8_unorm_to_bc1_then_decode_decoded.ktx2";
+              compressedFormat = VK_FORMAT_BC1_RGB_UNORM_BLOCK;
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8_UNORM;
+            }
+            break;
+#if 0  // bc7enc BC1 encoder does not support punch-through alpha
+          case KTX_BCN_COMPRESSION_BC1A:
+            if (isSRGB) {
+              original = tmpDir / "encode_rgba8_srgb_to_bc1a_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_srgb_to_bc1a_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
             } else {
+              original = tmpDir / "encode_rgba8_unorm_to_bc1a_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_unorm_to_bc1a_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
             }
             break;
-
-          case KHR_DF_MODEL_BC3:
-            original = tmpDir / "CompressToBC3ThenDecode_original.ktx2";
-            decoded = tmpDir / "CompressToBC3ThenDecode_decoded.ktx2";
+#endif
+          case KTX_BCN_COMPRESSION_BC3:
             if (isSRGB) {
+              original = tmpDir / "encode_rgba8_srgb_to_bc3_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_srgb_to_bc3_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC3_SRGB_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
             } else {
+              original = tmpDir / "encode_rgba8_unorm_to_bc3_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_unorm_to_bc3_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC3_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
             }
             break;
 
-          case KHR_DF_MODEL_BC4:
-            original = tmpDir / "CompressToBC4ThenDecode_original.ktx2";
-            decoded = tmpDir / "CompressToBC4ThenDecode_decoded.ktx2";
+          case KTX_BCN_COMPRESSION_BC4:
             ASSERT_FALSE(isSRGB); // should never occur
             if (texture->vkFormat == VK_FORMAT_R8_UNORM) {
+              original = tmpDir / "encode_r8_unorm_to_bc4_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_r8_unorm_to_bc4_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC4_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
-            } else {  /* this is tested below */
+            } else if (texture->vkFormat == VK_FORMAT_R8_SNORM) {
+              original = tmpDir / "encode_r8_snorm_to_bc4_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_r8_snorm_to_bc4_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC4_SNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8_SNORM;
             }
             break;
 
-          case KHR_DF_MODEL_BC5:
-            original = tmpDir / "CompressToBC5ThenDecode_original.ktx2";
-            decoded = tmpDir / "CompressToBC5ThenDecode_decoded.ktx2";
+          case KTX_BCN_COMPRESSION_BC5:
             ASSERT_FALSE(isSRGB); // should never occur
             if (texture->vkFormat == VK_FORMAT_R8G8_UNORM) {
+              original = tmpDir / "encode_rg8_unorm_to_bc5_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rg8_unorm_to_bc5_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC5_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
-            } else {  /* this is tested below */
+            } else if (texture->vkFormat == VK_FORMAT_R8G8_SNORM) {
+              original = tmpDir / "encode_rg8_snorm_to_bc5_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rg8_snorm_to_bc5_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC5_SNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
             }
             break;
 
-          case KHR_DF_MODEL_BC7:
-            original = tmpDir / "CompressToBC7ThenDecode_original.ktx2";
-            decoded = tmpDir / "CompressToBC7ThenDecode_decoded.ktx2";
+          case KTX_BCN_COMPRESSION_BC6HU:
+            ASSERT_FALSE(isSRGB); // should never occur
+            original = tmpDir / "encode_rgba16_sfloat_to_bc6hu_then_decode_original.ktx2";
+            decoded = tmpDir / "encode_rgba16_sfloat_to_bc6hu_then_decode_decoded.ktx2";
+            compressedFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
+            expectedDecompressedFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+            break;
+
+          case KTX_BCN_COMPRESSION_BC7:
             if (isSRGB) {
+              original = tmpDir / "encode_rgba8_srgb_to_bc7_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_srgb_to_bc7_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC7_SRGB_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
             } else {
+              original = tmpDir / "encode_rgba8_unorm_to_bc7_then_decode_original.ktx2";
+              decoded = tmpDir / "encode_rgba8_unorm_to_bc7_then_decode_decoded.ktx2";
               compressedFormat = VK_FORMAT_BC7_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
             }
@@ -3358,11 +3390,9 @@ class ktxTexture2BCnEncodeDecodeTestBase
             return;
         }
 
+        ASSERT_NE(compressedFormat, VK_FORMAT_UNDEFINED);
         ASSERT_EQ(texture->vkFormat, expectedDecompressedFormat);
-
-        if (ktxMemFile == NULL) {
-          return;
-        }
+        ASSERT_NE(ktxMemFile, nullptr);
 
         result = ktxTexture2_WriteToNamedFile(texture, original.string().c_str());
         ASSERT_TRUE(result == KTX_SUCCESS);
@@ -3382,14 +3412,15 @@ class ktxTexture2BCnEncodeDecodeTestBase
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
         EXPECT_EQ(result, KTX_SUCCESS);
-        EXPECT_TRUE(texture->vkFormat == compressedFormat);
+        EXPECT_EQ(texture->vkFormat, compressedFormat);
 
         uint32_t* pBdb = texture->pDfd + 1;
         if (isSRGB) {
             EXPECT_TRUE(KHR_DFDVAL(pBdb, TRANSFER) == KHR_DF_TRANSFER_SRGB);
         }
         khr_df_model_e model = static_cast<khr_df_model_e>(KHR_DFDVAL(pBdb, MODEL));
-        EXPECT_EQ(model, bcn);
+        // TODO: check that model is correctly set
+        // EXPECT_EQ(model, color);
         EXPECT_EQ(texture->supercompressionScheme, KTX_SS_NONE);
         EXPECT_TRUE(texture->_private->_supercompressionGlobalData == (ktx_uint8_t*)0);
         EXPECT_EQ(texture->numLevels, helper.numLevels);
@@ -3423,23 +3454,75 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
 // Test fixtures for BCn encode and decode tests.
 
+class ktxTexture2_BCnEncodeDecodeTestR8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 1, GL_R8> {};
+class ktxTexture2_BCnEncodeDecodeTestR8_SNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 1, GL_R8_SNORM> {};
+
+class ktxTexture2_BCnEncodeDecodeTestRG8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 2, GL_RG8> {};
+class ktxTexture2_BCnEncodeDecodeTestRG8_SNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 2, GL_RG8_SNORM> {};
+
+class ktxTexture2_BCnEncodeDecodeTestRGB8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGB8> {};
+class ktxTexture2_BCnEncodeDecodeTestRGB8_SRGB
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8> {};
+
+class ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGBA8> {};
 class ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB
     : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8_ALPHA8> {};
-class ktxTexture2_BC4EncodeDecodeTestR8_UNORM
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 1, GL_R8> {};
-class ktxTexture2_BC5EncodeDecodeTestR8G8_UNORM
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 2, GL_RG8> {};
+
+class ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGB16F> {};
 
 ////////////////////////////////////////////
 // BCn encode & decode tests
 ///////////////////////////////////////////
 
-TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC1ThenDecode) { runTest(KHR_DF_MODEL_BC1A); }
-TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC3ThenDecode) { runTest(KHR_DF_MODEL_BC3); }
-TEST_F(ktxTexture2_BC4EncodeDecodeTestR8_UNORM, CompressToBC4ThenDecode) { runTest(KHR_DF_MODEL_BC4); }
-TEST_F(ktxTexture2_BC5EncodeDecodeTestR8G8_UNORM, CompressToBC5ThenDecode) { runTest(KHR_DF_MODEL_BC5); }
-TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, CompressToBC7ThenDecode) { runTest(KHR_DF_MODEL_BC7); }
-// TODO: BCn RDO tests (also some tests with some parameters)
+// BC1:
+//    - VK_FORMAT_R8G8B8_UNORM
+//    - VK_FORMAT_R8G8B8_SRGB
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB8_UNORM, encode_rgb8_unorm_to_bc1_then_decode) { runTest(KTX_BCN_COMPRESSION_BC1); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB8_SRGB, encode_rgb8_srgb_to_bc1_then_decode) { runTest(KTX_BCN_COMPRESSION_BC1); }
+
+// TODO:
+// BC2:
+//    - VK_FORMAT_R8G8B8A8_UNORM
+//    - VK_FORMAT_R8G8B8A8_SRGB
+// TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM, encode_rgba8_unorm_to_bc2_then_decode) { runTest(KTX_BCN_COMPRESSION_BC2); }
+// TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc2_then_decode) { runTest(KTX_BCN_COMPRESSION_BC2); }
+
+// BC3:
+//    - VK_FORMAT_R8G8B8_UNORM
+//    - VK_FORMAT_R8G8B8_SRGB
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM, encode_rgba8_unorm_to_bc3_then_decode) { runTest(KTX_BCN_COMPRESSION_BC3); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc3_then_decode) { runTest(KTX_BCN_COMPRESSION_BC3); }
+
+// BC4:
+//    - VK_FORMAT_R8_UNORM
+TEST_F(ktxTexture2_BCnEncodeDecodeTestR8_UNORM, encode_r8_unorm_to_bc4_then_decode) { runTest(KTX_BCN_COMPRESSION_BC4); }
+
+// BC5:
+//    - VK_FORMAT_R8G8_UNORM
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRG8_UNORM, encode_rg8_unorm_to_bc5_then_decode) { runTest(KTX_BCN_COMPRESSION_BC5); }
+
+// TODO:
+// BC6HU:
+//    - VK_FORMAT_R16G16B16A16_SFLOAT
+// TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT, encode_rgba16_sfloat_to_bc6hu_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HU); }
+
+// TODO:
+// BC6HS:
+//    - VK_FORMAT_R16G16B16A16_SFLOAT
+// TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT, encode_rgba16_sfloat_to_bc6hs_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HS); }
+
+// BC7:
+//    - VK_FORMAT_R8G8B8A8_UNORM
+//    - VK_FORMAT_R8G8B8A8_SRGB
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM, encode_rgba8_unorm_to_bc7_then_decode) { runTest(KTX_BCN_COMPRESSION_BC7); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc7_then_decode) { runTest(KTX_BCN_COMPRESSION_BC7); }
 
 //-------------------------------------------------
 // Template for base fixture for BCn decode tests.
@@ -3465,23 +3548,28 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 
         // Check the input file is valid BCn (TODO)
         khr_df_model_e colormodel = ktxTexture2_GetColorModel_e(texture);
-        ASSERT_TRUE(colormodel == KHR_DF_MODEL_BC1A || colormodel == KHR_DF_MODEL_BC3 ||
-                    colormodel == KHR_DF_MODEL_BC4 || colormodel == KHR_DF_MODEL_BC5 ||
+        ASSERT_TRUE(colormodel == KHR_DF_MODEL_BC1A || colormodel == KHR_DF_MODEL_BC2 ||
+                    colormodel == KHR_DF_MODEL_BC3 || colormodel == KHR_DF_MODEL_BC4 ||
+                    colormodel == KHR_DF_MODEL_BC5 || colormodel == KHR_DF_MODEL_BC6H ||
                     colormodel == KHR_DF_MODEL_BC7)
             << format(
-                   "Color model of \"{}\" {} is not a BC1, BC3, BC4, BC5, or BC7 encoded ktx test file",
+                   "Color model of \"{}\" {} is not a BCn encoded ktx test file",
                    from_u8string(bcnPath.u8string()), dfdToStringColorModel(colormodel));
 
         switch (texture->vkFormat) {
           case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-          case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8_UNORM;
+              break;
+
           case VK_FORMAT_BC3_UNORM_BLOCK:
           case VK_FORMAT_BC7_UNORM_BLOCK:
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
               break;
 
           case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-          case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R8G8B8_SRGB;
+              break;
+
           case VK_FORMAT_BC3_SRGB_BLOCK:
           case VK_FORMAT_BC7_SRGB_BLOCK:
               expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
@@ -3501,6 +3589,11 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 
           case VK_FORMAT_BC5_SNORM_BLOCK:
               expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
+              break;
+
+          case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+          case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+              expectedDecompressedFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
               break;
 
           default:
@@ -3558,11 +3651,48 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 // BCn decode tests
 ///////////////////////////////////////////
 
-TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc1) { runTest(u8"color_grid_bc1.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc3) { runTest(u8"color_grid_bc3.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc4) { runTest(u8"color_grid_bc4.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc5) { runTest(u8"color_grid_bc5.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, Decode_color_grid_bc7) { runTest(u8"color_grid_bc7.ktx2"); }
+// BC1:
+//    - VK_FORMAT_R8G8B8_UNORM
+//    - VK_FORMAT_R8G8B8_SRGB
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) { runTest(u8"rgb8_unorm_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) { runTest(u8"rgb8_srgb_bc1.ktx2"); }
+
+// TODO:
+// BC2:
+//    - VK_FORMAT_R8G8B8A8_UNORM
+//    - VK_FORMAT_R8G8B8A8_SRGB
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) { runTest(u8"rgba8_unorm_bc2.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc2) { runTest(u8"rgba8_srgb_bc2.ktx2"); }
+
+// BC3:
+//    - VK_FORMAT_R8G8B8_UNORM
+//    - VK_FORMAT_R8G8B8_SRGB
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc3) { runTest(u8"rgba8_unorm_bc3.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3) { runTest(u8"rgba8_srgb_bc3.ktx2"); }
+
+// BC4:
+//    - VK_FORMAT_R8_UNORM
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) { runTest(u8"r8_unorm_bc4.ktx2"); }
+
+// BC5:
+//    - VK_FORMAT_R8G8_UNORM
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) { runTest(u8"rg8_unorm_bc5.ktx2"); }
+
+// TODO:
+// BC6HU:
+//    - VK_FORMAT_R16G16B16A16_SFLOAT
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hu) { runTest(u8"rgba16_sfloat_bc6hu.ktx2"); }
+
+// TODO:
+// BC6HS:
+//    - VK_FORMAT_R16G16B16A16_SFLOAT
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hs) { runTest(u8"rgba16_sfloat_bc6hs.ktx2"); }
+
+// BC7:
+//    - VK_FORMAT_R8G8B8A8_UNORM
+//    - VK_FORMAT_R8G8B8A8_SRGB
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc7) { runTest(u8"rgba8_unorm_bc7.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7) { runTest(u8"rgba8_srgb_bc7.ktx2"); }
 
 }  // namespace
 

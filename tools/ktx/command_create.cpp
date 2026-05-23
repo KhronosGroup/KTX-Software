@@ -2,6 +2,7 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <bcn_common.h>
 #include "command.h"
 #include "encode_utils_bcn.h"
 #include "encode_utils_common.h"
@@ -1536,41 +1537,15 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (isBCn && !options.raw) {
         options.encodeBCn = true;
 
-        switch (options.vkFormat) {
-          case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC1A;
-            break;
-#if 0
-          case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC2_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC2;
-            break;
-#endif
-          case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC3_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC3;
-            break;
-          case VK_FORMAT_BC4_UNORM_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC4;
-            break;
-          case VK_FORMAT_BC5_UNORM_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC5;
-            break;
-          case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC6H;
-            break;
-          case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
-          case VK_FORMAT_BC7_SRGB_BLOCK:
-            options.bcn = KHR_DF_MODEL_BC7;
-            break;
-        default:
-            fatal(rc::NOT_SUPPORTED, "{} is unsupported for BCn encoding.", toString(options.vkFormat));
-            break;
-        }
+        VkFormat decompressed_format;
+        int nchannels;
+        options.bcn = get_bcn_compression_kind(options.vkFormat, decompressed_format, nchannels);
+        if (options.bcn == KTX_BCN_COMPRESSION_NONE)
+          fatal(rc::NOT_SUPPORTED, "{} is unsupported for BCn encoding.", toString(options.vkFormat));
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC1A)
+          fatal(rc::IO_FAILURE, "Punch-through alpha encoding for BC1 format is not supported. Consider supplying an RGB8 input format instead.");
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC6HS)
+          fatal(rc::IO_FAILURE, "Encoding to signed BC6H HDR format (BC6HS) is not supported.");
     }
 
     if (options._1d && (options.encodeASTC || options.encodeBCn))
@@ -2435,10 +2410,14 @@ std::vector<uint8_t> CommandCreate::convert(const std::unique_ptr<Image>& image,
     case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
     case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
     case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+    case VK_FORMAT_BC2_UNORM_BLOCK:
+    case VK_FORMAT_BC2_SRGB_BLOCK:
     case VK_FORMAT_BC3_UNORM_BLOCK:
     case VK_FORMAT_BC3_SRGB_BLOCK:
     case VK_FORMAT_BC4_UNORM_BLOCK:
+    case VK_FORMAT_BC4_SNORM_BLOCK:
     case VK_FORMAT_BC5_UNORM_BLOCK:
+    case VK_FORMAT_BC5_SNORM_BLOCK:
     case VK_FORMAT_BC7_UNORM_BLOCK:
     case VK_FORMAT_BC7_SRGB_BLOCK:
         requireUNORM(8);
@@ -3221,30 +3200,41 @@ void CommandCreate::checkSpecsMatch(const ImageInput& currentFile, const ImageSp
 
 VkFormat CommandCreate::decompressedBCnFormat(VkFormat format) const {
   switch (format) {
-    case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-      return VK_FORMAT_R8G8B8A8_UNORM;
-    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-      return VK_FORMAT_R8G8B8A8_SRGB;
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+      return VK_FORMAT_R8G8B8_UNORM;
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+      return VK_FORMAT_R8G8B8_SRGB;
+
+#if 0
     case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC2_SRGB_BLOCK:
       return VK_FORMAT_UNDEFINED;
+#endif
+
     case VK_FORMAT_BC3_UNORM_BLOCK:
       return VK_FORMAT_R8G8B8A8_UNORM;
     case VK_FORMAT_BC3_SRGB_BLOCK:
       return VK_FORMAT_R8G8B8A8_SRGB;
+
     case VK_FORMAT_BC4_UNORM_BLOCK:
       return VK_FORMAT_R8_UNORM;
+    case VK_FORMAT_BC4_SNORM_BLOCK:
+      return VK_FORMAT_R8_SNORM;
+
     case VK_FORMAT_BC5_UNORM_BLOCK:
       return VK_FORMAT_R8G8_UNORM;
+    case VK_FORMAT_BC5_SNORM_BLOCK:
+      return VK_FORMAT_R8G8_SNORM;
+
     case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC6H_SFLOAT_BLOCK:
       return VK_FORMAT_R16G16B16_SFLOAT;
+
     case VK_FORMAT_BC7_UNORM_BLOCK:
       return VK_FORMAT_R8G8B8A8_UNORM;
     case VK_FORMAT_BC7_SRGB_BLOCK:
       return VK_FORMAT_R8G8B8A8_SRGB;
+      
     default: return VK_FORMAT_UNDEFINED;
   }
 }

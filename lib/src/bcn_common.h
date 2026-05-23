@@ -15,9 +15,9 @@
 #include <cstdint>
 #include <cstring>
 #include "ktx.h"
-#include "KHR/khr_df.h"
 #include "bc7enc_rdo/ert.h"   /* for RDO */
 #include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
+#include "vulkan/vulkan_core.h"
 
 #define BCN_BLOCK_SIZE 4
 
@@ -29,7 +29,9 @@
 #define BC6H_BLOCK_SIZE 16
 #define BC7_BLOCK_SIZE 16
 
-#define BC1_NCHANNELS 4
+#define BC1_NCHANNELS 3
+#define BC1A_NCHANNELS 4
+#define BC2_NCHANNELS 4
 #define BC3_NCHANNELS 4
 #define BC4_NCHANNELS 1
 #define BC5_NCHANNELS 2
@@ -432,18 +434,53 @@ extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t hei
 //  +--------------------------------------------+
 //
 template <typename T>
-inline void
+inline size_t
 insert_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t height,
              size_t nchannels /* stride */) {
     // TODO: expose this as parameter for usage with other block sizes
     constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
-    const size_t src_pitch = kBlockSize * nchannels;   // nbr bytes per raw of src
-    const size_t dst_pitch = width * nchannels;        // nbr bytes per raw of dst
+    const size_t src_pitch = kBlockSize * nchannels;  // nbr bytes per raw of src
+    const size_t dst_pitch = width * nchannels;       // nbr bytes per raw of dst
+    size_t nbr_written_bytes = 0;
     const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
     const T* pSrc = src;
     T* pDst = dst + y * dst_pitch + nchannels * x;
     for (ktx_size_t py{0}; py < kBlockSize && y + py < height; ++py) {
-        memcpy(pDst, pSrc, cols * nchannels * sizeof(T));
+        const size_t nbr_bytes_to_write = cols * nchannels * sizeof(T);
+        memcpy(pDst, pSrc, nbr_bytes_to_write);
+        nbr_written_bytes += nbr_bytes_to_write;
+        pSrc += src_pitch;
+        pDst += dst_pitch;
+    }
+    return nbr_written_bytes;
+}
+
+inline void
+extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
+    const int src_pitch = BCN_BLOCK_SIZE * 4;
+    const int dst_pitch = BCN_BLOCK_SIZE * 3;
+    const uint8_t* pSrc = rgba;
+    uint8_t* pDst = rgb;
+    size_t nbr_written_bytes_total = 0;
+    for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
+        for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
+            memcpy(pDst + px * 3 + py * dst_pitch, pSrc + px * 4 + py * src_pitch, 3);
+            nbr_written_bytes_total += 3;
+        }
+    }
+    assert(nbr_written_bytes_total == (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3));
+}
+
+inline void
+rgb_to_rgba_block(uint8_t* rgba, const uint8_t* rgb, uint8_t alpha = 255,
+                  int block_width = BCN_BLOCK_SIZE) {
+    const int src_pitch = block_width * 3; /* 4 x 3 */
+    const int dst_pitch = block_width * 4; /* because we add alpha */
+    const uint8_t* pSrc = rgb;
+    uint8_t* pDst = rgba;
+    for (int py = 0; py < block_width; ++py) {
+        memcpy(pDst, pSrc, src_pitch);
+        pDst[3] = alpha;
         pSrc += src_pitch;
         pDst += dst_pitch;
     }
@@ -467,11 +504,108 @@ unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* p
     return true;
 };
 
+inline ktx_bcn_compression_e
+get_bcn_compression_kind(VkFormat vkformat, VkFormat& decompressed_vkformat, int& nchannels) {
+    switch (vkformat) {
+        /* BC1 */
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8_UNORM;
+        nchannels = BC1_NCHANNELS; /* 3 */
+        return KTX_BCN_COMPRESSION_BC1;
+
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8_SRGB;
+        nchannels = BC1_NCHANNELS; /* 3 */
+        return KTX_BCN_COMPRESSION_BC1;
+
+        /* BC1A */
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_UNORM;
+        nchannels = BC1A_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC1A;
+
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC1A_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC1A;
+
+        /* BC2 */
+    case VK_FORMAT_BC2_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_UNORM;
+        nchannels = BC2_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC2;
+
+    case VK_FORMAT_BC2_SRGB_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC2_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC2;
+
+        /* BC3 */
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_UNORM;
+        nchannels = BC3_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC3;
+
+    case VK_FORMAT_BC3_SRGB_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC3_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC3;
+
+        /* BC4 */
+    case VK_FORMAT_BC4_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8_UNORM;
+        nchannels = BC4_NCHANNELS; /* 1 */
+        return KTX_BCN_COMPRESSION_BC4;
+
+    case VK_FORMAT_BC4_SNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8_SNORM;
+        nchannels = BC4_NCHANNELS; /* 1 */
+        return KTX_BCN_COMPRESSION_BC4;
+
+        /* BC5 */
+    case VK_FORMAT_BC5_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8_UNORM;
+        nchannels = BC5_NCHANNELS; /* 2 */
+        return KTX_BCN_COMPRESSION_BC5;
+
+    case VK_FORMAT_BC5_SNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8_SNORM;
+        nchannels = BC5_NCHANNELS; /* 2 */
+        return KTX_BCN_COMPRESSION_BC5;
+
+        /* BC6HU */
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R16G16B16_SFLOAT;
+        nchannels = BC6H_NCHANNELS; /* 3 */
+        return KTX_BCN_COMPRESSION_BC6HU;
+
+        /* BC6HS */
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R16G16B16_SFLOAT;
+        nchannels = BC6H_NCHANNELS; /* 3 */
+        return KTX_BCN_COMPRESSION_BC6HS;
+
+        /* BC7 */
+    case VK_FORMAT_BC7_UNORM_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_UNORM;
+        nchannels = BC7_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC7;
+
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        decompressed_vkformat = VK_FORMAT_R8G8B8A8_SRGB;
+        nchannels = BC7_NCHANNELS; /* 4 */
+        return KTX_BCN_COMPRESSION_BC7;
+
+    default:
+        return KTX_BCN_COMPRESSION_NONE;
+    }
+}
+
 // TODO: this is meant to be called within a C++ context only (no C support) so
 // maybe improve this? (use spans?)
 KTX_error_code postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_size,
                                    ktx_uint8_t* packed_img, ktx_size_t packed_img_size,
-                                   rdo_params params, khr_df_model_e model, ktx_uint32_t width,
+                                   rdo_params params, ktx_bcn_compression_e bcn, ktx_uint32_t width,
                                    ktx_uint32_t height);
 
 #endif

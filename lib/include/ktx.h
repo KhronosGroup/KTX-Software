@@ -1472,6 +1472,23 @@ typedef struct ktxBC1UnpackParams {
 } ktxBC1UnpackParams;
 
 /**
+ * @~English
+ * @brief BCn compression kind.
+ */
+typedef enum ktx_bcn_compression_e {
+    KTX_BCN_COMPRESSION_NONE    = 0,
+    KTX_BCN_COMPRESSION_BC1     = 1,
+    KTX_BCN_COMPRESSION_BC1A    = 2,
+    KTX_BCN_COMPRESSION_BC2     = 3,
+    KTX_BCN_COMPRESSION_BC3     = 4,
+    KTX_BCN_COMPRESSION_BC4     = 5,
+    KTX_BCN_COMPRESSION_BC5     = 6,
+    KTX_BCN_COMPRESSION_BC6HU   = 7,
+    KTX_BCN_COMPRESSION_BC6HS   = 8,
+    KTX_BCN_COMPRESSION_BC7     = 9,
+} ktx_bcn_compression_e;
+
+/**
  * @memberof ktxTexture
  * @~English
  * @brief Structure for passing extended parameters to
@@ -1492,10 +1509,9 @@ typedef struct ktxBCnParams {
            RDO). Default is 1.
          */
 
-    khr_df_model_e bcn;
-        /*!< BCn format to compress to. E.g., for BC7 this should be set to:
-           KHR_DF_MODEL_BC7. Only options related to the provided target BCn
-           format are used.
+    ktx_bcn_compression_e bcn;
+        /*!< BCn format to compress to. Only options related to the provided
+           target BCn format are used.
          */
 
     ktx_bool_t normalMap;

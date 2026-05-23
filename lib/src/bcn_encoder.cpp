@@ -93,8 +93,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     block_end_idx = block_start_idx + num_blocks;
 
     // Intermediate store for decoded LDR BCn block
-    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];   // 4 x 4 x 4
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];  // 4 x 4 x 3 x 2
+    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4 x 4 x 4 */
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 */
+    uint8_t rgbx[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* only for BC1 */
 
     basist::astc_6x6_hdr::fast_bc6h_params bc6h_params;
     bc6h_params.init();
@@ -106,38 +107,59 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
         const size_t yBlock = block_idx / nbrBlocksX;
         // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
         // via clamping to edge).
-        workload->params.bcn == KHR_DF_MODEL_BC6H
-            ? extract_block<uint16_t>(rgbh, reinterpret_cast<const uint16_t*>(workload->data_in),
-                                      xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE, width,
-                                      height, nchannels)
-            : extract_block<uint8_t>(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE,
-                                     yBlock * BCN_BLOCK_SIZE, width, height, nchannels);
-        const uint8_t* pPixels = rgba;
+        if (workload->params.bcn == KTX_BCN_COMPRESSION_BC6HU ||
+            workload->params.bcn == KTX_BCN_COMPRESSION_BC6HS) {
+            extract_block(rgbh, reinterpret_cast<const uint16_t*>(workload->data_in),
+                          xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE, width, height,
+                          nchannels);
+        } else if (workload->params.bcn == KTX_BCN_COMPRESSION_BC1) {
+            // BC1 is an edge case because encoder expects 4 while input is 3
+            extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
+                          width, height, nchannels);
+            rgb_to_rgba_block(rgbx, rgba);
+        } else {
+            extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
+                          width, height, nchannels);
+        }
+
         switch (workload->params.bcn) {
-        case KHR_DF_MODEL_BC1A:
-            // BC1: 4 x 4 x 4 = 64 bytes -> 8 bytes
+    #if 0  // bc7enc BC1 encoder does not support punch-through alpha
+        case KTX_BCN_COMPRESSION_BC1A:
+    #endif
+        case KTX_BCN_COMPRESSION_BC1:
+            // BC1: 4 x 4 x 3 = 64 bytes -> 8 bytes
             rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
                               pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
-                              pPixels, true, false);
+                              rgbx, true, false);
             break;
-        case KHR_DF_MODEL_BC3:
+
+            // BC1A: 4 x 4 x 4 = 64 bytes -> 8 bytes (alpha only 1 bit encoded)
+            rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
+                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
+                              rgba, true, false);
+            break;
+
+        case KTX_BCN_COMPRESSION_BC3:
             // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
             rgbcx::encode_bc3(workload->params.bc1CompressionQuality,
                               pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
-                              pPixels);
+                              rgba);
             break;
-        case KHR_DF_MODEL_BC4:
+
+        case KTX_BCN_COMPRESSION_BC4:
             // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
             rgbcx::encode_bc4(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
-                              pPixels, /* stride */ BC4_NCHANNELS);
+                              rgba, /* stride */ BC4_NCHANNELS);
             break;
-        case KHR_DF_MODEL_BC5:
+
+        case KTX_BCN_COMPRESSION_BC5:
             // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
             rgbcx::encode_bc5(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
-                              pPixels, 0, 1,
+                              rgba, 0, 1,
                               /* stride */ BC5_NCHANNELS);
             break;
-        case KHR_DF_MODEL_BC6H:
+
+        case KTX_BCN_COMPRESSION_BC6HU:
             // TODO: this currently errors out (assert fails) on signed input.
             // Need to handle this the same way that UASTC HDR handles it or
             // just use another encoder?
@@ -147,13 +169,15 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
                     pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC6H_BLOCK_SIZE),
                 bc6h_params);
             break;
-        case KHR_DF_MODEL_BC7:
+
+        case KTX_BCN_COMPRESSION_BC7:
             // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
             basist::bc7f::fast_pack_bc7_auto_rgba(
                 pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
-                reinterpret_cast<const basist::color_rgba*>(pPixels),
+                reinterpret_cast<const basist::color_rgba*>(rgba),
                 workload->params.bc7CompressionQuality);
             break;
+
         default:
             return;  // should never occur
         }
@@ -378,7 +402,7 @@ print_rdo_params(const rdo_params& params) {
 KTX_error_code
 postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_size,
                     ktx_uint8_t* packed_img, ktx_size_t packed_img_size, rdo_params params,
-                    khr_df_model_e bcn, ktx_uint32_t width, ktx_uint32_t height,
+                    ktx_bcn_compression_e bcn, ktx_uint32_t width, ktx_uint32_t height,
                     ktx_uint32_t threads) {
     const uint32_t nBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
     const uint32_t nBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
@@ -395,7 +419,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
     if (ert_p.m_lambda <= 0.0f) return KTX_SUCCESS;
 
     switch (bcn) {
-    case KHR_DF_MODEL_BC1A: {
+    case KTX_BCN_COMPRESSION_BC1: {
         assert(unpacked_img_size == width * height * BC1_NCHANNELS);
         assert(packed_img_size == nBlocksTotal * BC1_BLOCK_SIZE);
 
@@ -446,7 +470,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         break;
     }  // BC1
 
-    case KHR_DF_MODEL_BC3: {
+    case KTX_BCN_COMPRESSION_BC3: {
         assert(unpacked_img_size == width * height * BC3_NCHANNELS);
         assert(packed_img_size == nBlocksTotal * BC3_BLOCK_SIZE);
 
@@ -525,7 +549,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         break;
     }  // BC3
 
-    case KHR_DF_MODEL_BC4: {
+    case KTX_BCN_COMPRESSION_BC4: {
         assert(unpacked_img_size == width * height * BC4_NCHANNELS);
         assert(packed_img_size == nBlocksTotal * BC4_BLOCK_SIZE);
 
@@ -587,7 +611,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         break;
     }  // BC4
 
-    case KHR_DF_MODEL_BC5: {
+    case KTX_BCN_COMPRESSION_BC5: {
         // One BC4 block for R followed by one BC4 block for G
         assert(unpacked_img_size == width * height * BC5_NCHANNELS);
         assert(packed_img_size == nBlocksTotal * BC5_BLOCK_SIZE);
@@ -666,7 +690,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         // TODO: add BC6H RDO support. Requires changes to ert::reduce_entropy to
         // handle half float channels (i.e., f16) instead of 1 byte per channel.
 
-    case KHR_DF_MODEL_BC7: {
+    case KTX_BCN_COMPRESSION_BC7: {
         // Some sanity checks
         assert(unpacked_img_size == width * height * BC7_NCHANNELS);
         assert(packed_img_size == nBlocksTotal * BC7_BLOCK_SIZE);
@@ -736,7 +760,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
  * @~English
  * @brief Compress a ktx texture with uncompressed images to provided BCn
  *        format. Currently, only BC1, BC3, BC4, BC5, BC6HU*, and BC7 target
- *        formats are supported.
+ *        formats are supported. Punch-through alpha for BC1 is not supported.
  *
  *        The images are encoded to provided BCn block-compressed format. The
  *        encoded images replace the original images and the texture's fields
@@ -767,21 +791,21 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
  * @exception KTX_INVALID_OPERATION
  *                      The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
- *                       The texture's images are already in a block compressed
- *                       format (i.e., @c This->isCompressed is true).
+ *                      The texture's images are already in a block compressed
+ *                      format (i.e., @c This->isCompressed is true).
  * @exception KTX_INVALID_OPERATION
- *                       The texture image's format is a packed format (e.g.,
- *                       RGB565).
+ *                      The texture image's format is a packed format (e.g.,
+ *                      RGB565).
  * @exception KTX_INVALID_OPERATION
- *                       The texture's images are not 2D. Only 2D images can be
- *                       block compressed.
+ *                      The texture's images are not 2D. Only 2D images can be
+ *                      block compressed.
  * @exception  KTX_INVALID_OPERATION
- *                        VkFormat of @p This texture is not supported or does
- *                        not match that of the set BCn color model.
+ *                      VkFormat of @p This texture is not supported or does
+ *                      not match that of the set BCn color model.
  * @exception KTX_INVALID_OPERATION
- *                        This->generateMipmaps is set.
+ *                      This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY
- *                        Not enough memory to carry out compression.
+ *                      Not enough memory to carry out compression.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
@@ -809,6 +833,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     const uint32_t* BDB = This->pDfd + 1;
     ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
     ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    khr_df_model_e expected_color_model;
     size_t nchannels;
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
@@ -816,10 +841,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     ktx_error_code_e result;
 
     switch (params->bcn) {
-    case KHR_DF_MODEL_BC1A:
-        // Currently we can only encode RGBA uncompressed textures into BC1
-        // (TODO: I think this makes sense, if we have an R8 channel then using
-        // BC1 makes no sense in the first place).
+        // TODO: Currently we can only encode RGBA uncompressed textures into BC1
+    case KTX_BCN_COMPRESSION_BC1:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8_UNORM:
             compressedVkFormat = VK_FORMAT_BC1_RGB_UNORM_BLOCK;
@@ -827,6 +850,18 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         case VK_FORMAT_R8G8B8_SRGB:
             compressedVkFormat = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
             break;
+        default:
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1
+        }
+        nchannels = BC1_NCHANNELS;
+        blocksize_in_bytes = BC1_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC1A;
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
+        break;
+
+    #if 0  // bc7enc BC1 encoder does not support punch-through alpha
+    case KTX_BCN_COMPRESSION_BC1A:
+        switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             compressedVkFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
             break;
@@ -834,14 +869,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             compressedVkFormat = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
             break;
         default:
-            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1
+            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1A
         }
         nchannels = BC1_NCHANNELS;
         blocksize_in_bytes = BC1_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC1A;
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
+    #endif
 
-    case KHR_DF_MODEL_BC3:
+    case KTX_BCN_COMPRESSION_BC3:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             compressedVkFormat = VK_FORMAT_BC3_UNORM_BLOCK;
@@ -854,46 +891,33 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         }
         nchannels = BC3_NCHANNELS;
         blocksize_in_bytes = BC3_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC3;
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
-    case KHR_DF_MODEL_BC4:
-        switch (This->vkFormat) {
-        case VK_FORMAT_R8_UNORM:
-            compressedVkFormat = VK_FORMAT_BC4_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_R8_SNORM:
-            compressedVkFormat = VK_FORMAT_BC4_SNORM_BLOCK;
-            break;
-        default:
+    case KTX_BCN_COMPRESSION_BC4:
+        if (This->vkFormat != VK_FORMAT_R8_UNORM)
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC4
-        }
+        compressedVkFormat = VK_FORMAT_BC4_UNORM_BLOCK;
         nchannels = BC4_NCHANNELS;
         blocksize_in_bytes = BC4_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC4;
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
-    case KHR_DF_MODEL_BC5:
-        switch (This->vkFormat) {
-        case VK_FORMAT_R8G8_UNORM:
-            compressedVkFormat = VK_FORMAT_BC5_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_R8G8_SNORM:
-            compressedVkFormat = VK_FORMAT_BC5_SNORM_BLOCK;
-            break;
-        default:
+    case KTX_BCN_COMPRESSION_BC5:
+        if (This->vkFormat != VK_FORMAT_R8G8_UNORM)
             return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC5
-        }
+        compressedVkFormat = VK_FORMAT_BC5_UNORM_BLOCK;
         nchannels = BC5_NCHANNELS;
         blocksize_in_bytes = BC5_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC5;
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
-    case KHR_DF_MODEL_BC6H:
+    case KTX_BCN_COMPRESSION_BC6HU:
         switch (This->vkFormat) {
         case VK_FORMAT_R16G16B16_SFLOAT:
-            // TODO: go figure. If I map this to an SFLOAT, I get full white EXR
-            // pictures ... (A. because used encoder doesn't support signed BC6H)
             compressedVkFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
             break;
         default:
@@ -902,10 +926,11 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC6H_NCHANNELS;
         blocksize_in_bytes = BC6H_BLOCK_SIZE;
         is_hdr = true;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC6H;
         basist::basisu_transcoder_init();
         break;
 
-    case KHR_DF_MODEL_BC7:
+    case KTX_BCN_COMPRESSION_BC7:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             compressedVkFormat = VK_FORMAT_BC7_UNORM_BLOCK;
@@ -918,6 +943,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         }
         nchannels = BC7_NCHANNELS;
         blocksize_in_bytes = BC7_BLOCK_SIZE;
+        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC7;
         basist::basisu_transcoder_init();
         break;
 
@@ -1044,8 +1070,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             pSrcLevelImage += levelImageSizeIn;   // next source image within this miplevel
         }
     }
-
-    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == params->bcn &&
+    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == expected_color_model &&
            "Invalid dfd generated for BCn image\n");
     assert((transfer == KHR_DF_TRANSFER_SRGB
                 ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&

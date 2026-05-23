@@ -2,6 +2,7 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "bcn_common.h"
 #include "bc7enc_rdo/bc7decomp.h"
 #include "command.h"
 #include "platform_utils.h"
@@ -31,7 +32,6 @@
 
 #include "bc7enc_rdo/rgbcx.h"      /* for BC1-BC5 decoders */
 #include "bc7enc_rdo/bc6hdecomp.h" /* for BC6H decoder */
-#include "bcn_common.h"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -602,170 +602,159 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
 void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
                                       uint32_t width, uint32_t height, const char* compressedData,
                                       std::size_t compressedSize) {
-    VkFormat uncompressedVkFormat;
-    std::size_t nchannels;
-    std::size_t expectedCompressedSize;
-    const std::size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
-                                ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
-    bool is_hdr = false;
+    int nchannels;
+    size_t expectedCompressedSize;
+    const size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
+                           ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
 
-    switch (vkFormat) {
-    case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-        // TODO: for the moment map this to RGBA so that we don't have to add
-        // an additional loop in the decoding code below (rgbcx::unpack_bc1
-        // decodes into RGBA block).
-        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-        nchannels = BC1_NCHANNELS;
+    VkFormat decompressed_format;
+    ktx_bcn_compression_e bcn = get_bcn_compression_kind(vkFormat, decompressed_format, nchannels);
+
+    bool is_hdr = (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS);
+
+    // TODO: somehow expose this
+    ktxBC1UnpackParams params;
+    params.allow_3color_mode = true;
+    params.use_3color_mode_for_black = false;
+    params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
+
+    if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC3 ||
+        bcn == KTX_BCN_COMPRESSION_BC4 || bcn == KTX_BCN_COMPRESSION_BC5)
+        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params.bc1_approx_mode));
+
+    switch (bcn) {
+    case KTX_BCN_COMPRESSION_BC1:
+    case KTX_BCN_COMPRESSION_BC1A:
         expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
-        rgbcx::init();
         break;
-
-    case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC1_NCHANNELS;
-        expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
-        rgbcx::init();
-        break;
-
-    case VK_FORMAT_BC3_UNORM_BLOCK:
-    case VK_FORMAT_BC3_SRGB_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC3_NCHANNELS;
+    case KTX_BCN_COMPRESSION_BC3:
         expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
-        rgbcx::init();
         break;
-
-    case VK_FORMAT_BC4_UNORM_BLOCK:
-    case VK_FORMAT_BC4_SNORM_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R8_UNORM;
-        nchannels = BC4_NCHANNELS;
+    case KTX_BCN_COMPRESSION_BC4:
         expectedCompressedSize = BC4_BLOCK_SIZE * nBlocks;
-        rgbcx::init();
         break;
-
-    case VK_FORMAT_BC5_UNORM_BLOCK:
-    case VK_FORMAT_BC5_SNORM_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R8G8_UNORM;
-        nchannels = BC5_NCHANNELS;
+    case KTX_BCN_COMPRESSION_BC5:
         expectedCompressedSize = BC5_BLOCK_SIZE * nBlocks;
-        rgbcx::init();
         break;
-
-        // TODO: no idea what to map this to. This seems to be the only that makes sense...
-    case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-    case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R16G16B16_SFLOAT;
-        nchannels = BC6H_NCHANNELS;
+    case KTX_BCN_COMPRESSION_BC6HU:
         expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
-        is_hdr = true;
         break;
-
-    case VK_FORMAT_BC7_UNORM_BLOCK:
-    case VK_FORMAT_BC7_SRGB_BLOCK:
-        uncompressedVkFormat = VK_FORMAT_R8G8B8A8_SRGB;
-        nchannels = BC7_NCHANNELS;
+    case KTX_BCN_COMPRESSION_BC6HS:
+        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC7:
         expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
         break;
-
     default:  // should never occur
         fatal(rc::RUNTIME_ERROR, "Provided format is not a BCn block-compressed format: {}",
               static_cast<ktx_uint32_t>(vkFormat));
         return;
     }
 
-    // Before doing anything, be absolutely certain that we won't overflow the
-    // compressedData buffer
-    assert(compressedSize == expectedCompressedSize);
+    // be absolutely certain that we won't overflow the compressedData buffer
+    if (compressedSize != expectedCompressedSize) 
+        fatal(rc::RUNTIME_ERROR, "Provided compressed size is unexpected.");
 
-    const std::size_t uncompressedSize = width * height * nchannels * (is_hdr ? 2 : 1);
-    const auto uncompressedBuffer = std::make_unique<uint8_t[]>(uncompressedSize);
-    uint8_t* bufferPtr = uncompressedBuffer.get();
+    const std::size_t decompressed_size = width * height * nchannels * (is_hdr ? 2 : 1);
+    const auto decompressed_buffer = std::make_unique<uint8_t[]>(decompressed_size);
+    uint8_t* buffer_ptr = decompressed_buffer.get();
 
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    ktx_uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4x4x4 = 64 bytes */
-    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4x4x3x2 = 96 bytes */
+    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4x4x4 = 64 bytes */
+    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1*/
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4x4x3x2 = 96 bytes */
 
     const char* src_blocks = compressedData;
+    size_t nbr_written_bytes_total = 0;
 
     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+            bool rv = true;
             // decode into the intermediary block (i.e., the rgba stack array
             // with 4x4x4 bytes)
-            switch (vkFormat) {
-            case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-            case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-            case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-            case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
-                // BC1: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha is 1-bit encoded or ignored)
-                // Keep set_alpha true otherwise we get a transparent picture
-                // (i.e., we have to set alpha ourselves).
-                rgbcx::unpack_bc1(src_blocks, rgba,
-                                  /* set_alpha */ true);
+            switch (bcn) {
+            case KTX_BCN_COMPRESSION_BC1:
+            case KTX_BCN_COMPRESSION_BC1A:
+                // BC1A: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha is 1-bit encoded or ignored)
+                rv = unpack_block_bc1(src_blocks, reinterpret_cast<ert::color_rgba*>(rgba),
+                                      0 /* ignored */, &params);
                 src_blocks += BC1_BLOCK_SIZE;
                 break;
 
-            case VK_FORMAT_BC3_UNORM_BLOCK:
-            case VK_FORMAT_BC3_SRGB_BLOCK:
+            case KTX_BCN_COMPRESSION_BC3:
                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rgbcx::unpack_bc3(src_blocks, rgba);
+                rv = rgbcx::unpack_bc3(src_blocks, rgba);
                 src_blocks += BC3_BLOCK_SIZE;
                 break;
 
-            case VK_FORMAT_BC4_UNORM_BLOCK:
-            case VK_FORMAT_BC4_SNORM_BLOCK:
+            case KTX_BCN_COMPRESSION_BC4:
                 // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
-                rgbcx::unpack_bc4(src_blocks, rgba, /* stride */ BC4_NCHANNELS);
+                /* always succeeds */ rgbcx::unpack_bc4(src_blocks, rgba,
+                                                        /* stride */ BC4_NCHANNELS);
                 src_blocks += BC4_BLOCK_SIZE;
                 break;
 
-            case VK_FORMAT_BC5_UNORM_BLOCK:
-            case VK_FORMAT_BC5_SNORM_BLOCK:
+            case KTX_BCN_COMPRESSION_BC5:
                 // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
-                rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
-                                  /* stride */ BC5_NCHANNELS);
+                /* always succeeds */ rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
+                                                        /* stride */ BC5_NCHANNELS);
                 src_blocks += BC5_BLOCK_SIZE;
                 break;
 
-            case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+            case KTX_BCN_COMPRESSION_BC6HU:
                 // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, false);
-                src_blocks += BC6H_BLOCK_SIZE;
-                break;
-            case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-                // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh, BCN_BLOCK_SIZE * 3, true);
+                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
+                                                                  BCN_BLOCK_SIZE * 3, false);
                 src_blocks += BC6H_BLOCK_SIZE;
                 break;
 
-            case VK_FORMAT_BC7_UNORM_BLOCK:
-            case VK_FORMAT_BC7_SRGB_BLOCK:
+            case KTX_BCN_COMPRESSION_BC6HS:
+                // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
+                /* always succeeds */ bc6hdecomp::bcdec_bc6h_half(src_blocks, rgbh,
+                                                                  BCN_BLOCK_SIZE * 3, true);
+                src_blocks += BC6H_BLOCK_SIZE;
+                break;
+
+            case KTX_BCN_COMPRESSION_BC7:
                 // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                bc7decomp::unpack_bc7(src_blocks, reinterpret_cast<bc7decomp::color_rgba*>(rgba));
+                rv = bc7decomp::unpack_bc7(src_blocks,
+                                           reinterpret_cast<bc7decomp::color_rgba*>(rgba));
                 src_blocks += BC7_BLOCK_SIZE;
                 break;
 
-            default:
-                return;  // should never occur
+            default:  // should never occur
+                rv = false;
+                return;
             }
 
-            // copy the decoded block into the actual texture image
-            is_hdr ? insert_block<uint16_t>(reinterpret_cast<uint16_t*>(bufferPtr), rgbh, x, y,
-                                            width, height, nchannels)
-                   : insert_block<uint8_t>(bufferPtr, rgba, x, y, width, height, nchannels);
+            // If any of the decoders/unpackers returned false
+            // => something went wrong
+            if (!rv)
+                fatal(rc::RUNTIME_ERROR, "Decoder failure for BCn format {}.", toString(vkFormat));
+
+            size_t nbr_written_bytes = 0;
+            // Copy the decoded block into the actual texture image
+            if (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS) {
+                nbr_written_bytes = insert_block(reinterpret_cast<uint16_t*>(buffer_ptr), rgbh, x,
+                                                 y, width, height, nchannels);
+            } else if (bcn == KTX_BCN_COMPRESSION_BC1) {
+                extract_rgb_from_rgba_block(rgb, rgba);
+                nbr_written_bytes = insert_block(buffer_ptr, rgb, x, y, width, height, nchannels);
+            } else {
+                nbr_written_bytes = insert_block<uint8_t>(buffer_ptr, rgba, x, y, width, height, nchannels);
+            }
+            nbr_written_bytes_total += nbr_written_bytes;
         }
     }
-    is_hdr ? saveEXR(std::move(filepath), appendExtension, uncompressedVkFormat,
-                     createFormatDescriptor(uncompressedVkFormat, *this), width, height,
-                     TINYEXR_PIXELTYPE_HALF,
-                     reinterpret_cast<const char*>(uncompressedBuffer.get()), uncompressedSize)
-           : saveImageFile(std::move(filepath), appendExtension,
-                           reinterpret_cast<const char*>(uncompressedBuffer.get()),
-                           uncompressedSize, uncompressedVkFormat,
-                           createFormatDescriptor(uncompressedVkFormat, *this), width, height);
+
+    assert(nbr_written_bytes_total == decompressed_size);
+
+    saveImageFile(std::move(filepath), appendExtension,
+                  reinterpret_cast<const char*>(decompressed_buffer.get()), decompressed_size,
+                  decompressed_format, createFormatDescriptor(decompressed_format, *this), width,
+                  height);
 }
 
 using namespace imageio;
