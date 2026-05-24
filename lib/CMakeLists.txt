@@ -757,6 +757,11 @@ if(LIBKTX_VERSION_FULL)
         add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
     endforeach()
 endif()
+if(LIBKTX_VERSION_READ_ONLY)
+    foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+        add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
+    endforeach()
+endif()
 
 if(APPLE_MAC_OS AND LIBKTX_FEATURE_BASISU_SSE)
     ####################################################
