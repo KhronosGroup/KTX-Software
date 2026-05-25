@@ -3182,10 +3182,10 @@ class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
             &texture);
 
-        EXPECT_EQ(result, KTX_SUCCESS)
+        ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
                       from_u8string(astcPath.u8string()), ktxErrorString(result));
-        EXPECT_NE(texture, nullptr);
+        ASSERT_NE(texture, nullptr);
 
         // Check the input file is valid ASTC
         ASSERT_TRUE(ktxTexture2_GetColorModel_e(texture) == KHR_DF_MODEL_ASTC);
@@ -3210,7 +3210,7 @@ class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
 
         result = ktxTexture2_DecodeAstc(texture);
 
-        EXPECT_EQ(result, KTX_SUCCESS)
+        ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_DecodeAstc failed: {}", ktxErrorString(result));
         // Get the pointer to the updated DFD
         ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
