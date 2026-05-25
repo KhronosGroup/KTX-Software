@@ -105,7 +105,7 @@ jobs:
       uses: ssciwr/doxygen-install@v1
 
     - name: Install Graphviz
-      uses: ts-graphviz/setup-graphviz@v2
+      uses: MarkCallow/setup-graphviz@v3
 
     - name: Smudge dates (macOS and Ubuntu)
       if:  matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'
