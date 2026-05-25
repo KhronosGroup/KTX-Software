@@ -191,33 +191,6 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         return KTX_SUCCESS;
     }
 
-    // Validate SGD data for KTX_SS_UASTC_HDR_6x6_INTERMEDIATE
-    if (This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
-        const ktxUASTCHDR6x6IntermediateImageDesc* image_descs =
-            reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(
-                priv._supercompressionGlobalData);
-        uint32_t i = 0;
-        for (uint32_t level = 0; level < This->numLevels; ++level) {
-            for (uint32_t layer = 0; layer < This->numLayers; ++layer) {
-                for (uint32_t face = 0; face < This->numFaces; ++face) {
-                    for (uint32_t zSlice = 0; zSlice < std::max(This->baseDepth >> level, 1u);
-                         ++zSlice) {
-                        const ktxUASTCHDR6x6IntermediateImageDesc* image_desc = &image_descs[i];
-                        if (image_desc->rgbSliceType !=
-                            0xABCD /* && image_desc->rgbSliceType != 0xABCE */) {
-                            debug_printf(
-                                "ktxTexture_TranscodeBasis: rgbSliceType for Level %d Layer %d "
-                                "Face %d zSlice %d is %x and is currently unsupported\n",
-                                level, layer, face, zSlice, image_desc->rgbSliceType);
-                            return KTX_UNSUPPORTED_FEATURE;
-                        }
-                        i++;
-                    }
-                }
-            }
-        }
-    }
-
     if (transcodeFlags & KTX_TF_PVRTC_DECODE_TO_NEXT_POW2) {
          debug_printf("ktxTexture_TranscodeBasis: KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
          return KTX_UNSUPPORTED_FEATURE;
@@ -357,11 +330,11 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
 
     basis_tex_format textureFormat;
     if (colorModel == KHR_DF_MODEL_UASTC)
-        textureFormat = basis_tex_format::cUASTC4x4;
+        textureFormat = basis_tex_format::cUASTC_LDR_4x4;
     else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4)
         textureFormat = basis_tex_format::cUASTC_HDR_4x4;        
     else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6)
-        textureFormat = basis_tex_format::cASTC_HDR_6x6_INTERMEDIATE;    
+      textureFormat = basis_tex_format::cUASTC_HDR_6x6_INTERMEDIATE;    
     else
         textureFormat = basis_tex_format::cETC1S;
 
@@ -925,7 +898,7 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
     ktx_size_t levelOffsetWrite = 0;
 
-    basist::basisu_lowlevel_astc_hdr_6x6_intermediate_transcoder uit;
+  basist::basisu_lowlevel_uastc_hdr_6x6_intermediate_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);

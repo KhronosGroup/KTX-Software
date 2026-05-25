@@ -384,7 +384,6 @@ void CommandExtract::executeExtract() {
     } else if (mapRange.size() != 0) {
         fatal(rc::INVALID_FILE, "The input file has invalid ktxMapRange metadata.");
     }
-
     // Transcoding
     if (ktxTexture2_IsTranscodable(texture)) {
         texture = transcode(std::move(texture), options, *this);
