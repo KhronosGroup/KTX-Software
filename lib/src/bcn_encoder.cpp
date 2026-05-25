@@ -12,13 +12,17 @@
  * @~English
  *
  * @brief Functions for encoding an uncompressed texture to a BCn format with an
- *        optional RDO post-processing step to significantly (50% or more)
+ *        optional RDO post-processing step to significantly (circa 50% or more)
  *        reduce bit rate when supercompressed with Deflate (Zlib or ZSTD).
  *        Currently supported BCn formats are: BC1, BC3, BC4, BC5, BC6HU*, and
  *        BC7.
  *
- *        *: support for BC6HU is limited because the encoder currently fails
- *        when given signed half float values.
+ *        *: support for BC6HS is not yet implemented because basisu's encoder
+ *        currently fails when given signed half float values.
+ *
+ *        BC2 (RGB+A) encoder is not implemented because it's rarely used in
+ *        practice due to poor quality alpha encoding. BC3 is almost always used
+ *        instead.
  *
  * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
  */
@@ -29,8 +33,8 @@
 
     #include "bcn_common.h"
 
-    #include "bc7enc_rdo/ert.h"                  /* for RDO */
-    #include "bc7enc_rdo/rgbcx.h"                /* for BC1-BC5 encoders/decoders */
+    #include "bc7enc/ert.h"                      /* for RDO */
+    #include "bc7enc/rgbcx.h"                    /* for BC1-BC5 encoders/decoders */
     #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
     #include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
     #include "vkformat_enum.h"                   /* for VkFormat enum */
@@ -403,6 +407,14 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
                     ktx_uint8_t* packed_img, ktx_size_t packed_img_size, rdo_params params,
                     ktx_bcn_compression_e bcn, ktx_uint32_t width, ktx_uint32_t height,
                     ktx_uint32_t threads) {
+    #define CHECK_SIZES(nchannels, block_size)                       \
+        do {                                                         \
+            if ((unpacked_img_size != width * height * nchannels) || \
+                (packed_img_size == nBlocksTotal * block_size)) {    \
+                return KTX_DECOMPRESS_LENGTH_ERROR;                  \
+            }                                                        \
+        } while (0)
+
     const uint32_t nBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
     const uint32_t nBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
     const uint32_t nBlocksTotal = nBlocksX * nBlocksY;
@@ -419,8 +431,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
 
     switch (bcn) {
     case KTX_BCN_COMPRESSION_BC1: {
-        assert(unpacked_img_size == width * height * BC1_NCHANNELS);
-        assert(packed_img_size == nBlocksTotal * BC1_BLOCK_SIZE);
+        CHECK_SIZES(BC1_NCHANNELS, BC1_BLOCK_SIZE);
 
         ert_p.m_color_weights[3] = 0;
 
@@ -470,8 +481,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
     }  // BC1
 
     case KTX_BCN_COMPRESSION_BC3: {
-        assert(unpacked_img_size == width * height * BC3_NCHANNELS);
-        assert(packed_img_size == nBlocksTotal * BC3_BLOCK_SIZE);
+        CHECK_SIZES(BC3_NCHANNELS, BC3_BLOCK_SIZE);
 
         ert_p.m_color_weights[3] = 0;
 
@@ -549,8 +559,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
     }  // BC3
 
     case KTX_BCN_COMPRESSION_BC4: {
-        assert(unpacked_img_size == width * height * BC4_NCHANNELS);
-        assert(packed_img_size == nBlocksTotal * BC4_BLOCK_SIZE);
+        CHECK_SIZES(BC4_NCHANNELS, BC4_BLOCK_SIZE);
 
         // only RDO R channel since this is BC4
         ert_p.m_color_weights[1] = 0;
@@ -612,8 +621,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
 
     case KTX_BCN_COMPRESSION_BC5: {
         // One BC4 block for R followed by one BC4 block for G
-        assert(unpacked_img_size == width * height * BC5_NCHANNELS);
-        assert(packed_img_size == nBlocksTotal * BC5_BLOCK_SIZE);
+        CHECK_SIZES(BC5_NCHANNELS, BC5_BLOCK_SIZE);
 
         ert_p.m_color_weights[1] = 0;
         ert_p.m_color_weights[2] = 0;
@@ -690,9 +698,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img_0, ktx_size_t unpacked_img_s
         // handle half float channels (i.e., f16) instead of 1 byte per channel.
 
     case KTX_BCN_COMPRESSION_BC7: {
-        // Some sanity checks
-        assert(unpacked_img_size == width * height * BC7_NCHANNELS);
-        assert(packed_img_size == nBlocksTotal * BC7_BLOCK_SIZE);
+        CHECK_SIZES(BC7_NCHANNELS, BC7_BLOCK_SIZE);
 
         // Attempt to compute a decent conservative smooth block MSE max scaling
         // factor. No single smooth block scale setting can work for all
@@ -836,7 +842,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     size_t nchannels;
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
-    bool is_hdr = false;
     ktx_error_code_e result;
 
     switch (params->bcn) {
@@ -924,7 +929,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         }
         nchannels = BC6H_NCHANNELS;
         blocksize_in_bytes = BC6H_BLOCK_SIZE;
-        is_hdr = true;
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC6H;
         basist::basisu_transcoder_init();
         break;
@@ -1015,7 +1019,11 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         // TODO: all of this needs robust verification. Is the data whithin a given
         // level compact or are there instances where a padding is added (e.g.,
         // because graphics API has a different data layout requirements)?
-        assert(levelImageSizeIn == width * height * nchannels * (is_hdr ? 2 : 1) &&
+        assert(levelImageSizeIn == width * height * nchannels *
+                                       ((params->bcn == KTX_BCN_COMPRESSION_BC6HU ||
+                                         params->bcn == KTX_BCN_COMPRESSION_BC6HS)
+                                            ? 2
+                                            : 1) &&
                "Probably non-compact data (i.e., some padding)");
         assert(levelImageSizeOut == nbrBlocksX * nbrBlocksY * blocksize_in_bytes &&
                "Probably non-compact data (i.e., some padding) for BCn compressed texture");
@@ -1062,20 +1070,27 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                     postprocess_rdo_bcn(pSrcLevelImage, width * height * nchannels, pDstLevelImage,
                                         nbrBlocksX * nbrBlocksY * blocksize_in_bytes, rdo_p,
                                         params->bcn, width, height, rdoThreadCount);
-                if (res != KTX_SUCCESS) return res;
+                if (res != KTX_SUCCESS) {
+                    ktxTexture2_Destroy(prototype);
+                    return res;
+                }
             }
 
             pDstLevelImage += levelImageSizeOut;  // next destination image within this miplevel
             pSrcLevelImage += levelImageSizeIn;   // next source image within this miplevel
         }
     }
-    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == expected_color_model &&
-           "Invalid dfd generated for BCn image\n");
-    assert((transfer == KHR_DF_TRANSFER_SRGB
-                ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
-                      KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
-                : true) &&
-           "Not a valid sRGB image\n");
+    if (KHR_DFDVAL(prototype->pDfd + 1, MODEL) != expected_color_model) {
+        ktxTexture2_Destroy(prototype);
+        return KTX_INVALID_OPERATION;
+    }
+
+    if (transfer == KHR_DF_TRANSFER_SRGB &&
+        (KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) != KHR_DF_TRANSFER_SRGB ||
+         KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) != KHR_DF_PRIMARIES_SRGB)) {
+        ktxTexture2_Destroy(prototype);
+        return KTX_INVALID_OPERATION;
+    };
 
     // Fix up the current (This) texture (this is copied from ASTC encoder - see
     // astc_codec.cpp)

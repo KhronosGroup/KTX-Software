@@ -3055,6 +3055,26 @@ namespace rgbcx
 		}
 	}
 
+  bool unpack_bc2(const void* pBlock_bits, void* pPixels, bc1_approx_mode mode)
+  {
+		color32* pDst_pixels = static_cast<color32*>(pPixels);
+    auto pBlock = static_cast<const uint8_t*>(pBlock_bits);
+
+		bool success = true;
+
+    // unpack BC1-encoded block (8 bytes)
+		if (unpack_bc1(pBlock + sizeof(bc1_block), pDst_pixels, true, mode))
+			success = false;
+
+    // then unpack sharp alpha block (8 bytes - 4 x uint16_t)
+    auto pAlpha = reinterpret_cast<const uint16_t*>(pBlock); 
+    for (int i = 0; i < 4; ++i)
+      for (int j = 0; j < 4; ++j)
+        pDst_pixels[j + i * 4].a = ((pAlpha[i] >> (4 * j)) & 0x0F) * 17;
+
+		return success;
+  }
+
 	// Returns false if the block uses 3-color punchthrough alpha mode, which isn't supported on some GPU's for BC3.
 	bool unpack_bc3(const void* pBlock_bits, void* pPixels, bc1_approx_mode mode)
 	{

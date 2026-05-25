@@ -30,7 +30,7 @@
 #include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
-#include "bc7enc_rdo/rgbcx.h"           /* for BC1-BC5 decoders */
+#include "bc7enc/rgbcx.h"               /* for BC1-BC5 decoders */
 #include "encoder/basisu_gpu_texture.h" /* for BC6HU/BC6HS decoders */
 
 // -------------------------------------------------------------------------------------------------
@@ -627,6 +627,9 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     case KTX_BCN_COMPRESSION_BC1A:
         expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
         break;
+    case KTX_BCN_COMPRESSION_BC2:
+        expectedCompressedSize = BC2_BLOCK_SIZE * nBlocks;
+        break;
     case KTX_BCN_COMPRESSION_BC3:
         expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
         break;
@@ -681,6 +684,11 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                 rv = unpack_block_bc1(src_blocks, reinterpret_cast<ert::color_rgba*>(rgba),
                                       0 /* ignored */, &params);
                 src_blocks += BC1_BLOCK_SIZE;
+                break;
+
+            case KTX_BCN_COMPRESSION_BC2:
+
+                src_blocks += BC2_BLOCK_SIZE;
                 break;
 
             case KTX_BCN_COMPRESSION_BC3:

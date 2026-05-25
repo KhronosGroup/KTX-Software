@@ -30,11 +30,11 @@
 
 /**
  * @ingroup reader
- * @brief Decodes a ktx2 texture object, if it is BCn encoded. Currently, BC1,
- *        BC3, BC4, BC5, BC6HU, BC6HS, or BC7 formats are supported.
+ * @brief Decodes a ktx2 texture object, if it is BCn encoded. All BCn
+ *        formats are supported (BC1, BC2, BC3, BC4, BC5, BC6HU, BC6HS, or BC7).
  *
  *        The decompressed format is calculated from corresponding BCn format.
- *        - For BC1, BC3, and BC7:
+ *        - For BC1, BC2, BC3, and BC7:
  *            VK_FORMAT_R8G8B8A8_[UNORM|SRGB] depending on the original color
  *            space.
  *        - For BC4:
@@ -79,16 +79,14 @@
  *                      load).
  * @exception KTX_INVALID_OPERATION
  *                      Decoder/Unpacker returned an error exit code or a
- *                      non-success return flag. Only occurs for BC1, BC3 (which
- *                      calls BC1 decoder), and BC7.
+ *                      non-success return flag. Only occurs for BC1, BC2, BC3,
+ *                      and BC7 (BC2 and BC3 are based on BC1).
  * @exception KTX_OUT_OF_MEMORY
  *                      Not enough memory to carry out decoding.
  */
 extern "C" KTX_error_code
 ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     uint32_t* BDB = This->pDfd + 1;
-    // khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
-    // bool is_hdr = false;
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
     int nchannels;
     VkFormat decompressedVkFormat;
@@ -105,7 +103,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     if (bcn == KTX_BCN_COMPRESSION_NONE) return KTX_INVALID_OPERATION;
 
     if ((bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
-         bcn == KTX_BCN_COMPRESSION_BC3) &&
+         bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC3) &&
         (params == NULL))
         return KTX_INVALID_VALUE;
 
@@ -114,8 +112,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
         return KTX_FILE_DATA_ERROR;
 
     if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
-        bcn == KTX_BCN_COMPRESSION_BC3 || bcn == KTX_BCN_COMPRESSION_BC4 ||
-        bcn == KTX_BCN_COMPRESSION_BC5)
+        bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC3 ||
+        bcn == KTX_BCN_COMPRESSION_BC4 || bcn == KTX_BCN_COMPRESSION_BC5)
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
 
     if (This->pData == NULL) {
@@ -201,6 +199,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                                 src_blocks += BC1_BLOCK_SIZE;
                                 break;
 
+                            case KTX_BCN_COMPRESSION_BC2:
+                                // BC2: 16 bytes -> 4 x 4 x 4 = 64 bytes
+                                rv = rgbcx::unpack_bc2(src_blocks, rgba);
+                                src_blocks += BC2_BLOCK_SIZE;
+                                break;
+
                             case KTX_BCN_COMPRESSION_BC3:
                                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
                                 rv = rgbcx::unpack_bc3(src_blocks, rgba);
@@ -270,9 +274,11 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                             nbr_written_bytes_total += nbr_written_bytes;
                         }  // x blocks
                     }  // y blocks
-                    size_t expected_nbr_written_bytes_total =
+#if !NDEBUG
+                    [[maybe_unused]] size_t expected_nbr_written_bytes_total =
                         ktxTexture2_GetImageSize(prototype, levelIndex);
                     assert(nbr_written_bytes_total == expected_nbr_written_bytes_total);
+#endif
                 }  // depth slices
             }  // faces
         }  // layers
