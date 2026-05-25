@@ -1171,7 +1171,13 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
                                       pMappedStagingBuffer,
                                       (ktx_size_t)memAllocInfo.allocationSize);
                 if (kResult != KTX_SUCCESS)
+                {
+                    if (!useSuballocator)
+                        vdi->vkFuncs.vkUnmapMemory(vdi->device, stagingMemory);
+                    else
+                        subAllocatorCallbacks->memoryUnmapFuncPtr(stagingAllocId, 0ull);
                     return kResult;
+                }
             }
 
             // Iterate over mip levels to set up the copy regions.
