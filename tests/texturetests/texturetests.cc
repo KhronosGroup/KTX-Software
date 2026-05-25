@@ -3336,17 +3336,11 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
           case KTX_BCN_COMPRESSION_BC4:
             ASSERT_FALSE(isSRGB); // should never occur
-            if (texture->vkFormat == VK_FORMAT_R8_UNORM) {
-              original = tmpDir / "encode_r8_unorm_to_bc4_then_decode_original.ktx2";
-              decoded = tmpDir / "encode_r8_unorm_to_bc4_then_decode_decoded.ktx2";
-              compressedFormat = VK_FORMAT_BC4_UNORM_BLOCK;
-              expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
-            } else if (texture->vkFormat == VK_FORMAT_R8_SNORM) {
-              original = tmpDir / "encode_r8_snorm_to_bc4_then_decode_original.ktx2";
-              decoded = tmpDir / "encode_r8_snorm_to_bc4_then_decode_decoded.ktx2";
-              compressedFormat = VK_FORMAT_BC4_SNORM_BLOCK;
-              expectedDecompressedFormat = VK_FORMAT_R8_SNORM;
-            }
+            ASSERT_EQ(texture->vkFormat, VK_FORMAT_R8_UNORM);
+            original = tmpDir / "encode_r8_unorm_to_bc4_then_decode_original.ktx2";
+            decoded = tmpDir / "encode_r8_unorm_to_bc4_then_decode_decoded.ktx2";
+            compressedFormat = VK_FORMAT_BC4_UNORM_BLOCK;
+            expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
             break;
 
           case KTX_BCN_COMPRESSION_BC5:
@@ -3366,10 +3360,10 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
           case KTX_BCN_COMPRESSION_BC6HU:
             ASSERT_FALSE(isSRGB); // should never occur
-            original = tmpDir / "encode_rgba16_sfloat_to_bc6hu_then_decode_original.ktx2";
-            decoded = tmpDir / "encode_rgba16_sfloat_to_bc6hu_then_decode_decoded.ktx2";
+            original = tmpDir / "encode_rgb16_sfloat_to_bc6hu_then_decode_original.ktx2";
+            decoded = tmpDir / "encode_rgb16_sfloat_to_bc6hu_then_decode_decoded.ktx2";
             compressedFormat = VK_FORMAT_BC6H_UFLOAT_BLOCK;
-            expectedDecompressedFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+            expectedDecompressedFormat = VK_FORMAT_R16G16B16_SFLOAT;
             break;
 
           case KTX_BCN_COMPRESSION_BC7:
@@ -3408,11 +3402,15 @@ class ktxTexture2BCnEncodeDecodeTestBase
         params.structSize = sizeof(params);
         params.threadCount = 1;
         params.bcn = bcn;
+        params.normalMap = false;
+        params.bc1ApproxMode = KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
         params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
+        params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
+        params.rdo = false;
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
-        EXPECT_EQ(result, KTX_SUCCESS);
-        EXPECT_EQ(texture->vkFormat, compressedFormat);
+        ASSERT_EQ(result, KTX_SUCCESS);
+        ASSERT_EQ(texture->vkFormat, compressedFormat);
 
         uint32_t* pBdb = texture->pDfd + 1;
         if (isSRGB) {
@@ -3474,8 +3472,8 @@ class ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM
 class ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB
     : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8_ALPHA8> {};
 
-class ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGB16F> {};
+class ktxTexture2_BCnEncodeDecodeTestRGB16_SFLOAT
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 3, GL_RGB16F> {};
 
 ////////////////////////////////////////////
 // BCn encode & decode tests
@@ -3508,10 +3506,9 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestR8_UNORM, encode_r8_unorm_to_bc4_then_deco
 //    - VK_FORMAT_R8G8_UNORM
 TEST_F(ktxTexture2_BCnEncodeDecodeTestRG8_UNORM, encode_rg8_unorm_to_bc5_then_decode) { runTest(KTX_BCN_COMPRESSION_BC5); }
 
-// TODO:
 // BC6HU:
 //    - VK_FORMAT_R16G16B16A16_SFLOAT
-// TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT, encode_rgba16_sfloat_to_bc6hu_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HU); }
+TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB16_SFLOAT, encode_rgb16_sfloat_to_bc6hu_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HU); }
 
 // TODO:
 // BC6HS:
@@ -3593,7 +3590,7 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 
           case VK_FORMAT_BC6H_UFLOAT_BLOCK:
           case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+              expectedDecompressedFormat = VK_FORMAT_R16G16B16_SFLOAT;
               break;
 
           default:
@@ -3678,10 +3675,9 @@ TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) { runTest(u8"r8_unorm_
 //    - VK_FORMAT_R8G8_UNORM
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) { runTest(u8"rg8_unorm_bc5.ktx2"); }
 
-// TODO:
 // BC6HU:
-//    - VK_FORMAT_R16G16B16A16_SFLOAT
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hu) { runTest(u8"rgba16_sfloat_bc6hu.ktx2"); }
+//    - VK_FORMAT_R16G16B16_SFLOAT
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) { runTest(u8"rgb16_sfloat_bc6hu.ktx2"); }
 
 // TODO:
 // BC6HS:
