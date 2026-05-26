@@ -1501,7 +1501,7 @@ typedef enum ktx_bcn_compression_e {
 typedef struct ktxBCnParams {
     ktx_uint32_t structSize;
         /*!< Size of this struct. Used so library can tell which version
-             of struct is being passed.
+           of struct is being passed.
          */
 
     ktx_uint32_t threadCount;
@@ -1512,10 +1512,18 @@ typedef struct ktxBCnParams {
     ktx_bcn_compression_e bcn;
         /*!< BCn format to compress to. Only options related to the provided
            target BCn format are used.
+
+           Since BC7 encoding is performed using basisu's analytical encoder
+           which encodes so rapidly (on average), that apart from lower VRAM
+           consumption (4bpp vs. 8bpp) and better GPU texture cache efficiency,
+           there's little need to use BC1 now. BC3 still has an advantage vs.
+           BC7, because it very strongly separates how RGB is encoded from the
+           alpha channel, in a predictable way.
          */
 
     ktx_bool_t normalMap;
-        /*!< Currently unused (added for same code structure with ASTC encoder).
+        /*!< Currently unused (added for same code structure convenience with
+           ASTC encoder).
          */
 
     /* BC1-5 params */
@@ -1531,20 +1539,23 @@ typedef struct ktxBCnParams {
            GPU.
          */
 
-    ktx_uint32_t bc1CompressionQuality;
-        /*!< BC1/BC3 compression quality. Range is [0,19]. Default is 5. 
-           Lower values give faster compression speed but potentially lower
-           quality. Higher values give slower compression speed but potentially
-           better quality.
+    ktx_pack_bc1_quality_levels bc1CompressionQuality;
+        /*!< BC1/BC3 compression quality. Range is [0,19]. Default is
+           KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH (i.e., 15). Lower values give
+           faster compression speed but potentially lower quality. Higher values
+           give slower compression speed but potentially better quality.
          */
 
     /* BC7 encoder params */
 
-    ktx_pack_bc7_quality_levels_e bc7CompressionQuality;
+    ktx_pack_bc7_quality_levels bc7CompressionQuality;
         /*!< BC7 compression quality. Lower values give faster compression speed
            at the expense of potentially lower quality. Higher values give
            slower compression speed but potentially better quality.
-           Default is KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM.
+           Default is KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH.
+
+           This maps to an OR'ed set of lower-level flags which can also be set
+           directly for advanced use-cases.
          */
 
     /* RDO params */
@@ -1554,23 +1565,24 @@ typedef struct ktxBCnParams {
            BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM
            optimizations. This is primarily used to reduce size on disk by
            applying a further compression, mainly: Deflate, LZMA, or LZHAM.
-           RDO params are only used when this is set. Setting this might result
-           in slower encoding time at the benefit of smaller bit/texel.
-           Default is false.
+           RDO parameters are only used if this is set. Setting this might
+           result in significantly slower encoding time at the benefit of
+           potentially significantly lower bit rate (i.e., number of bits per
+           encoded texel). Default is false.
          */
 
     float rdoQualityScalar;
         /*!< RDO quality scalar (lambda). Controls rate vs. distortion tradeoff.
            Lower values yield higher quality/larger LZ compressed files, higher
            values yield lower quality/smaller LZ compressed files. A good range
-           to try is [0.25,8]. Full range is [0.1,50.0]. Default is 1.0.
+           to try is [0.25,8]. Full range is [0.1,50.0]. Default is 0.5.
 
-           The post-processor tries to reduce:
+           The post-processor tries to minimize:
            distortion*smooth_block_scale + rate*lambda
            (rate is approximate LZ bits and distortion is scaled MSE multiplied
            against the smooth block MSE weighting factor). Larger values push
-           the postprocessor towards optimizing more for lower rate, and smaller
-           values more for distortion. 0=minimal distortion.
+           the post-processor towards optimizing more for lower rate, and
+           smaller values more for distortion. 0=minimal distortion.
          */
 
     ktx_bool_t rdoAutoSmoothBlockMaxMSEScale;
@@ -1579,10 +1591,10 @@ typedef struct ktxBCnParams {
            settings that work perfectly on all input textures, but the formula
            in the code works OK for most textures at low-ish lambdas (For an
            example of a difficult texture the currently formulas/settings
-           doesn't handle so well, try encoding kodim03 at lambdas 1-3.). Smooth
-           block handling is tuned so lambdas at or near 1 looks OK on textures
+           doesn't handle so well, try encoding kodim03 at lambdas 1-3). Smooth
+           block handling is tuned so lambdas at or near 1 look OK on textures
            with smooth gradients, skies, etc. If this is set,
-           rdoMaxSmoothBlockMseScale setting is ignored. Default is true.
+           @p rdoMaxSmoothBlockMseScale is ignored. Default is true.
          */
 
     float rdoMaxSmoothBlockMseScale;
@@ -1601,7 +1613,8 @@ typedef struct ktxBCnParams {
            compute the max std dev. of any component and use a linear function
            of that to scale block/trial MSE.
             
-           Range is [1,300]. Default is 18.0.
+           Range is [1,300]. Default is 18.0 in case
+           @p rdoAutoSmoothBlockMaxMSEScale is not set.
          */
 
     float rdoMaxSmoothBlockStdDev;
@@ -1627,28 +1640,31 @@ typedef struct ktxBCnParams {
     float rdoMaxAllowedRMSIncreaseRatio;
         /*!< How much the RMS error of a block is allowed to increase before a
            trial is rejected. 1.0=no increase allowed, 1.05=5% increase allowed,
-           etc. 
+           etc. Range is [1.001, 100.0]. Default is 10.0.
          */
 
     ktx_uint32_t rdoWindowLoopbackSize;
         /*!< The number of bytes the encoder can look back from each block to
            find matches. The larger this value, the slower the encoder but the
            higher the quality per LZ compressed bit. You don't need a huge
-           window to get large gains. Even 64-512 byte windows are fine.
+           window to get large gains. Even 64-512 byte windows can be fine.
            Range is [64,65536]. Default is 128.
          */
 
     ktx_bool_t rdoTry2Matches;
-        /*!< TODO: have no idea what this is. Default is false. */
+        /*!< Whether to inject up to 2 matches into each block vs. 1. Setting
+           this results in a little slower, but noticeably higher compression.
+           Default is true.
+         */
+
+    ktx_bool_t rdoSkipZeroMSEBlocks;
+        /*!< Whether to skip blocks that have zero mean-squared error (MSR).
+           Might result in faster compression speed but potentially lower
+           compression. Default is false.
+         */
 
     ktx_bool_t rdoAllowRelativeMovement;
         /*!< TODO: also have no idea what this is. Default is false. */
-
-    ktx_bool_t rdoNoMultithreading;
-        /*!< Disable RDO multithreading (slightly higher compression,
-             deterministic). Not supoprted yet. (TODO)
-         */
-        
 } ktxBCnParams;
 
 KTX_API KTX_error_code KTX_APIENTRY
