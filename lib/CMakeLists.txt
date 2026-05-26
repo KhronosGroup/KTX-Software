@@ -59,7 +59,7 @@ if(APPLE)
         list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" APPLE_MAC_OS_ARCH_x86_64)
         list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" APPLE_MAC_OS_ARCH_x86_64h)
         list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-        if(APPLE_MAC_OS_ARCH_STANDARD OR architecture_count GREATER 1)
+        if(architecture_count GREATER 1)
             set(APPLE_MAC_OS_UNIVERSAL ON)
         endif()
     endif()
@@ -99,7 +99,7 @@ option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 CMAKE_DEPENDENT_OPTION( LIBKTX_FEATURE_BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "CPU_ARCHITECTURE STREQUAL x86_64 OR APPLE_MAC_OS_UNIVERSAL"
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_x86_64h"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_OPENCL
@@ -687,10 +687,10 @@ endif()
 if(APPLE_MAC_OS_UNIVERSAL)
     if(APPLE_MAC_OS_ARCH_x86_64h)
         list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
-    elseif(APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_STANDARD)
+    elseif(APPLE_MAC_OS_ARCH_x86_64)
         list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
     endif()
-    if(APPLE_MAC_OS_ARCH_arm64 OR APPLE_MAC_OS_ARCH_STANDARD)
+    if(APPLE_MAC_OS_ARCH_arm64)
         list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
     endif()
 else()
@@ -793,7 +793,7 @@ if(APPLE_MAC_OS AND LIBKTX_FEATURE_BASISU_SSE)
     # BASISU_SUPPORT_SSE to 1 only for the x86_64 sub-invocation. -Xarch_x86_64
     # applies to the immediately-following argument only, so each flag needs its
     # own prefix. Works with any generator (Xcode, Ninja, Make) on Apple.
-    if(APPLE_MAC_OS_UNIVERSAL AND APPLE_MAC_OS_ARCH_x86_64)
+    if(APPLE_MAC_OS_UNIVERSAL AND (APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_x86_64h))
         # SHELL: prevents CMake from deduplicating the repeated -Xarch_x86_64
         # tokens, which would otherwise leave only the first flag arch-qualified.
         target_compile_options(basisu_encoder PRIVATE
