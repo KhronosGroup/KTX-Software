@@ -513,13 +513,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             BASISU_SUPPORT_OPENCL=$<IF:$<BOOL:${BASISU_OPENCL}>,1,0>
         )
-        target_compile_options(
-            ${target}
-        PRIVATE
-            $<$<AND:$<BOOL:${BASISU_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
-                -msse4.1
-            >
-        )
         if(EMSCRIPTEN)
             target_link_options(
                 ${target}
