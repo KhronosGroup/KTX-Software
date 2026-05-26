@@ -132,10 +132,8 @@ function(set_target_processor_type out)
             # slice gets -msse4.1 re-enabled per-arch via -Xarch_x86_64.
             if(APPLE AND NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
                 # Building for iOS, iPadOS, etc. Since we don't care what
-                # type of ARM processor, arbitrarily set armv8.
-                # It should be arm64 but there is a check in tests/CMakeLists.txt
-                # that is dropping loadtests for Apple Silicon arm64.
-                set(processor armv8)
+                # type of ARM processor, arbitrarily set arm64
+                set(processor arm64)
             elseif(APPLE AND CMAKE_OSX_ARCHITECTURES)
                 # Single-arch builds use that arch directly. For multi-arch
                 # universal builds, just pick the first listed arch as a
