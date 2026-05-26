@@ -28,7 +28,11 @@ if(APPLE)
         set( APPLE_LOCKED_OS ON )
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR NOT CMAKE_SYSTEM_NAME)
         set( APPLE_MAC_OS ON )
-        if(CMAKE_OSX_ARCHITECTURES MATCHES "\\$\\(ARCHS_STANDARD\\)")
+
+        # Detect macOS multi-architecture universal build.
+        list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" APPLE_MAC_OS_ARCH_STANDARD)
+
+        if(APPLE_MAC_OS_ARCH_STANDARD)
             # Replace the literal $(ARCHS_STANDARD) with the expected values
             # of "arm64;x86_64". Otherwise CMake stores the unexpanded string and 
             # embeds it into $<TARGET_OBJECTS:...> paths; at build time Xcode 
@@ -37,7 +41,8 @@ if(APPLE)
             # (basisu_encoder, dfdutils) silently drop out of any libktx*.a using 
             # the OBJECT-embedding variant of add_lib_dependencies, and the link of
             # consumers like ktxdiff fails with undefined symbols.
-            set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+            list(REMOVE_ITEM CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)")
+            list(APPEND CMAKE_OSX_ARCHITECTURES "arm64" "x86_64")
             message(STATUS "CMAKE_OSX_ARCHITECTURES set to '${CMAKE_OSX_ARCHITECTURES}'")
     
             if(CMAKE_GENERATOR STREQUAL "Xcode")
@@ -48,6 +53,14 @@ if(APPLE)
                 # CMAKE_OSX_DEPLOYMENT_TARGET).
                 set(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK ON)
             endif()
+        endif()
+
+        list_contains(CMAKE_OSX_ARCHITECTURES "arm64" APPLE_MAC_OS_ARCH_arm64)
+        list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" APPLE_MAC_OS_ARCH_x86_64)
+        list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" APPLE_MAC_OS_ARCH_x86_64h)
+        list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
+        if(APPLE_MAC_OS_ARCH_STANDARD OR architecture_count GREATER 1)
+            set(APPLE_MAC_OS_UNIVERSAL ON)
         endif()
     endif()
 endif()
@@ -68,21 +81,6 @@ include(${KTX_ROOT_DIR}/cmake/codesign.cmake) # Needs APPLE_*_OS values.
 include(${KTX_ROOT_DIR}/cmake/cputypetest.cmake)
 
 include(GNUInstallDirs) # Must be after project.
-
-
-# Detect macOS multi-architecture universal build.
-set(APPLE_MAC_OS_UNIVERSAL OFF)
-if(APPLE_MAC_OS)
-    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" APPLE_MAC_OS_ARCH_STANDARD)
-    list_contains(CMAKE_OSX_ARCHITECTURES "arm64" APPLE_MAC_OS_ARCH_arm64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" APPLE_MAC_OS_ARCH_x86_64)
-    list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" APPLE_MAC_OS_ARCH_x86_64h)
-    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(APPLE_MAC_OS_ARCH_STANDARD OR architecture_count GREATER 1)
-        set(APPLE_MAC_OS_UNIVERSAL ON)
-    endif()
-endif()
 
 # OPTIONS
 
