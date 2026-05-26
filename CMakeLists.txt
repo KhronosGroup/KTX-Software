@@ -30,28 +30,6 @@ if(APPLE)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR NOT CMAKE_SYSTEM_NAME)
         set( APPLE_MAC_OS ON )
     endif()
-
-    if(APPLE_MAC_OS AND CMAKE_OSX_ARCHITECTURES MATCHES "\\$\\(ARCHS_STANDARD\\)")
-        # Replace the literal $(ARCHS_STANDARD) with the expected values
-        # of "arm64;x86_64". Otherwise CMake stores the unexpanded string and 
-        # embeds it into $<TARGET_OBJECTS:...> paths; at build time Xcode 
-        # expands it to a space-separated arch list (e.g. "arm64 x86_64") which
-        # is not a real Objects-normal/<arch> directory, so dependent objects
-        # (basisu_encoder, dfdutils) silently drop out of any libktx*.a using 
-        # the OBJECT-embedding variant of add_lib_dependencies, and the link of
-        # consumers like ktxdiff fails with undefined symbols.
-        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
-        message(STATUS "CMAKE_OSX_ARCHITECTURES set to '${CMAKE_OSX_ARCHITECTURES}'")
-
-        if(CMAKE_GENERATOR STREQUAL "Xcode")
-            # This flag adds a custom pre-build command that certifies that the
-            # $(ARCHS_STANDARD) matches our expected values.
-            # For example, should Apple drop support for x86_64 the substitute
-            # value above needs to be updated (depending on target version in 
-            # CMAKE_OSX_DEPLOYMENT_TARGET).
-            set(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK ON)
-        endif()
-    endif()
 endif()
 
 include(CMakeDependentOption)
