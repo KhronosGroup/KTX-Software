@@ -670,7 +670,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4x4x3x2 = 96 bytes */
 
     const char* src_blocks = compressedData;
-    size_t nbr_written_bytes_total = 0;
+    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
 
     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
@@ -687,7 +687,8 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                 break;
 
             case KTX_BCN_COMPRESSION_BC2:
-
+                // BC2: 16 bytes -> 4 x 4 x 4 = 64 bytes (alpha is sharp-encoded)
+                rgbcx::unpack_bc2(src_blocks, rgba);
                 src_blocks += BC2_BLOCK_SIZE;
                 break;
 
@@ -1553,10 +1554,8 @@ void CommandExtract::saveImageFile(
     case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
-#if 0
     case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
-#endif
     case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];

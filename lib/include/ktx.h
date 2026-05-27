@@ -1635,6 +1635,9 @@ typedef struct ktxBCnParams {
            supplied to the ERT. The end result is much less significant
            artifacts on regions containing very smooth blocks (e.g., gradients).
            This does hurt rate-distortion performance. Default is false.
+
+           This only applies to BC1, BC3, and BC7's RGB blocks (alpha is
+           ignored). For other formats, this is silently ignored.
          */
 
     float rdoMaxAllowedRMSIncreaseRatio;

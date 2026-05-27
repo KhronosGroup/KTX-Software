@@ -95,7 +95,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         rdoQualityScalar = 0.5f;
         rdoAutoSmoothBlockMaxMSEScale = true;
         rdoMaxSmoothBlockMseScale = 18.0f;
-        rdoMaxSmoothBlockStdDev = 10.0f;
+        rdoMaxSmoothBlockStdDev = 18.0f;
         rdoUltrasmoothBlockHandling = false;
         rdoMaxAllowedRMSIncreaseRatio = 10.0f;
         rdoWindowLoopbackSize = 128u;
@@ -109,8 +109,8 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             kBC1Mode,
             "BC1 (subsequently BC3) approximation mode (for both: encoding and decoding). Default "
             "is 'ideal'. If "
-            "you encode textures for a specific vendor's GPU's, beware that using that texture "
-            "data on other GPU's may result in ugly artifacts. Set to 'ideal' unless you know the "
+            "you encode textures for a specific vendor's GPU, beware that using that texture "
+            "data on other GPUs may result in ugly artifacts. Set to 'ideal' unless you know the "
             "texture data will only be deployed or used on a specific vendor's GPU. Can be set to "
             "one of the following:\n\n"
             "    Mode       |  Description                                   \n"
@@ -130,9 +130,9 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             cxxopts::value<std::string>(), "<mode>")(
             kBC1Quality,
             "The quality level configures the quality-performance tradeoff for BC1 and, "
-            "subsequently, BC3 encoders. The quality level can be set between 'fastest' "
-            "(0) and most 'exhaustive' (19). Default is 'thorough' (15). Can also be set "
-            "via the following aliases:\n\n"
+            "subsequently, BC3 encoders. The quality level can be set in the range [0, 19] with "
+            "(0) being the 'fastest' and (19) the slowest but most 'exhaustive'. Default is (15) 'thorough'. "
+            "Can also be set via the following aliases:\n\n"
             "    Level      |  Quality\n"
             "    ---------- | ---------------------------- \n"
             "    fastest    | (equivalent to quality =  0) \n"

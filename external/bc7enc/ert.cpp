@@ -1,7 +1,9 @@
 #include "ert.h"
+#include <cstring>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <vector>
 
 #define ERT_FAVOR_CONT_AND_REP0_MATCHES (1)
 #define ERT_FAVOR_REP0_MATCHES (0)
@@ -281,7 +283,7 @@ namespace ert
 		uint32_t total_block_stride_in_bytes, uint32_t block_size_to_optimize_in_bytes, uint32_t block_width, uint32_t block_height, uint32_t num_comps,
 		const color_rgba* pBlock_pixels, const reduce_entropy_params& params, uint32_t& total_modified,
 		pUnpack_block_func pUnpack_block_func, void* pUnpack_block_func_user_data, ert::reduce_entropy_stats& stats,
-		std::vector<float>* pBlock_mse_scales)
+    const float* pBlock_mse_scales)
 	{
 		assert(total_block_stride_in_bytes && block_size_to_optimize_in_bytes);
 		assert(total_block_stride_in_bytes >= block_size_to_optimize_in_bytes);
@@ -347,9 +349,9 @@ namespace ert
 
 			if (pBlock_mse_scales)
 			{
-				if ((*pBlock_mse_scales)[block_index] > 0.0f)
+				if (pBlock_mse_scales[block_index] > 0.0f)
 				{
-					smooth_block_mse_scale = (*pBlock_mse_scales)[block_index];
+					smooth_block_mse_scale = pBlock_mse_scales[block_index];
 				}
 			}
 			

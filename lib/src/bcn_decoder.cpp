@@ -184,7 +184,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                     ktx_uint8_t* imageDataOut = prototype->pData + imageOffsetOut;
 
                     const ktx_uint8_t* src_blocks = imageDataIn;
-                    size_t nbr_written_bytes_total = 0;
+                    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
 
                     for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
                         for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {

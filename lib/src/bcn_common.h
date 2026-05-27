@@ -62,6 +62,7 @@ struct rdo_params {
      * smooth/flat blocks. */
     ktx_bool_t auto_smooth_block_max_mse_scale;
     unpack_block_bc1_user_data bc1_params;
+    ktx_bool_t ultra_smooth_block_mse_handling;
 };
 
 /* Since this is used to pass parameters/data to thread runners, make sure all
@@ -85,17 +86,22 @@ struct rdo_bc1_workload {
     /* [out] false if any thread fails */
     bool m_success;
     unpack_block_bc1_user_data m_bc1_params;
+    /* [in] RGB ultrasmooth blocks (a positive entry means that the block is
+     * considered ultrasmooth) */
+    const float* m_block_rgb_mse_scales;
 
     rdo_bc1_workload() = delete;
     rdo_bc1_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
                      const ert::color_rgba* unpacked_img_rgbx, ert::reduce_entropy_params ert_p_rgb,
-                     unpack_block_bc1_user_data bc1_params)
+                     unpack_block_bc1_user_data bc1_params,
+                     const float* block_rgb_mse_scales = nullptr)
         : m_width{width},
           m_height{height},
           m_packed_img{packed_img},
           m_unpacked_img_rgbx{unpacked_img_rgbx},
           m_ert_p_rgb{ert_p_rgb},
-          m_bc1_params{bc1_params} {
+          m_bc1_params{bc1_params},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
         assert(m_packed_img != nullptr);
         assert(m_unpacked_img_rgbx != nullptr);
         assert(m_ert_p_rgb.m_color_weights[3] == 0);
@@ -134,12 +140,14 @@ struct rdo_bc3_workload {
     /* [out] false if any thread fails */
     bool m_success;
     unpack_block_bc1_user_data m_bc1_params;
+    const float* m_block_rgb_mse_scales;
 
     rdo_bc3_workload() = delete;
     rdo_bc3_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
                      const ert::color_rgba* unpacked_img_rgbx,
                      const ert::color_rgba* unpacked_img_axxx, ert::reduce_entropy_params ert_p_rgb,
-                     ert::reduce_entropy_params ert_p_a, unpack_block_bc1_user_data bc1_params)
+                     ert::reduce_entropy_params ert_p_a, unpack_block_bc1_user_data bc1_params,
+                     const float* block_rgb_mse_scales = nullptr)
         : m_width{width},
           m_height{height},
           m_packed_img{packed_img},
@@ -147,7 +155,8 @@ struct rdo_bc3_workload {
           m_unpacked_img_axxx{unpacked_img_axxx},
           m_ert_p_rgb{ert_p_rgb},
           m_ert_p_a{ert_p_a},
-          m_bc1_params{bc1_params} {
+          m_bc1_params{bc1_params},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
         assert(m_packed_img != nullptr);
         assert(m_unpacked_img_rgbx != nullptr);
         assert(m_unpacked_img_axxx != nullptr);
@@ -278,15 +287,18 @@ struct rdo_bc7_workload {
     std::atomic_int32_t m_total_modified_rgba;
     /* [out] false if any thread fails */
     bool m_success;
+    const float* m_block_rgb_mse_scales;
 
     rdo_bc7_workload() = delete;
     rdo_bc7_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
-                     const ert::color_rgba* unpacked_img_rgba, ert::reduce_entropy_params ert_p)
+                     const ert::color_rgba* unpacked_img_rgba, ert::reduce_entropy_params ert_p,
+                     const float* block_rgb_mse_scales = nullptr)
         : m_width{width},
           m_height{height},
           m_packed_img{packed_img},
           m_unpacked_img_rgba{unpacked_img_rgba},
-          m_ert_p_rgba{ert_p} {
+          m_ert_p_rgba{ert_p},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
         assert(m_packed_img != nullptr);
         assert(m_unpacked_img_rgba != nullptr);
         m_total_smooth_blocks_rgba = 0;
@@ -461,7 +473,7 @@ extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
     const int dst_pitch = BCN_BLOCK_SIZE * 3;
     const uint8_t* pSrc = rgba;
     uint8_t* pDst = rgb;
-    size_t nbr_written_bytes_total = 0;
+    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
     for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
         for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
             memcpy(pDst + px * 3 + py * dst_pitch, pSrc + px * 4 + py * src_pitch, 3);

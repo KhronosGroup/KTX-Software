@@ -195,6 +195,8 @@ if (LIBKTX_FEATURE_BCN_DECODER)
         ../external/bc7enc/rgbcx.cpp
         ../external/bc7enc/ert.h          # RDO post processing step
         ../external/bc7enc/ert.cpp
+        ../external/bc7enc/utils.h
+        ../external/bc7enc/utils.cpp
     )
 endif()
 
