@@ -568,14 +568,14 @@ endmacro(add_xcode_macos_archs_standard_check)
 
 set(BASISU_TOOL FALSE)
 set(BASISU_EXAMPLES FALSE)
-# Force BASISU_SSE off when basisu's compile would otherwise apply -msse4.1
-# unconditionally to a slice that can't take it. That is true for
-# non-x86_64 single-arch builds (obvious) and for any multi-arch macOS
-# universal build (the arm64 slice would fail). For universal builds the
-# x86_64 slice still gets SSE re-enabled per-arch via -Xarch_x86_64 in the
-# block further down this file, so we lose no functionality here.
-if(APPLE_MAC_OS_UNIVERSAL OR NOT "${CPU_ARCHITECTURE}" STREQUAL "x86_64")
-    # Basisu sets this TRUE if MSVC is TRUE.
+if(APPLE_MAC_OS_UNIVERSAL)
+    # Force BASISU_SSE off when basisu's compile would otherwise apply -msse4.1
+    # unconditionally to a slice that can't take it. That is true for
+    # non-x86_64 single-arch builds (obvious) and for any multi-arch macOS
+    # universal build (the arm64 slice would fail). For universal builds the
+    # x86_64 slice still gets SSE re-enabled per-arch via -Xarch_x86_64 in the
+    # block further down this file, so we lose no functionality here.
+    # Basisu's default for BASISU_SSE is TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
 set(BASISU_STATIC TRUE)
