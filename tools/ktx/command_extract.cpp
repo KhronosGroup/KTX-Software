@@ -619,7 +619,8 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
 
     if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC3 ||
-        bcn == KTX_BCN_COMPRESSION_BC4 || bcn == KTX_BCN_COMPRESSION_BC5)
+        bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC4 ||
+        bcn == KTX_BCN_COMPRESSION_BC5)
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params.bc1_approx_mode));
 
     switch (bcn) {
@@ -655,108 +656,19 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     }
 
     // be absolutely certain that we won't overflow the compressedData buffer
-    if (compressedSize != expectedCompressedSize) 
+    if (compressedSize != expectedCompressedSize)
         fatal(rc::RUNTIME_ERROR, "Provided compressed size is unexpected.");
 
     const std::size_t decompressed_size = width * height * nchannels * (is_hdr ? 2 : 1);
     const auto decompressed_buffer = std::make_unique<uint8_t[]>(decompressed_size);
-    uint8_t* buffer_ptr = decompressed_buffer.get();
 
-    // Create intermediate storage to store decoded blocks. Not all blocks
-    // necessarily decode to 4x4x4 but this is enough to hold all possible
-    // combinations (at least for LDR - i.e., not for BC6H formats).
-    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4x4x4 = 64 bytes */
-    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1*/
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4x4x3x2 = 96 bytes */
+    ktx_uint8_t* buffer_ptr = decompressed_buffer.get();
+    const ktx_uint8_t* src_blocks = reinterpret_cast<const ktx_uint8_t*>(compressedData);
 
-    const char* src_blocks = compressedData;
-    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
-
-    for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
-        for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
-            bool rv = true;
-            // decode into the intermediary block (i.e., the rgba stack array
-            // with 4x4x4 bytes)
-            switch (bcn) {
-            case KTX_BCN_COMPRESSION_BC1:
-            case KTX_BCN_COMPRESSION_BC1A:
-                // BC1A: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha is 1-bit encoded or ignored)
-                rv = unpack_block_bc1(src_blocks, reinterpret_cast<ert::color_rgba*>(rgba),
-                                      0 /* ignored */, &params);
-                src_blocks += BC1_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC2:
-                // BC2: 16 bytes -> 4 x 4 x 4 = 64 bytes (alpha is sharp-encoded)
-                rgbcx::unpack_bc2(src_blocks, rgba);
-                src_blocks += BC2_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC3:
-                // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = rgbcx::unpack_bc3(src_blocks, rgba);
-                src_blocks += BC3_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC4:
-                // BC4: 8 bytes -> 4 x 4 x 1 = 16 bytes
-                /* always succeeds */ rgbcx::unpack_bc4(src_blocks, rgba,
-                                                        /* stride */ BC4_NCHANNELS);
-                src_blocks += BC4_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC5:
-                // BC5: 16 bytes -> 4 x 4 x 2 = 32 bytes
-                /* always succeeds */ rgbcx::unpack_bc5(src_blocks, rgba, 0, 1,
-                                                        /* stride */ BC5_NCHANNELS);
-                src_blocks += BC5_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC6HU:
-                // BC6HU: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                rv = basisu::unpack_bc6h(src_blocks, rgbh, false, BCN_BLOCK_SIZE * 3);
-                src_blocks += BC6H_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC6HS:
-                // BC6HS: 16 bytes -> 4 x 4 x 3 x 2 = 96 bytes
-                rv = basisu::unpack_bc6h(src_blocks, rgbh, true, BCN_BLOCK_SIZE * 3);
-                src_blocks += BC6H_BLOCK_SIZE;
-                break;
-
-            case KTX_BCN_COMPRESSION_BC7:
-                // BC7: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = basist::bc7u::unpack_bc7(src_blocks,
-                                              reinterpret_cast<basist::color_rgba*>(rgba));
-                src_blocks += BC7_BLOCK_SIZE;
-                break;
-
-            default:  // should never occur
-                rv = false;
-                return;
-            }
-
-            // If any of the decoders/unpackers returned false
-            // => something went wrong
-            if (!rv)
-                fatal(rc::RUNTIME_ERROR, "Decoder failure for BCn format {}.", toString(vkFormat));
-
-            size_t nbr_written_bytes = 0;
-            // Copy the decoded block into the actual texture image
-            if (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS) {
-                nbr_written_bytes = insert_block(reinterpret_cast<uint16_t*>(buffer_ptr), rgbh, x,
-                                                 y, width, height, nchannels);
-            } else if (bcn == KTX_BCN_COMPRESSION_BC1) {
-                extract_rgb_from_rgba_block(rgb, rgba);
-                nbr_written_bytes = insert_block(buffer_ptr, rgb, x, y, width, height, nchannels);
-            } else {
-                nbr_written_bytes = insert_block<uint8_t>(buffer_ptr, rgba, x, y, width, height, nchannels);
-            }
-            nbr_written_bytes_total += nbr_written_bytes;
-        }
+    auto res = ktxUnpackBCn(src_blocks, buffer_ptr, width, height, bcn, &params);
+    if (res != KTX_SUCCESS) {
+        fatal(rc::RUNTIME_ERROR, "Unpack of BCn-compressed image failed.");
     }
-
-    assert(nbr_written_bytes_total == decompressed_size);
 
     saveImageFile(std::move(filepath), appendExtension,
                   reinterpret_cast<const char*>(decompressed_buffer.get()), decompressed_size,

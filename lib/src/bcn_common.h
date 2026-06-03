@@ -394,9 +394,10 @@ extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t hei
     }
 
     // Add padding raws (if needed) CLAMP_TO_EDGE_Y
+    const T* pDstLastRaw = dst + (kBlockSize - remaining_raws - 1) * dst_pitch;
     for (int py{0}; py < remaining_raws; ++py) {
-        const T* pDstLastRaw = dst + (kBlockSize - remaining_raws) * dst_pitch;
         memcpy(pDst, pDstLastRaw, dst_pitch * sizeof(T));
+        pDst += dst_pitch;
     }
 }
 
@@ -471,12 +472,10 @@ inline void
 extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
     const int src_pitch = BCN_BLOCK_SIZE * 4;
     const int dst_pitch = BCN_BLOCK_SIZE * 3;
-    const uint8_t* pSrc = rgba;
-    uint8_t* pDst = rgb;
     [[maybe_unused]] size_t nbr_written_bytes_total = 0;
     for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
         for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
-            memcpy(pDst + px * 3 + py * dst_pitch, pSrc + px * 4 + py * src_pitch, 3);
+            memcpy(rgb + px * 3 + py * dst_pitch, rgba + px * 4 + py * src_pitch, 3);
             nbr_written_bytes_total += 3;
         }
     }
@@ -484,18 +483,19 @@ extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
 }
 
 inline void
-rgb_to_rgba_block(uint8_t* rgba, const uint8_t* rgb, uint8_t alpha = 255,
-                  int block_width = BCN_BLOCK_SIZE) {
-    const int src_pitch = block_width * 3; /* 4 x 3 */
-    const int dst_pitch = block_width * 4; /* because we add alpha */
-    const uint8_t* pSrc = rgb;
-    uint8_t* pDst = rgba;
-    for (int py = 0; py < block_width; ++py) {
-        memcpy(pDst, pSrc, src_pitch);
-        pDst[3] = alpha;
-        pSrc += src_pitch;
-        pDst += dst_pitch;
+rgb_to_rgba_block(uint8_t* rgba, const uint8_t* rgb, uint8_t alpha = 255) {
+    const int src_pitch = BCN_BLOCK_SIZE * 3; /* 4 x 3 */
+    const int dst_pitch = BCN_BLOCK_SIZE * 4; /* because we add alpha */
+    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
+    for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
+        for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
+            uint8_t* pDst = rgba + px * 4 + py * dst_pitch;
+            memcpy(pDst, rgb + px * 3 + py * src_pitch, 3);
+            pDst[3] = alpha;
+            nbr_written_bytes_total += 4;
+        }
     }
+    assert(nbr_written_bytes_total == (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4));
 }
 
 static inline bool
@@ -609,7 +609,30 @@ get_bcn_compression_kind(VkFormat vkformat, VkFormat& decompressed_vkformat, int
         return KTX_BCN_COMPRESSION_BC7;
 
     default:
+        decompressed_vkformat = VK_FORMAT_UNDEFINED;
+        nchannels = -1;
         return KTX_BCN_COMPRESSION_NONE;
+    }
+}
+
+inline int
+get_nchannels(ktx_bcn_compression_e bcn) {
+    switch (bcn) {
+    case KTX_BCN_COMPRESSION_BC4:
+        return 1;
+    case KTX_BCN_COMPRESSION_BC5:
+        return 2;
+    case KTX_BCN_COMPRESSION_BC1:
+    case KTX_BCN_COMPRESSION_BC6HU:
+    case KTX_BCN_COMPRESSION_BC6HS:
+        return 3;
+    case KTX_BCN_COMPRESSION_BC1A:
+    case KTX_BCN_COMPRESSION_BC2:
+    case KTX_BCN_COMPRESSION_BC3:
+    case KTX_BCN_COMPRESSION_BC7:
+        return 4;
+    default:
+        return -1;
     }
 }
 

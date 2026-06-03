@@ -45,12 +45,22 @@
     #include <cstdint>
     #include "encoder/basisu_enc.h"
 
-    // #define DEBUG_PRINT_STATS 1               /* uncomment to print RDO stats */
+    // #define DEBUG_PRINT_STATS 1 /* uncomment to print RDO stats */
     #ifdef DEBUG_PRINT_STATS
         #include "chrono"
         #include <atomic>
         #include <chrono>
         #include <iostream>
+    #endif
+
+    /* uncomment to write utrasmooth blocks mask PNG. You need to add:
+        - external/lodepng/lodepng.h
+        - external/lodepng/lodepng.cpp
+      to libktx's CMakeLists.
+    */
+    // #define DEBUG_RDO_ULTRASMOOTH 1
+    #ifdef DEBUG_RDO_ULTRASMOOTH
+        #include "lodepng/lodepng.h"
     #endif
 
     #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
@@ -71,9 +81,9 @@ unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
 static inline void
 get_current_thread_blocks(uint32_t w, uint32_t h, int thread_id, int thread_count,
                           size_t& block_start_idx, size_t& num_blocks) {
-    const size_t nbrBlocksX = (w + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const size_t nbrBlocksY = (h + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const size_t nbrBlocksTotal = nbrBlocksX * nbrBlocksY;
+    const size_t num_blocks_x = (w + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const size_t num_blocks_y = (h + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const size_t nbrBlocksTotal = num_blocks_x * num_blocks_y;
     // Each thread takes a set of contiguous blocks to encode
     const bool is_last_thread = thread_id == (thread_count - 1);
     const size_t num_blocks_per_thread = nbrBlocksTotal / thread_count;
@@ -90,7 +100,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     const auto width = workload->width;
     const auto height = workload->height;
     const auto nchannels = workload->nchannels;
-    const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const size_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
 
     // Each thread takes a set of contiguous blocks to encode
     size_t block_start_idx, block_end_idx, num_blocks;
@@ -100,6 +110,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
     // Intermediate store for decoded LDR BCn block
     uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4 x 4 x 4 */
+    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1 */
     uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 */
     uint8_t rgbx[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* only for BC1 */
 
@@ -109,8 +120,8 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     uint8_t* pDstLevelImage = workload->data_out;
 
     for (size_t block_idx = block_start_idx; block_idx < block_end_idx; ++block_idx) {
-        const size_t xBlock = block_idx % nbrBlocksX;
-        const size_t yBlock = block_idx / nbrBlocksX;
+        const size_t xBlock = block_idx % num_blocks_x;
+        const size_t yBlock = block_idx / num_blocks_x;
         // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
         // via clamping to edge).
         if (workload->params.bcn == KTX_BCN_COMPRESSION_BC6HU ||
@@ -120,9 +131,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
                           nchannels);
         } else if (workload->params.bcn == KTX_BCN_COMPRESSION_BC1) {
             // BC1 is an edge case because encoder expects 4 while input is 3
-            extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
+            extract_block(rgb, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
                           width, height, nchannels);
-            rgb_to_rgba_block(rgbx, rgba);
+            rgb_to_rgba_block(rgbx, rgb);
         } else {
             extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
                           width, height, nchannels);
@@ -135,32 +146,26 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
         case KTX_BCN_COMPRESSION_BC1:
             // BC1: 4 x 4 x 3 = 64 bytes -> 8 bytes
             rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
-                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
+                              pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC1_BLOCK_SIZE,
                               rgbx, true, false);
-            break;
-
-            // BC1A: 4 x 4 x 4 = 64 bytes -> 8 bytes (alpha only 1 bit encoded)
-            rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
-                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC1_BLOCK_SIZE,
-                              rgba, true, false);
             break;
 
         case KTX_BCN_COMPRESSION_BC3:
             // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
             rgbcx::encode_bc3(workload->params.bc1CompressionQuality,
-                              pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC3_BLOCK_SIZE,
+                              pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC3_BLOCK_SIZE,
                               rgba);
             break;
 
         case KTX_BCN_COMPRESSION_BC4:
             // BC4: 4 x 4 x 1 = 16 bytes -> 8 bytes
-            rgbcx::encode_bc4(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC4_BLOCK_SIZE,
+            rgbcx::encode_bc4(pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC4_BLOCK_SIZE,
                               rgba, /* stride */ BC4_NCHANNELS);
             break;
 
         case KTX_BCN_COMPRESSION_BC5:
             // BC5: 4 x 4 x 2 = 32 bytes -> 16 bytes
-            rgbcx::encode_bc5(pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC5_BLOCK_SIZE,
+            rgbcx::encode_bc5(pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC5_BLOCK_SIZE,
                               rgba, 0, 1,
                               /* stride */ BC5_NCHANNELS);
             break;
@@ -172,14 +177,14 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             basist::astc_6x6_hdr::fast_encode_bc6h(
                 rgbh,
                 reinterpret_cast<basist::bc6h_block*>(
-                    pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC6H_BLOCK_SIZE),
+                    pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC6H_BLOCK_SIZE),
                 bc6h_params);
             break;
 
         case KTX_BCN_COMPRESSION_BC7:
             // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
             basist::bc7f::fast_pack_bc7_auto_rgba(
-                pDstLevelImage + (yBlock * nbrBlocksX + xBlock) * BC7_BLOCK_SIZE,
+                pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC7_BLOCK_SIZE,
                 reinterpret_cast<const basist::color_rgba*>(rgba),
                 workload->params.bc7CompressionQuality);
             break;
@@ -204,8 +209,9 @@ rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
         workload->m_unpacked_img_rgbx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
         workload->m_ert_p_rgb, total_modified_local, unpack_block_bc1, &workload->m_bc1_params,
         stats_local,
-        workload->m_block_rgb_mse_scales != nullptr ? workload->m_block_rgb_mse_scales + block_start_idx
-                                                : nullptr);
+        workload->m_block_rgb_mse_scales != nullptr
+            ? workload->m_block_rgb_mse_scales + block_start_idx
+            : nullptr);
 
     if (res) {
         workload->m_total_modified_rgb += total_modified_local;
@@ -349,17 +355,39 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     }
 }
 
+    #ifdef DEBUG_RDO_ULTRASMOOTH
+bool
+save_png(const char* pFilename, const std::vector<basisu::color_rgba>& img, uint32_t width,
+         uint32_t height) {
+    std::vector<unsigned char> pixels;
+    pixels.resize(width * height * 3);
+    unsigned char* pDst = &pixels[0];
+    for (uint32_t y = 0; y < height; y++)
+        for (uint32_t x = 0; x < width; x++, pDst += 3) {
+            pDst[0] = img[x + y * width][0];
+            pDst[1] = img[x + y * width][1];
+            pDst[2] = img[x + y * width][2];
+        }
+    return lodepng::encode(pFilename, pixels, width, height, LCT_RGB) == 0;
+}
+    #endif
+
 // Adapted from bc7enc_rdo's compute_block_mse_scales function with
 // minor changes:
 //  - use basisu's basisu::color_rgba instead of color_quad_u8
 //  - remove image_u8 dependency and use std::vector<basisu::color_rgba> instead
 //  - integrate mse adjustment based on smooth_block_max_mse_scale and lambda
 //    within the internal vs. doing this externally (as in bc7enc_rdo's case)
+//
+// TODO: this is obviously very unoptimized (e.g., return std::vector<bool>
+// instead of std::float which at the very least should result in 4x less space).
+// Also, internally some std::vectors are recreated a lot. It is definitely not
+// trivial to optimize this.
 static std::vector<float>
 compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32_t height,
                              uint32_t nchannels, float smooth_block_max_mse_scale, float lambda) {
-    const uint32_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const uint32_t nbrBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
     const float ULTRASMOOTH_BLOCK_STD_DEV_THRESHOLD = 2.9f;
     const float DARK_THRESHOLD = 13.0f;
     const float BRIGHT_THRESHOLD = 222.0f;
@@ -370,10 +398,14 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     assert(nchannels == 3 || nchannels == 4);
 
-    std::vector<basisu::color_rgba> ultrasmooth_blocks_vis(nbrBlocksX * nbrBlocksY);
+    #ifdef DEBUG_PRINT_STATS
+    auto start = std::chrono::high_resolution_clock::now();
+    #endif
 
-    for (uint32_t by = 0; by < nbrBlocksY; by++) {
-        for (uint32_t bx = 0; bx < nbrBlocksX; bx++) {
+    std::vector<basisu::color_rgba> ultrasmooth_blocks_vis(num_blocks_x * num_blocks_y);
+
+    for (uint32_t by = 0; by < num_blocks_y; by++) {
+        for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
             basisu::color_rgba block_pixels[16];
 
             if (nchannels == 3) {
@@ -401,7 +433,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                     y_stats.update(l);
                 }
 
-            float max_std_dev = compute_block_max_std_dev(block_pixels, 4, 4, nchannels);
+            float max_std_dev = compute_block_max_std_dev(block_pixels, 4, 4, 3);
 
             float yl = max_std_dev / ULTRASMOOTH_BLOCK_STD_DEV_THRESHOLD;
 
@@ -413,48 +445,53 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             int k = std::min<int>((int)(yl * 255.0f + .5f), 255);
 
             // ultrasmooth_blocks_vis.fill_box(bx, by, 1, 1, color_quad_u8((uint8_t)k, 255));
-            ultrasmooth_blocks_vis[bx + by * nbrBlocksX] = basisu::color_rgba(k, 255);
+            ultrasmooth_blocks_vis[bx + by * num_blocks_x] = basisu::color_rgba(k, 255);
         }
     }
 
+    // Propagate blocks that are certainly non-ultra-smooth (i.e., 255) to their
+    // surrounding 3 x 3 blocks regions.
     for (int pass = 0; pass < 1; pass++) {
-        // image_u8 next_vis(ultrasmooth_blocks_vis);
         std::vector<basisu::color_rgba> next_vis(ultrasmooth_blocks_vis);
-
-        for (int y = 0; y < (int)nbrBlocksY; y++) {
-            for (int x = 0; x < (int)nbrBlocksX; x++) {
+        for (int y = 0; y < (int)num_blocks_y; y++) {
+            for (int x = 0; x < (int)num_blocks_x; x++) {
                 int m = 0;
                 for (int dy = -1; dy <= 1; dy++)
                     for (int dx = -1; dx <= 1; dx++) {
-                        auto c_idx = get_clamped_index(x + dx, y + dy, nbrBlocksX, nbrBlocksY);
-                        if (ultrasmooth_blocks_vis[c_idx].r == 255)
-                            // m = std::max<int>(m, ultrasmooth_blocks_vis.get_clamped(x + dx, y +
-                            // dy).r);
-                            m = std::max<int>(m, ultrasmooth_blocks_vis[c_idx].r);
+                        auto c_idx = get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
+                        if (ultrasmooth_blocks_vis[c_idx].r == 255) m = std::max<int>(m, 255);
                     }
-
-                next_vis[x + y * nbrBlocksX].set((uint8_t)m, 255);
+                next_vis[x + y * num_blocks_x].set((uint8_t)m, 255);
             }  // x blocks
         }  // y blocks
-
         ultrasmooth_blocks_vis.swap(next_vis);
     }
 
+    #ifdef DEBUG_RDO_ULTRASMOOTH
+    save_png("ultrasmooth_block_mask_sharp_pre_propagation.png", ultrasmooth_blocks_vis,
+             num_blocks_x, num_blocks_y);
+    #endif
+
+    // Smooth out/further propagate blocks that are certainly
+    // non-ultra smooth (i.e., 255) to their surrounding.
+    // The difference here is that we are doing propagation 32 times based on
+    // whether the number of surrounding (delta = +-1)
+    // certainly-non-ultra-smooth blocks is >= 5 (half of 9 == 3 x 3) blocks
     for (uint32_t pass = 0; pass < 32; pass++) {
         std::vector<basisu::color_rgba> next_vis(ultrasmooth_blocks_vis);
-        for (int y = 0; y < (int)nbrBlocksY; y++) {
-            for (int x = 0; x < (int)nbrBlocksX; x++) {
-                auto c_idx = get_clamped_index(x, y, nbrBlocksX, nbrBlocksY);
-                if (ultrasmooth_blocks_vis[c_idx].r < 255) {
+        for (int y = 0; y < (int)num_blocks_y; y++) {
+            for (int x = 0; x < (int)num_blocks_x; x++) {
+                // auto c_idx = get_clamped_index(x, y, num_blocks_x, num_blocks_y);
+                if (ultrasmooth_blocks_vis[x + y * num_blocks_x].r < 255) {
                     int m = 0;
-
                     for (int dy = -1; dy <= 1; dy++)
                         for (int dx = -1; dx <= 1; dx++) {
-                            auto c_idx = get_clamped_index(x + dx, y + dy, nbrBlocksX, nbrBlocksY);
+                            auto c_idx =
+                                get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
                             if (ultrasmooth_blocks_vis[c_idx].r == 255) m++;
                         }
 
-                    if (m >= 5) next_vis[x + y * nbrBlocksX].set(255);
+                    if (m >= 5) next_vis[x + y * num_blocks_x].set(255);
                 }
             }
         }
@@ -463,36 +500,47 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     std::vector<basisu::color_rgba> orig_ultrasmooth_blocks_vis(ultrasmooth_blocks_vis);
 
-    for (uint32_t by = 0; by < nbrBlocksY; by++) {
-        for (uint32_t bx = 0; bx < nbrBlocksX; bx++) {
-            const bool is_ultrasmooth = ultrasmooth_blocks_vis[bx + by * nbrBlocksX].r == 0;
+    #ifdef DEBUG_RDO_ULTRASMOOTH
+    save_png("ultrasmooth_block_mask_pre_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
+             num_blocks_y);
+    #endif
+
+    // filter (still have not understood this in detail)
+    for (uint32_t by = 0; by < num_blocks_y; by++) {
+        for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
+            const bool is_ultrasmooth = ultrasmooth_blocks_vis[bx + by * num_blocks_x].r == 0;
             if (!is_ultrasmooth) continue;
 
             std::vector<pixel_coord> filled_pixels;
             filled_pixels.reserve(256);
 
             uint32_t total_set_pixels =
-                flood_fill(ultrasmooth_blocks_vis, bx, by, nbrBlocksX, nbrBlocksY,
+                flood_fill(ultrasmooth_blocks_vis, bx, by, num_blocks_x, num_blocks_y,
                            basisu::color_rgba(255, 255, 255, 255), basisu::color_rgba(0, 0, 0, 255),
                            &filled_pixels);
 
             if (total_set_pixels < ULTRASMOOTH_REGION_TOO_SMALL_THRESHOLD) {
                 for (uint32_t i = 0; i < filled_pixels.size(); i++)
                     orig_ultrasmooth_blocks_vis[filled_pixels[i].m_x +
-                                                filled_pixels[i].m_y * nbrBlocksY] =
+                                                filled_pixels[i].m_y * num_blocks_y] =
                         basisu::color_rgba(255, 255, 255, 255);
             }
 
         }  // bx
     }  // by
 
-    std::vector<float> block_mse_scales(nbrBlocksX * nbrBlocksY, -1.0f);
+    #ifdef DEBUG_RDO_ULTRASMOOTH
+    save_png("ultrasmooth_block_mask_post_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
+             num_blocks_y);
+    #endif
+
+    std::vector<float> block_mse_scales(num_blocks_x * num_blocks_y, -1.0f);
 
     [[maybe_unused]] uint32_t total_ultrasmooth_blocks = 0;
-    for (uint32_t by = 0; by < nbrBlocksY; by++) {
-        for (uint32_t bx = 0; bx < nbrBlocksX; bx++) {
-            const bool is_ultrasmooth = orig_ultrasmooth_blocks_vis[bx + by * nbrBlocksX].r == 0;
-            float& s = block_mse_scales[bx + by * nbrBlocksX];
+    for (uint32_t by = 0; by < num_blocks_y; by++) {
+        for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
+            const bool is_ultrasmooth = orig_ultrasmooth_blocks_vis[bx + by * num_blocks_x].r == 0;
+            float& s = block_mse_scales[bx + by * num_blocks_x];
             if (is_ultrasmooth) {
                 s = ULTRAMOOTH_BLOCK_MSE_SCALE;
                 s = std::max(smooth_block_max_mse_scale, s * std::min(lambda, 3.0f));
@@ -501,8 +549,13 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         }
     }
     #ifdef DEBUG_PRINT_STATS
+    auto finish = std::chrono::high_resolution_clock::now();
+    const auto total_ultrasmooth_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
     std::cout << "total nbr ultra smooth blocks (%): "
-              << (100.0f * total_ultrasmooth_blocks) / (nbrBlocksX * nbrBlocksY) << '\n';
+              << (100.0f * total_ultrasmooth_blocks) / (num_blocks_x * num_blocks_y) << '\n';
+    std::cout << "total ultra smooth blocks MSE scales generation time (s): "
+              << total_ultrasmooth_time / 1000.0f << '\n';
     #endif
     return block_mse_scales;
 }
@@ -524,7 +577,6 @@ print_rdo_params(const rdo_params& params) {
               << params.ert_p.m_color_weights[1] << ", " << params.ert_p.m_color_weights[2] << ", "
               << params.ert_p.m_color_weights[3] << "] \n";
     std::cout << "rdo try two matches: " << params.ert_p.m_try_two_matches << '\n';
-    std::cout << "rdo allow relative movement: " << params.ert_p.m_allow_relative_movement << '\n';
     std::cout << "rdo skip zero MSE blocks: " << params.ert_p.m_skip_zero_mse_blocks << '\n';
 };
     #endif
@@ -1035,7 +1087,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     ktx_error_code_e result;
 
     switch (params->bcn) {
-        // TODO: Currently we can only encode RGBA uncompressed textures into BC1
     case KTX_BCN_COMPRESSION_BC1:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8_UNORM:
@@ -1194,8 +1245,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t width = MAX(1, This->baseWidth >> level);
         const uint32_t height = MAX(1, This->baseHeight >> level);
         const uint32_t depth = MAX(1, This->baseDepth >> level);
-        const size_t nbrBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-        const size_t nbrBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const size_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const size_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
 
         ktx_size_t levelImageSizeIn = 0;
         ktx_size_t levelImageSizeOut = 0;
@@ -1215,7 +1266,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                                             ? 2
                                             : 1) &&
                "Probably non-compact data (i.e., some padding)");
-        assert(levelImageSizeOut == nbrBlocksX * nbrBlocksY * blocksize_in_bytes &&
+        assert(levelImageSizeOut == num_blocks_x * num_blocks_y * blocksize_in_bytes &&
                "Probably non-compact data (i.e., some padding) for BCn compressed texture");
 
         const size_t levelDataOffsetIn = ktxTexture2_levelDataOffset(This, level);
@@ -1242,24 +1293,23 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             launchThreads(thread_count, compression_workload_runner, &work);
 
             // post process the encoded blocks using RDO (if enabled)
-            if (params->rdo) {
+            if (params->bcnRDO) {
                 rdo_params rdo_p;
-                rdo_p.ert_p.m_lambda = params->rdoQualityScalar;
-                rdo_p.ert_p.m_lookback_window_size = params->rdoWindowLoopbackSize;
-                rdo_p.ert_p.m_smooth_block_max_mse_scale = params->rdoMaxSmoothBlockMseScale;
-                rdo_p.ert_p.m_max_smooth_block_std_dev = params->rdoMaxSmoothBlockStdDev;
-                rdo_p.ert_p.m_try_two_matches = params->rdoTry2Matches;
-                rdo_p.ert_p.m_allow_relative_movement = params->rdoAllowRelativeMovement;
-                rdo_p.ert_p.m_skip_zero_mse_blocks = params->rdoSkipZeroMSEBlocks;
-                rdo_p.auto_smooth_block_max_mse_scale = params->rdoAutoSmoothBlockMaxMSEScale;
-                rdo_p.ultra_smooth_block_mse_handling = params->rdoUltrasmoothBlockHandling;
+                rdo_p.ert_p.m_lambda = params->bcnRDOQualityScalar;
+                rdo_p.ert_p.m_lookback_window_size = params->bcnRDODictSize;
+                rdo_p.ert_p.m_smooth_block_max_mse_scale = params->bcnRDOMaxSmoothBlockErrorScale;
+                rdo_p.ert_p.m_max_smooth_block_std_dev = params->bcnRDOMaxSmoothBlockStdDev;
+                rdo_p.ert_p.m_try_two_matches = params->bcnRDOTry2Matches;
+                rdo_p.ert_p.m_skip_zero_mse_blocks = params->bcnRDOSkipZeroMSEBlocks;
+                rdo_p.auto_smooth_block_max_mse_scale = params->bcnRDOAutoMaxSmoothBlockErrorScale;
+                rdo_p.ultra_smooth_block_mse_handling = params->bcnRDOUltrasmoothBlockHandling;
                 rdo_p.bc1_params.bc1_approx_mode =
                     static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode);
                 rdo_p.bc1_params.allow_3color_mode = true;           // hardcoded
                 rdo_p.bc1_params.use_3color_mode_for_black = false;  // hardcoded
                 auto res =
                     postprocess_rdo_bcn(pSrcLevelImage, width * height * nchannels, pDstLevelImage,
-                                        nbrBlocksX * nbrBlocksY * blocksize_in_bytes, rdo_p,
+                                        num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p,
                                         params->bcn, width, height, rdoThreadCount);
                 if (res != KTX_SUCCESS) {
                     ktxTexture2_Destroy(prototype);

@@ -197,6 +197,8 @@ if (LIBKTX_FEATURE_BCN_DECODER)
         ../external/bc7enc/ert.cpp
         ../external/bc7enc/utils.h
         ../external/bc7enc/utils.cpp
+        # ../external/lodepng/lodepng.h     # Only for debugging RDO ultrasmooth blocks
+        # ../external/lodepng/lodepng.cpp
     )
 endif()
 

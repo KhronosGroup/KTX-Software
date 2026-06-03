@@ -3406,7 +3406,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         params.bc1ApproxMode = KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
         params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
         params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
-        params.rdo = false;
+        params.bcnRDO = false;
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
         ASSERT_EQ(result, KTX_SUCCESS);

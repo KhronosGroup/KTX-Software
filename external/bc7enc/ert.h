@@ -27,7 +27,6 @@ namespace ert
 		uint32_t m_color_weights[4];
 				
 		bool m_try_two_matches;
-		bool m_allow_relative_movement;
 		bool m_skip_zero_mse_blocks;
 
 		reduce_entropy_params() { clear(); }
@@ -44,7 +43,6 @@ namespace ert
 			m_color_weights[2] = 1;
 			m_color_weights[3] = 1;
 			m_try_two_matches = true;
-			m_allow_relative_movement = false;
 			m_skip_zero_mse_blocks = false;
 		}
 	};

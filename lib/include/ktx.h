@@ -1560,44 +1560,30 @@ typedef struct ktxBCnParams {
 
     /* RDO params */
 
-    ktx_bool_t rdo;
-        /*!< Enable Rate Distortion Optimization (RDO) post-processing step on
-           BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM
-           optimizations. This is primarily used to reduce size on disk by
-           applying a further compression, mainly: Deflate, LZMA, or LZHAM.
-           RDO parameters are only used if this is set. Setting this might
-           result in significantly slower encoding time at the benefit of
-           potentially significantly lower bit rate (i.e., number of bits per
-           encoded texel). Default is false.
-         */
-
-    float rdoQualityScalar;
+    float bcnRDOQualityScalar;
         /*!< RDO quality scalar (lambda). Controls rate vs. distortion tradeoff.
            Lower values yield higher quality/larger LZ compressed files, higher
            values yield lower quality/smaller LZ compressed files. A good range
-           to try is [0.25,8]. Full range is [0.1,50.0]. Default is 0.5.
+           to try is [0.25,8]. Full range is [.001,50.0]. Default is 1.0.
 
            The post-processor tries to minimize:
-           distortion*smooth_block_scale + rate*lambda
+           distortion * smooth_block_scale + rate * lambda
            (rate is approximate LZ bits and distortion is scaled MSE multiplied
-           against the smooth block MSE weighting factor). Larger values push
-           the post-processor towards optimizing more for lower rate, and
-           smaller values more for distortion. 0=minimal distortion.
+           by the smooth block MSE weighting factor). Larger values push the
+           post-processor towards optimizing more for lower rate, and
+           smaller values more for distortion.
+
+           Currently, HDR formats (i.e., BC6HU/BC6HS) are not supported.
          */
 
-    ktx_bool_t rdoAutoSmoothBlockMaxMSEScale;
-        /*!< Whether to automatically compute a decent conservative smooth block
-           MSE max scaling factor. There is no single calculation/set of
-           settings that work perfectly on all input textures, but the formula
-           in the code works OK for most textures at low-ish lambdas (For an
-           example of a difficult texture the currently formulas/settings
-           doesn't handle so well, try encoding kodim03 at lambdas 1-3). Smooth
-           block handling is tuned so lambdas at or near 1 look OK on textures
-           with smooth gradients, skies, etc. If this is set,
-           @p rdoMaxSmoothBlockMseScale is ignored. Default is true.
+    ktx_uint32_t bcnRDODictSize;
+        /*!< The number of bytes the encoder can look back from each block to
+           find matches. The larger this value, the slower the encoder but the
+           higher the quality per LZ compressed bit. Range is [64,65536].
+           Default is 4096.
          */
 
-    float rdoMaxSmoothBlockMseScale;
+    float bcnRDOMaxSmoothBlockErrorScale;
         /*!< RDO max MSE scaling factor for blocks considered to be smooth/flat.
            A value of 1.0 means no smooth block error scaling which may cause
            very noticeable artifacts for smooth/flat blocks (e.g., kodim23 test
@@ -1613,61 +1599,72 @@ typedef struct ktxBCnParams {
            compute the max std dev. of any component and use a linear function
            of that to scale block/trial MSE.
             
-           Range is [1,300]. Default is 18.0 in case
-           @p rdoAutoSmoothBlockMaxMSEScale is not set.
+           Range is [1,300]. Default is 10.0 in case
+           @p bcnRDOAutoMaxSmoothBlockErrorScale is not set.
          */
 
-    float rdoMaxSmoothBlockStdDev;
-        /*!< RDO max smooth/flat block standard deviation. If the standard
-           deviation of a block exceeds this value, then it won't be considered
-           as a smooth block (i.e., the smooth block MSE scale factor will be
-           set to 1 for this block). The smaller the ratio of the standard
-           deviation of this block to this value the more the smooth block MSE
-           scale factor approaches rdoMaxSmoothBlockMseScale.
+    float bcnRDOMaxSmoothBlockStdDev;
+        /*!< RDO max smooth/flat block standard deviation. If the std dev. of a
+           block exceeds this value, then it won't be considered as a smooth
+           block (i.e., the smooth block MSE scale factor will be set to 1 for
+           this block). The smaller the ratio of the std dev. of this block to
+           this value the more the smooth block MSE scale factor approaches
+           @p bcnRDOMaxSmoothBlockErrorScale.
            Range is [.01,65536.0]. Larger values expand the range of blocks
-           considered smooth. Default is 10.0.
+           considered smooth. Default is 18.0.
          */
 
-    ktx_bool_t rdoUltrasmoothBlockHandling;
-        /*!< Detect extremely smooth blocks and encode them with a significantly
-           higher MSE scale factor. When enabled, a per-block mask image is
-           computed, filtered, then an array of per-block MSE scale factors is
-           supplied to the ERT. The end result is much less significant
-           artifacts on regions containing very smooth blocks (e.g., gradients).
-           This does hurt rate-distortion performance. Default is false.
-
-           This only applies to BC1, BC3, and BC7's RGB blocks (alpha is
-           ignored). For other formats, this is silently ignored.
-         */
-
-    float rdoMaxAllowedRMSIncreaseRatio;
+    float bcnRDOMaxAllowedRMSIncreaseRatio;
         /*!< How much the RMS error of a block is allowed to increase before a
            trial is rejected. 1.0=no increase allowed, 1.05=5% increase allowed,
            etc. Range is [1.001, 100.0]. Default is 10.0.
          */
 
-    ktx_uint32_t rdoWindowLoopbackSize;
-        /*!< The number of bytes the encoder can look back from each block to
-           find matches. The larger this value, the slower the encoder but the
-           higher the quality per LZ compressed bit. You don't need a huge
-           window to get large gains. Even 64-512 byte windows can be fine.
-           Range is [64,65536]. Default is 128.
+    ktx_bool_t bcnRDO;
+        /*!< Enable Rate Distortion Optimization (RDO) post-processing step on
+           BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM
+           optimizations. This is primarily used to reduce size on disk by
+           applying a further compression, mainly: Deflate, LZMA, or LZHAM.
+           RDO parameters are only used if this is set. Setting this might
+           result in significantly slower encoding time at the benefit of
+           potentially significantly lower bit rate (i.e., number of bits per
+           encoded texel). Default is false.
          */
 
-    ktx_bool_t rdoTry2Matches;
-        /*!< Whether to inject up to 2 matches into each block vs. 1. Setting
-           this results in a little slower, but noticeably higher compression.
-           Default is true.
+    ktx_bool_t bcnRDOAutoMaxSmoothBlockErrorScale;
+        /*!< Automatically compute a decent conservative smooth block MSE max
+           scaling factor. There is no single calculation/set of settings that
+           work perfectly on all input textures, but the formula in the code
+           works OK for most textures at low-ish lambdas (For an example of a
+           difficult texture the currently formulas/settings doesn't handle so
+           well, try encoding kodim03 at lambdas 1-3). Smooth block handling is
+           tuned so lambdas at or near 1 look OK on textures with smooth
+           gradients, skies, etc. If this is set,
+           @p bcnRDOMaxSmoothBlockErrorScale is ignored. Default is true.
          */
 
-    ktx_bool_t rdoSkipZeroMSEBlocks;
-        /*!< Whether to skip blocks that have zero mean-squared error (MSR).
-           Might result in faster compression speed but potentially lower
-           compression. Default is false.
+    ktx_bool_t bcnRDOUltrasmoothBlockHandling;
+        /*!< Detect extremely smooth blocks and encode them with a significantly
+           higher MSE scale factor. When enabled, a per-block mask image is
+           computed, filtered, then an array of per-block MSE scale factors is
+           supplied to the ERT. The end result is much less significant
+           artifacts on regions containing very smooth blocks (e.g., gradients).
+           This does hurt rate-distortion performance. Default is true.
+
+           This only applies to BC1, BC3, and BC7's RGB blocks (alpha is
+           ignored). For other formats, this is silently ignored.
          */
 
-    ktx_bool_t rdoAllowRelativeMovement;
-        /*!< TODO: also have no idea what this is. Default is false. */
+    ktx_bool_t bcnRDOTry2Matches;
+        /*!< Inject up to 2 matches into each block vs. 1. Results in a slightly
+           slower, but noticeably higher compression. Default is true.
+         */
+
+    ktx_bool_t bcnRDOSkipZeroMSEBlocks;
+        /*!< Skip blocks that have zero mean-squared error (MSR). Might result
+           in faster compression speed but potentially lower compression.
+           Default is false.
+         */
 } ktxBCnParams;
 
 KTX_API KTX_error_code KTX_APIENTRY
@@ -1689,6 +1686,11 @@ ktxTexture2_CompressBCn(ktxTexture2* This /*, ktx_bcn_compression_e bcn, ktx_uin
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxUnpackBCn(const ktx_uint8_t* imageDataIn, ktx_uint8_t* imageDataOut,
+             ktx_uint32_t width, ktx_uint32_t height, ktx_bcn_compression_e bcn,
+             ktxBC1UnpackParams* params);
 
 /**
  * @~English
