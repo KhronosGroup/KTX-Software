@@ -182,7 +182,7 @@ jobs:
 
       - name: Install Graphviz
         if: matrix.options.doc == 'ON'
-        uses: ts-graphviz/setup-graphviz@v2
+        uses: MarkCallow/setup-graphviz@v3
 
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
