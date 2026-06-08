@@ -87,11 +87,11 @@ VulkanAppSDL::initialize(Args& args)
     };
     std::string colorSpaceStr;
     const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
-                                                         "VK_USE_HDR_SURFACE");
+                                                         "KTX_VK_LT_USE_HDR_SURFACE");
     if (use_hdr_surface != nullptr && !SDL_strncasecmp(use_hdr_surface, "YES", 3))
         hdr = true;
     const char* css = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
-                                                 "VK_SURFACE_COLOR_SPACE");
+                                                 "KTX_VK_LT_SURFACE_COLOR_SPACE");
     if (css != nullptr) colorSpaceStr = css;
 
     for (uint32_t i = 1; i < args.size(); i++) {
@@ -124,7 +124,7 @@ VulkanAppSDL::initialize(Args& args)
         } else {
             std::stringstream msg;
             msg << "Invalid color space, " << colorSpaceStr
-                << ", given for --cs or VK_SURFACE_COLOR_SPACE";
+                << ", given for --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
             (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
                                            msg.str().c_str(), NULL);
             return false;
