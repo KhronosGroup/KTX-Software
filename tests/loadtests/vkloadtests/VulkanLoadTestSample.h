@@ -13,6 +13,7 @@
 #include "LoadTestSample.h"
 #include "VulkanAppSDL.h"
 #include "VulkanContext.h"
+#include "VulkanTextureTranscoder.hpp"
 // MeshLoader needs vulkantools.h to be already included. It is included by
 // vulkantextoverlay.hpp via VulkanAppSDL.h.
 #include "utils/VulkanMeshLoader.hpp"
@@ -44,7 +45,7 @@ class VulkanLoadTestSample : public LoadTestSample {
                      /* const char* const szArgs, */
                      const std::string sBasePath, int32_t yflip = -1)
            : LoadTestSample(width, height, /*szArgs,*/ sBasePath, yflip),
-             vkctx(vkctx),
+             vkctx(vkctx), transcoder(vkctx),
              defaultClearColor(std::array<float,4>({0.025f, 0.025f, 0.025f, 1.0f}))
     {
     }
@@ -136,6 +137,7 @@ class VulkanLoadTestSample : public LoadTestSample {
     };
 
     VulkanContext& vkctx;
+    TextureTranscoder transcoder;
 
     // Saved for clean-up
     std::vector<VkShaderModule> shaderModules;
