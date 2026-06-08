@@ -45,21 +45,22 @@
     #include <cstdint>
     #include "encoder/basisu_enc.h"
 
-    // #define DEBUG_PRINT_STATS 1 /* uncomment to print RDO stats */
-    #ifdef DEBUG_PRINT_STATS
+    #define DEBUG_PRINT_STATS 0 /* set to print RDO stats */
+    #if DEBUG_PRINT_STATS
         #include "chrono"
         #include <atomic>
         #include <chrono>
         #include <iostream>
     #endif
 
-    /* uncomment to write utrasmooth blocks mask PNG. You need to add:
-        - external/lodepng/lodepng.h
-        - external/lodepng/lodepng.cpp
-      to libktx's CMakeLists.
-    */
-    // #define DEBUG_RDO_ULTRASMOOTH 1
-    #ifdef DEBUG_RDO_ULTRASMOOTH
+    /*
+     * set to write utrasmooth blocks mask PNG. You need to add:
+     *   - external/lodepng/lodepng.h
+     *   - external/lodepng/lodepng.cpp
+     * to libktx's CMakeLists.
+     */
+    #define DEBUG_RDO_ULTRASMOOTH 0
+    #if DEBUG_RDO_ULTRASMOOTH
         #include "lodepng/lodepng.h"
     #endif
 
@@ -171,9 +172,6 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             break;
 
         case KTX_BCN_COMPRESSION_BC6HU:
-            // TODO: this currently errors out (assert fails) on signed input.
-            // Need to handle this the same way that UASTC HDR handles it or
-            // just use another encoder?
             basist::astc_6x6_hdr::fast_encode_bc6h(
                 rgbh,
                 reinterpret_cast<basist::bc6h_block*>(
@@ -355,7 +353,7 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     }
 }
 
-    #ifdef DEBUG_RDO_ULTRASMOOTH
+    #if DEBUG_RDO_ULTRASMOOTH
 bool
 save_png(const char* pFilename, const std::vector<basisu::color_rgba>& img, uint32_t width,
          uint32_t height) {
@@ -398,7 +396,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     assert(nchannels == 3 || nchannels == 4);
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
     auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -467,7 +465,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         ultrasmooth_blocks_vis.swap(next_vis);
     }
 
-    #ifdef DEBUG_RDO_ULTRASMOOTH
+    #if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_sharp_pre_propagation.png", ultrasmooth_blocks_vis,
              num_blocks_x, num_blocks_y);
     #endif
@@ -500,7 +498,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     std::vector<basisu::color_rgba> orig_ultrasmooth_blocks_vis(ultrasmooth_blocks_vis);
 
-    #ifdef DEBUG_RDO_ULTRASMOOTH
+    #if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_pre_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
              num_blocks_y);
     #endif
@@ -529,7 +527,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         }  // bx
     }  // by
 
-    #ifdef DEBUG_RDO_ULTRASMOOTH
+    #if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_post_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
              num_blocks_y);
     #endif
@@ -548,7 +546,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             }
         }
     }
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
     auto finish = std::chrono::high_resolution_clock::now();
     const auto total_ultrasmooth_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -560,7 +558,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
     return block_mse_scales;
 }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
 [[maybe_unused]] static inline void
 print_rdo_params(const rdo_params& params) {
     std::cout << "rdo lambda: " << params.ert_p.m_lambda << '\n';
@@ -580,6 +578,80 @@ print_rdo_params(const rdo_params& params) {
     std::cout << "rdo skip zero MSE blocks: " << params.ert_p.m_skip_zero_mse_blocks << '\n';
 };
     #endif
+
+struct clean_hdr_results {
+    double hdr_image_scale;
+    bool one_or_more_nan_values;
+    bool one_or_more_inf_values;
+    bool one_or_more_signed_values;
+
+    clean_hdr_results()
+        : hdr_image_scale{1.0},
+          one_or_more_nan_values{false},
+          one_or_more_inf_values{false},
+          one_or_more_signed_values{false} {}
+};
+
+/*
+ * @~English
+ * @brief Based on basisu's basis_compressor::clean_hdr_image to clean-up HDR
+ *        input for basisu's BC6HU encoder (i.e., setting to 0 NaN, infinite and
+ *        negative values and scaling input values if any is strictly greater
+ *        than basist::ASTC_HDR_MAX_VAL).
+ *
+ * @param [in,out] src_rgb16        pointer to the source 16-bit unpacked data.
+ * @param [in] width                image width (in texels).
+ * @param [in] height               image height (in texels).
+ *
+ * @return      whether one or more NaN, infinite, or signed values were
+ *              encountered and set to 0 and whether scaling has been applied.
+ */
+static clean_hdr_results
+clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
+    clean_hdr_results res;
+    res.hdr_image_scale = 1.0;
+    auto p_src = reinterpret_cast<uint16_t*>(src_rgb16);
+
+    // Find max used value
+    float max_used_val = 0.0f;
+    for (uint32_t y = 0; y < height; y++) {
+        for (uint32_t x = 0; x < width; x++) {
+            for (uint32_t i = 0; i < 3; i++) {
+                uint16_t& c = p_src[(x + y * width) * 3 + i];
+                float val = basist::half_to_float(c);
+
+                if (std::isnan(val) || std::isinf(val) || basist::half_is_signed(c)) {
+                    if (std::isnan(val)) res.one_or_more_nan_values = true;
+                    if (std::isinf(val)) res.one_or_more_inf_values = true;
+                    if (basist::half_is_signed(c)) res.one_or_more_signed_values = true;
+                    c = 0;
+                    val = 0.0f;
+                }
+
+                max_used_val = std::max<float>(max_used_val, val);
+            }
+        }
+    }
+
+    // If the max value can't be encoded safely to ASTC HDR, we'll have to
+    // rescale the source image.
+    if (max_used_val > basist::ASTC_HDR_MAX_VAL) {
+        res.hdr_image_scale = max_used_val / basist::ASTC_HDR_MAX_VAL;
+        const double inv_hdr_image_scale = basist::ASTC_HDR_MAX_VAL / max_used_val;
+        for (uint32_t y = 0; y < height; y++) {
+            for (uint32_t x = 0; x < width; x++) {
+                for (uint32_t i = 0; i < 3; i++) {
+                    uint16_t& c = p_src[(x + y * width) * 3 + i];
+                    auto pre_scaled_val = basist::half_to_float(c);
+                    c = basist::float_to_half((float)std::min<double>(
+                        pre_scaled_val * inv_hdr_image_scale, basist::ASTC_HDR_MAX_VAL));
+                }
+            }
+        }
+    }
+
+    return res;
+}
 
 /**
  * @~English
@@ -682,7 +754,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -692,7 +764,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
         launchThreads(threads, rdo_bc1_workload_runner, &workload);
         success = workload.m_success;
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -759,7 +831,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -770,7 +842,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
         launchThreads(threads, rdo_bc3_workload_runner, &workload);
         success = workload.m_success;
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -830,7 +902,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -838,7 +910,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
         launchThreads(threads, rdo_bc4_workload_runner, &workload);
         success = workload.m_success;
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -896,7 +968,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -906,7 +978,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
 
         success = workload.m_success;
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -968,7 +1040,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
             }
         }
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
     #endif
 
@@ -978,7 +1050,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
         launchThreads(threads, rdo_bc7_workload_runner, &workload);
         success = workload.m_success;
 
-    #ifdef DEBUG_PRINT_STATS
+    #if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1085,6 +1157,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     size_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
     ktx_error_code_e result;
+    #if DEBUG_PRINT_STATS
+
+    bool hdr_one_or_more_nan_values_msg = false;
+    bool hdr_one_or_more_inf_values_msg = false;
+    bool hdr_one_or_more_signed_values_msg = false;
+    #endif
 
     switch (params->bcn) {
     case KTX_BCN_COMPRESSION_BC1:
@@ -1257,9 +1335,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         levelImageSizeOut =
             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
 
-        // TODO: all of this needs robust verification. Is the data whithin a given
-        // level compact or are there instances where a padding is added (e.g.,
-        // because graphics API has a different data layout requirements)?
         assert(levelImageSizeIn == width * height * nchannels *
                                        ((params->bcn == KTX_BCN_COMPRESSION_BC6HU ||
                                          params->bcn == KTX_BCN_COMPRESSION_BC6HS)
@@ -1278,7 +1353,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         // this gets update to point to next slice and so on until we exit this
         // loop and this gets initialized again to point to start of depth slice
         // 0 withing next mip level)
-        const ktx_uint8_t* pSrcLevelImage = This->pData + levelDataOffsetIn;
+        /* const */ ktx_uint8_t* pSrcLevelImage = This->pData + levelDataOffsetIn;
 
         // points to start of destination image within this miplevel
         ktx_uint8_t* pDstLevelImage = prototype->pData + levelDataOffsetOut;
@@ -1290,6 +1365,50 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             work.data_in = pSrcLevelImage;
             work.data_out = pDstLevelImage;
 
+            // HDR input may require some cleanup for basisu's bc6hu encoder
+            if (params->bcn == KTX_BCN_COMPRESSION_BC6HU) {
+                // TODO: Basisu's outputs warning if HDR pixels are cleaned up.
+                // Should we also do that in here?
+                [[maybe_unused]] auto hdr_cleanup_res =
+                    clean_hdr_image(pSrcLevelImage, width, height);
+    #if DEBUG_PRINT_STATS
+                if (hdr_cleanup_res.one_or_more_nan_values && !hdr_one_or_more_nan_values_msg) {
+                    std::cout << "One or more input pixels was NaN, setting to 0." << '\n';
+                    hdr_one_or_more_nan_values_msg = false;
+                }
+
+                if (hdr_cleanup_res.one_or_more_inf_values && !hdr_one_or_more_inf_values_msg) {
+                    std::cout << "One or more input pixels was INF, setting to 0." << '\n';
+                    hdr_one_or_more_inf_values_msg = false;
+                }
+
+                if (hdr_cleanup_res.one_or_more_signed_values &&
+                    !hdr_one_or_more_signed_values_msg) {
+                    std::cout << "One or more input pixels was negative -- setting these pixel "
+                                 "components to 0 because BC6HU HDR doesn't support signed values."
+                              << '\n';
+                    hdr_one_or_more_signed_values_msg = false;
+                }
+
+                // Since each image within each mip level may have
+                // been scaled by a different value, print this
+                // message for each of one of these images.
+                // TODO: any better ideas here? (this looks ugly)
+                if (hdr_cleanup_res.hdr_image_scale != 1.0) {
+                    std::cout
+                        << "Warning: The input HDR image's maximum used float for mip level "
+                        << level << " and layer/slice/face " << image
+                        << " is too high to encode as BC6HU HDR. The image's components have "
+                           "been linearly scaled by multiplying by "
+                        << 1.0 / hdr_cleanup_res.hdr_image_scale
+                        << ". The decoded/sampled ASTC HDR texture will have to be scaled up by "
+                        << hdr_cleanup_res.hdr_image_scale
+                        << ". See the \"HDRScale\" KTX2 key value field" << '\n';
+                }
+    #endif
+            }
+
+            // the actual encoding occurs here
             launchThreads(thread_count, compression_workload_runner, &work);
 
             // post process the encoded blocks using RDO (if enabled)
