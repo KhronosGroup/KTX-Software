@@ -3182,7 +3182,7 @@ class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
             &texture);
 
-        ASSERT_EQ(result, KTX_SUCCESS)
+        EXPECT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
                       from_u8string(astcPath.u8string()), ktxErrorString(result));
         ASSERT_NE(texture, nullptr);
@@ -3210,7 +3210,7 @@ class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
 
         result = ktxTexture2_DecodeAstc(texture);
 
-        ASSERT_EQ(result, KTX_SUCCESS)
+        EXPECT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_DecodeAstc failed: {}", ktxErrorString(result));
         // Get the pointer to the updated DFD
         ASSERT_FALSE(ktxTexture2_NeedsTranscoding(texture));
