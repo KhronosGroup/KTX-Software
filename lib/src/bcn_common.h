@@ -363,29 +363,29 @@ lerp(F a, F b, F s) {
 //
 template <typename T>
 inline void
-extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t height,
-              size_t nchannels /* stride */) {
+extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+              uint32_t nchannels /* stride */) {
     // TODO: expose this as parameter for usage with other block sizes
-    constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
-    const size_t src_pitch = width * nchannels;        // nbr bytes per raw of src
-    const size_t dst_pitch = kBlockSize * nchannels;   // nbr bytes per raw of dst
-    const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
+    constexpr uint32_t kBlockSize = BCN_BLOCK_SIZE;
+    const uint32_t src_pitch = width * nchannels;           // nbr bytes per raw of src
+    const uint32_t dst_pitch = kBlockSize * nchannels;      // nbr bytes per raw of dst
+    const uint32_t cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
 
     // nbr remaining columns that were not copied from src and should be
     // clamp-to-edge-x generated for dst
-    const int remaining_cols = kBlockSize - cols;
+    const uint32_t remaining_cols = kBlockSize - cols;
 
     // nbr remaining raws that were not copied from src and should be
     // clamp-to-edge-y generated for src
-    const int remaining_raws = std::max((size_t)0, (y + kBlockSize) - height);
+    const uint32_t remaining_raws = std::max(0u, (y + kBlockSize) - height);
 
     const T* pSrc = src + y * src_pitch + x * nchannels;
     T* pDst = dst;
 
-    for (size_t py{0}; py < kBlockSize && y + py < height; ++py) {
+    for (uint32_t py = 0; py < kBlockSize && y + py < height; ++py) {
         memcpy(pDst, pSrc, cols * nchannels * sizeof(T));
         // Add padding for this raw (it needed) - CLAMP_TO_EDGE_X
-        for (int i = 0; i < remaining_cols; ++i) {
+        for (uint32_t i = 0; i < remaining_cols; ++i) {
             memcpy(pDst + (cols + i) * nchannels, pSrc + (cols - 1) * nchannels,
                    nchannels * sizeof(T));
         }
@@ -395,7 +395,7 @@ extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t hei
 
     // Add padding raws (if needed) CLAMP_TO_EDGE_Y
     const T* pDstLastRaw = dst + (kBlockSize - remaining_raws - 1) * dst_pitch;
-    for (int py{0}; py < remaining_raws; ++py) {
+    for (uint32_t py = 0; py < remaining_raws; ++py) {
         memcpy(pDst, pDstLastRaw, dst_pitch * sizeof(T));
         pDst += dst_pitch;
     }
@@ -447,19 +447,18 @@ extract_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t hei
 //  +--------------------------------------------+
 //
 template <typename T>
-inline size_t
-insert_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t height,
-             size_t nchannels /* stride */) {
-    // TODO: expose this as parameter for usage with other block sizes
-    constexpr size_t kBlockSize = BCN_BLOCK_SIZE;
-    const size_t src_pitch = kBlockSize * nchannels;  // nbr bytes per raw of src
-    const size_t dst_pitch = width * nchannels;       // nbr bytes per raw of dst
-    size_t nbr_written_bytes = 0;
+inline uint32_t
+insert_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
+             uint32_t nchannels /* stride */) {
+    constexpr uint32_t kBlockSize = BCN_BLOCK_SIZE;
+    const uint32_t src_pitch = kBlockSize * nchannels;  // nbr bytes per raw of src
+    const uint32_t dst_pitch = width * nchannels;       // nbr bytes per raw of dst
+    uint32_t nbr_written_bytes = 0;
     const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
     const T* pSrc = src;
     T* pDst = dst + y * dst_pitch + nchannels * x;
-    for (ktx_size_t py{0}; py < kBlockSize && y + py < height; ++py) {
-        const size_t nbr_bytes_to_write = cols * nchannels * sizeof(T);
+    for (uint32_t py = 0; py < kBlockSize && y + py < height; ++py) {
+        const uint32_t nbr_bytes_to_write = cols * nchannels * sizeof(T);
         memcpy(pDst, pSrc, nbr_bytes_to_write);
         nbr_written_bytes += nbr_bytes_to_write;
         pSrc += src_pitch;
@@ -470,11 +469,11 @@ insert_block(T* dst, const T* src, size_t x, size_t y, size_t width, size_t heig
 
 inline void
 extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
-    const int src_pitch = BCN_BLOCK_SIZE * 4;
-    const int dst_pitch = BCN_BLOCK_SIZE * 3;
-    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
-    for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
-        for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
+    const uint32_t src_pitch = BCN_BLOCK_SIZE * 4;
+    const uint32_t dst_pitch = BCN_BLOCK_SIZE * 3;
+    [[maybe_unused]] uint32_t nbr_written_bytes_total = 0;
+    for (uint32_t py = 0; py < BCN_BLOCK_SIZE; ++py) {
+        for (uint32_t px = 0; px < BCN_BLOCK_SIZE; ++px) {
             memcpy(rgb + px * 3 + py * dst_pitch, rgba + px * 4 + py * src_pitch, 3);
             nbr_written_bytes_total += 3;
         }
@@ -484,11 +483,11 @@ extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
 
 inline void
 rgb_to_rgba_block(uint8_t* rgba, const uint8_t* rgb, uint8_t alpha = 255) {
-    const int src_pitch = BCN_BLOCK_SIZE * 3; /* 4 x 3 */
-    const int dst_pitch = BCN_BLOCK_SIZE * 4; /* because we add alpha */
-    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
-    for (int py = 0; py < BCN_BLOCK_SIZE; ++py) {
-        for (int px = 0; px < BCN_BLOCK_SIZE; ++px) {
+    const uint32_t src_pitch = BCN_BLOCK_SIZE * 3; /* 4 x 3 */
+    const uint32_t dst_pitch = BCN_BLOCK_SIZE * 4; /* because we add alpha */
+    [[maybe_unused]] uint32_t nbr_written_bytes_total = 0;
+    for (uint32_t py = 0; py < BCN_BLOCK_SIZE; ++py) {
+        for (uint32_t px = 0; px < BCN_BLOCK_SIZE; ++px) {
             uint8_t* pDst = rgba + px * 4 + py * dst_pitch;
             memcpy(pDst, rgb + px * 3 + py * src_pitch, 3);
             pDst[3] = alpha;
@@ -615,7 +614,7 @@ get_bcn_compression_kind(VkFormat vkformat, VkFormat& decompressed_vkformat, int
     }
 }
 
-inline int
+inline uint32_t
 get_nchannels(ktx_bcn_compression_e bcn) {
     switch (bcn) {
     case KTX_BCN_COMPRESSION_BC4:
@@ -632,15 +631,8 @@ get_nchannels(ktx_bcn_compression_e bcn) {
     case KTX_BCN_COMPRESSION_BC7:
         return 4;
     default:
-        return -1;
+        return 0;
     }
 }
-
-// TODO: this is meant to be called within a C++ context only (no C support) so
-// maybe improve this? (use spans?)
-KTX_error_code postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_size,
-                                   ktx_uint8_t* packed_img, ktx_size_t packed_img_size,
-                                   rdo_params params, ktx_bcn_compression_e bcn, ktx_uint32_t width,
-                                   ktx_uint32_t height);
 
 #endif

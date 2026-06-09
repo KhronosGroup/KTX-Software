@@ -158,8 +158,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                                                faceIndex + depthSliceIndex, &image_offset_in);
                     ktxTexture2_GetImageOffset(prototype, levelIndex, layerIndex,
                                                faceIndex + depthSliceIndex, &image_offset_out);
-                    const ktx_uint8_t* image_data_in = This->pData + image_offset_in;
-                    ktx_uint8_t* image_data_out = prototype->pData + image_offset_out;
+                    const auto* image_data_in = This->pData + image_offset_in;
+                    auto* image_data_out = prototype->pData + image_offset_out;
                     auto res =
                         ktxUnpackBCn(image_data_in, image_data_out, width, height, bcn, params);
                     if (res != KTX_SUCCESS) {
@@ -244,15 +244,15 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    const ktx_size_t rgba_pitch = BCN_BLOCK_SIZE * 4;
-    ktx_uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 64 bytes */
+    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;
+    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 64 bytes */
 
-    const ktx_size_t rgbh_pitch = BCN_BLOCK_SIZE * 3;
-    ktx_uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * rgbh_pitch];
+    const uint32_t rgbh_pitch = BCN_BLOCK_SIZE * 3;
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * rgbh_pitch];
 
     uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* only for BC1 */
 
-    const int nchannels = get_nchannels(bcn);
+    const uint32_t nchannels = get_nchannels(bcn);
 
     // [[maybe_unused]] size_t nbr_written_bytes_total = 0;
 
@@ -268,8 +268,8 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
         bcn == KTX_BCN_COMPRESSION_BC4 || bcn == KTX_BCN_COMPRESSION_BC5)
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
 
-    for (size_t y{0}; y < height; y += BCN_BLOCK_SIZE) {
-        for (size_t x{0}; x < width; x += BCN_BLOCK_SIZE) {
+    for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
+        for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
             bool rv = true;
             switch (bcn) {
             case KTX_BCN_COMPRESSION_BC1:

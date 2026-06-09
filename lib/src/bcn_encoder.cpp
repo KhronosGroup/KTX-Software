@@ -81,38 +81,36 @@ unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
 
 static inline void
 get_current_thread_blocks(uint32_t w, uint32_t h, int thread_id, int thread_count,
-                          size_t& block_start_idx, size_t& num_blocks) {
-    const size_t num_blocks_x = (w + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const size_t num_blocks_y = (h + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const size_t nbrBlocksTotal = num_blocks_x * num_blocks_y;
+                          uint32_t& block_start_idx, uint32_t& num_blocks) {
+    const uint32_t num_blocks_x = (w + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_y = (h + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t nbrBlocksTotal = num_blocks_x * num_blocks_y;
     // Each thread takes a set of contiguous blocks to encode
     const bool is_last_thread = thread_id == (thread_count - 1);
-    const size_t num_blocks_per_thread = nbrBlocksTotal / thread_count;
+    const uint32_t num_blocks_per_thread = nbrBlocksTotal / thread_count;
     block_start_idx = thread_id * num_blocks_per_thread;
     num_blocks = is_last_thread ? nbrBlocksTotal - (thread_id * num_blocks_per_thread)
                                 : num_blocks_per_thread;
-    // debugging/sanity checks (should be obviously true)
-    assert((block_start_idx + num_blocks) <= nbrBlocksTotal);
 }
 
 static void
 compression_workload_runner(int thread_count, int thread_id, void* payload) {
     bcn_compression_workload* workload = static_cast<bcn_compression_workload*>(payload);
-    const auto width = workload->width;
-    const auto height = workload->height;
-    const auto nchannels = workload->nchannels;
-    const size_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t width = workload->width;
+    const uint32_t height = workload->height;
+    const uint32_t nchannels = workload->nchannels;
+    const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
 
     // Each thread takes a set of contiguous blocks to encode
-    size_t block_start_idx, block_end_idx, num_blocks;
+    uint32_t block_start_idx, block_end_idx, num_blocks;
     get_current_thread_blocks(workload->width, workload->height, thread_id, thread_count,
                               block_start_idx, num_blocks);
     block_end_idx = block_start_idx + num_blocks;
 
-    // Intermediate store for decoded LDR BCn block
+    // Intermediate store for decoded LDR/HDR BCn block
     uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4 x 4 x 4 */
     uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1 */
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 */
+    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 - for BC6H? */
     uint8_t rgbx[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* only for BC1 */
 
     basist::astc_6x6_hdr::fast_bc6h_params bc6h_params;
@@ -120,9 +118,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
     uint8_t* pDstLevelImage = workload->data_out;
 
-    for (size_t block_idx = block_start_idx; block_idx < block_end_idx; ++block_idx) {
-        const size_t xBlock = block_idx % num_blocks_x;
-        const size_t yBlock = block_idx / num_blocks_x;
+    for (uint32_t block_idx = block_start_idx; block_idx < block_end_idx; ++block_idx) {
+        const uint32_t xBlock = block_idx % num_blocks_x;
+        const uint32_t yBlock = block_idx / num_blocks_x;
         // Extract/Copy source block (non-multiple-of-4 texture dimensions are handled
         // via clamping to edge).
         if (workload->params.bcn == KTX_BCN_COMPRESSION_BC6HU ||
@@ -195,7 +193,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
 static void
 rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
-    size_t block_start_idx, num_blocks;
+    uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local = 0;
     ert::reduce_entropy_stats stats_local;
     auto workload = reinterpret_cast<rdo_bc1_workload*>(payload);
@@ -222,7 +220,7 @@ rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
 
 static void
 rdo_bc3_workload_runner(int thread_count, int thread_id, void* payload) {
-    size_t block_start_idx, num_blocks;
+    uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local_rgb = 0;
     uint32_t total_modified_local_a = 0;
     ert::reduce_entropy_stats local_stats;
@@ -265,9 +263,9 @@ rdo_bc3_workload_runner(int thread_count, int thread_id, void* payload) {
 
 static void
 rdo_bc4_workload_runner(int thread_count, int thread_id, void* payload) {
+    uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local = 0;
     ert::reduce_entropy_stats local_stats;
-    size_t block_start_idx, num_blocks;
     auto workload = reinterpret_cast<rdo_bc4_workload*>(payload);
     get_current_thread_blocks(workload->m_width, workload->m_height, thread_id, thread_count,
                               block_start_idx, num_blocks);
@@ -287,7 +285,7 @@ rdo_bc4_workload_runner(int thread_count, int thread_id, void* payload) {
 
 static void
 rdo_bc5_workload_runner(int thread_count, int thread_id, void* payload) {
-    size_t block_start_idx, num_blocks;
+    uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local_r = 0;
     uint32_t total_modified_local_g = 0;
     ert::reduce_entropy_stats local_stats;
@@ -327,13 +325,11 @@ rdo_bc5_workload_runner(int thread_count, int thread_id, void* payload) {
 
 static void
 rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
+    uint32_t block_start_idx, num_blocks;
+    uint32_t total_modified_local = 0;
     auto workload = reinterpret_cast<rdo_bc7_workload*>(payload);
-
-    size_t block_start_idx, num_blocks;
     get_current_thread_blocks(workload->m_width, workload->m_height, thread_id, thread_count,
                               block_start_idx, num_blocks);
-
-    uint32_t total_modified_local = 0;
     ert::reduce_entropy_stats stats_local;
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC7_BLOCK_SIZE, num_blocks, BC7_BLOCK_SIZE,
@@ -666,7 +662,7 @@ clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
  *        that, depending on the BCn compression, some values make no sense and
  *        may kill efficiency.
  *
- * @param [in] unpacked_img       pointer to the source unpacked data.
+ * @param [in] unpacked_img         pointer to the source unpacked data.
  * @param [in] unpacked_img_size    size of source unpacked data in bytes.
  *                                  Internal sanity checks are performed on this
  *                                  provided size.
@@ -695,17 +691,16 @@ clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
  *
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  */
-KTX_error_code
-postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_size,
-                    ktx_uint8_t* packed_img, ktx_size_t packed_img_size, rdo_params params,
-                    ktx_bcn_compression_e bcn, ktx_uint32_t width, ktx_uint32_t height,
-                    ktx_uint32_t threads) {
-    #define CHECK_SIZES(nchannels, block_size)                       \
-        do {                                                         \
-            if ((unpacked_img_size != width * height * nchannels) || \
-                (packed_img_size != nBlocksTotal * block_size)) {    \
-                return KTX_DECOMPRESS_LENGTH_ERROR;                  \
-            }                                                        \
+static KTX_error_code
+postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8_t* packed_img,
+                    size_t packed_img_size, rdo_params params, ktx_bcn_compression_e bcn,
+                    uint32_t width, uint32_t height, uint32_t threads) {
+    #define CHECK_SIZES(nchannels, block_size)                               \
+        do {                                                                 \
+            if ((unpacked_img_size != (size_t)width * height * nchannels) || \
+                (packed_img_size != (size_t)nBlocksTotal * block_size)) {    \
+                return KTX_DECOMPRESS_LENGTH_ERROR;                          \
+            }                                                                \
         } while (0)
 
     const uint32_t nBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
@@ -717,8 +712,8 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
     // Intermediate storage for extracted blocks. This is mainly for convenience
     // so that we do not have to repeat logic for extracting and potentially
     // padding a block of 4x4 RGBA pixels
-    const size_t rgba_pitch = BCN_BLOCK_SIZE * 4;  // 4 x 4
-    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch];     // 4 x 4 x 4
+    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;  // 4 x 4
+    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch];       // 4 x 4 x 4
     auto& ert_p = params.ert_p;
 
     if (ert_p.m_lambda <= 0.0f) return KTX_SUCCESS;
@@ -747,7 +742,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
                 // Now flatten the extracted block into block_pixels
                 ert::color_rgba* p_dst =
                     block_pixels.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (size_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
+                for (uint32_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
                     memcpy(p_dst + py * BCN_BLOCK_SIZE, rgba + py * rgba_pitch,
                            BCN_BLOCK_SIZE * BC1_NCHANNELS);
                 }
@@ -878,8 +873,8 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
                 lerp(10.0f, 30.0f, std::min(1.0f, ert_p.m_lambda / 4.0f));
         }
 
-        const size_t r_pitch = BCN_BLOCK_SIZE * BC4_NCHANNELS;  // 4 x 1
-        uint8_t r[BCN_BLOCK_SIZE * r_pitch];                    // 4 x 4 x 1
+        const uint32_t r_pitch = BCN_BLOCK_SIZE * BC4_NCHANNELS;  // 4 x 1
+        uint8_t r[BCN_BLOCK_SIZE * r_pitch];                      // 4 x 4 x 1
 
         std::vector<ert::color_rgba> block_pixels_rxxx(nBlocksTotal * BCN_BLOCK_SIZE *
                                                        BCN_BLOCK_SIZE);
@@ -1033,7 +1028,7 @@ postprocess_rdo_bcn(const ktx_uint8_t* unpacked_img, ktx_size_t unpacked_img_siz
                 // Now flatten the extracted block into block_pixels
                 ert::color_rgba* p_dst =
                     block_pixels_rgba.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (size_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
+                for (uint32_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
                     memcpy(p_dst + py * BCN_BLOCK_SIZE, rgba + py * rgba_pitch,
                            BCN_BLOCK_SIZE * BC7_NCHANNELS);
                 }
@@ -1134,7 +1129,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     if (params->structSize != sizeof(struct ktxBCnParams)) return KTX_INVALID_VALUE;
 
-    // TODO: why?
     if (This->generateMipmaps) return KTX_INVALID_OPERATION;
 
     if (This->numDimensions != 2) return KTX_INVALID_OPERATION;
@@ -1150,15 +1144,14 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     // Basic descriptor block begins after the total size field.
     const uint32_t* BDB = This->pDfd + 1;
-    ktx_uint8_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
-    ktx_uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    uint32_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
+    uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
     khr_df_model_e expected_color_model;
-    size_t nchannels;
-    size_t blocksize_in_bytes;
+    uint32_t nchannels;
+    uint32_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
     ktx_error_code_e result;
     #if DEBUG_PRINT_STATS
-
     bool hdr_one_or_more_nan_values_msg = false;
     bool hdr_one_or_more_inf_values_msg = false;
     bool hdr_one_or_more_signed_values_msg = false;
@@ -1323,8 +1316,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t width = MAX(1, This->baseWidth >> level);
         const uint32_t height = MAX(1, This->baseHeight >> level);
         const uint32_t depth = MAX(1, This->baseDepth >> level);
-        const size_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-        const size_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const uint32_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
 
         ktx_size_t levelImageSizeIn = 0;
         ktx_size_t levelImageSizeOut = 0;
@@ -1426,10 +1419,10 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                     static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode);
                 rdo_p.bc1_params.allow_3color_mode = true;           // hardcoded
                 rdo_p.bc1_params.use_3color_mode_for_black = false;  // hardcoded
-                auto res =
-                    postprocess_rdo_bcn(pSrcLevelImage, width * height * nchannels, pDstLevelImage,
-                                        num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p,
-                                        params->bcn, width, height, rdoThreadCount);
+                auto res = postprocess_rdo_bcn(
+                    pSrcLevelImage, (size_t)width * height * nchannels, pDstLevelImage,
+                    (size_t)num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p, params->bcn,
+                    width, height, rdoThreadCount);
                 if (res != KTX_SUCCESS) {
                     ktxTexture2_Destroy(prototype);
                     return res;
