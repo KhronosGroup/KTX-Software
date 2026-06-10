@@ -711,8 +711,8 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
     // Intermediate storage for extracted blocks. This is mainly for convenience
     // so that we do not have to repeat logic for extracting and potentially
     // padding a block of 4x4 RGBA pixels
-    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;  // 4 x 4
-    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch];       // 4 x 4 x 4
+    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;
+    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 4 x 4 x 4 */
     auto& ert_p = params.ert_p;
 
     if (ert_p.m_lambda <= 0.0f) return KTX_SUCCESS;
@@ -738,13 +738,19 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC1_NCHANNELS);
-                // Now flatten the extracted block into block_pixels
-                ert::color_rgba* p_dst =
+                // Now flatten the extracted block into block_pixels and add alpha because BC1 input
+                // is RGB (without the A). Unpacked BC1 blocks on the other hand are RGBX
+                const uint8_t* p_src = rgba;
+                ert::color_rgba* p_dst_rgbx =
                     block_pixels.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (uint32_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
-                    memcpy(p_dst + py * BCN_BLOCK_SIZE, rgba + py * rgba_pitch,
-                           BCN_BLOCK_SIZE * BC1_NCHANNELS);
-                }
+                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                    p_dst_rgbx->m_comps[0] = p_src[0];
+                    p_dst_rgbx->m_comps[1] = p_src[1];
+                    p_dst_rgbx->m_comps[2] = p_src[2];
+                    p_dst_rgbx->m_comps[3] = 255u;
+                    p_dst_rgbx += 1;
+                    p_src += BC1_NCHANNELS;
+                }  // i
             }
         }
 
@@ -810,14 +816,14 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 ert::color_rgba* pDstA =
                     block_pixels_axxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDstRGB[0].m_comps[0] = pSrc[0];
-                    pDstRGB[0].m_comps[1] = pSrc[1];
-                    pDstRGB[0].m_comps[2] = pSrc[2];
-                    pDstRGB[0].m_comps[3] = 0;
-                    pDstA[0].m_comps[0] = pSrc[3];  // alpha
-                    pDstA[0].m_comps[1] = 0;
-                    pDstA[0].m_comps[2] = 0;
-                    pDstA[0].m_comps[3] = 0;
+                    pDstRGB->m_comps[0] = pSrc[0];
+                    pDstRGB->m_comps[1] = pSrc[1];
+                    pDstRGB->m_comps[2] = pSrc[2];
+                    pDstRGB->m_comps[3] = 0;
+                    pDstA->m_comps[0] = pSrc[3];  // alpha
+                    pDstA->m_comps[1] = 0;
+                    pDstA->m_comps[2] = 0;
+                    pDstA->m_comps[3] = 0;
                     pSrc += BC3_NCHANNELS; /* pSrc += 4 */
                     ++pDstRGB;
                     ++pDstA;
@@ -886,10 +892,10 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                     block_pixels_rxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 const uint8_t* pSrc = r;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDst[0].m_comps[0] = pSrc[0];  // alpha
-                    pDst[0].m_comps[1] = 0;
-                    pDst[0].m_comps[2] = 0;
-                    pDst[0].m_comps[3] = 0;
+                    pDst->m_comps[0] = pSrc[0];  // alpha
+                    pDst->m_comps[1] = 0;
+                    pDst->m_comps[2] = 0;
+                    pDst->m_comps[3] = 0;
                     pSrc += BC4_NCHANNELS; /* pSrc += 1 */
                     ++pDst;
                 }  // i
@@ -947,14 +953,14 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 ert::color_rgba* pDstG =
                     block_pixels_gxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDstR[0].m_comps[0] = pSrc[0];  // R
-                    pDstR[0].m_comps[1] = 0;
-                    pDstR[0].m_comps[2] = 0;
-                    pDstR[0].m_comps[3] = 0;
-                    pDstG[0].m_comps[0] = pSrc[1];  // G
-                    pDstG[0].m_comps[1] = 0;
-                    pDstG[0].m_comps[2] = 0;
-                    pDstG[0].m_comps[3] = 0;
+                    pDstR->m_comps[0] = pSrc[0];  // R
+                    pDstR->m_comps[1] = 0;
+                    pDstR->m_comps[2] = 0;
+                    pDstR->m_comps[3] = 0;
+                    pDstG->m_comps[0] = pSrc[1];  // G
+                    pDstG->m_comps[1] = 0;
+                    pDstG->m_comps[2] = 0;
+                    pDstG->m_comps[3] = 0;
                     pSrc += BC5_NCHANNELS; /* pSrc += 2 */
                     ++pDstR;
                     ++pDstG;
