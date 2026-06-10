@@ -3282,7 +3282,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
             << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
-        ktx_uint32_t compressedFormat = VK_FORMAT_UNDEFINED; /* so that gtest stops complaining */
+        VkFormat compressedFormat = VK_FORMAT_UNDEFINED; /* so that gtest stops complaining */
         ktx_uint32_t expectedDecompressedFormat;
 
         const bool isSRGB = KHR_DFDVAL(texture->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB;
@@ -3336,7 +3336,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
           case KTX_BCN_COMPRESSION_BC4:
             ASSERT_FALSE(isSRGB); // should never occur
-            ASSERT_EQ(texture->vkFormat, VK_FORMAT_R8_UNORM);
+            ASSERT_EQ(texture->vkFormat, (ktx_uint32_t)VK_FORMAT_R8_UNORM);
             original = tmpDir / "encode_r8_unorm_to_bc4_then_decode_original.ktx2";
             decoded = tmpDir / "encode_r8_unorm_to_bc4_then_decode_decoded.ktx2";
             compressedFormat = VK_FORMAT_BC4_UNORM_BLOCK;
@@ -3410,7 +3410,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
         ASSERT_EQ(result, KTX_SUCCESS);
-        ASSERT_EQ(texture->vkFormat, compressedFormat);
+        ASSERT_EQ(texture->vkFormat, (ktx_uint32_t)compressedFormat);
 
         uint32_t* pBdb = texture->pDfd + 1;
         if (isSRGB) {

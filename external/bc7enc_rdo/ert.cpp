@@ -66,52 +66,6 @@ namespace ert
 		return len_cost + dist_cost;
 	}
 
-	class tracked_stat
-	{
-	public:
-		tracked_stat() { clear(); }
-
-		void clear() { m_num = 0; m_total = 0; m_total2 = 0; }
-
-		void update(uint32_t val) { m_num++; m_total += val; m_total2 += val * val; }
-
-		tracked_stat& operator += (uint32_t val) { update(val); return *this; }
-
-		uint32_t get_number_of_values() { return m_num; }
-		uint64_t get_total() const { return m_total; }
-		uint64_t get_total2() const { return m_total2; }
-
-		float get_average() const { return m_num ? (float)m_total / m_num : 0.0f; };
-		float get_std_dev() const { return m_num ? sqrtf((float)(m_num * m_total2 - m_total * m_total)) / m_num : 0.0f; }
-		float get_variance() const { float s = get_std_dev(); return s * s; }
-
-	private:
-		uint32_t m_num;
-		uint64_t m_total;
-		uint64_t m_total2;
-	};
-
-	static inline float compute_block_max_std_dev(const color_rgba* pPixels, uint32_t block_width, uint32_t block_height, uint32_t num_comps)
-	{
-		tracked_stat comp_stats[4];
-
-		for (uint32_t y = 0; y < block_height; y++)
-		{
-			for (uint32_t x = 0; x < block_width; x++)
-			{
-				const color_rgba* pPixel = pPixels + x + y * block_width;
-
-				for (uint32_t c = 0; c < num_comps; c++)
-					comp_stats[c].update(pPixel->m_c[c]);
-			}
-		}
-
-		float max_std_dev = 0.0f;
-		for (uint32_t i = 0; i < num_comps; i++)
-			max_std_dev = std::max(max_std_dev, comp_stats[i].get_std_dev());
-		return max_std_dev;
-	}
-
 	static inline float compute_block_mse(const color_rgba* pPixelsA, const color_rgba* pPixelsB, uint32_t block_width, uint32_t block_height, uint32_t total_block_pixels, uint32_t num_comps, const uint32_t weights[4], float one_over_total_color_weight)
 	{
 		uint64_t total_err = 0;
@@ -125,10 +79,10 @@ namespace ert
 					const color_rgba* pA = pPixelsA + i;
 					const color_rgba* pB = pPixelsB + i;
 
-					const int dr = pA->m_c[0] - pB->m_c[0];
-					const int dg = pA->m_c[1] - pB->m_c[1];
-					const int db = pA->m_c[2] - pB->m_c[2];
-					const int da = pA->m_c[3] - pB->m_c[3];
+					const int dr = pA->m_comps[0] - pB->m_comps[0];
+					const int dg = pA->m_comps[1] - pB->m_comps[1];
+					const int db = pA->m_comps[2] - pB->m_comps[2];
+					const int da = pA->m_comps[3] - pB->m_comps[3];
 
 					total_err += dr * dr + dg * dg + db * db + da * da;
 				}
@@ -140,10 +94,10 @@ namespace ert
 					const color_rgba* pA = pPixelsA + i;
 					const color_rgba* pB = pPixelsB + i;
 
-					const int dr = pA->m_c[0] - pB->m_c[0];
-					const int dg = pA->m_c[1] - pB->m_c[1];
-					const int db = pA->m_c[2] - pB->m_c[2];
-					const int da = pA->m_c[3] - pB->m_c[3];
+					const int dr = pA->m_comps[0] - pB->m_comps[0];
+					const int dg = pA->m_comps[1] - pB->m_comps[1];
+					const int db = pA->m_comps[2] - pB->m_comps[2];
+					const int da = pA->m_comps[3] - pB->m_comps[3];
 
 					total_err += weights[0] * dr * dr + weights[1] * dg * dg + weights[2] * db * db + weights[3] * da * da;
 				}
@@ -159,9 +113,9 @@ namespace ert
 					const color_rgba* pA = pPixelsA + x + y_ofs;
 					const color_rgba* pB = pPixelsB + x + y_ofs;
 
-					const int dr = pA->m_c[0] - pB->m_c[0];
-					const int dg = pA->m_c[1] - pB->m_c[1];
-					const int db = pA->m_c[2] - pB->m_c[2];
+					const int dr = pA->m_comps[0] - pB->m_comps[0];
+					const int dg = pA->m_comps[1] - pB->m_comps[1];
+					const int db = pA->m_comps[2] - pB->m_comps[2];
 
 					total_err += weights[0] * dr * dr + weights[1] * dg * dg + weights[2] * db * db;
 				}
@@ -177,8 +131,8 @@ namespace ert
 					const color_rgba* pA = pPixelsA + x + y_ofs;
 					const color_rgba* pB = pPixelsB + x + y_ofs;
 
-					const int dr = pA->m_c[0] - pB->m_c[0];
-					const int dg = pA->m_c[1] - pB->m_c[1];
+					const int dr = pA->m_comps[0] - pB->m_comps[0];
+					const int dg = pA->m_comps[1] - pB->m_comps[1];
 
 					total_err += weights[0] * dr * dr + weights[1] * dg * dg;
 				}
@@ -194,7 +148,7 @@ namespace ert
 					const color_rgba* pA = pPixelsA + x + y_ofs;
 					const color_rgba* pB = pPixelsB + x + y_ofs;
 
-					const int dr = pA->m_c[0] - pB->m_c[0];
+					const int dr = pA->m_comps[0] - pB->m_comps[0];
 
 					total_err += weights[0] * dr * dr;
 				}
@@ -212,7 +166,7 @@ namespace ert
 
 					for (uint32_t c = 0; c < num_comps; c++)
 					{
-						const int d = pA->m_c[c] - pB->m_c[c];
+						const int d = pA->m_comps[c] - pB->m_comps[c];
 						total_err += weights[c] * d * d;
 					}
 				}
@@ -597,5 +551,93 @@ namespace ert
 				
 		return true;
 	}
+
+
+  inline bool flood_fill_is_inside(std::vector<color_rgba>& image, int x, int y, int w, int h, const color_rgba& b)
+  {
+    if (x < 0 || x >= w || y < 0 || y >= h)
+      return false;
+  	return image[x + y * w] == b;
+  }
+  
+  struct fill_segment
+  {
+  	int16_t m_y, m_xl, m_xr, m_dy;
+  
+  	fill_segment(int y, int xl, int xr, int dy) :
+  		m_y((int16_t)y), m_xl((int16_t)xl), m_xr((int16_t)xr), m_dy((int16_t)dy)
+  	{
+  	}
+  };
+  
+  // See http://www.realtimerendering.com/resources/GraphicsGems/gems/SeedFill.c
+  uint32_t flood_fill(std::vector<color_rgba>& image, int x, int y,
+      uint32_t width, uint32_t height, const color_rgba& c,
+      const color_rgba& b, std::vector<pixel_coord>* pSet_pixels)
+  {
+  	uint32_t total_set = 0;
+  
+  	if (!flood_fill_is_inside(image, x, y, width, height, b))
+  		return 0;
+  
+  	std::vector<fill_segment> stack;
+  	stack.reserve(64);
+
+    #define FLOOD_PUSH(y, xl, xr, dy) if (((y + (dy)) >= 0) && ((y + (dy)) < (int)height)) { stack.push_back(fill_segment(y, xl, xr, dy)); }
+
+  	FLOOD_PUSH(y, x, x, 1);
+  	FLOOD_PUSH(y + 1, x, x, -1);
+  
+  	while (stack.size())
+  	{
+  		fill_segment s = stack.back();
+  		stack.pop_back();
+  
+  		int x1 = s.m_xl, x2 = s.m_xr, dy = s.m_dy;
+  		y = s.m_y + s.m_dy;
+  
+  		for (x = x1; (x >= 0) && flood_fill_is_inside(image, x, y, width, height, b); x--)
+  		{
+  			image[x + y * width] = c;
+  			total_set++;
+  			if (pSet_pixels)
+  				pSet_pixels->push_back(pixel_coord(x, y));
+  		}
+  
+  		int l;
+  
+  		if (x >= x1)
+  			goto skip;
+  
+  		l = x + 1;
+  		if (l < x1)
+  			FLOOD_PUSH(y, l, x1 - 1, -dy);
+  
+  		x = x1 + 1;
+  
+  		do
+  		{
+  			for (; x <= ((int)width - 1) && flood_fill_is_inside(image, x, y, width, height, b); x++)
+  			{
+  				image[x + y * width] = c;
+  				total_set++;
+  				if (pSet_pixels)
+  					pSet_pixels->push_back(pixel_coord(x, y));
+  			}
+  			FLOOD_PUSH(y, l, x - 1, dy);
+  
+  			if (x > (x2 + 1))
+  				FLOOD_PUSH(y, x2 + 1, x - 1, -dy);
+  
+  		skip:
+  			for (x++; x <= x2 && !flood_fill_is_inside(image, x, y, width, height, b); x++)
+  				;
+  
+  			l = x;
+  		} while (x <= x2);
+  	}
+  
+  	return total_set;
+  }
 
 } // namespace ert

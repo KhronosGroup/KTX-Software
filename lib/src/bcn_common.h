@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <cstring>
 #include "ktx.h"
-#include "bc7enc/ert.h"   /* for RDO */
-#include "bc7enc/rgbcx.h" /* for BC1-BC5 encoders/decoders */
+#include "bc7enc_rdo/ert.h"   /* for RDO */
+#include "bc7enc_rdo/rgbcx.h" /* for BC1-BC5 encoders/decoders */
+
 #include "vulkan/vulkan_core.h"
 
 #define BCN_BLOCK_SIZE 4

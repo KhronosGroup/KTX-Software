@@ -182,26 +182,6 @@ if (LIBKTX_FEATURE_ETC_UNPACK)
     list( APPEND LIBKTX_MAIN_SRC ../external/etcdec/etcdec.cxx )
 endif()
 
-# Why include another dependency when Basisu already has these functions?
-# A. Basisu has BC1-BC5 encoders/decoders but the ones provided by bc7enc_rdo
-# are more capable. As for RDO post-processing, basisu's UASTC RDO is very
-# tightly coupled with UASTC blocks (i.e., it only accepts UASTC-encoded blocks
-# and is not possible to use without significant code changes). It is also less
-# capable than the bc7enc_rdo's RDO (which is also block-agnostic - i.e., can
-# accept any blocks).
-if (LIBKTX_FEATURE_BCN_DECODER)
-    list( APPEND LIBKTX_MAIN_SRC 
-        ../external/bc7enc/rgbcx.h        # BC1, BC3, BC4 and BC5 encoders/decoders
-        ../external/bc7enc/rgbcx.cpp
-        ../external/bc7enc/ert.h          # RDO post processing step
-        ../external/bc7enc/ert.cpp
-        ../external/bc7enc/utils.h
-        ../external/bc7enc/utils.cpp
-        # ../external/lodepng/lodepng.h     # Only for debugging RDO ultrasmooth blocks
-        # ../external/lodepng/lodepng.cpp
-    )
-endif()
-
 if(LIBKTX_FEATURE_GL_UPLOAD)
     list(APPEND LIBKTX_MAIN_SRC
         src/gl_funclist.inl
@@ -732,6 +712,26 @@ endif()
 if(LIBKTX_VERSION_READ_ONLY)
     add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
 endif()
+
+
+####################################################
+# BCn Encoders/Decoders + RDO.
+####################################################
+
+# Force static build for bc7enc
+if (LIBKTX_FEATURE_BCN_DECODER)
+    set(BUILD_SHARED_LIBS OFF)
+    add_subdirectory(${KTX_ROOT_DIR}/external/bc7enc_rdo bc7enc_rdo)
+    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+
+    if (LIBKTX_VERSION_FULL)
+        add_lib_dependencies(ktx bc7enc_rdo)
+    endif()
+    if(LIBKTX_VERSION_READ_ONLY)
+        add_lib_dependencies(ktx_read bc7enc_rdo)
+    endif()
+endif()
+
 
 # Install
 

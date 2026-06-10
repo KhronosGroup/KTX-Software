@@ -33,15 +33,12 @@
 
     #include "bcn_common.h"
 
-    #include "bc7enc/ert.h"                      /* for RDO */
-    #include "bc7enc/rgbcx.h"                    /* for BC1-BC5 encoders/decoders */
     #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
     #include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
     #include "vkformat_enum.h"                   /* for VkFormat enum */
     #include "ktxint.h"
     #include "texture2.h"
     #include "multithreading.h"
-    #include "bc7enc/utils.h"
     #include <cstdint>
     #include "encoder/basisu_enc.h"
 
@@ -351,7 +348,7 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
 
     #if DEBUG_RDO_ULTRASMOOTH
 bool
-save_png(const char* pFilename, const std::vector<basisu::color_rgba>& img, uint32_t width,
+save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_t width,
          uint32_t height) {
     std::vector<unsigned char> pixels;
     pixels.resize(width * height * 3);
@@ -368,8 +365,8 @@ save_png(const char* pFilename, const std::vector<basisu::color_rgba>& img, uint
 
 // Adapted from bc7enc_rdo's compute_block_mse_scales function with
 // minor changes:
-//  - use basisu's basisu::color_rgba instead of color_quad_u8
-//  - remove image_u8 dependency and use std::vector<basisu::color_rgba> instead
+//  - use ert::color_rgba instead of color_quad_u8
+//  - remove image_u8 dependency and use std::vector<ert::color_rgba> instead
 //  - integrate mse adjustment based on smooth_block_max_mse_scale and lambda
 //    within the internal vs. doing this externally (as in bc7enc_rdo's case)
 //
@@ -377,6 +374,9 @@ save_png(const char* pFilename, const std::vector<basisu::color_rgba>& img, uint
 // instead of std::float which at the very least should result in 4x less space).
 // Also, internally some std::vectors are recreated a lot. It is definitely not
 // trivial to optimize this.
+//
+// TODO: this should be moved to ert.cpp but we still rely on extract_block
+// which is why this is currently implemented here.
 static std::vector<float>
 compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32_t height,
                              uint32_t nchannels, float smooth_block_max_mse_scale, float lambda) {
@@ -396,11 +396,11 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
     auto start = std::chrono::high_resolution_clock::now();
     #endif
 
-    std::vector<basisu::color_rgba> ultrasmooth_blocks_vis(num_blocks_x * num_blocks_y);
+    std::vector<ert::color_rgba> ultrasmooth_blocks_vis(num_blocks_x * num_blocks_y);
 
     for (uint32_t by = 0; by < num_blocks_y; by++) {
         for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
-            basisu::color_rgba block_pixels[16];
+            ert::color_rgba block_pixels[16];
 
             if (nchannels == 3) {
                 // in this case (BC1 RGB), unpacked_img does not contain alpha
@@ -420,18 +420,18 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                               by * BCN_BLOCK_SIZE, width, height, nchannels);
             }
 
-            tracked_stat y_stats;
+            ert::tracked_stat y_stats;
             for (uint32_t y = 0; y < 4; y++)
                 for (uint32_t x = 0; x < 4; x++) {
                     int l = block_pixels[x + y * 4].get_luma(false);
                     y_stats.update(l);
                 }
 
-            float max_std_dev = compute_block_max_std_dev(block_pixels, 4, 4, 3);
+            float max_std_dev = ert::compute_block_max_std_dev(block_pixels, 4, 4, 3);
 
             float yl = max_std_dev / ULTRASMOOTH_BLOCK_STD_DEV_THRESHOLD;
 
-            yl = clamp(yl, 0.0f, 1.0f);
+            yl = ert::clamp(yl, 0.0f, 1.0f);
             yl *= yl;
 
             float y_avg = y_stats.get_mean();
@@ -439,20 +439,20 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             int k = std::min<int>((int)(yl * 255.0f + .5f), 255);
 
             // ultrasmooth_blocks_vis.fill_box(bx, by, 1, 1, color_quad_u8((uint8_t)k, 255));
-            ultrasmooth_blocks_vis[bx + by * num_blocks_x] = basisu::color_rgba(k, 255);
+            ultrasmooth_blocks_vis[bx + by * num_blocks_x] = ert::color_rgba(k, 255);
         }
     }
 
     // Propagate blocks that are certainly non-ultra-smooth (i.e., 255) to their
     // surrounding 3 x 3 blocks regions.
     for (int pass = 0; pass < 1; pass++) {
-        std::vector<basisu::color_rgba> next_vis(ultrasmooth_blocks_vis);
+        std::vector<ert::color_rgba> next_vis(ultrasmooth_blocks_vis);
         for (int y = 0; y < (int)num_blocks_y; y++) {
             for (int x = 0; x < (int)num_blocks_x; x++) {
                 int m = 0;
                 for (int dy = -1; dy <= 1; dy++)
                     for (int dx = -1; dx <= 1; dx++) {
-                        auto c_idx = get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
+                        auto c_idx = ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
                         if (ultrasmooth_blocks_vis[c_idx].r == 255) m = std::max<int>(m, 255);
                     }
                 next_vis[x + y * num_blocks_x].set((uint8_t)m, 255);
@@ -472,7 +472,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
     // whether the number of surrounding (delta = +-1)
     // certainly-non-ultra-smooth blocks is >= 5 (half of 9 == 3 x 3) blocks
     for (uint32_t pass = 0; pass < 32; pass++) {
-        std::vector<basisu::color_rgba> next_vis(ultrasmooth_blocks_vis);
+        std::vector<ert::color_rgba> next_vis(ultrasmooth_blocks_vis);
         for (int y = 0; y < (int)num_blocks_y; y++) {
             for (int x = 0; x < (int)num_blocks_x; x++) {
                 // auto c_idx = get_clamped_index(x, y, num_blocks_x, num_blocks_y);
@@ -481,7 +481,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                     for (int dy = -1; dy <= 1; dy++)
                         for (int dx = -1; dx <= 1; dx++) {
                             auto c_idx =
-                                get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
+                                ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
                             if (ultrasmooth_blocks_vis[c_idx].r == 255) m++;
                         }
 
@@ -492,7 +492,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         ultrasmooth_blocks_vis.swap(next_vis);
     }
 
-    std::vector<basisu::color_rgba> orig_ultrasmooth_blocks_vis(ultrasmooth_blocks_vis);
+    std::vector<ert::color_rgba> orig_ultrasmooth_blocks_vis(ultrasmooth_blocks_vis);
 
     #if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_pre_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
@@ -505,19 +505,19 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             const bool is_ultrasmooth = ultrasmooth_blocks_vis[bx + by * num_blocks_x].r == 0;
             if (!is_ultrasmooth) continue;
 
-            std::vector<pixel_coord> filled_pixels;
+            std::vector<ert::pixel_coord> filled_pixels;
             filled_pixels.reserve(256);
 
             uint32_t total_set_pixels =
                 flood_fill(ultrasmooth_blocks_vis, bx, by, num_blocks_x, num_blocks_y,
-                           basisu::color_rgba(255, 255, 255, 255), basisu::color_rgba(0, 0, 0, 255),
+                           ert::color_rgba(255, 255, 255, 255), ert::color_rgba(0, 0, 0, 255),
                            &filled_pixels);
 
             if (total_set_pixels < ULTRASMOOTH_REGION_TOO_SMALL_THRESHOLD) {
                 for (uint32_t i = 0; i < filled_pixels.size(); i++)
                     orig_ultrasmooth_blocks_vis[filled_pixels[i].m_x +
                                                 filled_pixels[i].m_y * num_blocks_y] =
-                        basisu::color_rgba(255, 255, 255, 255);
+                        ert::color_rgba(255, 255, 255, 255);
             }
 
         }  // bx
@@ -811,14 +811,14 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 ert::color_rgba* pDstA =
                     block_pixels_axxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDstRGB[0].m_c[0] = pSrc[0];
-                    pDstRGB[0].m_c[1] = pSrc[1];
-                    pDstRGB[0].m_c[2] = pSrc[2];
-                    pDstRGB[0].m_c[3] = 0;
-                    pDstA[0].m_c[0] = pSrc[3];  // alpha
-                    pDstA[0].m_c[1] = 0;
-                    pDstA[0].m_c[2] = 0;
-                    pDstA[0].m_c[3] = 0;
+                    pDstRGB[0].m_comps[0] = pSrc[0];
+                    pDstRGB[0].m_comps[1] = pSrc[1];
+                    pDstRGB[0].m_comps[2] = pSrc[2];
+                    pDstRGB[0].m_comps[3] = 0;
+                    pDstA[0].m_comps[0] = pSrc[3];  // alpha
+                    pDstA[0].m_comps[1] = 0;
+                    pDstA[0].m_comps[2] = 0;
+                    pDstA[0].m_comps[3] = 0;
                     pSrc += BC3_NCHANNELS; /* pSrc += 4 */
                     ++pDstRGB;
                     ++pDstA;
@@ -887,10 +887,10 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                     block_pixels_rxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 const uint8_t* pSrc = r;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDst[0].m_c[0] = pSrc[0];  // alpha
-                    pDst[0].m_c[1] = 0;
-                    pDst[0].m_c[2] = 0;
-                    pDst[0].m_c[3] = 0;
+                    pDst[0].m_comps[0] = pSrc[0];  // alpha
+                    pDst[0].m_comps[1] = 0;
+                    pDst[0].m_comps[2] = 0;
+                    pDst[0].m_comps[3] = 0;
                     pSrc += BC4_NCHANNELS; /* pSrc += 1 */
                     ++pDst;
                 }  // i
@@ -948,14 +948,14 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 ert::color_rgba* pDstG =
                     block_pixels_gxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    pDstR[0].m_c[0] = pSrc[0];  // R
-                    pDstR[0].m_c[1] = 0;
-                    pDstR[0].m_c[2] = 0;
-                    pDstR[0].m_c[3] = 0;
-                    pDstG[0].m_c[0] = pSrc[1];  // G
-                    pDstG[0].m_c[1] = 0;
-                    pDstG[0].m_c[2] = 0;
-                    pDstG[0].m_c[3] = 0;
+                    pDstR[0].m_comps[0] = pSrc[0];  // R
+                    pDstR[0].m_comps[1] = 0;
+                    pDstR[0].m_comps[2] = 0;
+                    pDstR[0].m_comps[3] = 0;
+                    pDstG[0].m_comps[0] = pSrc[1];  // G
+                    pDstG[0].m_comps[1] = 0;
+                    pDstG[0].m_comps[2] = 0;
+                    pDstG[0].m_comps[3] = 0;
                     pSrc += BC5_NCHANNELS; /* pSrc += 2 */
                     ++pDstR;
                     ++pDstG;
@@ -1145,8 +1145,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     // Basic descriptor block begins after the total size field.
     const uint32_t* BDB = This->pDfd + 1;
     uint32_t alphaMode = KHR_DFDVAL(BDB, FLAGS);
-    uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
-    khr_df_model_e expected_color_model;
+    [[maybe_unused]] uint32_t transfer = KHR_DFDVAL(BDB, TRANSFER);
+    [[maybe_unused]] khr_df_model_e expected_color_model;
     uint32_t nchannels;
     uint32_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
@@ -1433,17 +1433,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             pSrcLevelImage += levelImageSizeIn;   // next source image within this miplevel
         }
     }
-    if (KHR_DFDVAL(prototype->pDfd + 1, MODEL) != expected_color_model) {
-        ktxTexture2_Destroy(prototype);
-        return KTX_INVALID_OPERATION;
-    }
 
-    if (transfer == KHR_DF_TRANSFER_SRGB &&
-        (KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) != KHR_DF_TRANSFER_SRGB ||
-         KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) != KHR_DF_PRIMARIES_SRGB)) {
-        ktxTexture2_Destroy(prototype);
-        return KTX_INVALID_OPERATION;
-    };
+    // cast to uint32_t so that Visual Studio stops complaining ...
+    assert(KHR_DFDVAL(prototype->pDfd + 1, MODEL) == (uint32_t)expected_color_model &&
+           "Invalid dfd generated for BCn image\n");
+
+    assert((transfer == KHR_DF_TRANSFER_SRGB
+                ? KHR_DFDVAL(prototype->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB &&
+                      KHR_DFDVAL(prototype->pDfd + 1, PRIMARIES) == KHR_DF_PRIMARIES_SRGB
+                : true) &&
+           "Not a valid sRGB image\n");
 
     // Fix up the current (This) texture (this is copied from ASTC encoder - see
     // astc_codec.cpp)

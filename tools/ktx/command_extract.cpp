@@ -30,9 +30,6 @@
 #include "astc-encoder/Source/ThirdParty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
-#include "bc7enc/rgbcx.h"               /* for BC1-BC5 decoders */
-#include "encoder/basisu_gpu_texture.h" /* for BC6HU/BC6HS decoders */
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -617,11 +614,6 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     params.allow_3color_mode = true;
     params.use_3color_mode_for_black = false;
     params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
-
-    if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC3 ||
-        bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC4 ||
-        bcn == KTX_BCN_COMPRESSION_BC5)
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params.bc1_approx_mode));
 
     switch (bcn) {
     case KTX_BCN_COMPRESSION_BC1:
