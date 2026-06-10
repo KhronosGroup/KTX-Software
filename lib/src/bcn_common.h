@@ -378,7 +378,7 @@ extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint
 
     // nbr remaining raws that were not copied from src and should be
     // clamp-to-edge-y generated for src
-    const uint32_t remaining_raws = std::max(0u, (y + kBlockSize) - height);
+    const uint32_t remaining_raws = (uint32_t)std::max<int>(0, (int)(y + kBlockSize) - (int)height);
 
     const T* pSrc = src + y * src_pitch + x * nchannels;
     T* pDst = dst;

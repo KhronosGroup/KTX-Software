@@ -40,7 +40,6 @@
     #include "texture2.h"
     #include "multithreading.h"
     #include <cstdint>
-    #include "encoder/basisu_enc.h"
 
     #define DEBUG_PRINT_STATS 0 /* set to print RDO stats */
     #if DEBUG_PRINT_STATS
@@ -71,7 +70,7 @@ unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
 
 static inline bool
 unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
-    memset(pPixels, 0, sizeof(ert::color_rgba) * 16);
+    memset((void*)pPixels, 0, sizeof(ert::color_rgba) * 16);
     rgbcx::unpack_bc4(pBlock, reinterpret_cast<uint8_t*>(pPixels), 4);
     return true;
 };
@@ -452,7 +451,8 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                 int m = 0;
                 for (int dy = -1; dy <= 1; dy++)
                     for (int dx = -1; dx <= 1; dx++) {
-                        auto c_idx = ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
+                        auto c_idx =
+                            ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
                         if (ultrasmooth_blocks_vis[c_idx].r == 255) m = std::max<int>(m, 255);
                     }
                 next_vis[x + y * num_blocks_x].set((uint8_t)m, 255);
@@ -508,10 +508,9 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             std::vector<ert::pixel_coord> filled_pixels;
             filled_pixels.reserve(256);
 
-            uint32_t total_set_pixels =
-                flood_fill(ultrasmooth_blocks_vis, bx, by, num_blocks_x, num_blocks_y,
-                           ert::color_rgba(255, 255, 255, 255), ert::color_rgba(0, 0, 0, 255),
-                           &filled_pixels);
+            uint32_t total_set_pixels = flood_fill(
+                ultrasmooth_blocks_vis, bx, by, num_blocks_x, num_blocks_y,
+                ert::color_rgba(255, 255, 255, 255), ert::color_rgba(0, 0, 0, 255), &filled_pixels);
 
             if (total_set_pixels < ULTRASMOOTH_REGION_TOO_SMALL_THRESHOLD) {
                 for (uint32_t i = 0; i < filled_pixels.size(); i++)
