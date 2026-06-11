@@ -14,18 +14,7 @@ namespace ert
 
   struct color_rgba
   {
-  	union
-  	{
-  		uint8_t m_comps[4];
-  
-  		struct
-  		{
-  			uint8_t r;
-  			uint8_t g;
-  			uint8_t b;
-  			uint8_t a;
-  		};
-  	};
+  	uint8_t m_comps[4];
   
   	inline color_rgba()
   	{

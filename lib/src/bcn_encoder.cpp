@@ -409,13 +409,13 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                 extract_block(rgb, unpacked_img, bx * BCN_BLOCK_SIZE, by * BCN_BLOCK_SIZE, width,
                               height, nchannels);
                 for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
-                    block_pixels[i].r = rgb[i * 3];
-                    block_pixels[i].g = rgb[i * 3 + 1];
-                    block_pixels[i].b = rgb[i * 3 + 2];
-                    block_pixels[i].a = 255;
+                    block_pixels[i].m_comps[0] = rgb[i * 3];
+                    block_pixels[i].m_comps[1] = rgb[i * 3 + 1];
+                    block_pixels[i].m_comps[2] = rgb[i * 3 + 2];
+                    block_pixels[i].m_comps[3] = 255;
                 }
             } else /* nchannels == 4 */ {
-                extract_block(&block_pixels[0].r, unpacked_img, bx * BCN_BLOCK_SIZE,
+                extract_block(&block_pixels->m_comps[0], unpacked_img, bx * BCN_BLOCK_SIZE,
                               by * BCN_BLOCK_SIZE, width, height, nchannels);
             }
 
@@ -453,7 +453,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                     for (int dx = -1; dx <= 1; dx++) {
                         auto c_idx =
                             ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
-                        if (ultrasmooth_blocks_vis[c_idx].r == 255) m = std::max<int>(m, 255);
+                        if (ultrasmooth_blocks_vis[c_idx].m_comps[0] == 255) m = std::max<int>(m, 255);
                     }
                 next_vis[x + y * num_blocks_x].set((uint8_t)m, 255);
             }  // x blocks
@@ -476,13 +476,13 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         for (int y = 0; y < (int)num_blocks_y; y++) {
             for (int x = 0; x < (int)num_blocks_x; x++) {
                 // auto c_idx = get_clamped_index(x, y, num_blocks_x, num_blocks_y);
-                if (ultrasmooth_blocks_vis[x + y * num_blocks_x].r < 255) {
+                if (ultrasmooth_blocks_vis[x + y * num_blocks_x].m_comps[0] < 255) {
                     int m = 0;
                     for (int dy = -1; dy <= 1; dy++)
                         for (int dx = -1; dx <= 1; dx++) {
                             auto c_idx =
                                 ert::get_clamped_index(x + dx, y + dy, num_blocks_x, num_blocks_y);
-                            if (ultrasmooth_blocks_vis[c_idx].r == 255) m++;
+                            if (ultrasmooth_blocks_vis[c_idx].m_comps[0] == 255) m++;
                         }
 
                     if (m >= 5) next_vis[x + y * num_blocks_x].set(255);
@@ -502,7 +502,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
     // filter (still have not understood this in detail)
     for (uint32_t by = 0; by < num_blocks_y; by++) {
         for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
-            const bool is_ultrasmooth = ultrasmooth_blocks_vis[bx + by * num_blocks_x].r == 0;
+            const bool is_ultrasmooth = ultrasmooth_blocks_vis[bx + by * num_blocks_x].m_comps[0] == 0;
             if (!is_ultrasmooth) continue;
 
             std::vector<ert::pixel_coord> filled_pixels;
@@ -532,7 +532,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
     [[maybe_unused]] uint32_t total_ultrasmooth_blocks = 0;
     for (uint32_t by = 0; by < num_blocks_y; by++) {
         for (uint32_t bx = 0; bx < num_blocks_x; bx++) {
-            const bool is_ultrasmooth = orig_ultrasmooth_blocks_vis[bx + by * num_blocks_x].r == 0;
+            const bool is_ultrasmooth = orig_ultrasmooth_blocks_vis[bx + by * num_blocks_x].m_comps[0] == 0;
             float& s = block_mse_scales[bx + by * num_blocks_x];
             if (is_ultrasmooth) {
                 s = ULTRAMOOTH_BLOCK_MSE_SCALE;
