@@ -908,7 +908,7 @@ TEST_F(ktxTexture2_IterateLevelFacesTest, InvalidValueOnNullCallback) {
         result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                              &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -928,7 +928,7 @@ TEST_F(ktxTexture2_IterateLevelFacesTest, IterateImages) {
         result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                              &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
 
@@ -954,7 +954,7 @@ TEST_F(ktxTexture2_IterateLevelsTest, InvalidValueOnNullCallback) {
         result = ktxTexture_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                              &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2300,7 +2300,7 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2339,7 +2339,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, Uncompressed) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2359,7 +2359,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, BasisLZ) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2382,7 +2382,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestR8, UASTC) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2405,7 +2405,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, Uncompressed) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2425,7 +2425,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2446,7 +2446,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, UASTC) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2469,7 +2469,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, Uncompressed) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2489,7 +2489,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, BasisLZ) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2512,7 +2512,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGB8, UASTC) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2535,7 +2535,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, Uncompressed) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2555,7 +2555,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, BasisLZ) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2578,7 +2578,7 @@ TEST_F(ktxTexture2_GetNumComponentsTestRGBA8, UASTC) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2601,7 +2601,7 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2621,7 +2621,7 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
         result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2650,7 +2650,7 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2673,7 +2673,7 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
         result = ktxTexture2_CreateFromMemory(newMemFile, newMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2700,7 +2700,7 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2729,7 +2729,7 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
                                                   newMemFileLens[i],
                                                   KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                                   &texture);
-            ASSERT_TRUE(result == KTX_SUCCESS);
+            EXPECT_EQ(result, KTX_SUCCESS);
             ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                          << ktxErrorString(result);
             ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2768,7 +2768,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
         result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2814,7 +2814,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
                                               newMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                               &texture);
-        ASSERT_TRUE(result == KTX_SUCCESS);
+        EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                      << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
@@ -2942,7 +2942,7 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
                                                   KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                                   &texture);
-            ASSERT_TRUE(result == KTX_SUCCESS);
+            EXPECT_EQ(result, KTX_SUCCESS);
             ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
                                          << ktxErrorString(result);
             ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
