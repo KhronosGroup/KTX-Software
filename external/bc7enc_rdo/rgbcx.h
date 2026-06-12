@@ -103,6 +103,7 @@ namespace rgbcx
 	template <typename S> inline S minimum(S a, S b, S c) { return minimum(minimum(a, b), c); }
 	template <typename S> inline S minimum(S a, S b, S c, S d) { return minimum(minimum(minimum(a, b), c), d); }
 		
+  // TODO: this shares a lot of similarities with ert.h's color_rgba, maybe use that and remove this?
 	struct color32
 	{
 		union

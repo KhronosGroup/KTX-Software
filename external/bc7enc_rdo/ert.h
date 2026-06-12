@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning (disable:4201) //nameless struct/union
+#endif
+
 #include <cstdint>
 #include <stdlib.h>
 #include <math.h>
