@@ -19,7 +19,8 @@ VULKAN_INSTALL_DIR=${VULKAN_INSTALL_DIR:-~/VulkanSDK}
 
 git lfs install
 git lfs version
-gem install xcpretty
+# TODO: revert this comment before merging!
+# gem install xcpretty
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
   git lfs pull --include=tests/resources
