@@ -127,10 +127,9 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             "               | matches the D3D9 docs on DXT1.                 ",
             cxxopts::value<std::string>(), "<mode>")(
             kBC1Quality,
-            "The quality level configures the quality-performance tradeoff for BC1 and, "
-            "subsequently, BC3 encoders. The quality level can be set in the range [0, 19] with "
-            "(0) being the 'fastest' and (19) the slowest but most 'exhaustive'. Default is (15) "
-            "'thorough'. "
+            "The quality level configures the quality-performance tradeoff for BC1/BC3 encoders. "
+            "The quality level can be set in the range [0, 19] with (0) being the 'fastest' and "
+            "(19) the slowest but most 'exhaustive'. Default is (15) 'thorough'. "
             "Can also be set via the following aliases:\n\n"
             "    Level      |  Quality\n"
             "    ---------- | ---------------------------- \n"
@@ -189,13 +188,14 @@ struct OptionsEncodeBCn : public ktxBCnParams {
                        "Disable encoding of extremely smooth blocks with a significantly "
                        "higher MSE scale factor. Results in significantly more artifacts on "
                        "regions containing very smooth blocks (e.g., gradients, skies, etc.). "
-                       "This does improve rate-distortion performance, though.")(
+                       "This does improve rate-distortion performance, though. BC4 and BC5 formats "
+                       "do not support ultrasmooth block handling.")(
             kBCnRdoTryOneMatch,
             "Inject up to 1 match into each block instead of up-to-two matches. Results "
             "in slightly faster, but lower compression.")(
             kBCnRdoSkipZeroMSEBlocks,
-            "Skip blocks that have zero mean-squared error (MSR). Might result in "
-            "faster compression speed but potentially lower compression.");
+            "Skip blocks that have zero mean-squared error (MSE). Might result in faster but "
+            "potentially lower compression.");
     }
 
     void captureBCnOption(const char* name) { bcnOptions += fmt::format(" --{}", name); }
