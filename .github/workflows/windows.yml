@@ -174,9 +174,9 @@ jobs:
     - name: Install NSIS
       # NSIS was removed from windows-2025 (windows-latest as of this writing).
       # Earlier runner images only have NSIS 3.08 so install latest everywhere.
-      # install-nsis v1.1.0 also installs long string support.
+      # Since v1.1.0 install-nsis also installs long string support.
       if: matrix.options.package == 'YES'
-      uses: repolevedavaj/install-nsis@v1.2.0
+      uses: repolevedavaj/install-nsis@v1.2.1
       with:
         nsis-version: '3.12'
 
