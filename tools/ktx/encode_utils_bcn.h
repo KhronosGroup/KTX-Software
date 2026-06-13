@@ -8,6 +8,7 @@
 #include "ktx.h"
 #include "utility.h"
 
+#include <string>
 #include <thread>
 
 // -------------------------------------------------------------------------------------------------
@@ -255,7 +256,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             if (it == bc1_quality_mapping.end()) {
                 // try to parse explicitly provided value (advanced usecase)
                 try {
-                    bc1CompressionQuality = std::stoul(qualityLevelStr);
+                    bc1CompressionQuality = static_cast<ktx_uint32_t>(std::stoul(qualityLevelStr));
                 } catch (const std::exception&) {
                     report.fatal_usage(
                         "Invalid bc1-quality. Expected a quality level string alias (e.g., "
@@ -283,7 +284,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             if (it == bc7_quality_mapping.end()) {
                 // try to parse explicitly provided OR'ed flags (advanced usecase)
                 try {
-                    bc7CompressionQuality = std::stoul(qualityLevelStr);
+                    bc7CompressionQuality = static_cast<ktx_uint32_t>(std::stoul(qualityLevelStr));
                 } catch (const std::exception&) {
                     report.fatal_usage(
                         "Invalid bc7-quality. Expected a quality level string alias (e.g., "
