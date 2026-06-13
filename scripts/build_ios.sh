@@ -39,16 +39,6 @@ OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
-if which -s xcpretty ; then
-  function handle_compiler_output() {
-    tee -a fullbuild.log | xcpretty
-  }
-else
-  function handle_compiler_output() {
-    cat
-  }
-fi
-
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
 set -o pipefail
@@ -97,7 +87,7 @@ IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   echo "Build KTX-Software (iOS $config)"
-  cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet
   # A simulator build would look like this but note that due to the way vcpkg
   # manifest mode works, different CMake configurations are needed for
   # device and simulator. Hence a different BUILD_DIR and separate run
