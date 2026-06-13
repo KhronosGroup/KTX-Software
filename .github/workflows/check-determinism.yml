@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-2025, windows-11-arm ]
+        os: [ macos-latest, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm, windows-2022, windows-11-arm ]
         compiler:
           - [ clang, clang++ ]
           - [ gcc, g++ ]
@@ -51,11 +51,11 @@ jobs:
             compiler: [ $(brew --prefix llvm@18)/bin/clang, $(brew --prefix llvm@18)/bin/clang++ ]
             config: Release
             generator: 'Ninja Multi-Config'
-          - os: windows-2025
+          - os: windows-2022
             config: Release
             generator: 'Visual Studio 17 2022'
             toolset: v143
-          - os: windows-2025
+          - os: windows-2022
             config: Release
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
