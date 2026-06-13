@@ -40,9 +40,43 @@
 void setWindowsIcon(SDL_Window *sdlWindow);
 #endif
 
+#define SUPPORT_HDR 0
+// GLAppSDL does not support HDR because:
+// - Apple's OpenGL does not expose the extensions for the compressed HDR formats, ASTC HDR
+//   and BC6H, even though the hardware supports them; thus HDR display is not very useful
+//   on those platforms;
+// - on Apple OSes, it is not possible to display HDR from the window created by SDL for OpenGL;
+//   to do so requires a window backed by a CAMetalLayer with its boolean field
+//   wantsExtendedDynamicRangeContent set to true; the SDL window has no CAMetalLayer;
+// - when the compositor on Apple OSes displays the content of a window that is not enabled
+//   for HDR, it copies the data to the display which then decodes it as if it was sRGB data;
+// - there is no portable way in SDL to determine if a window is HDR enabled, or not, so no way
+//   to distinguish between a GL_LINEAR renderbuffer being displayed as linear or being
+//   displayed as sRGB, as in the preceeding bullet, meaning correct color cannot be
+//   guaranteed;
+// - the author does not have suitable hardware to test how GNU/Linux and Windows handle
+//   HDR and whether it can be displayed from an SDL created window.
+//
+// The disabled code has been left in case it proves useful in the future.
+
 bool
 GLAppSDL::initialize(Args& args)
 {
+#if SUPPORT_HDR
+    const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
+                                                         "KTX_GL_LT_USE_HDR_SURFACE");
+    if (use_hdr_surface != nullptr && !SDL_strncasecmp(use_hdr_surface, "YES", 3))
+        hdr = true;
+
+    for (uint32_t i = 1; i < args.size(); i++) {
+        if (args[i].compare("--hdr") == 0) {
+            hdr = true;
+            args.erase(args.begin() + i--);
+            continue;
+        }
+    }
+#endif
+
     if (!AppBaseSDL::initialize(args))
         return false;
 
@@ -51,9 +85,30 @@ GLAppSDL::initialize(Args& args)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minorVersion);
     // On SDL3 this defaults to 8. On SDL2 it was 0.
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-#if !defined(__EMSCRIPTEN__)
     if (majorVersion >= 3)
-      SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+        SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 1);
+#if SUPPORT_HDR
+    if (hdr) {
+#if SDL_PLATFORM_APPLE || SDL_PLATFORM_EMSCRIPTEN
+        //   Emscripten's WebGL-based OpenGL {,ES} does not support float framebuffers or
+        // HDR display.
+        //   HDR display from SDL OpenGL windows on Apple platforms is not supported as
+        // described in the comment where SUPPORT_HDR is defined.
+        std::stringstream message;
+        message << "Ignoring --hdr. HDR display is not supported on "
+                << (SDL_PLATFORM_APPLE ? "SDL with Apple" : "Emscripten")
+                << " OpenGL or OpenGL ES implementations.";
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
+                                       message.str().c_str(), NULL);
+#else
+        // Due to the author not having suitable hardware, whether HDR will be displayed correctly
+        // on Android, GNU/Linux or Windows is unknown.
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);
+        SDL_GL_SetAttribute(SDL_GL_FLOATBUFFERS, 1);
+#endif
+    }
 #endif
 #if defined(DEBUG) && !defined(__EMSCRIPTEN__)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
@@ -153,8 +208,6 @@ GLAppSDL::initialize(Args& args)
         glewdll = SDL_LoadObject("glew32.dll");
 #endif
         if (glewdll == NULL) {
-            std::string sName(szName);
-
             (void)SDL_ShowSimpleMessageBox(
                 SDL_MESSAGEBOX_ERROR,
                 szName,
@@ -186,8 +239,6 @@ GLAppSDL::initialize(Args& args)
         }
 
         if (loadError) {
-            std::string sName(szName);
-
             (void)SDL_ShowSimpleMessageBox(
                 SDL_MESSAGEBOX_ERROR,
                 szName,
@@ -197,8 +248,6 @@ GLAppSDL::initialize(Args& args)
         }
         int iResult = pGlewInit();
         if (iResult != GLEW_OK) {
-            std::string sName(szName);
-
             (void)SDL_ShowSimpleMessageBox(
                           SDL_MESSAGEBOX_ERROR,
                           szName,
