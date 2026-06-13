@@ -13,6 +13,8 @@
 #include "LoadTestSample.h"
 #include "mygl.h"
 #include "utils/GLMeshLoader.hpp"
+#include "GLTextureTranscoder.hpp"
+
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 
@@ -31,6 +33,8 @@ class GL3LoadTestSample : public LoadTestSample {
     virtual void resize(uint32_t width, uint32_t height) = 0;
     virtual void run(uint32_t msTicks) = 0;
 
+    bool transcodeIfNeeded(ktxTexture* kTexture);
+
     //virtual void getOverlayText(TextOverlay *textOverlay) { };
 
     typedef LoadTestSample* (*PFN_create)(uint32_t width, uint32_t height,
@@ -48,22 +52,10 @@ class GL3LoadTestSample : public LoadTestSample {
     std::string ktxfilename;
     int externalFile = 0;
 
-    struct compressedTexFeatures {
-        bool astc_ldr;
-        bool astc_hdr;
-        bool bc6h;
-        bool bc7;
-        bool etc1;
-        bool etc2;
-        bool bc3;
-        bool pvrtc1;
-        bool pvrtc_srgb;
-        bool pvrtc2;
-        bool rgtc;
-    };
+    TextureTranscoder transcoder;
 
-    static void determineCompressedTexFeatures(compressedTexFeatures& features);
-    static GLint framebufferColorEncoding();
+    static bool colorEncodingSRGBOrTrueLinear();
+
     void loadMesh(std::string filename, glMeshLoader::MeshBuffer& meshBuffer,
                   std::vector<glMeshLoader::VertexLayout> vertexLayout,
                   float scale);
@@ -71,6 +63,10 @@ class GL3LoadTestSample : public LoadTestSample {
     static void makeShader(GLenum type, const GLchar* const source,
                            GLuint* shader);
     static void makeProgram(GLuint vs, GLuint fs, GLuint* program);
+
+  private:
+    static GLint framebufferColorEncoding();
+    static GLint framebufferAttachmentType();
 };
 
 #endif /* GL3_LOAD_TEST_SAMPLE_H */
