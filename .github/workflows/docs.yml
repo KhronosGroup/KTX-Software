@@ -67,7 +67,7 @@ jobs:
     name: Build KTX-Software reference pages and documentation
     strategy:
       matrix:
-        #os: [ macos-latest,  ubuntu-latest, windows-latest ]
+        #os: [ macos-latest,  ubuntu-latest, windows-2025 ]
         os: [ ubuntu-latest ]
 
     runs-on: ${{ matrix.os }}
@@ -112,7 +112,7 @@ jobs:
       run: ./install-gitconfig.sh && scripts/smudge_date.sh
 
     - name: Smudge dates (Windows)
-      if:  matrix.os == 'windows-latest'
+      if:  matrix.os == 'windows-2025'
       run: ./install-gitconfig.ps1 && scripts/smudge_date.ps1
 
     - name: Build docs
