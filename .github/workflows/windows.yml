@@ -55,7 +55,7 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        os: [ windows-latest ]
+        os: [ windows-2022 ]
         generator: [ 'Visual Studio 17 2022' ]
         toolset: [v143, CLangCL]
         arch: [ x64 ]
@@ -80,18 +80,18 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
+#          - os: windows-2022
+#            generator: 'Visual Studio 17 2022'
+#            toolset: v143
+#            arch: x64
+#            java-version: '17'
+#            options: {
+#              config: 'Debug,Release',
+#              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+#              package: NO,
+#              sse: ON, opencl: OFF
+#            }
           - os: windows-2022
-            generator: 'Visual Studio 17 2022'
-            toolset: v143
-            arch: x64
-            java-version: '17'
-            options: {
-              config: 'Debug,Release',
-              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
-              package: NO,
-              sse: ON, opencl: OFF
-            }
-          - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: arm64
@@ -172,8 +172,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install NSIS
-      # NSIS was removed from windows-2025 (windows-latest as of this writing).
-      # Earlier runner images only have NSIS 3.08 so install latest everywhere.
+      # NSIS was removed from windows runners.
       # Since v1.1.0 install-nsis also installs long string support.
       if: matrix.options.package == 'YES'
       uses: repolevedavaj/install-nsis@v1.2.1
