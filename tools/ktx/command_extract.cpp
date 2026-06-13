@@ -2,6 +2,11 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+// builds on Windows complain about deprecated "strncpy" calls
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "bcn_common.h"
 #include "command.h"
 #include "platform_utils.h"
