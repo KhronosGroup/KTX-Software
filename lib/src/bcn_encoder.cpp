@@ -437,7 +437,6 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             if ((y_avg < DARK_THRESHOLD) || (y_avg >= BRIGHT_THRESHOLD)) yl = 1.0f;
             int k = std::min<int>((int)(yl * 255.0f + .5f), 255);
 
-            // ultrasmooth_blocks_vis.fill_box(bx, by, 1, 1, color_quad_u8((uint8_t)k, 255));
             ultrasmooth_blocks_vis[bx + by * num_blocks_x] = ert::color_rgba(k, 255);
         }
     }
@@ -515,7 +514,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             if (total_set_pixels < ULTRASMOOTH_REGION_TOO_SMALL_THRESHOLD) {
                 for (uint32_t i = 0; i < filled_pixels.size(); i++)
                     orig_ultrasmooth_blocks_vis[filled_pixels[i].m_x +
-                                                filled_pixels[i].m_y * num_blocks_y] =
+                                                filled_pixels[i].m_y * num_blocks_x] =
                         ert::color_rgba(255, 255, 255, 255);
             }
 
