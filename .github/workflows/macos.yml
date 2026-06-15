@@ -151,6 +151,11 @@ jobs:
       VULKAN_INSTALL_DIR: /Users/runner/VulkanSDK/${{ matrix.vulkan_sdk_version }}
       VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.vulkan_sdk_version }}/macOS
 
+      # Avoid issues when runners are updated to brew 6.0.
+      # Remove this step when the untrusted packages in the runner have been updated
+      # to trusted versions. See https://github.com/actions/runner-images/issues/14232
+      HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
+
     steps:
       - uses: actions/checkout@v6
         with:
@@ -175,15 +180,6 @@ jobs:
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
-
-      # Remove this step when these packages in the runner have been updated to trusted versions.
-      - name: Trust brew taps (temporary)
-        if: matrix.options.doc == 'ON'
-        run: |
-          read -ra vertoks <<< $(brew --version)
-          if [ ${vertoks[1]} = "6.0.0" -o ${vertoks[1]} \> "6.0.0" ]; then
-            brew trust aws/tap azure/bicep hashicorp/tap
-          fi
 
       - name: Install Doxygen
         if: matrix.options.doc == 'ON'
