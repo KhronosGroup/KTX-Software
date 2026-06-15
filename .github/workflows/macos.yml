@@ -179,7 +179,11 @@ jobs:
       # Remove this step when these packages in the runner have been updated to trusted versions.
       - name: Trust brew taps (temporary)
         if: matrix.options.doc == 'ON'
-        run: brew trust aws/tap azure/bicep hashicorp/tap
+        run: |
+          read -ra vertoks <<< $(brew --version)
+          if [ ${vertoks[1]} = "6.0.0" -o ${vertoks[1]} \> "6.0.0" ]; then
+            brew trust aws/tap azure/bicep hashicorp/tap
+          fi
 
       - name: Install Doxygen
         if: matrix.options.doc == 'ON'
