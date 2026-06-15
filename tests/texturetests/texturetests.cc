@@ -2929,14 +2929,16 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
     using ktxTextureTestBase<component_type, numComponents, internalformat>::ktxMemFileLen;
 
   public:
-    void runTest(ktx_pack_astc_block_dimension_e blockDimension) {
+    void runTest(ktx_pack_astc_block_dimension_e blockDimension, std::string testname) {
         ktxTexture2* texture;
         KTX_error_code result;
         auto tmpDir = fs::temp_directory_path();
 
-        fs::path original = tmpDir / "CompressToAstcLdrThenDecode_original.ktx2";
-        fs::path decoded = tmpDir / "CompressToAstcLdrThenDecode_decoded.ktx2";
-        fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
+        // make sure that each test instance has a different input/output and ktxdiff.txt filenames otherwise
+        // running tests in parallel may fail (e.g., ctest -j8)
+        fs::path original = tmpDir / format("{}_original.ktx2", testname);
+        fs::path decoded = tmpDir / format("{}_decoded.ktx2", testname);
+        fs::path ktxdiffOut = tmpDir / format("{}_ktxdiff.txt", testname);
 
         if (ktxMemFile != NULL) {
             result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
@@ -3133,34 +3135,34 @@ class ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB
 ///////////////////////////////////////////
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc4x4LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4, "Compress_RGBA8_UNORM_ToAstc4x4LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc4x4LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4, "Compress_RGBA8_SRGB_ToAstc4x4LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_UNORM, CompressToAstc4x4LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4, "Compress_RGB8_UNORM_ToAstc4x4LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGB8_SRGB, CompressToAstc4x4LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_4x4, "Compress_RGB8_SRGB_ToAstc4x4LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc8x5LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5, "Compress_RGBA8_UNORM_ToAstc8x5LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc8x5LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_8x5, "Compress_RGBA8_SRGB_ToAstc8x5LdrThenDecode");
 }
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_UNORM, CompressToAstc12x12LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12, "Compress_RGBA8_UNORM_ToAstc12x12LdrThenDecode");
 }
 
 TEST_F(ktxTexture2_AstcLdrEncodeDecodeTestRGBA8_SRGB, CompressToAstc12x12LdrThenDecode) {
-    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12);
+    runTest(KTX_PACK_ASTC_BLOCK_DIMENSION_12x12, "Compress_RGBA8_SRGB_ToAstc12x12LdrThenDecode");
 }
 
 //-------------------------------------------------
