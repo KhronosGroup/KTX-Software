@@ -151,6 +151,11 @@ jobs:
       VULKAN_INSTALL_DIR: /Users/runner/VulkanSDK/${{ matrix.vulkan_sdk_version }}
       VULKAN_SDK: /Users/runner/VulkanSDK/${{ matrix.vulkan_sdk_version }}/macOS
 
+      # Avoid issues when runners are updated to brew 6.0.
+      # Remove this step when the untrusted packages in the runner have been updated
+      # to trusted versions. See https://github.com/actions/runner-images/issues/14232
+      HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
+
     steps:
       - uses: actions/checkout@v6
         with:
