@@ -176,6 +176,11 @@ jobs:
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
 
+      # Remove this step when these packages in the runner have been updated to trusted versions.
+      - name: Trust brew taps (temporary)
+        if: matrix.options.doc == 'ON'
+        run: brew trust aws/tap azure/bicep hashicorp/tap
+
       - name: Install Doxygen
         if: matrix.options.doc == 'ON'
         uses: ssciwr/doxygen-install@v1
