@@ -181,6 +181,24 @@ add_executable( vkloadtests
     vkloadtests.cmake
 )
 
+# Keep this in case something changes in the Vulkan implementation and we need to
+# explicitly set wantsExtendedDynamicRangeContent as we have to on locked OSes.
+#if(APPLE_MAC_OS)
+#    target_sources(
+#        vkloadtests
+#    PUBLIC
+#        appfwSDL/cocoaSetEDR.mm
+#    )
+#endif()
+if(APPLE_LOCKED_OS)
+    target_sources(
+        vkloadtests
+    PUBLIC
+        appfwSDL/uikitSetEDR.mm
+    )
+endif()
+
+
 set_code_sign(vkloadtests)
 
 # If VulkanAppSDL is ever made into its own target change the target here.
