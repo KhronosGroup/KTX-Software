@@ -4,9 +4,6 @@
 
 cmake_minimum_required(VERSION 3.23)
 
-# revert this ...
-add_compile_options(-fno-strict-aliasing)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules/")
 set( KTX_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}/.. )
 #set( KTX_ROOT_DIR .. )
