@@ -6,8 +6,7 @@ set_property(TARGET bc7enc_rdo PROPERTY CXX_STANDARD 17)
 
 # original bc7enc_rdo disables strict aliasing (see https://github.com/richgel999/bc7enc_rdo/blob/master/CMakeLists.txt)
 # basisu also emphasises on compiling with '-fno-strict-aliasing'
-# TODO: PUBLIC here means that libktx will also use '-fno-strict-aliasing' so REVERT this to PRIVATE!
-target_compile_options(bc7enc_rdo PUBLIC -fno-strict-aliasing)
+target_compile_options(bc7enc_rdo PRIVATE -fno-strict-aliasing)
 
 target_sources(bc7enc_rdo
   PRIVATE

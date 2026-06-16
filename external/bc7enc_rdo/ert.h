@@ -16,6 +16,14 @@ namespace ert
     return (value < low) ? low : ((value > high) ? high : value);
   }
 
+  // Copied from Basis Universal's basist::color_rgba. Even though this is the
+  // same as basist::color_rgba (minus some functions), using them
+  // interchangeably is probably unsigned behavior (UB).
+  //
+  // Q. Why not use basist::color_rgba directly? This would require adding
+  //    Basis Universal as an external dependency to an otherwise
+  //    zero-dependency project. In case that is acceptable, color32 in rgbcx
+  //    can also be replaced (to some degree) by basist::color_rgba.
   struct color_rgba
   {
   	union

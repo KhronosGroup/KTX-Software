@@ -1394,19 +1394,20 @@ typedef struct ktxAstcParams {
  * @brief Options specifiying BC1/BC3 encoding/decoding approximation modes.
  */
 typedef enum ktx_bc1_approx_mode_e {
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL          = 0,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL          = 0U,
         /*!< The default mode. No rounding for 4-color colors 2,3. This matches
            the D3D10 docs on BC1.
          */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA         = 1,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA         = 1U,
         /*!< NVidia GPU mode. May produce artifacts on non-NVidia GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD            = 2,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD            = 2U,
         /*!< AMD GPU mode. May produce artifacts on non-AMD GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4  = 3,
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4  = 3U,
         /*!< Matches AMD Compressonator's output. Rounds 4-color colors 2,3 (not
            3-color color 2). This matches the D3D9 docs on DXT1.
          */
 } ktx_bc1_approx_mode_e;
+typedef ktx_uint32_t ktx_bc1_approx_mode;
 
 /**
  * @~English
@@ -1528,7 +1529,7 @@ typedef struct ktxBCnParams {
 
     /* BC1-5 params */
 
-    ktx_bc1_approx_mode_e bc1ApproxMode;
+    ktx_bc1_approx_mode bc1ApproxMode;
         /*!< BC1/BC3 approximation mode (for both: encoding and decoding).
            Default is KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL.
           

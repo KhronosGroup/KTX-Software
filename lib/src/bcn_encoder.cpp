@@ -33,6 +33,8 @@
 
     #include "bcn_common.h"
 
+    #include <atomic>
+    #include "ert.h"                             /* for RDO */
     #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
     #include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
     #include "vkformat_enum.h"                   /* for VkFormat enum */
@@ -63,17 +65,317 @@
     #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
     #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
-static inline bool
-unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
-    return basist::bc7u::unpack_bc7(pBlock, reinterpret_cast<basist::color_rgba*>(pPixels));
+//************************************************************************
+//*                     RDO Structs + Functions                          *
+//************************************************************************
+
+struct rdo_params {
+    ert::reduce_entropy_params ert_p;
+    /* Whether to automatically compute the maximum MSE scale factor for
+     * smooth/flat blocks. */
+    ktx_bool_t auto_smooth_block_max_mse_scale;
+    unpack_block_bc1_user_data bc1_params;
+    ktx_bool_t ultra_smooth_block_mse_handling;
 };
 
-static inline bool
-unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
-    memset((void*)pPixels, 0, sizeof(ert::color_rgba) * 16);
-    rgbcx::unpack_bc4(pBlock, reinterpret_cast<uint8_t*>(pPixels), 4);
+/* Since this is used to pass parameters/data to thread runners, make sure all
+ * pointers point to heap-allocated resources (and, obviously, make sure that
+ * the lifetimes of spawned threads do not exceed that of these resources). */
+struct rdo_bc1_workload {
+    uint32_t m_width;
+    uint32_t m_height;
+    /* [in,out] packed/encoded image blocks */
+    uint8_t* m_packed_img;
+    /* [in,out] BC1 RGBX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_rgbx;
+    /* [in] BC1 RGB blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_rgb;
+    /* [out] BC1 total number smooth RGB blocks  */
+    std::atomic_int32_t m_total_smooth_blocks_rgb;
+    /* [out] BC1 total number second matches for RGB blocks */
+    std::atomic_int32_t m_total_second_matches_rgb;
+    /* [out] BC1 total number total number modified packed/encoded RGB blocks */
+    std::atomic_int32_t m_total_modified_rgb;
+    /* [out] false if any thread fails */
+    bool m_success;
+    unpack_block_bc1_user_data m_bc1_params;
+    /* [in] RGB ultrasmooth blocks (a positive entry means that the block is
+     * considered ultrasmooth) */
+    const float* m_block_rgb_mse_scales;
+
+    rdo_bc1_workload() = delete;
+    rdo_bc1_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
+                     const ert::color_rgba* unpacked_img_rgbx, ert::reduce_entropy_params ert_p_rgb,
+                     unpack_block_bc1_user_data bc1_params,
+                     const float* block_rgb_mse_scales = nullptr)
+        : m_width{width},
+          m_height{height},
+          m_packed_img{packed_img},
+          m_unpacked_img_rgbx{unpacked_img_rgbx},
+          m_ert_p_rgb{ert_p_rgb},
+          m_bc1_params{bc1_params},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
+        assert(m_packed_img != nullptr);
+        assert(m_unpacked_img_rgbx != nullptr);
+        assert(m_ert_p_rgb.m_color_weights[3] == 0);
+        m_total_smooth_blocks_rgb = 0;
+        m_total_second_matches_rgb = 0;
+        m_total_modified_rgb = 0;
+        m_success = true;
+    }
+};
+
+struct rdo_bc3_workload {
+    uint32_t m_width;
+    uint32_t m_height;
+    /* [in,out] packed/encoded image blocks */
+    uint8_t* m_packed_img;
+    /* [in,out] BC1 RGBX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_rgbx;
+    /* [in,out] BC4 AXXX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_axxx;
+    /* [in] BC1 RGB blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_rgb;
+    /* [in] BC4 A blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_a;
+    /* [out] BC1 total number smooth RGB blocks */
+    std::atomic_int32_t m_total_smooth_blocks_rgb;
+    /* [out] BC4 total number smooth A blocks */
+    std::atomic_int32_t m_total_smooth_blocks_a;
+    /* [out] BC1 total number second matches for RGB blocks */
+    std::atomic_int32_t m_total_second_matches_rgb;
+    /* [out] BC4 total number second matches for A blocks */
+    std::atomic_int32_t m_total_second_matches_a;
+    /* [out] BC1 total number total number modified packed/encoded RGB blocks */
+    std::atomic_int32_t m_total_modified_rgb;
+    /* [out] BC4 total number total number modified packed/encoded A blocks */
+    std::atomic_int32_t m_total_modified_a;
+    /* [out] false if any thread fails */
+    bool m_success;
+    unpack_block_bc1_user_data m_bc1_params;
+    const float* m_block_rgb_mse_scales;
+
+    rdo_bc3_workload() = delete;
+    rdo_bc3_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
+                     const ert::color_rgba* unpacked_img_rgbx,
+                     const ert::color_rgba* unpacked_img_axxx, ert::reduce_entropy_params ert_p_rgb,
+                     ert::reduce_entropy_params ert_p_a, unpack_block_bc1_user_data bc1_params,
+                     const float* block_rgb_mse_scales = nullptr)
+        : m_width{width},
+          m_height{height},
+          m_packed_img{packed_img},
+          m_unpacked_img_rgbx{unpacked_img_rgbx},
+          m_unpacked_img_axxx{unpacked_img_axxx},
+          m_ert_p_rgb{ert_p_rgb},
+          m_ert_p_a{ert_p_a},
+          m_bc1_params{bc1_params},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
+        assert(m_packed_img != nullptr);
+        assert(m_unpacked_img_rgbx != nullptr);
+        assert(m_unpacked_img_axxx != nullptr);
+        assert(m_ert_p_rgb.m_color_weights[3] == 0);
+        assert(m_ert_p_a.m_color_weights[1] == 0);
+        assert(m_ert_p_a.m_color_weights[2] == 0);
+        assert(m_ert_p_a.m_color_weights[3] == 0);
+        m_total_smooth_blocks_rgb = 0;
+        m_total_smooth_blocks_a = 0;
+        m_total_second_matches_rgb = 0;
+        m_total_second_matches_a = 0;
+        m_total_modified_rgb = 0;
+        m_total_modified_a = 0;
+        m_success = true;
+    }
+};
+
+struct rdo_bc4_workload {
+    uint32_t m_width;
+    uint32_t m_height;
+    /* [in,out] BC4 packed/encoded image blocks */
+    uint8_t* m_packed_img;
+    /* [in,out] BC4 RXXX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_rxxx;
+    /* [in] BC4 R blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_r;
+    /* [out] BC4 total number smooth R blocks */
+    std::atomic_int32_t m_total_smooth_blocks_r;
+    /* [out] BC4 total number smooth G blocks */
+    std::atomic_int32_t m_total_second_matches_r;
+    /* [out] BC4 total number second matches for G blocks */
+    std::atomic_int32_t m_total_modified_r;
+    /* [out] false if any thread fails */
+    bool m_success;
+
+    rdo_bc4_workload() = delete;
+    rdo_bc4_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
+                     const ert::color_rgba* unpacked_img_rxxx,
+                     const ert::reduce_entropy_params ert_p_r)
+        : m_width{width},
+          m_height{height},
+          m_packed_img{packed_img},
+          m_unpacked_img_rxxx{unpacked_img_rxxx},
+          m_ert_p_r{ert_p_r} {
+        assert(m_packed_img != nullptr);
+        assert(m_unpacked_img_rxxx != nullptr);
+        assert(m_ert_p_r.m_color_weights[1] == 0);
+        assert(m_ert_p_r.m_color_weights[2] == 0);
+        assert(m_ert_p_r.m_color_weights[3] == 0);
+        m_total_smooth_blocks_r = 0;
+        m_total_second_matches_r = 0;
+        m_total_modified_r = 0;
+        m_success = true;
+    }
+};
+
+struct rdo_bc5_workload {
+    uint32_t m_width;
+    uint32_t m_height;
+    /* [in,out] BC5 packed/encoded image blocks */
+    uint8_t* m_packed_img;
+    /* [in,out] BC4 RXXX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_rxxx;
+    /* [in,out] BC4 GXXX unpacked/decoded blocks (x == ignored) */
+    const ert::color_rgba* m_unpacked_img_gxxx;
+    /* [in] BC4 R blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_r;
+    /* [in] BC4 G blocks entropy reduction params */
+    ert::reduce_entropy_params m_ert_p_g;
+    /* [out] BC4 total number smooth R blocks  */
+    std::atomic_int32_t m_total_smooth_blocks_r;
+    /* [out] BC4 total number smooth G blocks  */
+    std::atomic_int32_t m_total_smooth_blocks_g;
+    /* [out] BC4 total number second matches for R blocks */
+    std::atomic_int32_t m_total_second_matches_r;
+    /* [out] BC4 total number second matches for G blocks */
+    std::atomic_int32_t m_total_second_matches_g;
+    /* [out] BC4 total number total number modified packed/encoded R blocks */
+    std::atomic_int32_t m_total_modified_r;
+    /* [out] BC4 total number total number modified packed/encoded G blocks */
+    std::atomic_int32_t m_total_modified_g;
+    /* [out] false if any thread fails */
+    bool m_success;
+
+    rdo_bc5_workload() = delete;
+    rdo_bc5_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
+                     const ert::color_rgba* unpacked_img_rxxx,
+                     const ert::color_rgba* unpacked_img_gxxx, ert::reduce_entropy_params ert_p_r,
+                     ert::reduce_entropy_params ert_p_g)
+        : m_width{width},
+          m_height{height},
+          m_packed_img{packed_img},
+          m_unpacked_img_rxxx{unpacked_img_rxxx},
+          m_unpacked_img_gxxx{unpacked_img_gxxx},
+          m_ert_p_r{ert_p_r},
+          m_ert_p_g{ert_p_g} {
+        assert(m_packed_img != nullptr);
+        assert(m_unpacked_img_rxxx != nullptr);
+        assert(m_unpacked_img_gxxx != nullptr);
+        assert(m_ert_p_r.m_color_weights[3] == 0);
+        assert(m_ert_p_g.m_color_weights[1] == 0);
+        assert(m_ert_p_g.m_color_weights[2] == 0);
+        assert(m_ert_p_g.m_color_weights[3] == 0);
+        m_total_smooth_blocks_r = 0;
+        m_total_smooth_blocks_g = 0;
+        m_total_second_matches_r = 0;
+        m_total_second_matches_g = 0;
+        m_total_modified_r = 0;
+        m_total_modified_g = 0;
+        m_success = true;
+    }
+};
+
+struct rdo_bc7_workload {
+    uint32_t m_width;
+    uint32_t m_height;
+    /* [in,out] packed/encoded image blocks */
+    uint8_t* m_packed_img;
+    /* [in,out] BC7 RGBA unpacked/decoded blocks */
+    const ert::color_rgba* m_unpacked_img_rgba;
+    /* [in] BC7 RGBA blocks entropy reduction params  */
+    ert::reduce_entropy_params m_ert_p_rgba;
+    /* [out] BC7 total number smooth RGBA blocks  */
+    std::atomic_int32_t m_total_smooth_blocks_rgba;
+    /* [out] BC7 total number second matches for RGBA blocks */
+    std::atomic_int32_t m_total_second_matches_rgba;
+    /* [out] BC7 total number total number modified packed/encoded RGBA blocks */
+    std::atomic_int32_t m_total_modified_rgba;
+    /* [out] false if any thread fails */
+    bool m_success;
+    const float* m_block_rgb_mse_scales;
+
+    rdo_bc7_workload() = delete;
+    rdo_bc7_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
+                     const ert::color_rgba* unpacked_img_rgba, ert::reduce_entropy_params ert_p,
+                     const float* block_rgb_mse_scales = nullptr)
+        : m_width{width},
+          m_height{height},
+          m_packed_img{packed_img},
+          m_unpacked_img_rgba{unpacked_img_rgba},
+          m_ert_p_rgba{ert_p},
+          m_block_rgb_mse_scales{block_rgb_mse_scales} {
+        assert(m_packed_img != nullptr);
+        assert(m_unpacked_img_rgba != nullptr);
+        m_total_smooth_blocks_rgba = 0;
+        m_total_second_matches_rgba = 0;
+        m_total_modified_rgba = 0;
+        m_success = true;
+    }
+};
+
+static bool
+unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* pUser_data) {
+    static_assert(sizeof(rgbcx::bc1_block) == BC1_BLOCK_SIZE);
+    static_assert(sizeof(rgbcx::color32) == sizeof(ert::color_rgba));
+    auto bc1_usr_data = static_cast<unpack_block_bc1_user_data*>(pUser_data);
+    // rgbcx's BC1 decoder decodes into an rgbcx::color32 struct not into a ert::color_rgba struct
+    // (which, even though is similar results in UB if passed directly).
+    rgbcx::color32 p_src_pixels[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE];
+    bool used_3color = rgbcx::unpack_bc1(pBlock, p_src_pixels, true, bc1_usr_data->bc1_approx_mode);
+    memcpy(pPixels, p_src_pixels, sizeof(rgbcx::color32) * BCN_BLOCK_SIZE * BCN_BLOCK_SIZE);
+    // This check is copied from the original code at: rdo_bc_encoder.h
+    if (used_3color) {
+        if (!bc1_usr_data->allow_3color_mode) return false;
+        if (!bc1_usr_data->use_3color_mode_for_black) {
+            // TODO: is this also UB (does it respect strict-aliasing rule or am I paranoid)?
+            auto pBC1_block = static_cast<const rgbcx::bc1_block*>(pBlock);
+            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y)
+                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x)
+                    if (pBC1_block->get_selector(x, y) == 3) return false;
+        }
+    }
     return true;
 };
+
+static bool
+unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
+    uint8_t p_src_pixels[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];
+    memset(p_src_pixels, 0, sizeof(p_src_pixels));
+    rgbcx::unpack_bc4(pBlock, p_src_pixels, 4);
+    memcpy(pPixels, p_src_pixels, BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4);
+    return true;
+};
+
+static bool
+unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
+    // Q. Why not pass reinterpret_cast<basist::color_rgba*>(pPixels) directly?
+    // A. basist::color_rgba and ert::color_rgba although similar, are in
+    // different TUs and this is apparently undefined behaviour
+    // (see: https://tttapa.github.io/Pages/Programming/Cpp/Practices/type-punning.html)
+    // Even if they were defined in same TU, this would still be UB.
+    // (also see:
+    // https://cellperformance.beyond3d.com/articles/2006/06/understanding-strict-aliasing.html)
+    // bc7enc_rdo expects that unpackers decode blocks to ert::color_rgba
+    static_assert(sizeof(ert::color_rgba) == sizeof(basist::color_rgba));
+    basist::color_rgba p_unpacked_block[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE];
+    if (basist::bc7u::unpack_bc7(pBlock, p_unpacked_block)) {
+        memcpy(pPixels, p_unpacked_block, sizeof(p_unpacked_block));
+        return true;
+    }
+    return false;
+};
+
+//************************************************************************
+//*                         Multithreading utils                         *
+//************************************************************************
 
 static inline void
 get_current_thread_blocks(uint32_t w, uint32_t h, int thread_id, int thread_count,
@@ -88,6 +390,10 @@ get_current_thread_blocks(uint32_t w, uint32_t h, int thread_id, int thread_coun
     num_blocks = is_last_thread ? nbrBlocksTotal - (thread_id * num_blocks_per_thread)
                                 : num_blocks_per_thread;
 }
+
+//************************************************************************
+//*                          BCn encoder runner                          *
+//************************************************************************
 
 static void
 compression_workload_runner(int thread_count, int thread_id, void* payload) {
@@ -108,6 +414,8 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1 */
     uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 - for BC6H? */
     uint8_t rgbx[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* only for BC1 */
+
+    basist::color_rgba rgba_bc7[16];
 
     basist::astc_6x6_hdr::fast_bc6h_params bc6h_params;
     bc6h_params.init();
@@ -166,6 +474,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             break;
 
         case KTX_BCN_COMPRESSION_BC6HU:
+            // TODO: is this reinterpret_cast an UB? fix/verify before merge
             basist::astc_6x6_hdr::fast_encode_bc6h(
                 rgbh,
                 reinterpret_cast<basist::bc6h_block*>(
@@ -175,9 +484,12 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
         case KTX_BCN_COMPRESSION_BC7:
             // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
+            // TODO: is this needed? libktx is compiled whith strict aliasing while basisu is
+            // compiled with '-fno-strict-aliasing'. basist::color_rgba is a trivial type after all
+            // ...
+            memcpy(rgba_bc7, rgba, sizeof(rgba_bc7));
             basist::bc7f::fast_pack_bc7_auto_rgba(
-                pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC7_BLOCK_SIZE,
-                reinterpret_cast<const basist::color_rgba*>(rgba),
+                pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC7_BLOCK_SIZE, rgba_bc7,
                 workload->params.bc7CompressionQuality);
             break;
 
@@ -187,12 +499,16 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     }
 }
 
+//************************************************************************
+//*                             RDO runners                              *
+//************************************************************************
+
 static void
 rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
     uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local = 0;
     ert::reduce_entropy_stats stats_local;
-    auto workload = reinterpret_cast<rdo_bc1_workload*>(payload);
+    auto workload = static_cast<rdo_bc1_workload*>(payload);
     get_current_thread_blocks(workload->m_width, workload->m_height, thread_id, thread_count,
                               block_start_idx, num_blocks);
     bool res = ert::reduce_entropy(
@@ -285,7 +601,7 @@ rdo_bc5_workload_runner(int thread_count, int thread_id, void* payload) {
     uint32_t total_modified_local_r = 0;
     uint32_t total_modified_local_g = 0;
     ert::reduce_entropy_stats local_stats;
-    auto workload = reinterpret_cast<rdo_bc5_workload*>(payload);
+    auto workload = static_cast<rdo_bc5_workload*>(payload);
     get_current_thread_blocks(workload->m_width, workload->m_height, thread_id, thread_count,
                               block_start_idx, num_blocks);
     // BC5: one BC4 block for R followed by one BC4 block for G
@@ -323,7 +639,7 @@ static void
 rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     uint32_t block_start_idx, num_blocks;
     uint32_t total_modified_local = 0;
-    auto workload = reinterpret_cast<rdo_bc7_workload*>(payload);
+    auto workload = static_cast<rdo_bc7_workload*>(payload);
     get_current_thread_blocks(workload->m_width, workload->m_height, thread_id, thread_count,
                               block_start_idx, num_blocks);
     ert::reduce_entropy_stats stats_local;
@@ -361,6 +677,10 @@ save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_
     return lodepng::encode(pFilename, pixels, width, height, LCT_RGB) == 0;
 }
     #endif
+
+//************************************************************************
+//*             RDO ultrasmooth blocks handling functions                *
+//************************************************************************
 
 // Adapted from bc7enc_rdo's compute_block_mse_scales function with
 // minor changes:
@@ -412,7 +732,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                     block_pixels[i].r = rgb[i * 3];
                     block_pixels[i].g = rgb[i * 3 + 1];
                     block_pixels[i].b = rgb[i * 3 + 2];
-                    block_pixels[i].a = 255;
+                    block_pixels[i].a = 255u;
                 }
             } else /* nchannels == 4 */ {
                 extract_block(&block_pixels[0].r, unpacked_img, bx * BCN_BLOCK_SIZE,
@@ -573,6 +893,10 @@ print_rdo_params(const rdo_params& params) {
 };
     #endif
 
+//************************************************************************
+//*               HDR (BC6HU/BC6HS) functions + structs                  *
+//************************************************************************
+
 struct clean_hdr_results {
     double hdr_image_scale;
     bool one_or_more_nan_values;
@@ -646,6 +970,10 @@ clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
 
     return res;
 }
+
+//************************************************************************
+//*                   RDO post-processing function                       *
+//************************************************************************
 
 /**
  * @~English
@@ -1071,6 +1399,10 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
 
     return success ? KTX_SUCCESS : KTX_INVALID_OPERATION;
 }
+
+//************************************************************************
+//*                           BCn encoder function                       *
+//************************************************************************
 
 /**
  * @memberof ktxTexture2

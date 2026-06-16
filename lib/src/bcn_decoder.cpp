@@ -28,6 +28,23 @@
 #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
 #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
+static inline bool
+unpack_block_bc1(const void* pBlock, void* pPixels, void* pUser_data) {
+    auto bc1_usr_data = static_cast<unpack_block_bc1_user_data*>(pUser_data);
+    bool used_3color = rgbcx::unpack_bc1(pBlock, pPixels, true, bc1_usr_data->bc1_approx_mode);
+    // This check is copied from the original code at: rdo_bc_encoder.h
+    if (used_3color) {
+        if (!bc1_usr_data->allow_3color_mode) return false;
+        if (!bc1_usr_data->use_3color_mode_for_black) {
+            auto pBC1_block = static_cast<const rgbcx::bc1_block*>(pBlock);
+            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y)
+                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x)
+                    if (pBC1_block->get_selector(x, y) == 3) return false;
+        }
+    }
+    return true;
+};
+
 /**
  * @ingroup reader
  * @brief Decodes a ktx2 texture object, if it is BCn encoded. All BCn
@@ -275,8 +292,7 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
             case KTX_BCN_COMPRESSION_BC1:
             case KTX_BCN_COMPRESSION_BC1A:
                 // BC1A: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha 1-bit encoded)
-                rv = unpack_block_bc1(src_blocks, reinterpret_cast<ert::color_rgba*>(rgba),
-                                      0 /* ignored */, params);
+                rv = unpack_block_bc1(src_blocks, rgba, params);
                 src_blocks += BC1_BLOCK_SIZE;
                 break;
 
