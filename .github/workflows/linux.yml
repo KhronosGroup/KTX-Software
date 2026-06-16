@@ -294,10 +294,21 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: script
+        id: buildstep
         env:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
+
+      # currently this uploads all CTS-generated files in "tests/cts/clitests/output"
+      # and does so if build_linux fails for any reason whatsoever (because detecting
+      # that the CTS tests have changed requires some changes to build_linux)
+      - name: Upload generated CTS output files if CTS tests fail
+        if: failure() && matrix.options.tools_cts == 'ON'  && steps.buildstep.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: CTS failure output files
+          path: tests/cts/clitests/output
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
