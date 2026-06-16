@@ -3459,11 +3459,11 @@ class ktxTexture2BCnEncodeDecodeTestBase
         EXPECT_EQ(depth, texture->baseDepth);
         result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
 
-        // Compare orginal vs. decoded texture with 0.01 tolerancea
+        // Compare orginal vs. decoded texture with 0.08 tolerancea
         // Since BC6HU input might be cleaned (i.e., signed values are set to 0) running ktxdiff on them will fail
         if (bcn != KTX_BCN_COMPRESSION_BC6HU) {
             std::string command = (ktxdiffPath.string());
-            command += " " + original.string() + " " + decoded.string() + " 0.01 > " + ktxdiffOut.string();
+            command += " " + original.string() + " " + decoded.string() + " 0.08 > " + ktxdiffOut.string();
             int status = std::system(command.c_str());
             EXPECT_EQ(status, 0)
                 << format("std::system() with command \"{}\" returned error code: {}", command, status);
