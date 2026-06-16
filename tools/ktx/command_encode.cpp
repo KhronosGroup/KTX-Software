@@ -375,7 +375,7 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    const auto writerScParams = fmt::format("{}{}{}", options.codecOptions, options.commonOptions, options.compressOptions);
+    const auto writerScParams = fmt::format("{}{}{}{}", options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
