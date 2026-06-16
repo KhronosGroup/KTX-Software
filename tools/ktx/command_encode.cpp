@@ -229,8 +229,14 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (options.compare_psnr && !canCompare)
         fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC, ASTC, or BCn encoding.");
 
+    // TODO: thread count for ASTC encoder is actually not being set
     if (astcCodec) options.encodeASTC = true;
-    if (bcnCodec) options.encodeBCn = true;
+    if (bcnCodec) {
+        options.encodeBCn = true;
+        fillOptionsCodecBCn<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with BCn encode", OptionsEncodeCommon::kNoSse);
+    }
 }
 
 void CommandEncode::executeEncode() {

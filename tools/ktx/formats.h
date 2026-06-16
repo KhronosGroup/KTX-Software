@@ -898,20 +898,20 @@ namespace ktx {
     switch (format) {
     case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
-    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC5_UNORM_BLOCK: [[fallthrough]];
 #if 1 /* these formats are not yet supported/tested */
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC4_SNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC5_SNORM_BLOCK: [[fallthrough]];
-    case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC6H_SFLOAT_BLOCK: [[fallthrough]];
 #endif
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
     case VK_FORMAT_BC7_SRGB_BLOCK:
         return true;
