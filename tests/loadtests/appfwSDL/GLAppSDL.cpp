@@ -41,23 +41,27 @@ void setWindowsIcon(SDL_Window *sdlWindow);
 #endif
 
 #define SUPPORT_HDR 0
-// GLAppSDL does not support HDR because:
-// - Apple's OpenGL does not expose the extensions for the compressed HDR formats, ASTC HDR
-//   and BC6H, even though the hardware supports them; thus HDR display is not very useful
-//   on those platforms;
-// - on Apple OSes, it is not possible to display HDR from the window created by SDL for OpenGL;
-//   to do so requires a window backed by a CAMetalLayer with its boolean field
-//   wantsExtendedDynamicRangeContent set to true; the SDL window has no CAMetalLayer;
-// - when the compositor on Apple OSes displays the content of a window that is not enabled
-//   for HDR, it copies the data to the display which then decodes it as if it was sRGB data;
-// - there is no portable way in SDL to determine if a window is HDR enabled, or not, so no way
-//   to distinguish between a GL_LINEAR renderbuffer being displayed as linear or being
-//   displayed as sRGB, as in the preceeding bullet, meaning correct color cannot be
-//   guaranteed;
-// - the author does not have suitable hardware to test how GNU/Linux and Windows handle
-//   HDR and whether it can be displayed from an SDL created window.
+// GLAppSDL HDR support is disabled because:
+// 1. Apple's OpenGL does not expose the extensions for the compressed HDR formats, ASTC HDR
+//    and BC6H, even though the hardware supports them; thus HDR display is not very useful
+//    on those platforms;
+// 2. on Apple OSes, it is not possible to display HDR from the window created by SDL for OpenGL;
+//    to do so requires a window backed by a CAMetalLayer with its boolean field
+//    wantsExtendedDynamicRangeContent set to true; the SDL window has no CAMetalLayer;
+// 3. because of no. 1, investigating alternative ways of creating the window is not worth
+//    the time;
+// 4. when the compositor on Apple OSes displays the content of the GL_LINEAR, RGB16F backbuffer
+//    to the window created by SDL, it copies the data to the display which then decodes it as if
+//    it was sRGB data; maybe the compositor would handle it differently for an HDR-enabled
+//    window;
+// 5. there is no portable way in SDL to determine if a window is HDR enabled, or not, so no way
+//    to distinguish between a GL_LINEAR renderbuffer being displayed as linear or being
+//    displayed as sRGB, as in no. 4, meaning correct color cannot be guaranteed;
+// 6. the author does not have suitable hardware to test enabling HDR on Android, GNU/Linux
+//    and Windows or whether it can be displayed from an SDL created window.
 //
-// The disabled code has been left in case it proves useful in the future.
+// The disabled code has been left in place to provide a starting point for anyone who wants
+// to try on Android, GNU/Linux or Windows.
 
 bool
 GLAppSDL::initialize(Args& args)
@@ -92,8 +96,8 @@ GLAppSDL::initialize(Args& args)
 #if SDL_PLATFORM_APPLE || SDL_PLATFORM_EMSCRIPTEN
         //   Emscripten's WebGL-based OpenGL {,ES} does not support float framebuffers or
         // HDR display.
-        //   HDR display from SDL OpenGL windows on Apple platforms is not supported as
-        // described in the comment where SUPPORT_HDR is defined.
+        //   HDR display from SDL OpenGL windows on Apple platforms is not supported for
+        // the reasons described in the comment where SUPPORT_HDR is defined.
         std::stringstream message;
         message << "Ignoring --hdr. HDR display is not supported on "
                 << (SDL_PLATFORM_APPLE ? "SDL with Apple" : "Emscripten")
@@ -101,8 +105,6 @@ GLAppSDL::initialize(Args& args)
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
                                        message.str().c_str(), NULL);
 #else
-        // Due to the author not having suitable hardware, whether HDR will be displayed correctly
-        // on Android, GNU/Linux or Windows is unknown.
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);

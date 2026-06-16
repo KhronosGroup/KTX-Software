@@ -182,7 +182,7 @@ add_executable( vkloadtests
 )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
-# explicitly set wantsExtendedDynamicRangeContent as we have to on locked OSes.
+# explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
 #if(APPLE_MAC_OS)
 #    target_sources(
 #        vkloadtests
