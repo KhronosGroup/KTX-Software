@@ -86,10 +86,10 @@ VulkanAppSDL::initialize(Args& args)
         {"extended-srgb", VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT},
     };
     std::string colorSpaceStr;
-    const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
-                                                         "KTX_VK_LT_USE_HDR_SURFACE");
 #if !SDL_PLATFORM_APPLE || SDL_PLATFORM_MACOS
     // Apple locked systems have no way to pass environment variables to bundled apps.
+    const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
+                                                         "KTX_VK_LT_USE_HDR_SURFACE");
     if (use_hdr_surface != nullptr && !SDL_strncasecmp(use_hdr_surface, "YES", 3))
         hdr = true;
     const char* css = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
