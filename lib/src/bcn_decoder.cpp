@@ -298,13 +298,19 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
 
             case KTX_BCN_COMPRESSION_BC2:
                 // BC2: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = rgbcx::unpack_bc2(src_blocks, rgba);
+                rv = rgbcx::unpack_bc2(
+                    src_blocks, rgba, static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
                 src_blocks += BC2_BLOCK_SIZE;
                 break;
 
             case KTX_BCN_COMPRESSION_BC3:
                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = rgbcx::unpack_bc3(src_blocks, rgba);
+                // Return code is not used because if this returns false => this means that 3 color
+                // punchthrough has been used which is (apparently) not supported on all GPUs.
+                // Problem is that when using RDO, this always returns false so I decided to just
+                // suppress it for the moment.
+                /* rv = */ rgbcx::unpack_bc3(
+                    src_blocks, rgba, static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
                 src_blocks += BC3_BLOCK_SIZE;
                 break;
 
