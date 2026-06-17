@@ -219,8 +219,12 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
     if (options.compare_psnr && !canCompare)
         fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
 
-    if (astcCodec)
+    if (astcCodec) {
         options.encodeASTC = true;
+        fillOptionsCodecAstc<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
+    }
 }
 
 void CommandEncode::executeEncode() {
