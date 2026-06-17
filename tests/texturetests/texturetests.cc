@@ -3493,9 +3493,9 @@ class ktxTexture2_BCnEncodeDecodeTestRG8_SNORM
     : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 2, GL_RG8_SNORM> {};
 
 class ktxTexture2_BCnEncodeDecodeTestRGB8_UNORM
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGB8> {};
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 3, GL_RGB8> {};
 class ktxTexture2_BCnEncodeDecodeTestRGB8_SRGB
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8> {};
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 3, GL_SRGB8> {};
 
 class ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM
     : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGBA8> {};
