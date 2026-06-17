@@ -159,10 +159,10 @@ TexturedCube::TexturedCube(uint32_t width, uint32_t height,
                  cube_index_buffer, GL_STATIC_DRAW);
 
     const GLchar* actualDecalFs;
-    if (framebufferColorEncoding() == GL_LINEAR) {
-        actualDecalFs = pszDecalSrgbEncodeFs;
-    } else {
+    if (colorEncodingSRGBOrTrueLinear()) {
         actualDecalFs = pszDecalFs;
+    } else {
+        actualDecalFs = pszDecalSrgbEncodeFs;
     }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);

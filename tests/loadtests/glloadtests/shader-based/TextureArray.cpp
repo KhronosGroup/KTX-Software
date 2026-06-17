@@ -80,11 +80,11 @@ TextureArray::TextureArray(uint32_t width, uint32_t height,
 
     fs.push_back(pszInstancingFsDeclarations);
     fs.push_back(pszFsArraySamplerDeclaration);
-    if (framebufferColorEncoding() == GL_LINEAR) {
+    if (colorEncodingSRGBOrTrueLinear()) {
+        fs.push_back(pszInstancingFsMain);;
+    } else {
         fs.push_back(pszSrgbEncodeFunc);
         fs.push_back(pszInstancingSrgbEncodeFsMain);
-    } else {
-        fs.push_back(pszInstancingFsMain);;
     }
     vs.push_back(pszInstancingVsDeclarations);
     vs.push_back(pszArrayVsMain);
