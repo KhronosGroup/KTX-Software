@@ -1609,7 +1609,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     ktx_uint32_t thread_count = params->threadCount;
     if (thread_count < 1) thread_count = 1;
-    ktx_uint32_t rdoThreadCount = thread_count;
 
     // This->numLevels = 0 not allowed for block compressed formats
     // But just in case make sure it's not zero
@@ -1654,6 +1653,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t depth = MAX(1, This->baseDepth >> level);
         const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
         const uint32_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const uint32_t num_blocks_total = num_blocks_x * num_blocks_y;
 
         ktx_size_t levelImageSizeIn = 0;
         ktx_size_t levelImageSizeOut = 0;
@@ -1742,6 +1742,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
             // post process the encoded blocks using RDO (if enabled)
             if (params->bcnRDO) {
+                // Don't naively just take provided thread count and divide RDO over those threads
+                // => this will certainly result in non-deterministic output (+ change of actual
+                // used window size)
+                const uint32_t thread_count_rdo = ert::adjust_num_threads_for_deterministic_rdo(
+                    thread_count, params->bcnRDODictSize, blocksize_in_bytes, num_blocks_total);
+                assert(thread_count_rdo <= thread_count);
+                assert((num_blocks_total >= params->bcnRDODictSize / blocksize_in_bytes)
+                           ? (num_blocks_total / thread_count_rdo >=
+                              params->bcnRDODictSize / blocksize_in_bytes)
+                           : thread_count_rdo == 1);
                 rdo_params rdo_p;
                 rdo_p.ert_p.m_lambda = params->bcnRDOQualityScalar;
                 rdo_p.ert_p.m_lookback_window_size = params->bcnRDODictSize;
@@ -1758,7 +1768,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 auto res = postprocess_rdo_bcn(
                     pSrcLevelImage, (size_t)width * height * nchannels, pDstLevelImage,
                     (size_t)num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p, params->bcn,
-                    width, height, rdoThreadCount);
+                    width, height, thread_count_rdo);
                 if (res != KTX_SUCCESS) {
                     ktxTexture2_Destroy(prototype);
                     return res;

@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <unordered_map>
 
 #include <cxxopts.hpp>
@@ -381,7 +382,13 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    const auto writerScParams = fmt::format("{}{}{}{}", options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    auto writerScParams = fmt::format("{}{}{}{}", options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    // This is ugly but is needed for testing ST vs. MT output without having ktxdiff fail because of KTXwriterScParams
+    if (options.testrun && options.encodeBCn) {
+        std::regex threads_r(R"(\s+--threads\s+\d+)", std::regex_constants::icase);
+        std::string writerScParams_without_threads = std::regex_replace(writerScParams, threads_r, "");
+        writerScParams = writerScParams_without_threads;
+    }
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space

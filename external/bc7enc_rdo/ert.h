@@ -228,4 +228,21 @@ namespace ert
       uint32_t width, uint32_t height, const color_rgba& c,
       const color_rgba& b, std::vector<pixel_coord>* pSet_pixels);
 
+  /*
+   * Number of blocks to encode for each thread SHOULD be superior or equal to
+   * (rdo_window_size / block_size) otherwise multi-threaded RDO will not be
+   * deterministic and will depend on the set window size.
+   */
+  inline uint32_t
+  adjust_num_threads_for_deterministic_rdo(uint32_t requested_num_threads, uint32_t rdo_window_size,
+                                           uint32_t block_size, uint32_t num_blocks_total) {
+      const auto min_num_blocks_per_thread = std::max<uint32_t>(1U, rdo_window_size / block_size);
+      // num_blocks_total / x >= min_num_blocks
+      //  => x <= num_blocks_total / min_num_blocks
+      //  => x <= floor(num_blocks_total / min_num_blocks)
+      // and handle the edge case where min_num_blocks_per_thread > num_blocks_total
+      //  => x =  max(1, floor(num_blocks_total / min_num_blocks))
+      return std::max<uint32_t>(1U, std::min<uint32_t>(requested_num_threads, std::floor(num_blocks_total / min_num_blocks_per_thread)));
+  }
+
 } // namespace ert
