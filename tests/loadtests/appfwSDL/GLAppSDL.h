@@ -30,10 +30,10 @@ class GLAppSDL : public AppBaseSDL {
                const int majorVersion,
                const int minorVersion)
             : AppBaseSDL(name),
+              hdr(false),
               profile(profile),
               majorVersion(majorVersion), minorVersion(minorVersion)
     {
-        appTitle = name;
         w_width = width;
         w_height = height;
     };
@@ -50,6 +50,8 @@ class GLAppSDL : public AppBaseSDL {
 
     int w_width;
     int w_height;
+
+    bool hdr;
 
     const SDL_GLProfile profile;
     const int majorVersion;
