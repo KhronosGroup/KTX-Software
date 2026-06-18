@@ -61,6 +61,20 @@ Notes about choice with BC1 vs. BC3 vs. BC7 (from Basisu wiki):
 > to use BC1 now. BC3 still has an advantage vs. BC7, because it very strongly
 > separates how RGB is encoded from the alpha channel, in a predictable way.
 
+## Compilation Notes
+
+**Makes sure to compile with `-fno-strict-aliasing`** since the original
+bc7enc_rdo repo was mainly developed and tested on MSVC (which doesn't do
+excessive optimizations including strict aliasing).
+
+There are pointer conversions all over the place and if strict aliasing is
+enabled, these conversions are most likely UB (see strict aliasing rule or type
+punning).
+
+This can be re-written a way that complies with strict aliasing but a lot of
+`memcpy`s have to be added which will result in the code being significantly
+less readable (also questionable if there is any benefit to this whatsoever).
+
 ## TODOs
 
 There are some features that I'd like to add (from most important to least):
