@@ -22,8 +22,97 @@ namespace ktx {
         BCn:
     </dt>
     <dd></dd>
+
     <dl>
-      TODO
+        <dt>\--bc1-mode &lt;mode&gt;</dt>
+        <dd>BC1 (subsequently BC3) approximation mode (for both: encoding and
+            decoding). Default is 'ideal'. If you encode textures for a specific
+            vendor's GPU, beware that using that texture data on other GPUs may
+            result in ugly artifacts. Set to 'ideal' unless you know the texture
+            data will only be deployed or used on a specific vendor's GPU. Can
+            be set to one of the following:
+            <table>
+                <tr><th>Mode       </th> <th> Description                                                      </th></tr>
+                <tr><td>ideal      </td> <td> The default mode. No rounding for 4-color colors 2,3. This matches the
+                                              D3D10 docs on BC1.                                               </td></tr>
+                <tr><td>nvidia     </td> <td> NVidia GPU mode. May produce artifacts on non-NVidia GPUs.       </td></tr>
+                <tr><td>amd        </td> <td> AMD GPU mode. May produce artifacts on non-AMD GPUs.             </td></tr>
+                <tr><td>ideal      </td> <td> Matches AMD Compressonator's output. Rounds 4-color colors 2,3
+                                              (not 3-color color 2). This matches the D3D9 docs on DXT1.       </td></tr>
+            </table>
+        </dd>
+        <dt>\--bc1-quality &lt;level&gt;</dt>
+        <dd>The quality level configures the quality-performance tradeoff for
+            BC1/BC3 encoders. The quality level can be set in the range [0, 19]
+            with (0) being the 'fastest' and (19) the slowest but most
+            'exhaustive'. Default is (15) 'thorough'. Can also be set via the
+            following aliases:
+            <table>
+                <tr><th>Level      </th> <th> Quality                      </th></tr>
+                <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
+                <tr><td>fast       </td> <td>(equivalent to quality =   5) </td></tr>
+                <tr><td>medium     </td> <td>(equivalent to quality =  10) </td></tr>
+                <tr><td>thorough   </td> <td>(equivalent to quality =  15) </td></tr>
+                <tr><td>exhaustive </td> <td>(equivalent to quality =  19) </td></tr>
+            </table>
+            Note on BC1 vs. BC3 vs. BC7: apart from lower VRAM consumption (4bpp
+            vs. 8bpp) and better GPU texture cache efficiency, there's little
+            need to use BC1 now. BC3 still has an advantage vs. BC7, because it
+            very strongly separates how RGB is encoded from the alpha channel,
+            in a predictable way.
+        </dd>
+        <dt>\--bc7-quality &lt;level&gt;</dt>
+        <dd>The quality level configures the quality-performance tradeoff for
+            BC7 encoder. Default is 'medium'. The quality level can be set
+            between fastest and exhaustive via the following fixed quality
+            presets where each preset is an OR'ed set of flags:
+            <table>
+                <tr><th>Level      </th> <th> OR'ed flags                    </th></tr>
+                <tr><td>fastest    </td> <td>(equivalent to quality =   128) </td></tr>
+                <tr><td>faster     </td> <td>(equivalent to quality =   176) </td></tr>
+                <tr><td>fast       </td> <td>(equivalent to quality =   179) </td></tr>
+                <tr><td>medium     </td> <td>(equivalent to quality =   255) </td></tr>
+                <tr><td>thorough   </td> <td>(equivalent to quality =  1023) </td></tr>
+                <tr><td>exhaustive </td> <td>(equivalent to quality =  3967) </td></tr>
+            </table>
+        </dd>
+        <dt>\--bcn-rdo</dt>
+        <dd>Enable BCn LDR RDO post-processing. HDR formats (BC6HU/BC6HS) are
+            currently not supported.</dd>
+        <dt>\--bcn-rdo-l &lt;lambda&gt;</dt>
+        <dd>Set BCn RDO quality scalar to the specified value. Lower values
+            yield higher quality/larger supercompressed files, higher values
+            yield lower quality/smaller supercompressed files. A good range to
+            try is [.25,10]. For normal maps a good range is [.25,.75]. The full
+            range is [.001,10.0]. Default is 1.0.</dd>
+        <dt>\--bcn-rdo-d &lt;dictsize&gt;</dt>
+        <dd>Set BCn RDO dictsize size in bytes. Default is 4096. Lower
+            values=faster, but give less compression. Range is [64,65536].</dd>
+        <dt>\--bcn-rdo-b &lt;scale&gt;</dt>
+        <dd>Set BCn RDO max smooth block error scale. Range is [1.0,300.0].
+            Default is to automatically compute this. 1.0 is disabled. Larger
+            values suppress more artifacts (and allocate more bits) on smooth
+            blocks.</dd>
+        <dt>\--bcn-rdo-s &lt;deviation&gt;</dt>
+        <dd>Set BCn RDO max smooth block standard deviation. Range is
+            [.01,65536.0]. Default is 18.0. Larger values expand the range of
+            blocks considered smooth.</dd>
+        <dt>\--bcn-rdo-r &lt;ratio&gt;</dt>
+        <dd>How much the RMS error of a block is allowed to increase before a
+            trial is rejected. 1.0=no increase allowed, 1.05=5% increase
+            allowed, etc. Range is [1.001, 100.0]. Default is 10.0.</dd>
+        <dt>\--bcn-rdo-no-ultrasmooth</dt>
+        <dd>Disable encoding of extremely smooth blocks with a significantly
+            higher MSE scale factor. Results in significantly more artifacts on
+            regions containing very smooth blocks (e.g., gradients, skies,
+            etc.). This does improve rate-distortion performance, though. BC4
+            and BC5 formats do not support ultrasmooth block handling.</dd>
+        <dt>\--bcn-rdo-try-one-match</dt>
+        <dd>Inject up to 1 match into each block instead of up-to-two matches.
+            Results in slightly faster, but lower compression.</dd>
+        <dt>\--bcn-rdo-skip-zero-mse</dt>
+        <dd>Skip blocks that have zero mean-squared error (MSE). Might result in
+            faster but potentially lower compression.</dd>
     </dl>
 </dl>
 //! [command options_encode_bcn]
@@ -335,11 +424,13 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         }
 
         if (args[kBCnRdoTryOneMatch].count()) {
+            if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             captureBCnOption(kBCnRdoTryOneMatch);
             bcnRDOTry2Matches = false;
         }
 
         if (args[kBCnRdoSkipZeroMSEBlocks].count()) {
+            if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             captureBCnOption(kBCnRdoSkipZeroMSEBlocks);
             bcnRDOSkipZeroMSEBlocks = true;
         }
