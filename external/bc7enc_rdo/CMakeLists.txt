@@ -6,7 +6,9 @@ target_compile_features(bc7enc_rdo PUBLIC cxx_std_17)
 
 # original bc7enc_rdo disables strict aliasing (see https://github.com/richgel999/bc7enc_rdo/blob/master/CMakeLists.txt)
 # basisu also emphasises on compiling with '-fno-strict-aliasing'
-target_compile_options(bc7enc_rdo PRIVATE -fno-strict-aliasing)
+if (NOT MSVC)
+  target_compile_options(bc7enc_rdo PRIVATE -fno-strict-aliasing)
+endif()
 
 target_sources(bc7enc_rdo
   PRIVATE
