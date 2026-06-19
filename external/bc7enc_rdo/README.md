@@ -1,33 +1,30 @@
 # About
 
-bc7enc_rdo (from: https://github.com/richgel999/bc7enc_rdo.git) contains two
-components with some changes:
+This branch of bc7enc_rdo forked from [bc7enc_rdo][bc7enc_rdo] contains two
+components used by KTX-Software with some changes:
 
-  - added \[\[maybe_unused\]\] to silence compiler warnings about unused variables
-  - removed bc7 encoder/decoder. See [Notes][#Notes] below.
-  - removed CLI components.
-  - removed utils.h/cpp because it relies on some heavy classes.
+  - rgbcx: BC1, BC3, BC4, and BC5 encoders/decoders (+ added BC2 decoder).
+  - ert: rate distortion optimization (RDO) (agnostic to encoders/decoders).
+
+Changes:
+
+  - added [[maybe_unused]] to silence compiler warnings about unused variables
 
 Essentially: only what is absolutely necessary and not already provided by Basis
-Universal is left.
+Universal is left. The following components have been removed:
 
-bc7enc_rdo has two components:
+  - bc7 encoder/decoder. See [Notes][#Notes] below.
+  - CLI components.
+  - utils.h/cpp because it relies on some heavy classes.
 
-  - rgbcx:  BC1, BC3, BC4, and BC5 encoders/decoders (+ added BC2 decoder).
-  - ert:    rate distortion optimization (RDO) (agnostic to encoders/decoders).
-
-However, currently these two components are compiled together under a single
-STATIC library `bc7enc_rdo` (if the need arise where only the RDO-part is
-needed, this will be separated into multiple components - E.g.,
-`bc7enc_rdo::ert` and `bc7enc_rdo::rgbcx`).
-
-Basis Universal already has BC1-BC5 encoders but the ones provided by
-`bc7enc_rdo` are more capable. The decoders *should*(?) be the same for both.
+Currently, the remaining two components are compiled together under a single
+STATIC library bc7enc_rdo (if the need arises where only the RDO component is needed,
+this will be separated into multiple libraries).
 
 ## Building
 
-This is intended to be built as part a static library dependency
-(see minimal CMakeLists.txt).
+This is intended to be built as a static library dependency (see minimal
+CMakeLists.txt).
 
 Somewhere in your project's CMakeLists:
 
@@ -49,7 +46,7 @@ format (which offers same color RGB block encoding as BC1 but with added alpha
 support that is usually better than the one implemented by BC2).
 
 BC6HU/BC6HS HDR formats are already originally not supported by this repo.
-Basisu provides bc6hu (emphasise on the **u**) encoder and bc6hu/bc6hs decoders.
+Basis Universal provides bc6hu (emphasis on the **u**) encoder and bc6hu/bc6hs decoders.
 
 BC7 encoder/decoder is not included because Basis Universal already provides a
 much more capable encoder (bc7f).
@@ -87,3 +84,5 @@ ert.cpp/h code to handle uint16_t instead of chars/uint8_t)
 ## License
 
 MIT License Rich Geldreich.
+
+[bc7enc_rdo]: https://github.com/richgel999/bc7enc_rdo.git)

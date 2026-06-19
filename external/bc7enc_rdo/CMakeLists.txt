@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_library(bc7enc_rdo)
-set_property(TARGET bc7enc_rdo PROPERTY CXX_STANDARD 17)
+target_compile_features(bc7enc_rdo PUBLIC cxx_std_17)
 
 # original bc7enc_rdo disables strict aliasing (see https://github.com/richgel999/bc7enc_rdo/blob/master/CMakeLists.txt)
 # basisu also emphasises on compiling with '-fno-strict-aliasing'

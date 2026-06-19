@@ -122,7 +122,7 @@ fi
 $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --encode uastc --zstd 5 input/png/color_grid.png ktx2/color_grid_uastc_zstd_5.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --assign-tf srgb --zstd 5 input/png/color_grid.png ktx2/color_grid_zstd_5.ktx2
 $ktx create --testrun --format R8G8B8_SRGB --assign-tf srgb --encode basis-lz input/png/FlightHelmet_baseColor.png ktx2/FlightHelmet_baseColor_blze.ktx2
-$ktx create --testrun  --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_blze.ktx2
+$ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap  --normalize --normal-mode --encode basis-lz input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_blze.ktx2
 $ktx create --testrun --format R8G8B8_UNORM --no-warn-on-color-conversions --assign-tf linear --generate-mipmap --normalize --normal-mode --encode uastc --zstd 10 input/jpg/Iron_Bars/Iron_Bars_001_normal_unnormalized.png ktx2/Iron_Bars_001_normal_uastc_zstd_10.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin bottom-left input/npbm/up.ppm ktx2/orient_up_metadata.ktx2
 $ktx create --testrun --format R8G8B8A8_SRGB --convert-texcoord-origin top-left input/npbm/up.ppm ktx2/orient_down_metadata.ktx2
@@ -143,3 +143,17 @@ $ktx create --testrun --format R16G16B16_SFLOAT --encode uastc-hdr-4x4 --uastc-h
 $ktx create --testrun --format R16G16B16_SFLOAT --encode uastc-hdr-6x6i --uastc-hdr-lambda 300 input/exr/Desk.exr ktx2/Desk_uastc_hdr6x6i.ktx2
 # Small uncompressed file for the pyktx tests.
 $ktx create --testrun --format R16G16B16_SFLOAT --scale 0.25 --zstd 15 input/exr/Desk.exr ktx2/Desk_small_zstd_15.ktx2
+
+# BCn textures
+$ktx create --testrun --encode uastc --format R8G8B8_UNORM --assign-tf linear --assign-primaries bt709 input/png/rgb8_unorm_bc1.png - | $ktx transcode --testrun --target bc1 - ktx2/rgb8_unorm_bc1.ktx2
+$ktx create --testrun --encode uastc --format R8G8B8_SRGB --assign-tf srgb --assign-primaries bt709 input/png/rgb8_srgb_bc1.png - | $ktx transcode --testrun --target bc1 - ktx2/rgb8_srgb_bc1.ktx2
+$ktx create --testrun --encode uastc --format R8G8B8A8_UNORM --assign-tf linear --assign-primaries bt709 input/png/rgba8_unorm_bc3.png - | $ktx transcode --testrun --target bc3 - ktx2/rgba8_unorm_bc3.ktx2
+$ktx create --testrun --encode uastc --format R8G8B8A8_SRGB --assign-tf srgb --assign-primaries bt709 input/png/rgba8_srgb_bc3.png - | $ktx transcode --testrun --target bc3 - ktx2/rgba8_srgb_bc3.ktx2
+$ktx create --testrun --encode uastc --format R8_UNORM --assign-tf linear --assign-primaries bt709 input/png/r8_unorm_bc4.png - | $ktx transcode --testrun --target bc4 - ktx2/r8_unorm_bc4.ktx2
+$ktx create --testrun --encode uastc --format R8G8_UNORM --assign-tf linear --assign-primaries bt709 input/png/rg8_unorm_bc5.png - | $ktx transcode --testrun --target bc5 - ktx2/rg8_unorm_bc5.ktx2
+
+# EXR input file can be generated from input PNG file via OIIO:
+# oiiotool tests/resources/input/png/rgb16_sfloat_bc6hu.png --iscolorspace srgb --tocolorspace lin_rec709_srgb -d half -o tests/resources/input/exr/rgb16_sfloat_bc6hu.exr
+$ktx create --testrun --encode uastc-hdr-4x4 --format R16G16B16_SFLOAT input/exr/rgb16_sfloat_bc6hu.exr - | $ktx transcode --testrun --target bc6hu - ktx2/rgb16_sfloat_bc6hu.ktx2
+$ktx create --testrun --encode uastc --format R8G8B8A8_UNORM --assign-tf linear --assign-primaries bt709 input/png/rgba8_unorm_bc7.png - | $ktx transcode --testrun --target bc7 - ktx2/rgba8_unorm_bc7.ktx2
+$ktx create --testrun --encode uastc --format R8G8B8A8_SRGB --assign-tf srgb --assign-primaries bt709 input/png/rgba8_srgb_bc7.png - | $ktx transcode --testrun --target bc7 - ktx2/rgba8_srgb_bc7.ktx2

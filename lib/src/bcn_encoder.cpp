@@ -31,39 +31,39 @@
 
 #if KTX_FEATURE_WRITE
 
-    #include "bcn_common.h"
+#include "bcn_common.h"
 
-    #include <atomic>
-    #include "ert.h"                             /* for RDO */
-    #include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
-    #include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
-    #include "vkformat_enum.h"                   /* for VkFormat enum */
-    #include "ktxint.h"
-    #include "texture2.h"
-    #include "multithreading.h"
-    #include <cstdint>
+#include <atomic>
+#include "ert.h"                             /* for RDO */
+#include "transcoder/basisu_transcoder.h"    /* for BC7 encoder */
+#include "transcoder/basisu_astc_hdr_core.h" /* for BC6H encoder */
+#include "vkformat_enum.h"                   /* for VkFormat enum */
+#include "ktxint.h"
+#include "texture2.h"
+#include "multithreading.h"
+#include <cstdint>
 
-    #define DEBUG_PRINT_STATS 0 /* set to print RDO stats */
-    #if DEBUG_PRINT_STATS
-        #include "chrono"
-        #include <atomic>
-        #include <chrono>
-        #include <iostream>
-    #endif
+#define DEBUG_PRINT_STATS 0 /* set to print RDO stats */
+#if DEBUG_PRINT_STATS
+#include "chrono"
+#include <atomic>
+#include <chrono>
+#include <iostream>
+#endif
 
-    /*
-     * set to write utrasmooth blocks mask PNG. You need to add:
-     *   - external/lodepng/lodepng.h
-     *   - external/lodepng/lodepng.cpp
-     * to libktx's CMakeLists.
-     */
-    #define DEBUG_RDO_ULTRASMOOTH 0
-    #if DEBUG_RDO_ULTRASMOOTH
-        #include "lodepng/lodepng.h"
-    #endif
+/*
+ * set to write utrasmooth blocks mask PNG. You need to add:
+ *   - external/lodepng/lodepng.h
+ *   - external/lodepng/lodepng.cpp
+ * to libktx's CMakeLists.
+ */
+#define DEBUG_RDO_ULTRASMOOTH 0
+#if DEBUG_RDO_ULTRASMOOTH
+#include "lodepng/lodepng.h"
+#endif
 
-    #define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
-    #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
+#define DECLARE_PRIVATE_EX(n, t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
 //************************************************************************
 //*                     RDO Structs + Functions                          *
@@ -443,9 +443,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
         }
 
         switch (workload->params.bcn) {
-    #if 0  // bc7enc BC1 encoder does not support punch-through alpha
+#if 0  // bc7enc BC1 encoder does not support punch-through alpha
         case KTX_BCN_COMPRESSION_BC1A:
-    #endif
+#endif
         case KTX_BCN_COMPRESSION_BC1:
             // BC1: 4 x 4 x 3 = 64 bytes -> 8 bytes
             rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
@@ -493,8 +493,9 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
                 workload->params.bc7CompressionQuality);
             break;
 
-        default:
-            return;  // should never occur
+        default:  // should never occur
+            assert(false);
+            return;
         }
     }
 }
@@ -661,7 +662,7 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     }
 }
 
-    #if DEBUG_RDO_ULTRASMOOTH
+#if DEBUG_RDO_ULTRASMOOTH
 bool
 save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_t width,
          uint32_t height) {
@@ -676,7 +677,7 @@ save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_
         }
     return lodepng::encode(pFilename, pixels, width, height, LCT_RGB) == 0;
 }
-    #endif
+#endif
 
 //************************************************************************
 //*             RDO ultrasmooth blocks handling functions                *
@@ -711,9 +712,9 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     assert(nchannels == 3 || nchannels == 4);
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
     auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
     std::vector<ert::color_rgba> ultrasmooth_blocks_vis(num_blocks_x * num_blocks_y);
 
@@ -780,10 +781,10 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         ultrasmooth_blocks_vis.swap(next_vis);
     }
 
-    #if DEBUG_RDO_ULTRASMOOTH
+#if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_sharp_pre_propagation.png", ultrasmooth_blocks_vis,
              num_blocks_x, num_blocks_y);
-    #endif
+#endif
 
     // Smooth out/further propagate blocks that are certainly
     // non-ultra smooth (i.e., 255) to their surrounding.
@@ -813,10 +814,10 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
 
     std::vector<ert::color_rgba> orig_ultrasmooth_blocks_vis(ultrasmooth_blocks_vis);
 
-    #if DEBUG_RDO_ULTRASMOOTH
+#if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_pre_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
              num_blocks_y);
-    #endif
+#endif
 
     // filter (still have not understood this in detail)
     for (uint32_t by = 0; by < num_blocks_y; by++) {
@@ -841,10 +842,10 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
         }  // bx
     }  // by
 
-    #if DEBUG_RDO_ULTRASMOOTH
+#if DEBUG_RDO_ULTRASMOOTH
     save_png("ultrasmooth_block_mask_post_filter.png", orig_ultrasmooth_blocks_vis, num_blocks_x,
              num_blocks_y);
-    #endif
+#endif
 
     std::vector<float> block_mse_scales(num_blocks_x * num_blocks_y, -1.0f);
 
@@ -860,7 +861,7 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
             }
         }
     }
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
     auto finish = std::chrono::high_resolution_clock::now();
     const auto total_ultrasmooth_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -868,11 +869,11 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
               << (100.0f * total_ultrasmooth_blocks) / (num_blocks_x * num_blocks_y) << '\n';
     std::cout << "total ultra smooth blocks MSE scales generation time (s): "
               << total_ultrasmooth_time / 1000.0f << '\n';
-    #endif
+#endif
     return block_mse_scales;
 }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
 [[maybe_unused]] static inline void
 print_rdo_params(const rdo_params& params) {
     std::cout << "rdo lambda: " << params.ert_p.m_lambda << '\n';
@@ -891,7 +892,7 @@ print_rdo_params(const rdo_params& params) {
     std::cout << "rdo try two matches: " << params.ert_p.m_try_two_matches << '\n';
     std::cout << "rdo skip zero MSE blocks: " << params.ert_p.m_skip_zero_mse_blocks << '\n';
 };
-    #endif
+#endif
 
 //************************************************************************
 //*               HDR (BC6HU/BC6HS) functions + structs                  *
@@ -912,10 +913,11 @@ struct clean_hdr_results {
 
 /*
  * @~English
- * @brief Based on basisu's basis_compressor::clean_hdr_image to clean-up HDR
- *        input for basisu's BC6HU encoder (i.e., setting to 0 NaN, infinite and
- *        negative values and scaling input values if any is strictly greater
- *        than basist::ASTC_HDR_MAX_VAL).
+ * @brief Clean up HDR input for basisu's BC6HU encoder.
+ *
+ *        Based on basisu's basis_compressor::clean_hdr_image. It sets NaN,
+ *        infinite and negative values to 0 and scales input values that are
+ *        greater than basist::ASTC_HDR_MAX_VAL.
  *
  * @param [in,out] src_rgb16        pointer to the source 16-bit unpacked data.
  * @param [in] width                image width (in texels).
@@ -977,10 +979,11 @@ clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
 
 /**
  * @~English
- * @brief Performs rate distortion optimization (RDO) on the provided
- *        BCn-encoded blocks to reduce entropy for a potential subsequent
- *        Deflate step (i.e., significant bit rate reduction can be achieved
- *        when further supercompressed with Zlib/ZSTD). BC2 and BC6H formats are
+ * @brief Performs rate distortion optimization (RDO) on BCn-encoded blocks.
+ *
+ *        RDO is performed to reduce entropy for a potential subsequent Deflate
+ *        step (i.e., significant bit rate reduction can be achieved when
+ *        further supercompressed with Zlib/ZSTD). BC2 and BC6H formats are
  *        currently not supported.
  *
  *        Some values of the reduce_entropy_params struct may be adjusted before
@@ -1021,13 +1024,13 @@ static KTX_error_code
 postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8_t* packed_img,
                     size_t packed_img_size, rdo_params params, ktx_bcn_compression_e bcn,
                     uint32_t width, uint32_t height, uint32_t threads) {
-    #define CHECK_SIZES(nchannels, block_size)                               \
-        do {                                                                 \
-            if ((unpacked_img_size != (size_t)width * height * nchannels) || \
-                (packed_img_size != (size_t)nBlocksTotal * block_size)) {    \
-                return KTX_DECOMPRESS_LENGTH_ERROR;                          \
-            }                                                                \
-        } while (0)
+#define CHECK_SIZES(nchannels, block_size)                               \
+    do {                                                                 \
+        if ((unpacked_img_size != (size_t)width * height * nchannels) || \
+            (packed_img_size != (size_t)nBlocksTotal * block_size)) {    \
+            return KTX_DECOMPRESS_LENGTH_ERROR;                          \
+        }                                                                \
+    } while (0)
 
     const uint32_t nBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
     const uint32_t nBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
@@ -1081,9 +1084,9 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             }
         }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
         rdo_bc1_workload workload(
             width, height, packed_img, block_pixels.data(), ert_p, params.bc1_params,
@@ -1091,7 +1094,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         launchThreads(threads, rdo_bc1_workload_runner, &workload);
         success = workload.m_success;
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1102,7 +1105,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_rgb) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_rgb << '\n';
-    #endif
+#endif
 
         break;
     }  // BC1
@@ -1158,9 +1161,9 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             }
         }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
         rdo_bc3_workload workload(
             width, height, packed_img, block_pixels_rgbx.data(), block_pixels_axxx.data(), ert_p,
@@ -1169,7 +1172,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         launchThreads(threads, rdo_bc3_workload_runner, &workload);
         success = workload.m_success;
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1187,7 +1190,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                   << workload.m_total_second_matches_rgb << '\n';
         std::cout << "total second matches for BC4 A blocks: " << workload.m_total_second_matches_a
                   << '\n';
-    #endif
+#endif
 
         break;
     }  // BC3
@@ -1229,15 +1232,15 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             }
         }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
         rdo_bc4_workload workload(width, height, packed_img, block_pixels_rxxx.data(), ert_p);
         launchThreads(threads, rdo_bc4_workload_runner, &workload);
         success = workload.m_success;
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1248,7 +1251,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_r) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_r << '\n';
-    #endif
+#endif
 
         break;
     }  // BC4
@@ -1295,9 +1298,9 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             }
         }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
         rdo_bc5_workload workload(width, height, packed_img, block_pixels_rxxx.data(),
                                   block_pixels_gxxx.data(), ert_p, ert_p);
@@ -1305,7 +1308,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
 
         success = workload.m_success;
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1323,7 +1326,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                   << '\n';
         std::cout << "total second matches for BC4 G blocks: " << workload.m_total_second_matches_g
                   << '\n';
-    #endif
+#endif
 
         break;
     }  // BC5
@@ -1367,9 +1370,9 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
             }
         }
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto start = std::chrono::high_resolution_clock::now();
-    #endif
+#endif
 
         rdo_bc7_workload workload(
             width, height, packed_img, block_pixels_rgba.data(), ert_p,
@@ -1377,7 +1380,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         launchThreads(threads, rdo_bc7_workload_runner, &workload);
         success = workload.m_success;
 
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
         auto finish = std::chrono::high_resolution_clock::now();
         const auto total_rdo_time =
             std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
@@ -1388,7 +1391,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         std::cout << "total nbr smooth blocks (%): "
                   << (100.0f * workload.m_total_smooth_blocks_rgba) / nBlocksTotal << '\n';
         std::cout << "total second matches: " << workload.m_total_second_matches_rgba << '\n';
-    #endif
+#endif
 
         break;
     }  // BC7
@@ -1487,11 +1490,11 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     uint32_t blocksize_in_bytes;
     VkFormat compressedVkFormat;
     ktx_error_code_e result;
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
     bool hdr_one_or_more_nan_values_msg = false;
     bool hdr_one_or_more_inf_values_msg = false;
     bool hdr_one_or_more_signed_values_msg = false;
-    #endif
+#endif
 
     switch (params->bcn) {
     case KTX_BCN_COMPRESSION_BC1:
@@ -1511,7 +1514,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
 
-    #if 0  // bc7enc BC1 encoder does not support punch-through alpha
+#if 0  // bc7enc BC1 encoder does not support punch-through alpha
     case KTX_BCN_COMPRESSION_BC1A:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
@@ -1528,7 +1531,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC1A;
         rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
         break;
-    #endif
+#endif
 
     case KTX_BCN_COMPRESSION_BC3:
         switch (This->vkFormat) {
@@ -1700,7 +1703,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 // Should we also do that in here?
                 [[maybe_unused]] auto hdr_cleanup_res =
                     clean_hdr_image(pSrcLevelImage, width, height);
-    #if DEBUG_PRINT_STATS
+#if DEBUG_PRINT_STATS
                 if (hdr_cleanup_res.one_or_more_nan_values && !hdr_one_or_more_nan_values_msg) {
                     std::cout << "One or more input pixels was NaN, setting to 0." << '\n';
                     hdr_one_or_more_nan_values_msg = false;
@@ -1734,7 +1737,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                         << hdr_cleanup_res.hdr_image_scale
                         << ". See the \"HDRScale\" KTX2 key value field" << '\n';
                 }
-    #endif
+#endif
             }
 
             // the actual encoding occurs here
@@ -1790,12 +1793,12 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 : true) &&
            "Not a valid sRGB image\n");
 
-    // Fix up the current (This) texture (this is copied from ASTC encoder - see
-    // astc_codec.cpp)
-    #undef DECLARE_PRIVATE
-    #undef DECLARE_PROTECTED
-    #define DECLARE_PRIVATE(n, t2) ktxTexture2_private& n = *(t2->_private)
-    #define DECLARE_PROTECTED(n, t2) ktxTexture_protected& n = *(t2->_protected)
+// Fix up the current (This) texture (this is copied from ASTC encoder - see
+// astc_codec.cpp)
+#undef DECLARE_PRIVATE
+#undef DECLARE_PROTECTED
+#define DECLARE_PRIVATE(n, t2) ktxTexture2_private& n = *(t2->_private)
+#define DECLARE_PROTECTED(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
     DECLARE_PROTECTED(thisPrtctd, This);
     DECLARE_PRIVATE(protoPriv, prototype);

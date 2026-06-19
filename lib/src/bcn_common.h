@@ -67,7 +67,7 @@ lerp(F a, F b, F s) {
 // non-multiple-of-block-size destination dimensions.
 //
 // Source and destination SHOULD have the same stride (i.e., nchannels).
-// Texles/Pixels noted by 'x' are filled by clamp-to-edge method (i.e., for each
+// Texels/Pixels noted by 'x' are filled by clamp-to-edge method (i.e., for each
 // raw, repeat the last pixel).
 //
 // This is the inverse (in terms of source/destination) of insert_block().
@@ -154,7 +154,7 @@ extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint
 // non-multiple-of-block-size destination dimensions.
 //
 // Source and destination SHOULD have the same stride (i.e., nchannels).
-// Texles/Pixels noted by 'x' are discarded (i.e., not copied).
+// Texels/Pixels noted by 'x' are discarded (i.e., not copied).
 //
 // This is the inverse (in terms of source/destination) of extract_block().
 //

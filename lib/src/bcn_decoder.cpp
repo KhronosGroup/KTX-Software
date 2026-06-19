@@ -250,10 +250,12 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
  * @exception KTX_INVALID_VALUE
  *                          @p params is NULL but @p This texture is BC1 or BC3
  *                          compressed.
- * @exception KTX_INVALID_OPERATION
+ * @exception KTX_DECOMPRESS_FAILURE
  *                          Decoder/Unpacker returned an error exit code or a
  *                          non-success return flag. Only occurs for BC1, BC2,
  *                          BC3, and BC7 (BC2 and BC3 are based on BC1).
+ * @exception KTX_INVALID_OPERATION
+ *                          @p bcn is set to KTX_BCN_COMPRESSION_NONE.
  */
 extern "C" KTX_error_code
 ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width,
@@ -348,6 +350,7 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
                 break;
 
             default:  // should never occur
+                assert(false);
                 rv = false;
                 break;
             }
@@ -355,7 +358,7 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
             // If any of the decoders/unpackers returned false
             // => something went wrong
             if (!rv) {
-                return KTX_INVALID_OPERATION;  // decoder failure
+                return KTX_DECOMPRESS_FAILURE;  // decoder failure
             }
 
             // size_t nbr_written_bytes = 0;

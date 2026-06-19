@@ -284,6 +284,15 @@ jobs:
           fi
           set +e
 
+    # Currently this runs if build_linux fails for any reason whatsoever (because detecting
+    # that the CTS tests have failed requires some changes to build_linux)
+#    - name: Upload generated CTS output files if CTS tests fail
+#      if: failure() && matrix.options.tools_cts == 'ON'  && steps.buildstep.outcome == 'failure'
+#      uses: actions/upload-artifact@v7
+#      with:
+#        name: cts_failure_artifacts_${{ github.sha }}
+#        path: tests/cts/clitests/output
+
       # Re. packaging, note that the build script only creates packages for
       # the Release configuration. If this is changed work will be needed
       # here to prevent failures from uploading same-named artifacts from both

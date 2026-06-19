@@ -335,6 +335,15 @@ jobs:
       if: matrix.options.tests == 'ON'
       run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
 
+    # Currently this runs if build_linux fails for any reason whatsoever (because detecting
+    # that the CTS tests have failed requires some changes to build_linux)
+#    - name: Upload generated CTS output files if CTS tests fail
+#      if: failure() && matrix.options.tools_cts == 'ON'  && steps.buildstep.outcome == 'failure'
+#      uses: actions/upload-artifact@v7
+#      with:
+#        name: cts_failure_artifacts_${{ github.sha }}
+#        path: tests/cts/clitests/output
+
 #    - name: Upload test log
 #      if: ${{ failure() }}
 #      run: scripts/on_failure.ps1

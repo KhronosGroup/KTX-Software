@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef _MSC_VER
-#pragma warning (disable:4201) //nameless struct/union
+#pragma warning (disable:4201) // nameless struct/union
 #endif
 
 #include <cstdint>
@@ -18,7 +18,7 @@ namespace ert
 
   // Copied from Basis Universal's basist::color_rgba. Even though this is the
   // same as basist::color_rgba (minus some functions), using them
-  // interchangeably is probably unsigned behavior (UB).
+  // interchangeably is probably undefined behavior (UB).
   //
   // Q. Why not use basist::color_rgba directly? This would require adding
   //    Basis Universal as an external dependency to an otherwise
@@ -191,7 +191,6 @@ namespace ert
 	typedef bool (*pUnpack_block_func)(const void* pBlock, color_rgba* pPixels, uint32_t block_index, void* pUser_data);
 
 	// BC7 entropy reduction transform with Deflate/LZMA/LZHAM optimizations
-  // Returns false in the following cases: 
 	bool reduce_entropy(void* pBlocks, uint32_t num_blocks,
 		uint32_t total_block_stride_in_bytes, uint32_t block_size_to_optimize_in_bytes, uint32_t block_width, uint32_t block_height, uint32_t num_comps,
 		const color_rgba* pBlock_pixels, const reduce_entropy_params& params, uint32_t& total_modified,
@@ -242,7 +241,7 @@ namespace ert
       //  => x <= floor(num_blocks_total / min_num_blocks)
       // and handle the edge case where min_num_blocks_per_thread > num_blocks_total
       //  => x =  max(1, floor(num_blocks_total / min_num_blocks))
-      return std::max<uint32_t>(1U, std::min<uint32_t>(requested_num_threads, std::floor(num_blocks_total / min_num_blocks_per_thread)));
+      return std::max<uint32_t>(1U, std::min<uint32_t>(requested_num_threads, floor(num_blocks_total / min_num_blocks_per_thread)));
   }
 
 } // namespace ert
