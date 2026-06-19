@@ -241,7 +241,7 @@ namespace ert
       //  => x <= floor(num_blocks_total / min_num_blocks)
       // and handle the edge case where min_num_blocks_per_thread > num_blocks_total
       //  => x =  max(1, floor(num_blocks_total / min_num_blocks))
-      return std::max<uint32_t>(1U, std::min<uint32_t>(requested_num_threads, floor(num_blocks_total / min_num_blocks_per_thread)));
+      return std::max<uint32_t>(1U, std::min<uint32_t>(requested_num_threads, num_blocks_total / min_num_blocks_per_thread));
   }
 
 } // namespace ert
