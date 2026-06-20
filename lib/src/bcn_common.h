@@ -67,51 +67,45 @@ lerp(F a, F b, F s) {
 // non-multiple-of-block-size destination dimensions.
 //
 // Source and destination SHOULD have the same stride (i.e., nchannels).
-// Texels/Pixels noted by 'x' are filled by clamp-to-edge method (i.e., for each
-// raw, repeat the last pixel).
 //
 // This is the inverse (in terms of source/destination) of insert_block().
 //
-// Source: (width x height x nchannels)
+// In the following diagrams:
+//   - '.': denotes input texture/image's texels/pixels
+//   - '=': denotes texels/pixels that are copied from source texture/image
+//   - 'x': denotes texels/pixels that are filled by clamp-to-edge method
+//        (i.e., for each raw, repeat the last pixel).
 //
-//  <-------------------- width ----------------->
-//  +--------------------------------------------+
-//  | pSrc    | ... | pSrc + src_pitch - 1       | <-- row: 0
-//  |                                            |
-//  |                                            |
-//  | pSrc + y * src_pitch + x * nchannels -> +--|---+ <- source block
-//  |                                         |  |xxx|
-//  |                                         |  |xxx|
-//  |                                         +--|---+
-//  |                                            |
-//  |                                            |
-//  |                                            |
-//  |                                            | <-- row: height - 1
-//  +--------------------------------------------+
+// Source texture and block: (width x height x nchannels)
 //
-// Destination: (4 x 4 x nchannels)
+//    <----------- width ----------->
+//    +-----------------------------+
+//    | . . . . . . . . . . . . . . | <-- row: 0
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . +-----|-----+ <- source block
+//    | . . . . . . . . . . . | = = | x x |
+//    | . . . . . . . . . . . | = = | x x |
+//    | . . . . . . . . . . . | = = | x x |
+//    | . . . . . . . . . . . | = = | x x |
+//    | . . . . . . . . . . . +-----|-----+
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . . . . | <-- row: height - 1
+//    +-----------------------------+
 //
-//  <-------------- block size ------------->
-//  +---------------------------------------+
-//  | pDst + 0 | ... | pDst + dst_pitch - 1 | <-- row: 0
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx | <-- row: block_size - 1
-//  +---------------------------------------+
+// Destination block: (4 x 4 x nchannels)
 //
+//     block_size
+//    +---------+
+//    | = = x x | <-- row: 0
+//    | = = x x |
+//    | = = x x |
+//    | = = x x | <-- row: block_size - 1
+//    +---------+
 //
 template <typename T>
 inline void
 extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
               uint32_t nchannels /* stride */) {
-    // TODO: expose this as parameter for usage with other block sizes
     constexpr uint32_t kBlockSize = BCN_BLOCK_SIZE;
     const uint32_t src_pitch = width * nchannels;           // nbr bytes per raw of src
     const uint32_t dst_pitch = kBlockSize * nchannels;      // nbr bytes per raw of dst
@@ -154,43 +148,41 @@ extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint
 // non-multiple-of-block-size destination dimensions.
 //
 // Source and destination SHOULD have the same stride (i.e., nchannels).
-// Texels/Pixels noted by 'x' are discarded (i.e., not copied).
 //
 // This is the inverse (in terms of source/destination) of extract_block().
 //
-// Source: (4 x 4 x nchannels)
+// In the following diagrams:
+//   - '.': denotes untouched destination texture/image's texels/pixels.
+//   - '=': denotes texels/pixels that are copied from source block and written
+//          into destination texture.
+//   - 'x': denotes block texels/pixels that are discarded/ignored.
 //
-//  <-------------- block size ------------->
-//  +---------------------------------------+
-//  | pSrc + 0 | ... | pSrc + src_pitch - 1 | <-- row: 0
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx |
-//  |                   xxxxxxxxxxxxxxxxxxx |
-//  |          | ... |  xxxxxxxxxxxxxxxxxxx | <-- row: block_size - 1
-//  +---------------------------------------+
+// Source block: (4 x 4 x nchannels)
+//
+//     block_size
+//    +---------+
+//    | = = x x | <-- row: 0
+//    | = = x x |
+//    | x x x x |
+//    | x x x x | <-- row: block_size - 1
+//    +---------+
 //
 // Destination: (width x height x nchannels)
-//
-//  <-------------------- width ----------------->
-//  +--------------------------------------------+
-//  | pDst    | ... | pDst + dst_pitch - 1       | <-- row: 0
-//  |                                            |
-//  |                                            |
-//  | pDst + y * dst_pitch + x * nchannels -> +--|---+ <- source block
-//  |                                         |  |xxx|
-//  |                                         |  |xxx|
-//  |                                         +--|---+
-//  |                                            |
-//  |                                            |
-//  |                                            |
-//  |                                            | <-- row: height - 1
-//  +--------------------------------------------+
+//  
+//    <----------- width ----------->
+//    +-----------------------------+
+//    | . . . . . . . . . . . . . . | <-- row: 0
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . . . . |
+//    | . . . . . . . . . . . +-----|-----+
+//    | . . . . . . . . . . . | = = | x x |
+//    | . . . . . . . . . . . | = = | x x | <-- row: height - 1
+//    +-----------------------------+
+//                            | x x | x x |
+//                            | x x | x x |
+//                            +-----+-----+
 //
 template <typename T>
 inline uint32_t
