@@ -272,6 +272,7 @@ jobs:
           scripts/smudge_date.sh
 
       - name: script
+        id: buildstep
         env:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
@@ -284,8 +285,8 @@ jobs:
           fi
           set +e
 
-    # Currently this runs if build_linux fails for any reason whatsoever (because detecting
-    # that the CTS tests have failed requires some changes to build_linux)
+    # Currently this runs if build_macos fails for any reason whatsoever (because detecting
+    # that the CTS tests have failed requires some changes to build_macos)
 #    - name: Upload generated CTS output files if CTS tests fail
 #      if: failure() && matrix.options.tools_cts == 'ON'  && steps.buildstep.outcome == 'failure'
 #      uses: actions/upload-artifact@v7
