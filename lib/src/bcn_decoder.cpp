@@ -85,6 +85,8 @@ unpack_block_bc1(const void* pBlock, void* pPixels, void* pUser_data) {
  * @exception KTX_INVALID_VALUE
  *                      @p params is NULL but @p This texture is BC1 or BC3
  *                      compressed.
+ * @exception KTX_FILE_DATA_ERROR
+ *                       The texture's supercompression scheme is unsupported.
  * @exception KTX_INVALID_OPERATION
  *                      The texture's images are supercompressed.
  * @exception KTX_INVALID_OPERATION
@@ -112,8 +114,14 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
     VkFormat decompressedVkFormat;
     KTX_error_code result;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;  // TODO: does it have to be not supercompressed?
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ ||
+        This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
+        return KTX_FILE_DATA_ERROR;  // Not a valid file.
+    }
+    // Safety check.
+    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
+        return KTX_UNSUPPORTED_FEATURE;  // Unsupported scheme.
+    }
 
     if (!This->isCompressed) return KTX_INVALID_OPERATION;
 
