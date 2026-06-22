@@ -207,6 +207,10 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
         This->supercompressionScheme = KTX_SS_NONE;
         priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
 
+        // Copy typesize otherwise `ktx info` and `ktx validate` fails and
+        // complains that block-compressed types should have a typesize of 1.
+        This->_protected->_typeSize = prototype->_protected->_typeSize;
+
         // Copy the levelIndex from the prototype to This.
         memcpy(priv._levelIndex, protoPriv._levelIndex,
                This->numLevels * sizeof(ktxLevelIndexEntry));
