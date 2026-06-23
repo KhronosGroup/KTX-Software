@@ -3425,6 +3425,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
             params.bcnRDODictSize = 4096u;
             params.bcnRDOTry2Matches = true;
             params.bcnRDOSkipZeroMSEBlocks = false;
+            params.bcnRDONoMultithreading = true;
         } else {
             params.bcnRDO = false;
         }

@@ -113,6 +113,9 @@ namespace ktx {
         <dt>\--bcn-rdo-skip-zero-mse</dt>
         <dd>Skip blocks that have zero mean-squared error (MSE). Might result in
             faster but potentially lower compression.</dd>
+        <dt>\--bcn-rdo-m</dt>
+        <dd>Disable RDO multithreading (results are always deterministic with or
+            without multithreading).</dd>
     </dl>
 </dl>
 //! [command options_encode_bcn]
@@ -136,6 +139,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kBCnRdoNoUltrasmoothBlocks = "bcn-rdo-no-ultrasmooth";
     inline static const char* kBCnRdoTryOneMatch = "bcn-rdo-try-one-match";
     inline static const char* kBCnRdoSkipZeroMSEBlocks = "bcn-rdo-skip-zero-mse";
+    inline static const char* kBCnRdoNoMultithreading = "bcn-rdo-m";
 
     inline static const char* kBCnOptions[] = {
         // kBCnQuality,
@@ -189,6 +193,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         bcnRDODictSize = 4096u;
         bcnRDOTry2Matches = true;
         bcnRDOSkipZeroMSEBlocks = false;
+        bcnRDONoMultithreading = false;
     }
 
     void init(cxxopts::Options& opts) {
@@ -284,7 +289,9 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             "in slightly faster, but lower compression.")(
             kBCnRdoSkipZeroMSEBlocks,
             "Skip blocks that have zero mean-squared error (MSE). Might result in faster but "
-            "potentially lower compression.");
+            "potentially lower compression.")(kBCnRdoNoMultithreading,
+                                              "Disable RDO multithreading (results are always "
+                                              "deterministic with or without multithreading).");
     }
 
     void captureBCnOption(const char* name) { bcnOptions += fmt::format(" --{}", name); }
@@ -433,6 +440,12 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             captureBCnOption(kBCnRdoSkipZeroMSEBlocks);
             bcnRDOSkipZeroMSEBlocks = true;
+        }
+
+        if (args[kBCnRdoNoMultithreading].count()) {
+            if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
+            captureBCnOption(kBCnRdoNoMultithreading);
+            bcnRDONoMultithreading = true;
         }
     }
 };

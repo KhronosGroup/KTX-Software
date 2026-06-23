@@ -1748,8 +1748,11 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 // Don't naively just take provided thread count and divide RDO over those threads
                 // => this will certainly result in non-deterministic output (+ change of actual
                 // used window size)
-                const uint32_t thread_count_rdo = ert::adjust_num_threads_for_deterministic_rdo(
-                    thread_count, params->bcnRDODictSize, blocksize_in_bytes, num_blocks_total);
+                uint32_t thread_count_rdo = 1;
+                if (!params->bcnRDONoMultithreading) {
+                    thread_count_rdo = ert::adjust_num_threads_for_deterministic_rdo(
+                        thread_count, params->bcnRDODictSize, blocksize_in_bytes, num_blocks_total);
+                }
                 assert(thread_count_rdo <= thread_count);
                 assert((num_blocks_total >= params->bcnRDODictSize / blocksize_in_bytes)
                            ? (num_blocks_total / thread_count_rdo >=

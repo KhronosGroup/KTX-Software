@@ -1667,6 +1667,11 @@ typedef struct ktxBCnParams {
            in faster compression speed but potentially lower compression.
            Default is false.
          */
+
+    ktx_bool_t bcnRDONoMultithreading;
+        /*!< Disable RDO multithreading (for BCn, results are always
+           deterministic with or without multithreading). Default is false.
+         */
 } ktxBCnParams;
 
 KTX_API KTX_error_code KTX_APIENTRY
