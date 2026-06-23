@@ -153,14 +153,12 @@ $ktx create --testrun --format R16G16B16_SFLOAT --scale 0.25 --zstd 15 input/exr
 
 # differential
 # BCn textures. Notice that these are created via a transcode using Basis Universal's UASTC format. This is important for 'cross' testing (i.e., using different software to verify ours).
-$ktx create --testrun --encode uastc --format R8G8B8_UNORM    input/png/rgb8_unorm_bc1.png -   | $ktx transcode --testrun --target bc1 - ktx2/rgb8_unorm_bc1.ktx2
-$ktx create --testrun --encode uastc --format R8G8B8_SRGB     input/png/rgb8_srgb_bc1.png -    | $ktx transcode --testrun --target bc1 - ktx2/rgb8_srgb_bc1.ktx2
-$ktx create --testrun --encode uastc --format R8G8B8A8_UNORM  input/png/rgba8_unorm_bc3.png -  | $ktx transcode --testrun --target bc3 - ktx2/rgba8_unorm_bc3.ktx2
-$ktx create --testrun --encode uastc --format R8G8B8A8_SRGB   input/png/rgba8_srgb_bc3.png -   | $ktx transcode --testrun --target bc3 - ktx2/rgba8_srgb_bc3.ktx2
-$ktx create --testrun --encode uastc --format R8_UNORM        input/png/r8_unorm_bc4.png -     | $ktx transcode --testrun --target bc4 - ktx2/r8_unorm_bc4.ktx2
-$ktx create --testrun --encode uastc --format R8G8_UNORM      input/png/rg8_unorm_bc5.png -    | $ktx transcode --testrun --target bc5 - ktx2/rg8_unorm_bc5.ktx2
-# There is something erroneous in the UASTC -> BC5 ... Ignore differential testing for BC5 and use our own BCn encoder
-$ktx create --testrun --format BC5_UNORM_BLOCK input/png/rg8_unorm_bc5.png ktx2/rg8_unorm_bc5.ktx2
+$ktx create --testrun --encode uastc                --format R8G8B8_UNORM    input/png/rgb8_unorm_bc1.png -   | $ktx transcode --testrun --target bc1 - ktx2/rgb8_unorm_bc1.ktx2
+$ktx create --testrun --encode uastc                --format R8G8B8_SRGB     input/png/rgb8_srgb_bc1.png -    | $ktx transcode --testrun --target bc1 - ktx2/rgb8_srgb_bc1.ktx2
+$ktx create --testrun --encode uastc                --format R8G8B8A8_UNORM  input/png/rgba8_unorm_bc3.png -  | $ktx transcode --testrun --target bc3 - ktx2/rgba8_unorm_bc3.ktx2
+$ktx create --testrun --encode uastc                --format R8G8B8A8_SRGB   input/png/rgba8_srgb_bc3.png -   | $ktx transcode --testrun --target bc3 - ktx2/rgba8_srgb_bc3.ktx2
+$ktx create --testrun --encode uastc                --format R8_UNORM        input/png/r8_unorm_bc4.png -     | $ktx transcode --testrun --target bc4 - ktx2/r8_unorm_bc4.ktx2
+$ktx create --testrun --encode uastc --normal-mode  --format R8G8_UNORM      input/png/rg8_unorm_bc5.png -    | $ktx transcode --testrun --target bc5 - ktx2/rg8_unorm_bc5.ktx2
 
 # BCn original KTX2 textures (so that ktxdiff can compare against these)
 $ktx create --testrun --format R8G8B8_SRGB      input/png/rgb8_srgb_bc1.png       ktx2/rgb8_srgb_input_for_bc1.ktx2
