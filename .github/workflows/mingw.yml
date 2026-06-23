@@ -84,7 +84,15 @@ jobs:
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release
     - name: Test Mingw build
+      id: teststep
       run: ctest --output-on-failure --test-dir build -C Release
+#    - name: Upload generated CTS output files if CTS tests fail
+#      if: failure() && matrix.options.tools_cts == 'ON'  && steps.teststep.outcome == 'failure'
+#      uses: actions/upload-artifact@v7
+#      with:
+#        name: cts_failure_artifacts_${{ github.sha }}
+#        path: tests/cts/clitests/output
+
 #    - name: Upload test log
 #      shell: pwsh
 #      if: ${{ failure() }}

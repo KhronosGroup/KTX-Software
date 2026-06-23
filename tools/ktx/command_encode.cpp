@@ -2,8 +2,10 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <bcn_common.h>
 #include "command.h"
 #include "encode_utils_astc.h"
+#include "encode_utils_bcn.h"
 #include "encode_utils_common.h"
 #include "platform_utils.h"
 #include "metrics_utils.h"
@@ -18,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <unordered_map>
 
 #include <cxxopts.hpp>
@@ -49,6 +52,10 @@ Encode a KTX2 file.
     For universal and ASTC LDR formats, the input file must be R8, R8G8, R8G8B8
     or R8G8B8A8 (or their sRGB variants).
 
+    For BC1, BC3 and BC7 formats, the input file must be R8G8B8A8 (or their SRGB variants).
+    For BC4 format, the input file must be R8.
+    For BC5 format, the input file must be R8G8.
+
     For universal HDR formats, the input file must be R16G16B16_SFLOAT or R16G16B16A16_SFLOAT.
 
     <!--For ASTC HDR formats the input file must be TBD (e.g. R16_{,S}FLOAT,
@@ -71,10 +78,11 @@ Encode a KTX2 file.
 
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
         <dt>\--format &lt;enum&gt;</dt>
-        <dd>KTX format enum that specifies the target ASTC format. Non-ASTC
-            formats are invalid. When specified the ASTC-specific and common
-            encoder options listed @ref ktx\_encode\_options\_encoding "below"
-            become valid, otherwise they are ignored.</dd>
+        <dd>KTX format enum that specifies the target ASTC or BCn format.
+            Formats that neither are ASTC nor one of the supported BCn formats
+            are invalid. When specified the ASTC-specific or BCn-specific and
+            common encoder options listed @ref ktx\_encode\_options\_encoding
+            "below" become valid, otherwise they are ignored.</dd>
     </dl>
     @snippet{doc} ktx/deflate_utils.h command options_deflate
     @snippet{doc} ktx/command.h command options_generic
@@ -84,6 +92,7 @@ Encode a KTX2 file.
     become valid only if their encoder has been selected. Common encoder options
     become valid when an encoder they apply to has been selected. Otherwise they are ignored.
     @snippet{doc} ktx/encode_utils_astc.h command options_encode_astc
+    @snippet{doc} ktx/encode_utils_bcn.h command options_encode_bcn
     @snippet{doc} ktx/encode_utils_basis.h command options_encode_basis
     @snippet{doc} ktx/encode_utils_common.h command options_encode_common
     @snippet{doc} ktx/metrics_utils.h command options_metrics
@@ -114,8 +123,9 @@ class CommandEncode : public Command {
         void process(cxxopts::Options& opts, cxxopts::ParseResult& args, Reporter& report);
     };
 
-    Combine<OptionsEncode, OptionsEncodeASTC, OptionsEncodeBasis<true>, OptionsEncodeCommon,
-            OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut<>, OptionsGeneric> options;
+    Combine<OptionsEncode, OptionsEncodeASTC, OptionsEncodeBCn, OptionsEncodeBasis<true>,
+            OptionsEncodeCommon, OptionsMetrics, OptionsDeflate, OptionsSingleInSingleOut<>, OptionsGeneric>
+        options;
 
 public:
     virtual int main(int argc, char* argv[]) override;
@@ -150,8 +160,8 @@ void CommandEncode::OptionsEncode::init(cxxopts::Options& opts) {
                   " The enum names are matching the VkFormats without the VK_FORMAT_ prefix."
                   " The VK_FORMAT_ prefix is ignored if present."
                   "\nIt can't be used with --codec."
-                  "\nThe value must be an ASTC format. When specified the ASTC encoder specific"
-                  " options becomes valid."
+                  "\nThe value must be an ASTC or a BCn format. If an ASTC format is specified,"
+                  " the ASTC encoder specific options becomes valid. Likewise for BCn formats."
                   " Case insensitive.", cxxopts::value<std::string>(), "<enum>")
         (kCodec, "Target codec."
                   " With each encoding option the encoder specific options become valid,"
@@ -171,8 +181,8 @@ void CommandEncode::OptionsEncode::process(cxxopts::Options&, cxxopts::ParseResu
 
         vkFormat = *parsedVkFormat;
 
-        if (!isFormatAstc(vkFormat)) {
-            report.fatal_usage("Optional option 'format' is not an ASTC format.");
+        if (!isFormatAstc(vkFormat) && !isFormatBCn(vkFormat)) {
+            report.fatal_usage("Optional option 'format' is neither an ASTC format nor a supported BCn format.");
         }
     }
 }
@@ -212,18 +222,25 @@ void CommandEncode::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
                             options.selectedCodec == BasisCodec::UASTC_HDR_4x4 ||
                             options.selectedCodec == BasisCodec::UASTC_HDR_6x6i;
     const auto astcCodec = isFormatAstc(options.vkFormat);
-    const auto canCompare = basisCodec || astcCodec;
+    const auto bcnCodec = isFormatBCn(options.vkFormat);
+    const auto canCompare = basisCodec || astcCodec || bcnCodec;
 
     if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
+        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC, ASTC, or BCn encoding.");
     if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
+        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC, ASTC, or BCn encoding.");
 
     if (astcCodec) {
         options.encodeASTC = true;
         fillOptionsCodecAstc<decltype(options)>(options);
         if (options.OptionsEncodeCommon::noSSE)
             fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
+    }
+    if (bcnCodec) {
+        options.encodeBCn = true;
+        fillOptionsCodecBCn<decltype(options)>(options);
+        if (options.OptionsEncodeCommon::noSSE)
+            fatal_usage("--{} is not allowed with BCn encode", OptionsEncodeCommon::kNoSse);
     }
 }
 
@@ -242,10 +259,22 @@ void CommandEncode::executeEncode() {
             toString(ktxSupercmpScheme(texture->supercompressionScheme)));
 
     const auto* bdfd = texture->pDfd + 1;
-    if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC && options.encodeASTC)
+    auto model = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
+    if (model == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
 
-    if (options.selectedCodec == BasisCodec::NONE ||
+    const auto is_hdr = ktxTexture2_IsHDR(texture);
+
+    if ((model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC3 || model == KHR_DF_MODEL_BC4 ||
+         model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H || model == KHR_DF_MODEL_BC7) &&
+        options.encodeBCn)
+        fatal_usage(
+            "Encoding from BCn format {} to another BCn format {} is not supported. "
+            "You can use the `ktx extract` tool to decode into a raw format then use this tool to "
+            "encode back into your target BCn format.",
+            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+
+    if ((options.selectedCodec == BasisCodec::NONE && !is_hdr) ||
         options.selectedCodec == BasisCodec::BasisLZ ||
         options.selectedCodec == BasisCodec::UASTC_LDR_4x4) {
         switch (texture->vkFormat) {
@@ -282,6 +311,16 @@ void CommandEncode::executeEncode() {
                 toString(VkFormat(texture->vkFormat)));
             break;
         }
+    } else if (options.encodeBCn && is_hdr /* means BC6HU */) {
+        switch (texture->vkFormat) {
+        case VK_FORMAT_R16G16B16_SFLOAT:
+            // Allowed formats
+            break;
+        default:
+            fatal_usage("Only RGB16 SFLOAT can be encoded to BC6HU, but format is {}.",
+                        toString(VkFormat(texture->vkFormat)));
+            break;
+        }
     }
 
     // Convert 1D textures to 2D (we could consider 1D as an invalid input)
@@ -303,11 +342,29 @@ void CommandEncode::executeEncode() {
     MetricsCalculator metrics;
     metrics.saveReferenceImages(texture, options, *this);
 
-    if (options.vkFormat != VK_FORMAT_UNDEFINED) {
+    if (options.vkFormat != VK_FORMAT_UNDEFINED && options.encodeASTC) {
        options.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR; // TODO: Fix me for HDR textures
        ret = ktxTexture2_CompressAstcEx(texture, &options);
        if (ret != KTX_SUCCESS)
            fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to ASTC. KTX Error: {}", ktxErrorString(ret));
+    } else if (options.vkFormat != VK_FORMAT_UNDEFINED && options.encodeBCn) {
+        // Encode to BCn
+        // First we have to set the target BCn target format in options
+        int nchannels;
+        VkFormat decompressed_format;
+        options.bcn = get_bcn_compression_kind(options.vkFormat, decompressed_format, nchannels);
+        if (options.bcn == KTX_BCN_COMPRESSION_NONE)
+          fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to BCn. Target format is not a supported BCn format {}",
+              vkFormatString(options.vkFormat));
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC1A)
+          fatal(rc::IO_FAILURE, "Punch-through alpha encoding for BC1 format is not supported. Consider supplying an RGB8 input format instead.");
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC6HS)
+          fatal(rc::IO_FAILURE, "Encoding to signed BC6H HDR format (BC6HS) is not supported.");
+
+        ret = ktxTexture2_CompressBCnEx(texture, &options);
+        if (ret != KTX_SUCCESS)
+            fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to BCn. KTX Error: {}",
+                  ktxErrorString(ret));
     } else {
        ret = ktxTexture2_CompressBasisEx(texture, &options);
        if (ret != KTX_SUCCESS)
@@ -329,7 +386,13 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    auto writerScParams = fmt::format("{}{}{}{}{}", options.bcnOptions, options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    // This is ugly but is needed for testing ST vs. MT output without having ktxdiff fail because of KTXwriterScParams
+    if (options.testrun && options.encodeBCn) {
+        std::regex threads_r(R"(\s+--threads\s+\d+)", std::regex_constants::icase);
+        std::string writerScParams_without_threads = std::regex_replace(writerScParams, threads_r, "");
+        writerScParams = writerScParams_without_threads;
+    }
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space

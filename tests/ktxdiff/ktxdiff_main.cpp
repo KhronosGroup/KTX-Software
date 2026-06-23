@@ -12,6 +12,7 @@
 #include "astc-encoder/Source/astcenc.h"
 
 #include <cassert>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <string_view>
@@ -303,7 +304,7 @@ CompareResult compareAstc(const char* lhs, const char* rhs, std::size_t size, ui
     }
 }
 
-bool compare(Texture& lhs, Texture& rhs, float tolerance) {
+bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
     const auto vkFormat = static_cast<VkFormat>(lhs.header.vkFormat);
     const auto* bdfd = reinterpret_cast<const uint32_t*>(lhs.dfdData) + 1;
     const auto componentCount = KHR_DFDSAMPLECOUNT(bdfd);
@@ -342,8 +343,19 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header) - sizeof(ktxIndexEntry64)) != 0)
             return mismatch("Mismatching header");
     } else {
-        if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header)) != 0)
-            return mismatch("Mismatching header");
+        if (skip_kvd) {
+            // First compare up-to keyValueData member exclusive
+            if (std::memcmp(
+                    &lhs.header, &rhs.header,
+                    sizeof(lhs.header) - (sizeof(ktxIndexEntry64) + sizeof(ktxIndexEntry32))) != 0)
+                return mismatch("Mismatching header");
+            // Then only compare supercompressionGlobalData
+            if (std::memcmp(&lhs.header.supercompressionGlobalData, &rhs.header.supercompressionGlobalData, sizeof(lhs.header.supercompressionGlobalData)) != 0)
+                return mismatch("Mismatching header");
+        } else {
+            if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header)) != 0)
+                return mismatch("Mismatching header");
+        }
         if (lhs.levelIndexSize != rhs.levelIndexSize)
             return mismatch("Mismatching levelIndices");
         for (uint32_t i = 0; i < lhs.levelIndices.size(); ++i)
@@ -354,8 +366,9 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
     if (lhs.dfdSize != rhs.dfdSize || std::memcmp(lhs.dfdData, rhs.dfdData, lhs.dfdSize) != 0)
         return mismatch("Mismatching DFD");
 
-    if (lhs.kvdSize != rhs.kvdSize || std::memcmp(lhs.kvdData, rhs.kvdData, lhs.kvdSize) != 0)
-        return mismatch("Mismatching KVD");
+    if (!skip_kvd)
+        if (lhs.kvdSize != rhs.kvdSize || std::memcmp(lhs.kvdData, rhs.kvdData, lhs.kvdSize) != 0)
+            return mismatch("Mismatching KVD");
 
     if (!lhs.transcoded)
         if (lhs.sgdSize != rhs.sgdSize || std::memcmp(lhs.sgdData, rhs.sgdData, lhs.sgdSize) != 0)
@@ -422,19 +435,50 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
 int main(int argc, char* argv[]) {
     InitUTF8CLI(argc, argv);
 
+#define USAGE_MSG()                                                                              \
+    fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance] [--skip-kvd]\n");     \
+    fmt::print(                                                                                  \
+        "  For normalized formats tolerance is the normalized absolute value of the acceptable " \
+        "difference.\n");                                                                        \
+    fmt::print(                                                                                  \
+        "  For unnormalized formats it is the fraction of the minimum of the values being "      \
+        "compared that is acceptable.\n")
+
     if (argc < 3) {
         fmt::print("Missing input file arguments\n");
-        fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance]\n");
-        fmt::print("  For normalized formats tolerance is the normalized absolute value of the acceptable difference.\n");
-        fmt::print("  For unnormalized formats it is the fraction of the minimum of the values being compared that is acceptable.\n");
+        USAGE_MSG();
         return EXIT_FAILURE;
     }
 
-    const float tolerance = argc > 3 ? std::stof(argv[3]) : 0.05f;
+    if (argc > 5) {
+        fmt::print("Too many arguments or/and options\n");
+        USAGE_MSG();
+        return EXIT_FAILURE;
+    }
 
-    Texture lhs(argv[1]);
-    Texture rhs(argv[2]);
-    const auto match = compare(lhs, rhs, tolerance);
+    float tolerance = 0.05f;
+    bool skip_kvd = false;
+    std::string lhs_path = argv[1], rhs_path = argv[2];
+
+    if (argc == 4) {
+        if (std::string(argv[3]) != "--skip-kvd") {
+            tolerance = std::stof(argv[3]);
+        } else {
+            skip_kvd = true;
+        }
+    } else if (argc == 5) {
+        if (std::string(argv[4]) != "--skip-kvd") {
+            fmt::print("Option '--skip-kvd' should be specified as last option\n");
+            USAGE_MSG();
+            return EXIT_FAILURE;
+        }
+        tolerance = std::stof(argv[3]);
+        skip_kvd = true;
+    }
+
+    Texture lhs(lhs_path);
+    Texture rhs(rhs_path);
+    const auto match = compare(lhs, rhs, tolerance, skip_kvd);
 
     return match ? 0 : 1;
 }

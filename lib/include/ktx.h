@@ -193,7 +193,8 @@ typedef enum ktx_error_code_e {
     KTX_LIBRARY_NOT_LINKED,  /*!< Library dependency (OpenGL or Vulkan) not linked into application. */
     KTX_DECOMPRESS_LENGTH_ERROR, /*!< Decompressed byte count does not match expected byte size */
     KTX_DECOMPRESS_CHECKSUM_ERROR, /*!< Checksum mismatch when decompressing */
-    KTX_ERROR_MAX_ENUM = KTX_DECOMPRESS_CHECKSUM_ERROR /*!< For safety checks. */
+    KTX_DECOMPRESS_FAILURE, /*!< Decompression failure */
+    KTX_ERROR_MAX_ENUM = KTX_DECOMPRESS_FAILURE /*!< For safety checks. */
 } ktx_error_code_e;
 /**
  * @~English
@@ -1389,6 +1390,290 @@ typedef struct ktxAstcParams {
           */
 } ktxAstcParams;
 
+/**
+ * @~English
+ * @brief Options specifiying BC1/BC3 encoding/decoding approximation modes.
+ */
+typedef enum ktx_bc1_approx_mode_e {
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL          = 0U,
+        /*!< The default mode. No rounding for 4-color colors 2,3. This matches
+           the D3D10 docs on BC1.
+         */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA         = 1U,
+        /*!< NVidia GPU mode. May produce artifacts on non-NVidia GPUs. */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD            = 2U,
+        /*!< AMD GPU mode. May produce artifacts on non-AMD GPUs. */
+    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4  = 3U,
+        /*!< Matches AMD Compressonator's output. Rounds 4-color colors 2,3 (not
+           3-color color 2). This matches the D3D9 docs on DXT1.
+         */
+} ktx_bc1_approx_mode_e;
+typedef ktx_uint32_t ktx_bc1_approx_mode;
+
+/**
+ * @~English
+ * @brief Options specifiying BC1/BC3 encoding quality levels.
+ */
+typedef enum ktx_pack_bc1_quality_levels_e {
+    KTX_PACK_BC1_QUALITY_LEVEL_FASTEST    = 0U,
+        /*!< Fastest compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_FAST       = 5U,
+        /*!< Fast compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM     = 10U,
+        /*!< Medium compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH   = 15U,
+        /*!< Slower compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE = 19U,
+        /*!< Very slow compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_MAX        = KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Maximum supported quality level. */
+} ktx_pack_bc1_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_bc1_quality_levels;
+
+/**
+ * @~English
+ * @brief Options specifiying high-level BC7 encoding quality levels.
+ */
+typedef enum ktx_pack_bc7_quality_levels_e {
+    KTX_PACK_BC7_QUALITY_LEVEL_FASTEST    = 128U,
+        /*!< Fastest compression. Very weak particularly on alpha, mode 6 only
+           for RGB/RGBA. Maps to: cPackBC7FlagDefaultFastest.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_FASTER     = 176U,
+        /*!< Faster compression. Mode 6 with pbits for RGB, Modes 4,5,6 for
+           alpha. Maps to: cPackBC7FlagDefaultFaster.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_FAST       = 179U,
+        /*!< Fast compression. Maps to: cPackBC7FlagDefaultFast. */
+    KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM     = 255U,
+        /*!< Medium compression. Maps to: cPackBC7FlagDefault. */
+    KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH   = 1023U,
+        /*!< Slower compression. Partially analytical BC7 defaults (slower).
+          Maps to cPackBC7FlagDefaultPartiallyAnalytical.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE = 3967U,
+        /*!< Very slow compression. Non-analytical BC7 defaults (very slow).
+           In reality the encoder is still analytical on the mode pairs, but at
+           the highest level is non-analytical.
+           Maps to cPackBC7FlagDefaultNonAnalytical.
+         */
+    KTX_PACK_BC7_QUALITY_LEVEL_MAX        = KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Maximum supported quality level. */
+} ktx_pack_bc7_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing BC1 unpack parameters to ktxTexture2_DecodeBCn.
+ */
+typedef struct ktxBC1UnpackParams {
+    ktx_bool_t allow_3color_mode;
+    ktx_bool_t use_3color_mode_for_black;
+    ktx_bc1_approx_mode_e bc1_approx_mode;
+} ktxBC1UnpackParams;
+
+/**
+ * @~English
+ * @brief BCn compression kind.
+ */
+typedef enum ktx_bcn_compression_e {
+    KTX_BCN_COMPRESSION_NONE    = 0,
+    KTX_BCN_COMPRESSION_BC1     = 1,
+    KTX_BCN_COMPRESSION_BC1A    = 2,
+    KTX_BCN_COMPRESSION_BC2     = 3,
+    KTX_BCN_COMPRESSION_BC3     = 4,
+    KTX_BCN_COMPRESSION_BC4     = 5,
+    KTX_BCN_COMPRESSION_BC5     = 6,
+    KTX_BCN_COMPRESSION_BC6HU   = 7,
+    KTX_BCN_COMPRESSION_BC6HS   = 8,
+    KTX_BCN_COMPRESSION_BC7     = 9,
+} ktx_bcn_compression_e;
+
+/**
+ * @memberof ktxTexture
+ * @~English
+ * @brief Structure for passing extended parameters to
+ *        ktxTexture2_CompressBCnEx.
+ *
+ * Since it makes no sense to set the target BCn format to some default value,
+ * this struct does not have a default initializer. I.e., initializing this to 0
+ * (e.g. " = {0};") is not supported.
+ */
+typedef struct ktxBCnParams {
+    ktx_uint32_t structSize;
+        /*!< Size of this struct. Used so library can tell which version
+           of struct is being passed.
+         */
+
+    ktx_uint32_t threadCount;
+        /*!< Number of threads used for compression (only encoding part, not
+           RDO). Default is 1.
+         */
+
+    ktx_bcn_compression_e bcn;
+        /*!< BCn format to compress to. Only options related to the provided
+           target BCn format are used.
+
+           Since BC7 encoding is performed using basisu's analytical encoder
+           which encodes so rapidly (on average), that apart from lower VRAM
+           consumption (4bpp vs. 8bpp) and better GPU texture cache efficiency,
+           there's little need to use BC1 now. BC3 still has an advantage vs.
+           BC7, because it very strongly separates how RGB is encoded from the
+           alpha channel, in a predictable way.
+         */
+
+    ktx_bool_t normalMap;
+        /*!< Currently unused (added for same code structure convenience with
+           ASTC encoder).
+         */
+
+    /* BC1-5 params */
+
+    ktx_bc1_approx_mode bc1ApproxMode;
+        /*!< BC1/BC3 approximation mode (for both: encoding and decoding).
+           Default is KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL.
+          
+           If you encode textures for a specific vendor's GPU's, beware that
+           using that texture data on other GPU's may result in ugly artifacts.
+           Encode to KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL unless you know the
+           texture data will only be deployed or used on a specific vendor's
+           GPU.
+         */
+
+    ktx_pack_bc1_quality_levels bc1CompressionQuality;
+        /*!< BC1/BC3 compression quality. Range is [0,19]. Default is
+           KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH (i.e., 15). Lower values give
+           faster compression speed but potentially lower quality. Higher values
+           give slower compression speed but potentially better quality.
+         */
+
+    /* BC7 encoder params */
+
+    ktx_pack_bc7_quality_levels bc7CompressionQuality;
+        /*!< BC7 compression quality. Lower values give faster compression speed
+           at the expense of potentially lower quality. Higher values give
+           slower compression speed but potentially better quality.
+           Default is KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH.
+
+           This maps to an OR'ed set of lower-level flags which can also be set
+           directly for advanced use-cases.
+         */
+
+    /* RDO params */
+
+    float bcnRDOQualityScalar;
+        /*!< RDO quality scalar (lambda). Controls rate vs. distortion tradeoff.
+           Lower values yield higher quality/larger LZ compressed files, higher
+           values yield lower quality/smaller LZ compressed files. A good range
+           to try is [0.25,8]. Full range is [.001,50.0]. Default is 1.0.
+
+           The post-processor tries to minimize:
+           distortion * smooth_block_scale + rate * lambda
+           (rate is approximate LZ bits and distortion is scaled MSE multiplied
+           by the smooth block MSE weighting factor). Larger values push the
+           post-processor towards optimizing more for lower rate, and
+           smaller values more for distortion.
+
+           Currently, HDR formats (i.e., BC6HU/BC6HS) are not supported.
+         */
+
+    ktx_uint32_t bcnRDODictSize;
+        /*!< The number of bytes the encoder can look back from each block to
+           find matches. The larger this value, the slower the encoder but the
+           higher the quality per LZ compressed bit. Range is [64,65536].
+           Default is 4096.
+         */
+
+    float bcnRDOMaxSmoothBlockErrorScale;
+        /*!< RDO max MSE scaling factor for blocks considered to be smooth/flat.
+           A value of 1.0 means no smooth block error scaling which may cause
+           very noticeable artifacts for smooth/flat blocks (e.g., kodim23 test
+           image). This value can be automatically computed based on the set
+           RDO lamba by setting rdoAutomaticSmoothBlock. rdoMaxSmoothBlockStdDev
+           is used to compute, for a given block, the MSE scale factor in
+           the range: 1.0 (i.e., not a smooth block) up to this max MSE scale
+           factor.
+         
+           As to why an MSE factor has to be applied to smooth/flat blocks, the
+           MSE for these blocks is too low relative to the visual impact they
+           have when they get distorted. The solution implemented here is to 
+           compute the max std dev. of any component and use a linear function
+           of that to scale block/trial MSE.
+            
+           Range is [1,300]. Default is 10.0 in case
+           @p bcnRDOAutoMaxSmoothBlockErrorScale is not set.
+         */
+
+    float bcnRDOMaxSmoothBlockStdDev;
+        /*!< RDO max smooth/flat block standard deviation. If the std dev. of a
+           block exceeds this value, then it won't be considered as a smooth
+           block (i.e., the smooth block MSE scale factor will be set to 1 for
+           this block). The smaller the ratio of the std dev. of this block to
+           this value the more the smooth block MSE scale factor approaches
+           @p bcnRDOMaxSmoothBlockErrorScale.
+           Range is [.01,65536.0]. Larger values expand the range of blocks
+           considered smooth. Default is 18.0.
+         */
+
+    float bcnRDOMaxAllowedRMSIncreaseRatio;
+        /*!< How much the RMS error of a block is allowed to increase before a
+           trial is rejected. 1.0=no increase allowed, 1.05=5% increase allowed,
+           etc. Range is [1.001, 100.0]. Default is 10.0.
+         */
+
+    ktx_bool_t bcnRDO;
+        /*!< Enable Rate Distortion Optimization (RDO) post-processing step on
+           BCn-encoded blocks to reduce entropy with Deflate/LZMA/LZHAM
+           optimizations. This is primarily used to reduce size on disk by
+           applying a further compression, mainly: Deflate, LZMA, or LZHAM.
+           RDO parameters are only used if this is set. Setting this might
+           result in significantly slower encoding time at the benefit of
+           potentially significantly lower bit rate (i.e., number of bits per
+           encoded texel). Default is false.
+         */
+
+    ktx_bool_t bcnRDOAutoMaxSmoothBlockErrorScale;
+        /*!< Automatically compute a decent conservative smooth block MSE max
+           scaling factor. There is no single calculation/set of settings that
+           work perfectly on all input textures, but the formula in the code
+           works OK for most textures at low-ish lambdas (For an example of a
+           difficult texture the currently formulas/settings doesn't handle so
+           well, try encoding kodim03 at lambdas 1-3). Smooth block handling is
+           tuned so lambdas at or near 1 look OK on textures with smooth
+           gradients, skies, etc. If this is set,
+           @p bcnRDOMaxSmoothBlockErrorScale is ignored. Default is true.
+         */
+
+    ktx_bool_t bcnRDOUltrasmoothBlockHandling;
+        /*!< Detect extremely smooth blocks and encode them with a significantly
+           higher MSE scale factor. When enabled, a per-block mask image is
+           computed, filtered, then an array of per-block MSE scale factors is
+           supplied to the ERT. The end result is much less significant
+           artifacts on regions containing very smooth blocks (e.g., gradients).
+           This does hurt rate-distortion performance. Default is true.
+
+           This only applies to BC1, BC3, and BC7's RGB blocks (alpha is
+           ignored). For other formats, this is silently ignored.
+         */
+
+    ktx_bool_t bcnRDOTry2Matches;
+        /*!< Inject up to 2 matches into each block vs. 1. Results in a slightly
+           slower, but noticeably higher compression. Default is true.
+         */
+
+    ktx_bool_t bcnRDOSkipZeroMSEBlocks;
+        /*!< Skip blocks that have zero mean-squared error (MSR). Might result
+           in faster compression speed but potentially lower compression.
+           Default is false.
+         */
+
+    ktx_bool_t bcnRDONoMultithreading;
+        /*!< Disable RDO multithreading (for BCn, results are always
+           deterministic with or without multithreading). Default is false.
+         */
+} ktxBCnParams;
+
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params);
 
@@ -1397,6 +1682,17 @@ ktxTexture2_CompressAstc(ktxTexture2* This, ktx_uint32_t quality);
 
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeAstc(ktxTexture2* This);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxUnpackBCn(const ktx_uint8_t* imageDataIn, ktx_uint8_t* imageDataOut,
+             ktx_uint32_t width, ktx_uint32_t height, ktx_bcn_compression_e bcn,
+             ktxBC1UnpackParams* params);
 
 /**
  * @~English

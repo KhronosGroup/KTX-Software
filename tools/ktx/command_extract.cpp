@@ -2,12 +2,19 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+// builds on Windows complain about deprecated "strncpy" calls
+#if defined(_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include "bcn_common.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "fragment_uri.h"
 #include "sbufstream.h"
+#include "transcoder/basisu_transcoder_internal.h"
 #include "utility.h"
 #include "validate.h"
 #include "metadata_utils.h"
@@ -184,6 +191,9 @@ private:
                            const FormatDescriptor& format, uint32_t width, uint32_t height,
                            float scale, float offset, const char* data, std::size_t size);
     void unpackAndSave422(std::string filepath, bool appendExtension, VkFormat vkFormat, const FormatDescriptor& format, uint32_t width, uint32_t height, const char* data, std::size_t size);
+    void decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
+                          uint32_t width, uint32_t height, const char* compressedData,
+                          std::size_t compressedSize);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -589,6 +599,78 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
             createFormatDescriptor(uncompressedVkFormat, *this),
             width,
             height);
+}
+
+void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
+                                      uint32_t width, uint32_t height, const char* compressedData,
+                                      std::size_t compressedSize) {
+    int nchannels;
+    size_t expectedCompressedSize;
+    const size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
+                           ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
+
+    VkFormat decompressed_format;
+    ktx_bcn_compression_e bcn = get_bcn_compression_kind(vkFormat, decompressed_format, nchannels);
+
+    bool is_hdr = (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS);
+
+    // TODO: somehow expose this
+    ktxBC1UnpackParams params;
+    params.allow_3color_mode = true;
+    params.use_3color_mode_for_black = false;
+    params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
+
+    switch (bcn) {
+    case KTX_BCN_COMPRESSION_BC1:
+    case KTX_BCN_COMPRESSION_BC1A:
+        expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC2:
+        expectedCompressedSize = BC2_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC3:
+        expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC4:
+        expectedCompressedSize = BC4_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC5:
+        expectedCompressedSize = BC5_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC6HU:
+        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC6HS:
+        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        break;
+    case KTX_BCN_COMPRESSION_BC7:
+        expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
+        break;
+    default:  // should never occur
+        fatal(rc::RUNTIME_ERROR, "Provided format is not a BCn block-compressed format: {}",
+              static_cast<ktx_uint32_t>(vkFormat));
+        return;
+    }
+
+    // be absolutely certain that we won't overflow the compressedData buffer
+    if (compressedSize != expectedCompressedSize)
+        fatal(rc::RUNTIME_ERROR, "Provided compressed size is unexpected.");
+
+    const std::size_t decompressed_size = width * height * nchannels * (is_hdr ? 2 : 1);
+    const auto decompressed_buffer = std::make_unique<uint8_t[]>(decompressed_size);
+
+    ktx_uint8_t* buffer_ptr = decompressed_buffer.get();
+    const ktx_uint8_t* src_blocks = reinterpret_cast<const ktx_uint8_t*>(compressedData);
+
+    auto res = ktxUnpackBCn(src_blocks, buffer_ptr, width, height, bcn, &params);
+    if (res != KTX_SUCCESS) {
+        fatal(rc::RUNTIME_ERROR, "Unpack of BCn-compressed image failed.");
+    }
+
+    saveImageFile(std::move(filepath), appendExtension,
+                  reinterpret_cast<const char*>(decompressed_buffer.get()), decompressed_size,
+                  decompressed_format, createFormatDescriptor(decompressed_format, *this), width,
+                  height);
 }
 
 using namespace imageio;
@@ -1377,11 +1459,32 @@ void CommandExtract::saveImageFile(
         saveEXR(std::move(filepath), appendExtension, vkFormat, format, width, height, {TINYEXR_PIXELTYPE_FLOAT, TINYEXR_PIXELTYPE_HALF}, data, size);
         break;
 
+    case VK_FORMAT_BC1_RGB_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGB_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC1_RGBA_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC2_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC2_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC3_SRGB_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC4_SNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC5_SNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC6H_UFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC6H_SFLOAT_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC7_UNORM_BLOCK: [[fallthrough]];
+    case VK_FORMAT_BC7_SRGB_BLOCK:
+        // BCn decode will recurse into this function with the uncompressed data and format
+        decodeAndSaveBCn(std::move(filepath), appendExtension, vkFormat, width, height, data, size);
+        break;
+
     default:
-        fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.", toString(vkFormat));
+        fatal(rc::INVALID_FILE, "Requested format conversion from {} is not supported.",
+              toString(vkFormat));
     }
 }
 
-} // namespace ktx
+}  // namespace ktx
 
 KTX_COMMAND_ENTRY_POINT(ktxExtract, ktx::CommandExtract)
