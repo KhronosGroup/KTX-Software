@@ -386,7 +386,7 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    auto writerScParams = fmt::format("{}{}{}{}", options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    auto writerScParams = fmt::format("{}{}{}{}{}", options.bcnOptions, options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
     // This is ugly but is needed for testing ST vs. MT output without having ktxdiff fail because of KTXwriterScParams
     if (options.testrun && options.encodeBCn) {
         std::regex threads_r(R"(\s+--threads\s+\d+)", std::regex_constants::icase);
