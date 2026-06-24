@@ -27,7 +27,7 @@ endif()
 if(APPLE)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set( APPLE_LOCKED_OS ON )
-    else()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR NOT CMAKE_SYSTEM_NAME)
         set( APPLE_MAC_OS ON )
     endif()
 endif()
@@ -131,7 +131,7 @@ include(GNUInstallDirs) # Must be after project.
 include(CTest)          #           "
 
 set_target_processor_type(CPU_ARCHITECTURE) # Must be after project.
-if (CPU_ARCHITECTURE STREQUAL x86)
+if (CPU_ARCHITECTURE STREQUAL x86 AND NOT ANDROID)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 

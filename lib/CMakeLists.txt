@@ -16,6 +16,8 @@ if(NOT DEFINED KTX_VERSION)
     include(${KTX_ROOT_DIR}/cmake/version.cmake)
 endif()
 
+include(${KTX_ROOT_DIR}/cmake/macros.cmake)
+
 project(libktx
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
@@ -24,8 +26,42 @@ project(libktx
 if(APPLE)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set( APPLE_LOCKED_OS ON )
-    else()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR NOT CMAKE_SYSTEM_NAME)
         set( APPLE_MAC_OS ON )
+
+        # Detect macOS multi-architecture universal build.
+        list_contains(CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" APPLE_MAC_OS_ARCH_STANDARD)
+
+        if(APPLE_MAC_OS_ARCH_STANDARD)
+            # Replace the literal $(ARCHS_STANDARD) with the expected values
+            # of "arm64;x86_64". Otherwise CMake stores the unexpanded string and 
+            # embeds it into $<TARGET_OBJECTS:...> paths; at build time Xcode 
+            # expands it to a space-separated arch list (e.g. "arm64 x86_64") which
+            # is not a real Objects-normal/<arch> directory, so dependent objects
+            # (basisu_encoder, dfdutils) silently drop out of any libktx*.a using 
+            # the OBJECT-embedding variant of add_lib_dependencies, and the link of
+            # consumers like ktxdiff fails with undefined symbols.
+            list(REMOVE_ITEM CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)")
+            list(APPEND CMAKE_OSX_ARCHITECTURES "arm64" "x86_64")
+            message(STATUS "CMAKE_OSX_ARCHITECTURES set to '${CMAKE_OSX_ARCHITECTURES}'")
+    
+            if(CMAKE_GENERATOR STREQUAL "Xcode")
+                # This flag adds a custom pre-build command that certifies that the
+                # $(ARCHS_STANDARD) matches our expected values.
+                # For example, should Apple drop support for x86_64 the substitute
+                # value above needs to be updated (depending on target version in 
+                # CMAKE_OSX_DEPLOYMENT_TARGET).
+                set(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK ON)
+            endif()
+        endif()
+
+        list_contains(CMAKE_OSX_ARCHITECTURES "arm64" APPLE_MAC_OS_ARCH_arm64)
+        list_contains(CMAKE_OSX_ARCHITECTURES "x86_64" APPLE_MAC_OS_ARCH_x86_64)
+        list_contains(CMAKE_OSX_ARCHITECTURES "x86_64h" APPLE_MAC_OS_ARCH_x86_64h)
+        list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
+        if(architecture_count GREATER 1)
+            set(APPLE_MAC_OS_UNIVERSAL ON)
+        endif()
     endif()
 endif()
 
@@ -60,10 +96,10 @@ option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
 # when they are useful.
-CMAKE_DEPENDENT_OPTION( BASISU_SSE
+CMAKE_DEPENDENT_OPTION( LIBKTX_FEATURE_BASISU_SSE
     "Compile with SSE support so applications can choose to use it."
     ON
-    "NOT CMAKE_OSX_ARCHITECTURES STREQUAL \"$(ARCHS_STANDARD)\"; CPU_ARCHITECTURE STREQUAL x86_64"
+    "CPU_ARCHITECTURE STREQUAL x86_64 OR APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_x86_64h"
     OFF
 )
 CMAKE_DEPENDENT_OPTION( BASISU_OPENCL
@@ -92,6 +128,8 @@ CMAKE_DEPENDENT_OPTION( BUILD_SHARED_LIBS
 # Used to reset BUILD_SHARED_LIBS after forcing static builds
 set( BUILD_SHARED_LIBS_RESET ${BUILD_SHARED_LIBS} )
 
+set( BASISU_SSE ${LIBKTX_FEATURE_BASISU_SSE} )
+
 # Platform specific settings
 
 set(bitness 64)
@@ -99,7 +137,7 @@ set(bitness 64)
 if(NOT DEFINED CPU_ARCHITECTURE)
     set_target_processor_type(CPU_ARCHITECTURE)
 endif()
-if (CPU_ARCHITECTURE STREQUAL x86)
+if (CPU_ARCHITECTURE STREQUAL x86 AND NOT ANDROID)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 
@@ -362,7 +400,7 @@ macro(common_libktx_settings target enable_write library_type)
             # To avoid this set a define to prevent the compiler using
             # constexpr mutex constructors. Remove this eventually after
             # in-use JVM installations have at least this VC runtime. Remove
-            # also from ASTCENC_LIB_TARGET settings around line 1169.
+            # also from ASTCENC_LIB_TARGETS settings around line 1169.
             $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
             $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
         PUBLIC # only for basisu_c_binding.
@@ -475,13 +513,6 @@ macro(common_libktx_settings target enable_write library_type)
         PRIVATE
             BASISU_SUPPORT_OPENCL=$<IF:$<BOOL:${BASISU_OPENCL}>,1,0>
         )
-        target_compile_options(
-            ${target}
-        PRIVATE
-            $<$<AND:$<BOOL:${BASISU_SSE}>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:
-                -msse4.1
-            >
-        )
         if(EMSCRIPTEN)
             target_link_options(
                 ${target}
@@ -509,14 +540,42 @@ macro(add_lib_dependencies target lib)
     endif()
 endmacro(add_lib_dependencies)
 
+
+macro(add_xcode_macos_archs_standard_check target)
+    if(ADD_XCODE_MACOS_ARCHS_STANDARD_CHECK)
+        add_custom_command(TARGET ${target} PRE_BUILD
+            COMMAND /bin/sh -c [[
+                expected="arm64 x86_64"
+                actual="$ARCHS_STANDARD"
+                if [ "$actual" != "$expected" ]; then
+                    echo "ARCHS_STANDARD mismatch: got [$actual], expected [$expected]" >&2
+                    echo "Please report this issue with your Xcode version and targeted macOS version." >&2
+                    echo "To fix it, explicitly set CMAKE_OSX_ARCHITECTURES=\"${actual// /;}\"" >&2
+                    exit 1
+                else
+                    echo "ARCHS_STANDARD check passed: [$actual]"
+                fi
+            ]]
+            VERBATIM
+        )
+        message(STATUS "Xcode ARCHS_STANDARD check enabled on target '${target}'")
+    endif()
+endmacro(add_xcode_macos_archs_standard_check)
+
 ####################################################
 # Basis Universal Encoder.
 ####################################################
 
 set(BASISU_TOOL FALSE)
 set(BASISU_EXAMPLES FALSE)
-if(NOT ${CPU_ARCHITECTURE} STREQUAL "x86_64")
-    # Basisu sets this TRUE if MSVC is TRUE.
+if(APPLE_MAC_OS_UNIVERSAL)
+    # Force BASISU_SSE off when basisu's compile would otherwise apply -msse4.1
+    # unconditionally to a slice that can't take it. That is true for
+    # non-x86_64 single-arch builds (obvious) and for any multi-arch macOS
+    # universal build (the arm64 slice would fail). For universal builds the
+    # x86_64 slice still gets SSE re-enabled per-arch via -Xarch_x86_64 in the
+    # block further down this file, so we lose no functionality here.
+    # Basisu's default for BASISU_SSE is TRUE if MSVC is TRUE.
     set(BASISU_SSE FALSE)
 endif()
 set(BASISU_STATIC TRUE)
@@ -544,6 +603,8 @@ if(LIBKTX_VERSION_FULL)
     add_lib_dependencies(ktx basisu_encoder)
     add_lib_dependencies(ktx dfdutils)
 
+    add_xcode_macos_archs_standard_check(ktx)
+
 #    get_target_property(includes ktx INTERFACE_INCLUDE_DIRECTORIES)
 #    # Need this because ${INTERFACE_INCLUDE_DIRECTORIES} is a genex.
 #    add_custom_target(debug_ktx_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx include dirs = '${includes}'")
@@ -557,6 +618,8 @@ if(LIBKTX_VERSION_READ_ONLY)
     common_libktx_settings(ktx_read 0 ${LIB_TYPE})
     add_lib_dependencies(ktx_read basisu_encoder)
     add_lib_dependencies(ktx_read dfdutils)
+
+    add_xcode_macos_archs_standard_check(ktx_read)
 
 #    get_target_property(includes ktx_read INTERFACE_INCLUDE_DIRECTORIES)
 #    add_custom_target(debug_ktx_read_includes COMMAND ${CMAKE_COMMAND} -E echo "ktx_read include dirs = '${includes}'")
@@ -598,27 +661,10 @@ endif()
 
 # Determine most of the ASTC-related settings automatically.
 
-# On Linux and Windows only one architecture is supported at once. On
-# macOS simultaneous multiple architectures are supported by the ASTC
-# encoder but not by the BasisU encoder. The latter supports only SSE
-# SIMD that is enabled by compile time defines which makes it not amenable
-# to a standard Xcode universal binary build. To ensure BASISU_SSE
-# is disabled when building for multiple architectures use only the
-# value of CMAKE_OSX_ARCHITECTURES to decide if a universal build
-# has been requested. Do not expose the astc-encoder's
-# ASTCENC_UNIVERSAL_BUILD configuration option.
-
-set(universal_build OFF)
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    # Check CMAKE_OSX_ARCHITECTURES for multiple architectures.
-    list(FIND CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD)" archs_standard)
-    list(LENGTH CMAKE_OSX_ARCHITECTURES architecture_count)
-    if(NOT ${archs_standard} EQUAL -1 OR architecture_count GREATER 1)
-        set(universal_build ON)
-    endif()
+if(APPLE_MAC_OS_UNIVERSAL)
     # Set ordinary variable to override astc-encoder option's ON default
     # and hide the option.
-    set(ASTCENC_UNIVERSAL_BUILD ${universal_build})
+    set(ASTCENC_UNIVERSAL_BUILD ON)
 endif()
 
 # If we detect the user is doing a universal build defer to astc-encoder
@@ -631,7 +677,16 @@ endif()
 # choose ASTCENC_ISA_AVX2. If ASTCENC_ISA_AVX2 fails to compile user must
 # choose another x86_64 option.
 
-if(NOT ${universal_build})
+if(APPLE_MAC_OS_UNIVERSAL)
+    if(APPLE_MAC_OS_ARCH_x86_64h)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
+    elseif(APPLE_MAC_OS_ARCH_x86_64)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
+    endif()
+    if(APPLE_MAC_OS_ARCH_arm64)
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
+    endif()
+else()
     set(ASTCENC_ISA_NATIVE OFF)
     set(ASTCENC_ISA_NEON OFF)
     if(NOT CPU_ARCHITECTURE STREQUAL x86_64)
@@ -642,6 +697,7 @@ if(NOT ${universal_build})
 
     # "" in the CACHE sets causes use of the existing documentation string.
     if(${ASTCENC_ISA_NONE})
+        list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         set(ASTCENC_LIB_TARGET astcenc-none-static)
         if(CPU_ARCHITECTURE STREQUAL x86_64)
             set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
@@ -649,29 +705,29 @@ if(NOT ${universal_build})
             set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
         endif()
     else()
-        if(CPU_ARCHITECTURE STREQUAL x86_64)
+        if(CPU_ARCHITECTURE STREQUAL x86_64 OR CPU_ARCHITECTURE STREQUAL x86_64h)
             if (${ASTCENC_ISA_SSE41})
-                set(ASTCENC_LIB_TARGET astcenc-sse4.1-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse4.1-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             elseif (${ASTCENC_ISA_SSE2})
-                set(ASTCENC_LIB_TARGET astcenc-sse2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-sse2-static)
                 set(ASTCENC_ISA_AVX2 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
             else()
-                set(ASTCENC_LIB_TARGET astcenc-avx2-static)
+                list(APPEND ASTCENC_LIB_TARGETS astcenc-avx2-static)
                 set(ASTCENC_ISA_AVX2 ON CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE41 OFF CACHE BOOL "" FORCE)
                 set(ASTCENC_ISA_SSE2 OFF CACHE BOOL "" FORCE)
             endif()
         elseif(CPU_ARCHITECTURE STREQUAL armv8 OR CPU_ARCHITECTURE STREQUAL arm64)
-            set(ASTCENC_LIB_TARGET astcenc-neon-static)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-neon-static)
             set(ASTCENC_ISA_NEON ON)
             set(ASTCENC_ISA_NONE OFF CACHE BOOL "" FORCE)
         else()
             message(STATUS "Unsupported ISA for ASTC on ${CPU_ARCHITECTURE} arch, using ASTCENC_ISA_NONE.")
             set(ASTCENC_ISA_NONE ON CACHE BOOL "" FORCE)
-            set(ASTCENC_LIB_TARGET astcenc-none-static)
+            list(APPEND ASTCENC_LIB_TARGETS astcenc-none-static)
         endif()
     endif()
 endif()
@@ -684,29 +740,69 @@ set(ASTCENC_CLI OFF) # Only build as library not the CLI astcencoder
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(../external/astc-encoder astc-encoder)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
-set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-target_compile_definitions(
-    ${ASTCENC_LIB_TARGET}
-PRIVATE
-    # ASTC encoder uses std::mutex. For more info. see comment about same
-    # setting in common_libktx_settings starting about line 355. To be eventually
-    # removed as noted in that comment.
-    $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-    $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
-)
+foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+    set_property(TARGET ${ASTCENC_LIB_TARGET} PROPERTY POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(
+        ${ASTCENC_LIB_TARGET}
+    PRIVATE
+        # ASTC encoder uses std::mutex. For more info. see comment about
+        # same setting in libktx starting about line 618. To be eventually
+        # removed as noted in that comment.
+        $<$<AND:${is_msvccl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.40.33811>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+        $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
+    )
+endforeach()
 
 if(NOT PROJECT_IS_TOP_LEVEL AND ${CMAKE_PROJECT_NAME} STREQUAL "KTX-Software")
-    # ktxdiff needs access to this variable to find the ASTC
-    # library to link with so set it in parent.
-    set(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGET} PARENT_SCOPE)
+    # ktxdiff and the ktx CLI call astcenc_* directly. With static libs
+    # the symbols ride along inside libktx, but with shared libs (Windows
+    # default) they are not exported from ktx.dll and the consumers have
+    # to link astcenc themselves. Propagate the full list — universal
+    # builds need every per-arch variant available so the linker can
+    # pick the matching slice.
+    set(ASTCENC_LIB_TARGETS ${ASTCENC_LIB_TARGETS} PARENT_SCOPE)
 endif()
 
 if(LIBKTX_VERSION_FULL)
-    add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+    foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+        add_lib_dependencies(ktx ${ASTCENC_LIB_TARGET})
+    endforeach()
 endif()
 if(LIBKTX_VERSION_READ_ONLY)
-    add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
+    foreach(ASTCENC_LIB_TARGET ${ASTCENC_LIB_TARGETS})
+        add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
+    endforeach()
+endif()
+
+if(APPLE_MAC_OS AND LIBKTX_FEATURE_BASISU_SSE)
+    ####################################################
+    # Per-architecture SSE 4.1 in universal macOS builds.
+    ####################################################
+    # basisu_encoder cannot enable SSE for the whole project in a universal build
+    # (the -msse4.1 flag would break the arm64 slice). With BASISU_SSE OFF, basisu
+    # emits BASISU_SUPPORT_SSE=0 PUBLIC and no -msse4.1; we then use clang's
+    # -Xarch_<arch> driver option to inject -msse4.1 and override
+    # BASISU_SUPPORT_SSE to 1 only for the x86_64 sub-invocation. -Xarch_x86_64
+    # applies to the immediately-following argument only, so each flag needs its
+    # own prefix. Works with any generator (Xcode, Ninja, Make) on Apple.
+    if(APPLE_MAC_OS_UNIVERSAL AND (APPLE_MAC_OS_ARCH_x86_64 OR APPLE_MAC_OS_ARCH_x86_64h))
+        # SHELL: prevents CMake from deduplicating the repeated -Xarch_x86_64
+        # tokens, which would otherwise leave only the first flag arch-qualified.
+        target_compile_options(basisu_encoder PRIVATE
+            "SHELL:-Xarch_x86_64 -msse4.1"
+            "SHELL:-Xarch_x86_64 -UBASISU_SUPPORT_SSE"
+            "SHELL:-Xarch_x86_64 -DBASISU_SUPPORT_SSE=1"
+        )
+        foreach(t ktx ktx_read)
+            if(TARGET ${t})
+                target_compile_options(${t} PRIVATE
+                    "SHELL:-Xarch_x86_64 -UBASISU_SUPPORT_SSE"
+                    "SHELL:-Xarch_x86_64 -DBASISU_SUPPORT_SSE=1"
+                )
+            endif()
+        endforeach()
+    endif()
 endif()
 
 # Install
