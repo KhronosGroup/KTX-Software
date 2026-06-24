@@ -881,6 +881,12 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
     if (format.transfer() == KHR_DF_TRANSFER_SRGB) {
         state.info_png.srgb_defined = 1;
         state.info_png.srgb_intent = 0;
+    } else if (format.transfer() == KHR_DF_TRANSFER_LINEAR
+               || format.transfer() == KHR_DF_TRANSFER_UNSPECIFIED) {
+        // Virtually every tool takes absence of colorspace info to mean sRGB so write gamma 1.
+        state.info_png.srgb_defined = 0;
+        state.info_png.gama_defined = 1;
+        state.info_png.gama_gamma = 100000;
     }
 
     // Output primaries as cHRM chunk
