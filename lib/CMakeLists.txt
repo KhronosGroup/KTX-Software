@@ -196,11 +196,15 @@ set(LIBKTX_MAIN_SRC
     src/texture2.h
     src/texture_funcs.inl
     src/uthash.h
+    src/vk2dxgi.h
     src/vk2gl.h
+    src/vk2mtl.h
     src/vk_format.h
+    src/vkFormat2dxgiFormat.inl
     src/vkFormat2glFormat.inl
     src/vkFormat2glInternalFormat.inl
     src/vkFormat2glType.inl
+    src/vkFormat2mtlFormat.inl
     src/vkformat_check.c
     src/vkformat_check_variant.c
     src/vkformat_enum.h
