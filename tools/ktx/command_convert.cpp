@@ -17,11 +17,6 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
-#include <GL/glcorearb.h>
-
-extern "C" const char* glInternalformatString(GLenum);
-extern "C" uint32_t* vk2dfd(enum VkFormat format);
-
 // -------------------------------------------------------------------------------------------------
 
 namespace ktx {
@@ -307,7 +302,7 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
             inputStream->read(reinterpret_cast<char*>(&header), KTX_HEADER_SIZE);
             fatal(rc::NOT_SUPPORTED,
                   "Format of input file, {}, is unsupported or has no equivalent VkFormat.",
-                  ::glInternalformatString(header.glInternalformat));
+                  ::ktxGLInternalformatString(header.glInternalformat));
         } else {
             fatal(rc::INVALID_FILE, "Failed to create KTX texture: {}", ktxErrorString(res));
         }
