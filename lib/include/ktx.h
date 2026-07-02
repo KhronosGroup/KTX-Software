@@ -1061,6 +1061,11 @@ ktxTexture1_CreateFromStream(ktxStream* stream,
 KTX_API void KTX_APIENTRY
 ktxTexture1_Destroy(ktxTexture1* This);
 
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
+                           ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                           ktx_size_t* pOffset);
+
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_IsHDR(ktxTexture1* This);
 
@@ -1069,6 +1074,12 @@ ktxTexture1_NeedsTranscoding(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_IsTranscodable(ktxTexture1* This);
+
+KTX_API ktx_size_t KTX_APIENTRY
+ktxTexture1_GetDataSizeUncompressed(ktxTexture1* This);
+
+KTX_API ktx_size_t KTX_APIENTRY
+ktxTexture1_GetImageSize(ktxTexture1* This, ktx_uint32_t level);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture1_LoadImageData(ktxTexture1* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
@@ -1191,6 +1202,12 @@ ktxTexture2_NeedsTranscoding(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_IsTranscodable(ktxTexture2* This);
+
+KTX_API ktx_size_t KTX_APIENTRY
+ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This);
+
+KTX_API ktx_size_t KTX_APIENTRY
+ktxTexture2_GetImageSize(ktxTexture2* This, ktx_uint32_t level);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_SetTransferFunction(ktxTexture2* This, khr_df_transfer_e tf);
