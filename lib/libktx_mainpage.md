@@ -108,7 +108,7 @@ ktxTexture_Destroy(kTexture);
 ## Creating a Vulkan image object from a KTX file.  {#createVulkan}
 
 ~~~~~~~~~~~~~~~~{.c}
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.h>    // From your Vulkan SDK.
 #include <ktxvulkan.h>
 
 ktxTexture* kTexture;
@@ -168,7 +168,7 @@ if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vkformat_enum.h>
+#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
 
 ktxTexture2* texture;                   // For KTX2
 //ktxTexture1* texture;                 // For KTX
@@ -241,7 +241,7 @@ Basis compression supports two universal texture formats: _BasisLZ/ETC1S_ and _U
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vkformat_enum.h>
+#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
 
 ktxTexture2* texture;
 ktxTextureCreateInfo createInfo;
@@ -357,7 +357,7 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vkformat_enum.h>
+#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
 
 ktxTexture2* texture;
 ktxTextureCreateInfo createInfo;
