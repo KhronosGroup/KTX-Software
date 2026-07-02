@@ -25,7 +25,7 @@
 // s/\(^[A-Z]\)/GL_\1/
 // s/\(GL_[A-Z0-9_]*\) .*$/      case \1: return "\1";/
 
-const char* glFormatString(GLenum format)
+const char* ktxGLFormatString(GLenum format)
 {
     static char retstr[11];
 
@@ -62,7 +62,7 @@ const char* glFormatString(GLenum format)
     }
 }
 
-const char* glInternalformatString(GLenum format)
+const char* ktxGLInternalformatString(GLenum format)
 {
     static char retstr[11];
 
@@ -247,7 +247,7 @@ const char* glInternalformatString(GLenum format)
     }
 }
 
-const char* glTypeString(GLenum type)
+const char* ktxGLTypeString(GLenum type)
 {
     static char retstr[11];
 

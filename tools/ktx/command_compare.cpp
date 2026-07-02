@@ -1462,8 +1462,9 @@ void CommandCompare::compareHeader(PrintDiff& diff, InputStreams& streams) {
     diff << DiffIdentifier("identifier", "/header/identifier", headers[0], headers[1]);
 
     if (!options.ignoreFormatHeader) {
-        diff << DiffEnum<VkFormat>("vkFormat", "/header/vkFormat", headers[0].vkFormat, headers[1].vkFormat,
-            [&](auto i) { return vkFormatString(VkFormat(headers[i].vkFormat)); });
+        diff << DiffEnum<VkFormat>("vkFormat",
+                          "/header/vkFormat", headers[0].vkFormat, headers[1].vkFormat,
+                          [&](auto i) { return ktxVkFormatString(VkFormat(headers[i].vkFormat)); });
         diff << Diff("typeSize", "/header/typeSize", headers[0].typeSize, headers[1].typeSize);
     }
 

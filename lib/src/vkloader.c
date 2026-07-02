@@ -32,7 +32,6 @@
 #include "unused.h"
 #include "texture1.h"
 #include "texture2.h"
-#include "vk_format.h"
 
 /*
  * N.B. See comment at top of ./glloader.c regarding references to
@@ -1606,62 +1605,6 @@ ktxTexture2_VkUpload(ktxTexture2* This, ktxVulkanDeviceInfo* vdi,
                                  VK_IMAGE_TILING_OPTIMAL,
                                  VK_IMAGE_USAGE_SAMPLED_BIT,
                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-}
-
-/** @memberof ktxTexture1
- * @~English
- * @brief Return the VkFormat enum of a ktxTexture1 object.
- *
- * glInternalformats of @c GL_COMPRESSED_RGBA_ASTC_\*_KHR are mapped to the equivalent
- * @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK rather than the SDR equivalent
- * @c VK_FORMAT_ASTC_\*_UNORM_BLOCK as with the former both HDR and SDR blocks will
- * be rendered while with the latter HDR blocks will be rendered in the error color.
-
- * @return The VkFormat of the texture object. May return VK_FORMAT_UNDEFINED if
- *         there is no mapping from the GL internalformat and format.
- */
-VkFormat
-ktxTexture1_GetVkFormat(ktxTexture1* This)
-{
-    VkFormat vkFormat;
-
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat,
-                                                   ktxTexture1_GetRgbaAstcMapping(This));
-    if (vkFormat == VK_FORMAT_UNDEFINED) {
-        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
-            This->glType);
-    }
-    return vkFormat;
-}
-
-/** @memberof ktxTexture2
- * @~English
- * @brief Return the VkFormat enum of a ktxTexture2 object.
- *
- * @return The VkFormat of the texture object.
- */
-VkFormat
-ktxTexture2_GetVkFormat(ktxTexture2* This)
-{
-    return This->vkFormat;
-}
-
-/** @memberof ktxTexture
- * @~English
- * @brief Return the VkFormat enum of a ktxTexture object.
- *
- * In ordert to ensure that the Vulkan uploader is not linked into an application unless explicitly called,
- * this is not a virtual function. It determines the texture type then dispatches to the correct function.
- * @sa @ref ktxTexture1::ktxTexture1_GetVkFormat "ktxTexture1_GetVkFormat()"
- * @sa @ref ktxTexture2::ktxTexture2_GetVkFormat "ktxTexture2_GetVkFormat()"
- */
-VkFormat
-ktxTexture_GetVkFormat(ktxTexture* This)
-{
-    if (This->classId == ktxTexture2_c)
-        return ktxTexture2_GetVkFormat((ktxTexture2*)This);
-    else
-        return ktxTexture1_GetVkFormat((ktxTexture1*)This);
 }
 
 //======================================================================

@@ -837,7 +837,7 @@ Texture::customizeTitle(const char* const baseTitle)
     if (transcoded) {
         this->title = baseTitle;
         this->title += " Transcoded to ";
-        this->title += vkFormatString((VkFormat)transcodedFormat);
+        this->title += ktxVkFormatString((VkFormat)transcodedFormat);
         return this->title.c_str();
     }
     return baseTitle;

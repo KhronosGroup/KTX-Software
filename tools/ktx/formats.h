@@ -22,7 +22,6 @@ extern "C" {
     bool isProhibitedFormat(VkFormat format);
     bool isValidFormat(VkFormat format);
     uint32_t vkFormatTypeSize(VkFormat format);
-    const char* vkFormatString(VkFormat format);
     VkFormat stringToVkFormat(const char* str);
 }
 
@@ -31,7 +30,7 @@ extern "C" {
 namespace ktx {
 
 [[nodiscard]] inline std::string toString(VkFormat format) noexcept {
-    std::string str = vkFormatString(format);
+    std::string str = ktxVkFormatString(format);
 
     if (str != "VK_UNKNOWN_FORMAT")
         return str;
@@ -271,7 +270,7 @@ namespace ktx {
 }
 
 [[nodiscard]] inline bool isFormatKnown(VkFormat format) noexcept {
-    const std::string_view str = vkFormatString(format);
+    const std::string_view str = ktxVkFormatString(format);
     return str != "VK_UNKNOWN_FORMAT";
 }
 

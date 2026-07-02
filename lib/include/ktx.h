@@ -508,6 +508,16 @@ typedef KTX_error_code
 typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXWRITETOSTREAM)(ktxTexture* This,
                                          ktxStream* dststr);
+typedef ktx_uint32_t
+    (KTX_APIENTRY* PFNTEXGETDXGIFORMAT)(ktxTexture* This);
+typedef void
+    (KTX_APIENTRY* PFNTEXGETGLFORMAT)(ktxTexture* This,
+                                      GLenum* pInternalformat, GLenum* pBaseInternalformat,
+                                      GLenum* pFormat, GLenum* pType);
+typedef ktx_uint32_t
+    (KTX_APIENTRY* PFNTEXGETMTLFORMAT)(ktxTexture* This);
+typedef ktx_uint32_t
+    (KTX_APIENTRY* PFNTEXGETVKFORMAT)(ktxTexture* This);
 
 /**
  * @memberof ktxTexture
@@ -520,6 +530,10 @@ typedef KTX_error_code
     PFNKTEXGETDATASIZEUNCOMPRESSED GetDataSizeUncompressed;
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXGETLEVELSIZE GetLevelSize;
+    PFNTEXGETDXGIFORMAT GetDXGIFormat;
+    PFNTEXGETGLFORMAT GetGLFormat;
+    PFNTEXGETMTLFORMAT GetMTLFormat;
+    PFNTEXGETVKFORMAT GetVkFormat;
     PFNKTEXITERATELEVELS IterateLevels;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
@@ -580,6 +594,38 @@ typedef KTX_error_code
  */
 #define ktxTexture_GetLevelSize(This, level) \
             (This)->vtbl->GetLevelSize(This, level)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetDXGIFormat virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetDXGIFormat
+ */
+#define ktxTexture_GetDXGIFormat(This) \
+            (This)->vtbl->GetDXGIFormat(This)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetGLFormat virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetGLFormat
+ */
+#define ktxTexture_GetGLFormat(This, pInternalformat, pBaseInternalformat, pFormat, pType) \
+            (This)->vtbl->GetGLFormat(This, pInternalFormat, pBaseInternalFormat, pFormat, pType)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetMtlFormat virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetMtlFormat
+ */
+#define ktxTexture_GetMTLFormat(This) \
+            (This)->vtbl->GetMTLFormat(This)
+
+/**
+ * @~English
+ * @brief Helper for calling the GetVkFormat virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetVkFormat
+ */
+#define ktxTexture_GetVkFormat(This) \
+            (This)->vtbl->GetVkFormat(This)
 
 /**
  * @~English
@@ -1051,6 +1097,19 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture1_GetImageOffset(ktxTexture1* This, ktx_uint32_t level,
                            ktx_uint32_t layer, ktx_uint32_t faceSlice,
                            ktx_size_t* pOffset);
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture1_GetDXGIFormat(ktxTexture1* This);
+
+KTX_API void KTX_APIENTRY
+ktxTexture1_GetGLFormat(ktxTexture1* This,
+                        GLenum* pInternalformat, GLenum* pBaseInternalformat,
+                        GLenum* pFormat, GLenum* pType);
+
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture1_GetMTLFormat(ktxTexture1* This);
+
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture1_GetVkFormat(ktxTexture1* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture1_IsHDR(ktxTexture1* This);
@@ -1200,6 +1259,17 @@ ktxTexture2_GetPremultipliedAlpha(ktxTexture2* This);
 
 KTX_API khr_df_primaries_e KTX_APIENTRY
 ktxTexture2_GetPrimaries_e(ktxTexture2* This);
+
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetDXGIFormat(ktxTexture2* This);
+KTX_API void KTX_APIENTRY
+ktxTexture2_GetGLFormat(ktxTexture2* This,
+                        GLenum* pInternalformat, GLenum* pBaseInternalformat,
+                        GLenum* pFormat, GLenum* pType);
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetMTLFormat(ktxTexture2* This);
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxTexture2_GetVkFormat(ktxTexture2* This);
 
 KTX_API ktx_bool_t KTX_APIENTRY
 ktxTexture2_IsHDR(ktxTexture2* This);
@@ -1848,6 +1918,31 @@ ktxSupercompressionSchemeString(ktxSupercmpScheme scheme);
  */
 KTX_API const char* KTX_APIENTRY
 ktxTranscodeFormatString(ktx_transcode_fmt_e format);
+
+/*
+ * Returns a string corresponding to a GL format value.
+ */
+KTX_API const char* KTX_APIENTRY
+ktxGLFormatString(GLenum format);
+
+/*
+ * Returns a string corresponding to a GL internalformat value.
+ */
+KTX_API const char* KTX_APIENTRY
+ktxGLInternalformatString(GLenum internalformat);
+
+/*
+ * Returns a string corresponding to a GL type value.
+ */
+KTX_API const char* KTX_APIENTRY
+ktxGLTypeString(GLenum type);
+
+/*
+ * Returns a string corresponding to a VkFormat value.
+ */
+KTX_API const char* KTX_APIENTRY
+ktxVkFormatString(ktx_uint32_t format);
+
 
 KTX_API KTX_error_code KTX_APIENTRY ktxHashList_Create(ktxHashList** ppHl);
 KTX_API KTX_error_code KTX_APIENTRY

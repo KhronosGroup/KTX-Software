@@ -3141,6 +3141,79 @@ cleanup:
     return result;
 }
 
+#include "vk2dxgi.h"
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the equivakent DXGI_FORMAT enum of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @return The DXGI_FORMAT of the texture object as a ktx_uint32_t.
+ */
+ktx_uint32_t
+ktxTexture2_GetDXGIFormat(ktxTexture2* This)
+{
+    // TODO: Check for invalid value and mapping metadata
+    return vkFormat2dxgiFormat(This->vkFormat);
+}
+
+#include "vk2gl.h"
+/* @memberof ktxTexture2
+ * @~English
+ * @brief Return information about the equivalent GL format of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @param[out]  pBaseInternalformat pointer to variable to receive the base internal format.
+ * @param[out]  pFormat             pointer to variable to receive the format.
+ * @param[out]  pInternalformat     pointer to variable to receive the internal format.
+ * @param[out]  pType               pointer to variable to receive the typet.
+ *
+ * The function will only attempt to set non-null output parameters.
+ */
+void
+ktxTexture2_GetGLFormat(ktxTexture2* This,
+                        GLenum* pInternalformat, GLenum* pBaseInternalformat,
+                        GLenum* pFormat, GLenum* pType)
+{
+    // TODO: Check for invalid value and mapping metadata
+    if (pInternalformat)
+        *pInternalformat = vkFormat2glInternalFormat(This->vkFormat);
+    if (pBaseInternalformat)
+        *pBaseInternalformat = pInternalformat ? *pInternalformat
+                                                 : vkFormat2glInternalFormat(This->vkFormat);
+    if (pFormat)
+        *pFormat = vkFormat2glFormat(This->vkFormat);
+    if (pType)
+        *pType = vkFormat2glType(This->vkFormat);
+}
+
+#include "vk2mtl.h"
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the equivakent MTLPixelFormat enum of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @return The MTLPixelFormat of the texture object as a ktx_uint32_t.
+ */
+ktx_uint32_t
+ktxTexture2_GetMTLFormat(ktxTexture2* This)
+{
+    // TODO: Check for invalid value and mapping metadata
+    return vkFormat2mtlFormat(This->vkFormat);
+}
+
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the VkFormat enum of a ktxTexture2 object
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @return The VkFormat of the texture object as a ktx_uint32_t.
+ */
+ktx_uint32_t
+ktxTexture2_GetVkFormat(ktxTexture2* This)
+{
+    return This->vkFormat;
+}
+
 #if !KTX_FEATURE_WRITE
 
 /*
@@ -3229,6 +3302,10 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXGETDATASIZEUNCOMPRESSED)ktxTexture2_GetDataSizeUncompressed,
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
     (PFNKTEXGETLEVELSIZE)ktxTexture2_GetLevelSize,
+    (PFNTEXGETDXGIFORMAT)ktxTexture2_GetDXGIFormat,
+    (PFNTEXGETGLFORMAT)ktxTexture2_GetGLFormat,
+    (PFNTEXGETMTLFORMAT)ktxTexture2_GetMTLFormat,
+    (PFNTEXGETVKFORMAT)ktxTexture2_GetVkFormat,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,

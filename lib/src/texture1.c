@@ -30,7 +30,7 @@
 #include "memstream.h"
 #include "texture1.h"
 #include "unused.h"
-#include "gl_format.h"
+#include "vk_format.h"
 
 typedef struct ktxTexture1_private {
    ktx_bool_t   _needSwap;
@@ -1461,6 +1461,88 @@ ktxTexture1_GetRgbaAstcMapping(ktxTexture1* This) {
     return private->rgbaAstcMapping;
 }
 
+#include "vk2dxgi.h"
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the equivakent DXGI_FORMAT enum of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @return The DXGI_FORMAT of the texture object as a ktx_uint32_t.
+ */
+ktx_uint32_t
+ktxTexture1_GetDXGIFormat(ktxTexture1* This)
+{
+    // TODO: Check for invalid value and mapping metadata
+    return vkFormat2dxgiFormat(ktxTexture1_GetVkFormat(This));
+}
+
+/* @memberof ktxTexture2
+ * @~English
+ * @brief Return information about the equivalent GL format of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @param[out]  pBaseInternalformat pointer to variable to receive the base internal format.
+ * @param[out]  pFormat             pointer to variable to receive the format.
+ * @param[out]  pInternalformat     pointer to variable to receive the internal format.
+ * @param[out]  pType               pointer to variable to receive the typet.
+ *
+ * The function will only attempt to set non-null output parameters.
+ */
+void
+ktxTexture1_GetGLFormat(ktxTexture1* This,
+                        GLenum* pInternalformat, GLenum* pBaseInternalformat,
+                        GLenum* pFormat, GLenum* pType)
+{
+    if (pInternalformat)
+        *pInternalformat = This->glInternalformat;
+    if (pBaseInternalformat)
+        *pBaseInternalformat = This->glBaseInternalformat;
+    if (pFormat)
+        *pFormat = This->glFormat;
+    if (pType)
+        *pType = This->glType;
+}
+
+#include "vk2mtl.h"
+/** @memberof ktxTexture2
+ * @~English
+ * @brief Return the equivakent MTLPixelFormat enum of a ktxTexture2 object.
+ *
+ * @param[in]   This                pointer to the ktxTexture2 object of interest.
+ * @return The MTLPixelFormat of the texture object as a ktx_uint32_t.
+ */
+ktx_uint32_t
+ktxTexture1_GetMTLFormat(ktxTexture1* This)
+{
+    // TODO: Check for invalid value and mapping metadata
+    return vkFormat2mtlFormat(ktxTexture1_GetVkFormat(This));
+}
+
+/** @memberof ktxTexture1
+ * @~English
+ * @brief Return the VkFormat enum of a ktxTexture1 object.
+ *
+ * glInternalformats of @c GL_COMPRESSED_RGBA_ASTC_\*_KHR are mapped to the equivalent
+ * @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK rather than the SDR equivalent
+ * @c VK_FORMAT_ASTC_\*_UNORM_BLOCK as with the former both HDR and SDR blocks will
+ * be rendered while with the latter HDR blocks will be rendered in the error color.
+
+ * @return The VkFormat of the texture object. May return VK_FORMAT_UNDEFINED if
+ *         there is no mapping from the GL internalformat and format.
+ */
+ktx_uint32_t
+ktxTexture1_GetVkFormat(ktxTexture1* This)
+{
+    VkFormat vkFormat;
+
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat,
+                                                   ktxTexture1_GetRgbaAstcMapping(This));
+    if (vkFormat == VK_FORMAT_UNDEFINED) {
+        vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat, This->glType);
+    }
+    return (ktx_uint32_t)vkFormat;
+}
+
 #if !KTX_FEATURE_WRITE
 
 /*
@@ -1549,6 +1631,10 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXGETDATASIZEUNCOMPRESSED)ktxTexture1_GetDataSizeUncompressed,
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXGETLEVELSIZE)ktxTexture1_GetLevelSize,
+    (PFNTEXGETDXGIFORMAT)ktxTexture1_GetDXGIFormat,
+    (PFNTEXGETGLFORMAT)ktxTexture1_GetGLFormat,
+    (PFNTEXGETMTLFORMAT)ktxTexture1_GetMTLFormat,
+    (PFNTEXGETVKFORMAT)ktxTexture1_GetVkFormat,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture1_NeedsTranscoding,

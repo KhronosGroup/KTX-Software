@@ -283,15 +283,6 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_VkUpload(ktxTexture2* texture, ktxVulkanDeviceInfo* vdi,
                      ktxVulkanTexture *vkTexture);
 
-KTX_API VkFormat KTX_APIENTRY
-ktxTexture_GetVkFormat(ktxTexture* This);
-
-KTX_API VkFormat KTX_APIENTRY
-ktxTexture1_GetVkFormat(ktxTexture1* This);
-
-KTX_API VkFormat KTX_APIENTRY
-ktxTexture2_GetVkFormat(ktxTexture2* This);
-
 #ifdef __cplusplus
 }
 #endif

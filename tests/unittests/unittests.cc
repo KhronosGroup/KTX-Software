@@ -670,8 +670,6 @@ protected:
     };
 };
 
-extern "C" const char* vkFormatString(VkFormat format);
-
 TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
 
     uint32_t origBytesPlane03, origBytesPlane47;
@@ -679,7 +677,7 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
         std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(formats[i]), std::free};
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
-                                 << vkFormatString(formats[i]);
+                                 << ktxVkFormatString(formats[i]);
         uint32_t* bdb = dfd.get() + 1;
         // There are 4 bytesPlane values in one word. Capture all at once.
         origBytesPlane03 = bdb[KHR_DF_WORD_BYTESPLANE0];
@@ -755,7 +753,7 @@ TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
         std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(formats[i]), std::free};
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
-                                 << vkFormatString(formats[i]);
+                                 << ktxVkFormatString(formats[i]);
         VkFormat formatOut = dfd2vk(dfd.get());
         // The SCALED formats are indistinguishable from the INT formats
         // and dfd2vk resolves the ambiguity in favor of the format more

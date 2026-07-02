@@ -585,6 +585,11 @@ vkFormatString(VkFormat format)
     }
 }
 
+const char*
+ktxVkFormatString(uint32_t format) {
+    return vkFormatString((VkFormat)format);
+}
+
 static int ktx_strcasecmp(const char* s1, const char* s2) {
     const unsigned char* us1 = (const unsigned char*) s1;
     const unsigned char* us2 = (const unsigned char*) s2;

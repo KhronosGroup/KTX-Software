@@ -34,9 +34,6 @@ namespace VMA_CALLBACKS
 }
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
-
-extern "C" const char* vkFormatString(VkFormat format);
-
 class VulkanLoadTestSample : public LoadTestSample {
   public:
     typedef uint64_t ticks_t;

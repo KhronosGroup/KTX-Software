@@ -37,7 +37,6 @@
 #include "ktx.h"
 #include "ktxint.h"
 #include "texture.h"
-#include "vk2gl.h"
 #include "unused.h"
 
 /**
@@ -57,6 +56,13 @@
 #endif
 #if !defined( GL_INTENSITY )
 #define GL_INTENSITY				  0x8049	// deprecated
+#endif
+
+/*
+ * This is only defined in GLES headers not glcorearb.h.
+ */
+#if !defined( GL_ETC1_RGB8_OES )
+#define GL_ETC1_RGB8_OES              0x8D64
 #endif
 
 /*
@@ -1021,17 +1027,10 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         return result;
     }
 
-    if (This->vkFormat != VK_FORMAT_UNDEFINED) {
-        formatInfo.glInternalformat =
-                            vkFormat2glInternalFormat(This->vkFormat);
-        if (formatInfo.glInternalformat == GL_INVALID_VALUE) {
-            // TODO Check for mapping metadata. If none
-            return KTX_INVALID_OPERATION;
-        }
-    } else {
-       // TODO: Check DFD for ASTC HDR or 3D or RGB[DEM] and figure out format.
-       return KTX_INVALID_OPERATION; // BasisU textures must be transcoded
-                                     // before upload.
+    ktxTexture2_GetGLFormat(This, &formatInfo.glInternalformat, NULL, NULL, NULL);
+    if (formatInfo.glInternalformat == GL_INVALID_VALUE) {
+        // TODO Check for mapping metadata. If none
+        return KTX_INVALID_OPERATION;
     }
 
     if (This->isCompressed) {
@@ -1040,9 +1039,9 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
         formatInfo.glType = GL_INVALID_VALUE;
         formatInfo.glBaseInternalformat = GL_INVALID_VALUE;
     } else {
-        formatInfo.glFormat = vkFormat2glFormat(This->vkFormat);
-        formatInfo.glType = vkFormat2glType(This->vkFormat);
-        formatInfo.glBaseInternalformat = formatInfo.glInternalformat;
+        ktxTexture2_GetGLFormat(This,
+                                NULL, &formatInfo.glBaseInternalformat,
+                                &formatInfo.glFormat, &formatInfo.glType);
 
         if (formatInfo.glFormat == GL_INVALID_VALUE || formatInfo.glType == GL_INVALID_VALUE)
             return KTX_INVALID_OPERATION;
