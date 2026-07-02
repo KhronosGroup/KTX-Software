@@ -129,33 +129,30 @@ add_custom_target(mkvkformatfiles
     SOURCES ${mkvkformatfiles_input}
 )
 
-list(APPEND makevk2gl_input
+list(APPEND makevkmaps_input
     ${KTX_SPECIFICATION}/generate_format_switches.rb
-    ${KTX_SPECIFICATION}/formats.json)
-list(APPEND makevk2gl_output
+    ${KTX_SPECIFICATION}/formats.json
+)
+list(APPEND makevkmaps_output
     "${lib_src}/vkFormat2glFormat.inl"
     "${lib_src}/vkFormat2glInternalFormat.inl"
-    "${lib_src}/vkFormat2glType.inl")
-# Until we have D3D or Metal loaders these outputs of
-# generate_format_switches.rb are unneeded.
-list(APPEND makevk2gl_extraneous_files
+    "${lib_src}/vkFormat2glType.inl"
     "${lib_src}/vkFormat2dxgiFormat.inl"
     "${lib_src}/vkFormat2mtlFormat.inl"
 )
 
 add_custom_command(
-    OUTPUT ${makevk2gl_output}
+    OUTPUT ${makevkmaps_output}
     COMMAND "${RUBY_EXECUTABLE}" ${KTX_SPECIFICATION}/generate_format_switches.rb ${lib_src}
-    COMMAND ${CMAKE_COMMAND} -E rm -f ${makevk2gl_extraneous_files}
-    DEPENDS ${makevk2gl_input}
+    DEPENDS ${makevmaps_input}
     WORKING_DIRECTORY ${KTX_SPECIFICATION}
-    COMMENT "Generating VkFormat to OpenGL internal format, format and type switches"
+    COMMENT "Generating switches mapping VkFormat to other formats"
     VERBATIM
 )
 
-add_custom_target(makevk2gl
-    DEPENDS ${makevk2gl_output}
-    SOURCES ${makedvk2gl_input}
+add_custom_target(makevkmaps
+    DEPENDS ${makevkmaps_output}
+    SOURCES ${makedvkmaps_input}
 )
 
 add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
@@ -164,5 +161,5 @@ add_dependencies(mkvk
     mkvkformatfiles
     dfd2vk_inl
     vk2dfd_inl
-    makevk2gl
+    makevkmaps
 )
