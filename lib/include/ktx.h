@@ -575,8 +575,8 @@ typedef KTX_error_code
 
 /**
  * @~English
- * @brief Helper for calling the GetImageSize virtual method of a ktxTexture.
- * @copydoc ktxTexture2.ktxTexture2_GetImageSize
+ * @brief Helper for calling the GetLevelSize virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetLevelSize
  */
 #define ktxTexture_GetLevelSize(This, level) \
             (This)->vtbl->GetLevelSize(This, level)
