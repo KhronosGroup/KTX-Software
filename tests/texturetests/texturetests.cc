@@ -3346,7 +3346,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
             if (texture->vkFormat == VK_FORMAT_R8G8_UNORM) {
               compressedFormat = VK_FORMAT_BC5_UNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
-            } else (texture->vkFormat == VK_FORMAT_R8G8_SNORM) {
+            } else {
               compressedFormat = VK_FORMAT_BC5_SNORM_BLOCK;
               expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
             }
