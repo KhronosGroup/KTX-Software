@@ -14,10 +14,7 @@
 #include <cstdint>
 #include <cstring>
 #include "ktx.h"
-#include "bc7enc_rdo/rgbcx.h"
 #include "vulkan/vulkan_core.h"
-
-#define BCN_BLOCK_SIZE 4
 
 #define BC1_BLOCK_SIZE 8
 #define BC2_BLOCK_SIZE 16
@@ -35,12 +32,6 @@
 #define BC5_NCHANNELS 2
 #define BC6H_NCHANNELS 3
 #define BC7_NCHANNELS 4
-
-struct unpack_block_bc1_user_data {
-    ktx_bool_t allow_3color_mode;
-    ktx_bool_t use_3color_mode_for_black;
-    rgbcx::bc1_approx_mode bc1_approx_mode;
-};
 
 /* Since this is used to pass parameters/data to thread runners, make sure all
  * pointers point to heap-allocated resources (and, obviously, make sure that
@@ -106,7 +97,7 @@ template <typename T>
 inline void
 extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
               uint32_t nchannels /* stride */) {
-    constexpr uint32_t kBlockSize = BCN_BLOCK_SIZE;
+    constexpr uint32_t kBlockSize = 4;
     const uint32_t src_pitch = width * nchannels;           // nbr bytes per raw of src
     const uint32_t dst_pitch = kBlockSize * nchannels;      // nbr bytes per raw of dst
     const uint32_t cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
@@ -168,7 +159,7 @@ extract_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint
 //    +---------+
 //
 // Destination: (width x height x nchannels)
-//  
+//
 //    <----------- width ----------->
 //    +-----------------------------+
 //    | . . . . . . . . . . . . . . | <-- row: 0
@@ -188,7 +179,7 @@ template <typename T>
 inline uint32_t
 insert_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
              uint32_t nchannels /* stride */) {
-    constexpr uint32_t kBlockSize = BCN_BLOCK_SIZE;
+    constexpr uint32_t kBlockSize = 4;
     const uint32_t src_pitch = kBlockSize * nchannels;  // nbr bytes per raw of src
     const uint32_t dst_pitch = width * nchannels;       // nbr bytes per raw of dst
     uint32_t nbr_written_bytes = 0;
@@ -207,32 +198,32 @@ insert_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint3
 
 inline void
 extract_rgb_from_rgba_block(uint8_t* rgb, const uint8_t* rgba) {
-    const uint32_t src_pitch = BCN_BLOCK_SIZE * 4;
-    const uint32_t dst_pitch = BCN_BLOCK_SIZE * 3;
+    const uint32_t src_pitch = 4 * 4;
+    const uint32_t dst_pitch = 4 * 3;
     [[maybe_unused]] uint32_t nbr_written_bytes_total = 0;
-    for (uint32_t py = 0; py < BCN_BLOCK_SIZE; ++py) {
-        for (uint32_t px = 0; px < BCN_BLOCK_SIZE; ++px) {
+    for (uint32_t py = 0; py < 4; ++py) {
+        for (uint32_t px = 0; px < 4; ++px) {
             memcpy(rgb + px * 3 + py * dst_pitch, rgba + px * 4 + py * src_pitch, 3);
             nbr_written_bytes_total += 3;
         }
     }
-    assert(nbr_written_bytes_total == (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3));
+    assert(nbr_written_bytes_total == (4 * 4 * 3));
 }
 
 inline void
 rgb_to_rgba_block(uint8_t* rgba, const uint8_t* rgb, uint8_t alpha = 255) {
-    const uint32_t src_pitch = BCN_BLOCK_SIZE * 3; /* 4 x 3 */
-    const uint32_t dst_pitch = BCN_BLOCK_SIZE * 4; /* because we add alpha */
+    const uint32_t src_pitch = 4 * 3; /* 4 x 3 */
+    const uint32_t dst_pitch = 4 * 4; /* because we add alpha */
     [[maybe_unused]] uint32_t nbr_written_bytes_total = 0;
-    for (uint32_t py = 0; py < BCN_BLOCK_SIZE; ++py) {
-        for (uint32_t px = 0; px < BCN_BLOCK_SIZE; ++px) {
+    for (uint32_t py = 0; py < 4; ++py) {
+        for (uint32_t px = 0; px < 4; ++px) {
             uint8_t* pDst = rgba + px * 4 + py * dst_pitch;
             memcpy(pDst, rgb + px * 3 + py * src_pitch, 3);
             pDst[3] = alpha;
             nbr_written_bytes_total += 4;
         }
     }
-    assert(nbr_written_bytes_total == (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4));
+    assert(nbr_written_bytes_total == (4 * 4 * 4));
 }
 
 inline ktx_bcn_compression_e
@@ -353,6 +344,16 @@ get_nchannels(ktx_bcn_compression_e bcn) {
     default:
         return 0;
     }
+}
+
+inline void
+set_default_bcn_params_fields(ktxBCnParams& params) {
+    if (params.threadCount == 0) params.threadCount = 1;
+    if (params.bcnRDOQualityScalar == 0) params.bcnRDOQualityScalar = 1.0f;
+    if (params.bcnRDODictSize == 0) params.bcnRDODictSize = 4096;
+    if (params.bcnRDOMaxSmoothBlockStdDev == 0) params.bcnRDOMaxSmoothBlockStdDev = 18.0f;
+    if (params.bcnRDOMaxAllowedRMSIncreaseRatio == 0)
+        params.bcnRDOMaxAllowedRMSIncreaseRatio = 10.0f;
 }
 
 #endif

@@ -2,11 +2,11 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <bcn_common.h>
+#include "platform_utils.h"
+#include "bcn_common.h"
 #include "command.h"
 #include "encode_utils_bcn.h"
 #include "encode_utils_common.h"
-#include "platform_utils.h"
 #include "metrics_utils.h"
 #include "deflate_utils.h"
 #include "encode_utils_basis.h"
@@ -1540,10 +1540,14 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         VkFormat decompressed_format;
         int nchannels;
         options.bcn = get_bcn_compression_kind(options.vkFormat, decompressed_format, nchannels);
-        if (options.bcn == KTX_BCN_COMPRESSION_NONE)
+        if (options.bcn == KTX_BCN_COMPRESSION_NONE) {  // should never occur
+          assert(false);
           fatal(rc::NOT_SUPPORTED, "{} is unsupported for BCn encoding.", toString(options.vkFormat));
+        }
         else if (options.bcn == KTX_BCN_COMPRESSION_BC1A)
           fatal(rc::IO_FAILURE, "Punch-through alpha encoding for BC1 format is not supported. Consider supplying an RGB8 input format instead.");
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC2)
+          fatal(rc::IO_FAILURE, "Encoding to BC2 format is not supported (yet).");
         else if (options.bcn == KTX_BCN_COMPRESSION_BC6HS)
           fatal(rc::IO_FAILURE, "Encoding to signed BC6H HDR format (BC6HS) is not supported.");
     }
@@ -2096,12 +2100,6 @@ void CommandCreate::executeCreate() {
 
     // Add KTXwriterScParams metadata if ASTC encoding, BCn encoding, BasisU encoding, or other supercompression was used
     auto writerScParams = fmt::format("{}{}{}{}{}", options.astcOptions, options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
-    // This is ugly but is needed for testing ST vs. MT output without having ktxdiff fail because of KTXwriterScParams
-    if (options.testrun && options.encodeBCn) {
-        std::regex threads_r(R"(\s+--threads\s+\d+)", std::regex_constants::icase);
-        std::string writerScParams_without_threads = std::regex_replace(writerScParams, threads_r, "");
-        writerScParams = writerScParams_without_threads;
-    }
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');

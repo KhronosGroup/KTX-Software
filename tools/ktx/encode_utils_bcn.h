@@ -24,23 +24,6 @@ namespace ktx {
     <dd></dd>
 
     <dl>
-        <dt>\--bc1-mode &lt;mode&gt;</dt>
-        <dd>BC1 (subsequently BC3) approximation mode (for both: encoding and
-            decoding). Default is 'ideal'. If you encode textures for a specific
-            vendor's GPU, beware that using that texture data on other GPUs may
-            result in ugly artifacts. Set to 'ideal' unless you know the texture
-            data will only be deployed or used on a specific vendor's GPU. Can
-            be set to one of the following:
-            <table>
-                <tr><th>Mode       </th> <th> Description                                                      </th></tr>
-                <tr><td>ideal      </td> <td> The default mode. No rounding for 4-color colors 2,3. This matches the
-                                              D3D10 docs on BC1.                                               </td></tr>
-                <tr><td>nvidia     </td> <td> NVidia GPU mode. May produce artifacts on non-NVidia GPUs.       </td></tr>
-                <tr><td>amd        </td> <td> AMD GPU mode. May produce artifacts on non-AMD GPUs.             </td></tr>
-                <tr><td>ideal      </td> <td> Matches AMD Compressonator's output. Rounds 4-color colors 2,3
-                                              (not 3-color color 2). This matches the D3D9 docs on DXT1.       </td></tr>
-            </table>
-        </dd>
         <dt>\--bc1-quality &lt;level&gt;</dt>
         <dd>The quality level configures the quality-performance tradeoff for
             BC1/BC3 encoders. The quality level can be set in the range [0, 19]
@@ -50,6 +33,7 @@ namespace ktx {
             <table>
                 <tr><th>Level      </th> <th> Quality                      </th></tr>
                 <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
+                <tr><td>faster     </td> <td>(equivalent to quality =   2) </td></tr>
                 <tr><td>fast       </td> <td>(equivalent to quality =   5) </td></tr>
                 <tr><td>medium     </td> <td>(equivalent to quality =  10) </td></tr>
                 <tr><td>thorough   </td> <td>(equivalent to quality =  15) </td></tr>
@@ -108,7 +92,7 @@ namespace ktx {
             etc.). This does improve rate-distortion performance, though. BC4
             and BC5 formats do not support ultrasmooth block handling.</dd>
         <dt>\--bcn-rdo-try-one-match</dt>
-        <dd>Inject up to 1 match into each block instead of up-to-two matches.
+        <dd>Inject up to 1 match into each block instead of up to two matches.
             Results in slightly faster, but lower compression.</dd>
         <dt>\--bcn-rdo-skip-zero-mse</dt>
         <dd>Skip blocks that have zero mean-squared error (MSE). Might result in
@@ -127,7 +111,6 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     // inline static const char* kBCnEffort = "effort";
 
     /* low-level params */
-    inline static const char* kBC1Mode = "bc1-mode";
     inline static const char* kBC1Quality = "bc1-quality";
     inline static const char* kBC7Quality = "bc7-quality";
     inline static const char* kBCnRdo = "bcn-rdo";
@@ -144,7 +127,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kBCnOptions[] = {
         // kBCnQuality,
         // kBCnEffort,
-        kBC1Mode, kBC1Quality,        kBC7Quality,
+        kBC1Quality,        kBC7Quality,
         kBCnRdo,  kBCnRdoL,           kBCnRdoD,
         kBCnRdoB, kBCnRdoS,           kBCnRdoNoUltrasmoothBlocks,
         kBCnRdoR, kBCnRdoTryOneMatch, kBCnRdoSkipZeroMSEBlocks,
@@ -180,46 +163,22 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         /* bcn is set depending in ktx create/encode commands not here */
         normalMap = false;
-        bc1ApproxMode = KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
         bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH;
         bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH;
         bcnRDO = false;
         bcnRDOQualityScalar = 1.0f;
-        bcnRDOAutoMaxSmoothBlockErrorScale = true;
         bcnRDOMaxSmoothBlockErrorScale = 10.0f;
         bcnRDOMaxSmoothBlockStdDev = 18.0f;
-        bcnRDOUltrasmoothBlockHandling = true;
+        bcnRDONoUltrasmoothBlockHandling = false;
         bcnRDOMaxAllowedRMSIncreaseRatio = 10.0f;
         bcnRDODictSize = 4096u;
-        bcnRDOTry2Matches = true;
+        bcnRDOTryOneMatch = false;
         bcnRDOSkipZeroMSEBlocks = false;
         bcnRDONoMultithreading = false;
     }
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BCn")(
-            kBC1Mode,
-            "BC1 (subsequently BC3) approximation mode (for both: encoding and decoding). Default "
-            "is 'ideal'. If "
-            "you encode textures for a specific vendor's GPU, beware that using that texture "
-            "data on other GPUs may result in ugly artifacts. Set to 'ideal' unless you know the "
-            "texture data will only be deployed or used on a specific vendor's GPU. Can be set to "
-            "one of the following:\n\n"
-            "    Mode       |  Description                                   \n"
-            "    ---------- | -----------------------------------------------\n"
-            "    ideal      | The default mode. No rounding for 4-color      \n"
-            "               | colors 2,3. This matches the D3D10 docs on BC1.\n"
-            "    - - - - -  | - - - - - - - - - - - - - - - - - - - - - - - -\n"
-            "    nvidia     | NVidia GPU mode. May produce artifacts on      \n"
-            "               | non-NVidia GPUs.                               \n"
-            "    - - - - -  | - - - - - - - - - - - - - - - - - - - - - - - -\n"
-            "    amd        | AMD GPU mode. May produce artifacts on non-AMD \n"
-            "               | GPUs.                                          \n"
-            "    - - - - -  | - - - - - - - - - - - - - - - - - - - - - - - -\n"
-            "    ideal4     | Matches AMD Compressonator's output. Rounds    \n"
-            "               | 4-color colors 2,3 (not 3-color color 2). This \n"
-            "               | matches the D3D9 docs on DXT1.                 ",
-            cxxopts::value<std::string>(), "<mode>")(
             kBC1Quality,
             "The quality level configures the quality-performance tradeoff for BC1/BC3 encoders. "
             "The quality level can be set in the range [0, 19] with (0) being the 'fastest' and "
@@ -228,6 +187,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             "    Level      |  Quality\n"
             "    ---------- | ---------------------------- \n"
             "    fastest    | (equivalent to quality =  0) \n"
+            "    faster     | (equivalent to quality =  2) \n"
             "    fast       | (equivalent to quality =  5) \n"
             "    medium     | (equivalent to quality = 10) \n"
             "    thorough   | (equivalent to quality = 15) \n"
@@ -285,8 +245,8 @@ struct OptionsEncodeBCn : public ktxBCnParams {
                        "This does improve rate-distortion performance, though. BC4 and BC5 formats "
                        "do not support ultrasmooth block handling.")(
             kBCnRdoTryOneMatch,
-            "Inject up to 1 match into each block instead of up-to-two matches. Results "
-            "in slightly faster, but lower compression.")(
+            "Inject up to 1 match into each block instead of up to two matches. Results "
+            "in slightly faster, but noticeably lower compression.")(
             kBCnRdoSkipZeroMSEBlocks,
             "Skip blocks that have zero mean-squared error (MSE). Might result in faster but "
             "potentially lower compression.")(kBCnRdoNoMultithreading,
@@ -326,22 +286,10 @@ struct OptionsEncodeBCn : public ktxBCnParams {
 
         /* BC1-5 params */
 
-        if (args[kBC1Mode].count()) {
-            static std::unordered_map<std::string, ktx_bc1_approx_mode_e> bc1_mode_mapping{
-                {"ideal", KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL},
-                {"nvidia", KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA},
-                {"amd", KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD},
-                {"ideal4", KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4}};
-            const auto modeStr = to_lower_copy(captureBCnOption<std::string>(args, kBC1Mode));
-            const auto it = bc1_mode_mapping.find(modeStr);
-            if (it == bc1_mode_mapping.end())
-                report.fatal_usage("Invalid bc1-mode: \"{}\"", modeStr);
-            bc1ApproxMode = it->second;
-        }
-
         if (args[kBC1Quality].count()) {
             static std::unordered_map<std::string, ktx_pack_bc1_quality_levels_e>
                 bc1_quality_mapping{{"fastest", KTX_PACK_BC1_QUALITY_LEVEL_FASTEST},
+                                    {"faster", KTX_PACK_BC1_QUALITY_LEVEL_FASTER},
                                     {"fast", KTX_PACK_BC1_QUALITY_LEVEL_FAST},
                                     {"medium", KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM},
                                     {"thorough", KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH},
@@ -411,7 +359,6 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         if (args[kBCnRdoB].count()) {
             if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             bcnRDOMaxSmoothBlockErrorScale = captureBCnOption<float>(args, kBCnRdoB);
-            bcnRDOAutoMaxSmoothBlockErrorScale = false;
         }
 
         if (args[kBCnRdoS].count()) {
@@ -422,7 +369,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         if (args[kBCnRdoNoUltrasmoothBlocks].count()) {
             if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             captureBCnOption(kBCnRdoNoUltrasmoothBlocks);
-            bcnRDOUltrasmoothBlockHandling = false;
+            bcnRDONoUltrasmoothBlockHandling = true;
         }
 
         if (args[kBCnRdoR].count()) {
@@ -433,7 +380,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         if (args[kBCnRdoTryOneMatch].count()) {
             if (!bcnRDO) report.fatal_usage(rdo_needs_to_be_set_err_msg);
             captureBCnOption(kBCnRdoTryOneMatch);
-            bcnRDOTry2Matches = false;
+            bcnRDOTryOneMatch = true;
         }
 
         if (args[kBCnRdoSkipZeroMSEBlocks].count()) {

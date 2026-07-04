@@ -340,7 +340,9 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
     if (lhs.transcoded) {
         // For encoded images the compressed data sizes can differ.
         // Skip the related checks for header.supercompressionGlobalData and levelIndex
-        if (std::memcmp(&lhs.header, &rhs.header, sizeof(lhs.header) - sizeof(ktxIndexEntry64)) != 0)
+        if (std::memcmp(&lhs.header, &rhs.header,
+                        sizeof(lhs.header) -
+                            (sizeof(ktxIndexEntry64) + (skip_kvd ? sizeof(ktxIndexEntry32) : 0))) != 0)
             return mismatch("Mismatching header");
     } else {
         if (skip_kvd) {
@@ -428,6 +430,15 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
     return true;
 }
 
+inline void print_usage_msg() {
+    fmt::print(
+        "Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance] [--skip-kvd]\n"
+        "  For normalized formats tolerance is the normalized absolute value of the acceptable "
+        "difference.\n"
+        "  For unnormalized formats it is the fraction of the minimum of the values being compared "
+        "that is acceptable.\n");
+}
+
 /// EXIT CODES:
 ///     0 - Matching files
 ///     1 - Mismatching files
@@ -435,24 +446,15 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
 int main(int argc, char* argv[]) {
     InitUTF8CLI(argc, argv);
 
-#define USAGE_MSG()                                                                              \
-    fmt::print("Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance] [--skip-kvd]\n");     \
-    fmt::print(                                                                                  \
-        "  For normalized formats tolerance is the normalized absolute value of the acceptable " \
-        "difference.\n");                                                                        \
-    fmt::print(                                                                                  \
-        "  For unnormalized formats it is the fraction of the minimum of the values being "      \
-        "compared that is acceptable.\n")
-
     if (argc < 3) {
         fmt::print("Missing input file arguments\n");
-        USAGE_MSG();
+        print_usage_msg();
         return EXIT_FAILURE;
     }
 
     if (argc > 5) {
         fmt::print("Too many arguments or/and options\n");
-        USAGE_MSG();
+        print_usage_msg();
         return EXIT_FAILURE;
     }
 
@@ -469,7 +471,7 @@ int main(int argc, char* argv[]) {
     } else if (argc == 5) {
         if (std::string(argv[4]) != "--skip-kvd") {
             fmt::print("Option '--skip-kvd' should be specified as last option\n");
-            USAGE_MSG();
+            print_usage_msg();
             return EXIT_FAILURE;
         }
         tolerance = std::stof(argv[3]);

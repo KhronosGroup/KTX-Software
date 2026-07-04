@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "KHR/khr_df.h"
 #include "command.h"
 #include "transcode_utils.h"
 #include "utility.h"
@@ -29,10 +30,10 @@ namespace ktx {
     <dl>
       <dt>\--compare-ssim</dt>
       <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout.
-          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
+          Requires Basis-LZ, UASTC, ASTC, or BCn encoding.</dd>
       <dt>\--compare-psnr</dt>
       <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout.
-          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
+          Requires Basis-LZ, UASTC, ASTC or BCn encoding.</dd>
     </dl>
 </dl>
 //! [command options_metrics]
@@ -43,8 +44,8 @@ struct OptionsMetrics {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.")
-            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.");
+            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ, UASTC, ASTC or BCn encoding.")
+            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ, UASTC, ASTC or BCn encoding.");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
@@ -110,8 +111,13 @@ public:
 
         // Decode the encoded texture to observe the compression losses
         const auto* bdfd = texture->pDfd + 1;
-        if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_ASTC) {
+        const auto model = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
+        if (model == KHR_DF_MODEL_ASTC) {
             ec = ktxTexture2_DecodeAstc(texture);
+        } else if (model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC2 || model == KHR_DF_MODEL_BC3 ||
+                   model == KHR_DF_MODEL_BC4 || model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H ||
+                   model == KHR_DF_MODEL_BC7) {
+            ec = ktxTexture2_DecodeBCn(texture);
         }
         else {
             tSwizzleInfo = determineTranscodeSwizzle(texture, report);

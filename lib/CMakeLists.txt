@@ -136,6 +136,7 @@ endif()
 set(LIBKTX_MAIN_SRC
     include/ktx.h
     src/astc_codec.cpp
+    src/bcn_common.h
     src/bcn_encoder.cpp
     src/bcn_decoder.cpp
     src/multithreading.cpp

@@ -2,14 +2,9 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-// builds on Windows complain about deprecated "strncpy" calls
-#if defined(_WIN32)
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
+#include "platform_utils.h"
 #include "bcn_common.h"
 #include "command.h"
-#include "platform_utils.h"
 #include "format_descriptor.h"
 #include "formats.h"
 #include "fragment_uri.h"
@@ -606,19 +601,12 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
                                       std::size_t compressedSize) {
     int nchannels;
     size_t expectedCompressedSize;
-    const size_t nBlocks = (std::size_t)((width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE) *
-                           ((height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE);
+    const size_t nBlocks = (std::size_t)((width + 3) / 4) * ((height + 3) / 4);
 
     VkFormat decompressed_format;
     ktx_bcn_compression_e bcn = get_bcn_compression_kind(vkFormat, decompressed_format, nchannels);
 
     bool is_hdr = (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS);
-
-    // TODO: somehow expose this
-    ktxBC1UnpackParams params;
-    params.allow_3color_mode = true;
-    params.use_3color_mode_for_black = false;
-    params.bc1_approx_mode = ktx_bc1_approx_mode_e::KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL;
 
     switch (bcn) {
     case KTX_BCN_COMPRESSION_BC1:
@@ -647,6 +635,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
         expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
         break;
     default:  // should never occur
+        assert(false);
         fatal(rc::RUNTIME_ERROR, "Provided format is not a BCn block-compressed format: {}",
               static_cast<ktx_uint32_t>(vkFormat));
         return;
@@ -662,7 +651,7 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     ktx_uint8_t* buffer_ptr = decompressed_buffer.get();
     const ktx_uint8_t* src_blocks = reinterpret_cast<const ktx_uint8_t*>(compressedData);
 
-    auto res = ktxUnpackBCn(src_blocks, buffer_ptr, width, height, bcn, &params);
+    auto res = ktxUnpackBCn(src_blocks, buffer_ptr, width, height, bcn);
     if (res != KTX_SUCCESS) {
         fatal(rc::RUNTIME_ERROR, "Unpack of BCn-compressed image failed.");
     }

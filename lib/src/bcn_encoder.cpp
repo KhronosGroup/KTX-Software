@@ -32,6 +32,7 @@
 #if KTX_FEATURE_WRITE
 
 #include "bcn_common.h"
+#include "rgbcx.h"
 
 #include <atomic>
 #include "ert.h"                             /* for RDO */
@@ -74,7 +75,6 @@ struct rdo_params {
     /* Whether to automatically compute the maximum MSE scale factor for
      * smooth/flat blocks. */
     ktx_bool_t auto_smooth_block_max_mse_scale;
-    unpack_block_bc1_user_data bc1_params;
     ktx_bool_t ultra_smooth_block_mse_handling;
 };
 
@@ -98,7 +98,6 @@ struct rdo_bc1_workload {
     std::atomic_int32_t m_total_modified_rgb;
     /* [out] false if any thread fails */
     bool m_success;
-    unpack_block_bc1_user_data m_bc1_params;
     /* [in] RGB ultrasmooth blocks (a positive entry means that the block is
      * considered ultrasmooth) */
     const float* m_block_rgb_mse_scales;
@@ -106,14 +105,12 @@ struct rdo_bc1_workload {
     rdo_bc1_workload() = delete;
     rdo_bc1_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
                      const ert::color_rgba* unpacked_img_rgbx, ert::reduce_entropy_params ert_p_rgb,
-                     unpack_block_bc1_user_data bc1_params,
                      const float* block_rgb_mse_scales = nullptr)
         : m_width{width},
           m_height{height},
           m_packed_img{packed_img},
           m_unpacked_img_rgbx{unpacked_img_rgbx},
           m_ert_p_rgb{ert_p_rgb},
-          m_bc1_params{bc1_params},
           m_block_rgb_mse_scales{block_rgb_mse_scales} {
         assert(m_packed_img != nullptr);
         assert(m_unpacked_img_rgbx != nullptr);
@@ -152,14 +149,13 @@ struct rdo_bc3_workload {
     std::atomic_int32_t m_total_modified_a;
     /* [out] false if any thread fails */
     bool m_success;
-    unpack_block_bc1_user_data m_bc1_params;
     const float* m_block_rgb_mse_scales;
 
     rdo_bc3_workload() = delete;
     rdo_bc3_workload(uint32_t width, uint32_t height, uint8_t* packed_img,
                      const ert::color_rgba* unpacked_img_rgbx,
                      const ert::color_rgba* unpacked_img_axxx, ert::reduce_entropy_params ert_p_rgb,
-                     ert::reduce_entropy_params ert_p_a, unpack_block_bc1_user_data bc1_params,
+                     ert::reduce_entropy_params ert_p_a,
                      const float* block_rgb_mse_scales = nullptr)
         : m_width{width},
           m_height{height},
@@ -168,7 +164,6 @@ struct rdo_bc3_workload {
           m_unpacked_img_axxx{unpacked_img_axxx},
           m_ert_p_rgb{ert_p_rgb},
           m_ert_p_a{ert_p_a},
-          m_bc1_params{bc1_params},
           m_block_rgb_mse_scales{block_rgb_mse_scales} {
         assert(m_packed_img != nullptr);
         assert(m_unpacked_img_rgbx != nullptr);
@@ -322,23 +317,23 @@ struct rdo_bc7_workload {
 };
 
 static bool
-unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* pUser_data) {
-    static_assert(sizeof(rgbcx::bc1_block) == BC1_BLOCK_SIZE);
-    static_assert(sizeof(rgbcx::color32) == sizeof(ert::color_rgba));
-    auto bc1_usr_data = static_cast<unpack_block_bc1_user_data*>(pUser_data);
+unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
+    const bool allow_3color_mode = true;           // hardcoded
+    const bool use_3color_mode_for_black = false;  // hardcoded
     // rgbcx's BC1 decoder decodes into an rgbcx::color32 struct not into a ert::color_rgba struct
     // (which, even though is similar results in UB if passed directly).
-    rgbcx::color32 p_src_pixels[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE];
-    bool used_3color = rgbcx::unpack_bc1(pBlock, p_src_pixels, true, bc1_usr_data->bc1_approx_mode);
-    memcpy(pPixels, p_src_pixels, sizeof(rgbcx::color32) * BCN_BLOCK_SIZE * BCN_BLOCK_SIZE);
+    rgbcx::color32 p_src_pixels[4 * 4];
+    bool used_3color =
+        rgbcx::unpack_bc1(pBlock, p_src_pixels, true, rgbcx::bc1_approx_mode::cBC1Ideal);
+    memcpy(pPixels, p_src_pixels, sizeof(rgbcx::color32) * 4 * 4);
     // This check is copied from the original code at: rdo_bc_encoder.h
     if (used_3color) {
-        if (!bc1_usr_data->allow_3color_mode) return false;
-        if (!bc1_usr_data->use_3color_mode_for_black) {
+        if (!allow_3color_mode) return false;
+        if (!use_3color_mode_for_black) {
             // TODO: is this also UB (does it respect strict-aliasing rule or am I paranoid)?
             auto pBC1_block = static_cast<const rgbcx::bc1_block*>(pBlock);
-            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y)
-                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x)
+            for (uint32_t y = 0; y < 4; ++y)
+                for (uint32_t x = 0; x < 4; ++x)
                     if (pBC1_block->get_selector(x, y) == 3) return false;
         }
     }
@@ -347,10 +342,10 @@ unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void* p
 
 static bool
 unpack_block_bc4(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) {
-    uint8_t p_src_pixels[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];
+    uint8_t p_src_pixels[4 * 4 * 4];
     memset(p_src_pixels, 0, sizeof(p_src_pixels));
     rgbcx::unpack_bc4(pBlock, p_src_pixels, 4);
-    memcpy(pPixels, p_src_pixels, BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4);
+    memcpy(pPixels, p_src_pixels, 4 * 4 * 4);
     return true;
 };
 
@@ -365,7 +360,7 @@ unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
     // https://cellperformance.beyond3d.com/articles/2006/06/understanding-strict-aliasing.html)
     // bc7enc_rdo expects that unpackers decode blocks to ert::color_rgba
     static_assert(sizeof(ert::color_rgba) == sizeof(basist::color_rgba));
-    basist::color_rgba p_unpacked_block[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE];
+    basist::color_rgba p_unpacked_block[4 * 4];
     if (basist::bc7u::unpack_bc7(pBlock, p_unpacked_block)) {
         memcpy(pPixels, p_unpacked_block, sizeof(p_unpacked_block));
         return true;
@@ -380,8 +375,8 @@ unpack_block_bc7(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
 static inline void
 get_current_thread_blocks(uint32_t w, uint32_t h, int thread_id, int thread_count,
                           uint32_t& block_start_idx, uint32_t& num_blocks) {
-    const uint32_t num_blocks_x = (w + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const uint32_t num_blocks_y = (h + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_x = (w + 3) / 4;
+    const uint32_t num_blocks_y = (h + 3) / 4;
     const uint32_t nbrBlocksTotal = num_blocks_x * num_blocks_y;
     // Each thread takes a set of contiguous blocks to encode
     const bool is_last_thread = thread_id == (thread_count - 1);
@@ -401,7 +396,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     const uint32_t width = workload->width;
     const uint32_t height = workload->height;
     const uint32_t nchannels = workload->nchannels;
-    const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_x = (width + 3) / 4;
 
     // Each thread takes a set of contiguous blocks to encode
     uint32_t block_start_idx, block_end_idx, num_blocks;
@@ -410,10 +405,10 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
     block_end_idx = block_start_idx + num_blocks;
 
     // Intermediate store for decoded LDR/HDR BCn block
-    uint8_t rgba[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* 4 x 4 x 4 */
-    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3];   /* only for BC1 */
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* 4 x 4 x 3 x 2 - for BC6H? */
-    uint8_t rgbx[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 4];  /* only for BC1 */
+    uint8_t rgba[4 * 4 * 4];  /* 4 x 4 x 4 */
+    uint8_t rgb[4 * 4 * 3];   /* only for BC1 */
+    uint16_t rgbh[4 * 4 * 3]; /* 4 x 4 x 3 x 2 - for BC6H? */
+    uint8_t rgbx[4 * 4 * 4];  /* only for BC1 */
 
     basist::color_rgba rgba_bc7[16];
 
@@ -429,17 +424,15 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
         // via clamping to edge).
         if (workload->params.bcn == KTX_BCN_COMPRESSION_BC6HU ||
             workload->params.bcn == KTX_BCN_COMPRESSION_BC6HS) {
-            extract_block(rgbh, reinterpret_cast<const uint16_t*>(workload->data_in),
-                          xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE, width, height,
-                          nchannels);
+            extract_block(rgbh, reinterpret_cast<const uint16_t*>(workload->data_in), xBlock * 4,
+                          yBlock * 4, width, height, nchannels);
         } else if (workload->params.bcn == KTX_BCN_COMPRESSION_BC1) {
             // BC1 is an edge case because encoder expects 4 while input is 3
-            extract_block(rgb, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
-                          width, height, nchannels);
+            extract_block(rgb, workload->data_in, xBlock * 4, yBlock * 4, width, height, nchannels);
             rgb_to_rgba_block(rgbx, rgb);
         } else {
-            extract_block(rgba, workload->data_in, xBlock * BCN_BLOCK_SIZE, yBlock * BCN_BLOCK_SIZE,
-                          width, height, nchannels);
+            extract_block(rgba, workload->data_in, xBlock * 4, yBlock * 4, width, height,
+                          nchannels);
         }
 
         switch (workload->params.bcn) {
@@ -484,7 +477,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 
         case KTX_BCN_COMPRESSION_BC7:
             // BC7: 4 x 4 x 4 = 64 bytes -> 16 bytes
-            // TODO: is this needed? libktx is compiled whith strict aliasing while basisu is
+            // TODO: is this needed? libktx is compiled with strict aliasing while basisu is
             // compiled with '-fno-strict-aliasing'. basist::color_rgba is a trivial type after all
             // ...
             memcpy(rgba_bc7, rgba, sizeof(rgba_bc7));
@@ -514,10 +507,9 @@ rdo_bc1_workload_runner(int thread_count, int thread_id, void* payload) {
                               block_start_idx, num_blocks);
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC1_BLOCK_SIZE, num_blocks, BC1_BLOCK_SIZE,
-        BC1_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 3 /* alpha channel ignored */,
-        workload->m_unpacked_img_rgbx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
-        workload->m_ert_p_rgb, total_modified_local, unpack_block_bc1, &workload->m_bc1_params,
-        stats_local,
+        BC1_BLOCK_SIZE, 4, 4, 3 /* alpha channel ignored */,
+        workload->m_unpacked_img_rgbx + block_start_idx * (4 * 4), workload->m_ert_p_rgb,
+        total_modified_local, unpack_block_bc1, nullptr, stats_local,
         workload->m_block_rgb_mse_scales != nullptr
             ? workload->m_block_rgb_mse_scales + block_start_idx
             : nullptr);
@@ -544,8 +536,7 @@ rdo_bc3_workload_runner(int thread_count, int thread_id, void* payload) {
     // First, RDO the BC4 A channel blocks ...
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC3_BLOCK_SIZE, num_blocks, BC3_BLOCK_SIZE,
-        BC4_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1,
-        workload->m_unpacked_img_axxx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
+        BC4_BLOCK_SIZE, 4, 4, 1, workload->m_unpacked_img_axxx + block_start_idx * (4 * 4),
         workload->m_ert_p_a, total_modified_local_a, unpack_block_bc4, nullptr, local_stats);
     if (res) {
         workload->m_total_modified_a += total_modified_local_a;
@@ -557,10 +548,9 @@ rdo_bc3_workload_runner(int thread_count, int thread_id, void* payload) {
     // Then reduce entropy for the BC1 RGB block ...
     res = ert::reduce_entropy(
         (workload->m_packed_img + BC4_BLOCK_SIZE) + block_start_idx * BC3_BLOCK_SIZE, num_blocks,
-        BC3_BLOCK_SIZE, BC1_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 3,
-        workload->m_unpacked_img_rgbx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
-        workload->m_ert_p_rgb, total_modified_local_rgb, unpack_block_bc1, &workload->m_bc1_params,
-        local_stats,
+        BC3_BLOCK_SIZE, BC1_BLOCK_SIZE, 4, 4, 3,
+        workload->m_unpacked_img_rgbx + block_start_idx * (4 * 4), workload->m_ert_p_rgb,
+        total_modified_local_rgb, unpack_block_bc1, nullptr, local_stats,
         workload->m_block_rgb_mse_scales != nullptr
             ? workload->m_block_rgb_mse_scales + block_start_idx
             : nullptr);
@@ -584,8 +574,7 @@ rdo_bc4_workload_runner(int thread_count, int thread_id, void* payload) {
                               block_start_idx, num_blocks);
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC4_BLOCK_SIZE, num_blocks, BC4_BLOCK_SIZE,
-        BC4_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1,
-        workload->m_unpacked_img_rxxx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
+        BC4_BLOCK_SIZE, 4, 4, 1, workload->m_unpacked_img_rxxx + block_start_idx * (4 * 4),
         workload->m_ert_p_r, total_modified_local, unpack_block_bc4, nullptr, local_stats);
     if (res) {
         workload->m_total_modified_r += total_modified_local;
@@ -609,9 +598,9 @@ rdo_bc5_workload_runner(int thread_count, int thread_id, void* payload) {
     // reduce entropy for the BC4 R block ...
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC5_BLOCK_SIZE, num_blocks,
-        BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */, BC4_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1,
-        workload->m_unpacked_img_rxxx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
-        workload->m_ert_p_r, total_modified_local_r, unpack_block_bc4, nullptr, local_stats);
+        BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */, BC4_BLOCK_SIZE, 4, 4, 1,
+        workload->m_unpacked_img_rxxx + block_start_idx * (4 * 4), workload->m_ert_p_r,
+        total_modified_local_r, unpack_block_bc4, nullptr, local_stats);
     if (res) {
         workload->m_total_modified_r += total_modified_local_r;
         workload->m_total_smooth_blocks_r += local_stats.total_smooth_blocks;
@@ -623,9 +612,9 @@ rdo_bc5_workload_runner(int thread_count, int thread_id, void* payload) {
     // then reduce entropy for the BC4 G block ...
     res = ert::reduce_entropy(
         (workload->m_packed_img + BC4_BLOCK_SIZE) + block_start_idx * BC5_BLOCK_SIZE, num_blocks,
-        BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */, BC4_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 1,
-        workload->m_unpacked_img_gxxx + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
-        workload->m_ert_p_g, total_modified_local_g, unpack_block_bc4, nullptr, local_stats);
+        BC5_BLOCK_SIZE /* 2 x BC4_BLOCK_SIZE */, BC4_BLOCK_SIZE, 4, 4, 1,
+        workload->m_unpacked_img_gxxx + block_start_idx * (4 * 4), workload->m_ert_p_g,
+        total_modified_local_g, unpack_block_bc4, nullptr, local_stats);
 
     if (res) {
         workload->m_total_modified_g += total_modified_local_g;
@@ -646,8 +635,7 @@ rdo_bc7_workload_runner(int thread_count, int thread_id, void* payload) {
     ert::reduce_entropy_stats stats_local;
     bool res = ert::reduce_entropy(
         workload->m_packed_img + block_start_idx * BC7_BLOCK_SIZE, num_blocks, BC7_BLOCK_SIZE,
-        BC7_BLOCK_SIZE, BCN_BLOCK_SIZE, BCN_BLOCK_SIZE, 4,
-        workload->m_unpacked_img_rgba + block_start_idx * (BCN_BLOCK_SIZE * BCN_BLOCK_SIZE),
+        BC7_BLOCK_SIZE, 4, 4, 4, workload->m_unpacked_img_rgba + block_start_idx * (4 * 4),
         workload->m_ert_p_rgba, total_modified_local, unpack_block_bc7, nullptr, stats_local,
         workload->m_block_rgb_mse_scales != nullptr
             ? workload->m_block_rgb_mse_scales + block_start_idx
@@ -700,15 +688,15 @@ save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_
 static std::vector<float>
 compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32_t height,
                              uint32_t nchannels, float smooth_block_max_mse_scale, float lambda) {
-    const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const uint32_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t num_blocks_x = (width + 3) / 4;
+    const uint32_t num_blocks_y = (height + 3) / 4;
     const float ULTRASMOOTH_BLOCK_STD_DEV_THRESHOLD = 2.9f;
     const float DARK_THRESHOLD = 13.0f;
     const float BRIGHT_THRESHOLD = 222.0f;
     const float ULTRAMOOTH_BLOCK_MSE_SCALE = 120.0f;
     const uint32_t ULTRASMOOTH_REGION_TOO_SMALL_THRESHOLD = 64;
-    const int rgb_pitch = BCN_BLOCK_SIZE * 3;
-    uint8_t rgb[BCN_BLOCK_SIZE * rgb_pitch]; /* only for BC1 */
+    const int rgb_pitch = 4 * 3;
+    uint8_t rgb[4 * rgb_pitch]; /* only for BC1 */
 
     assert(nchannels == 3 || nchannels == 4);
 
@@ -727,17 +715,16 @@ compute_block_rgb_mse_scales(const uint8_t* unpacked_img, uint32_t width, uint32
                 // but to keep everything simple, all proceeding operations
                 // expect an RGBA block (not an RGB block) hence why we extract
                 // to intermediate rgb block and not directly to  block_pixels
-                extract_block(rgb, unpacked_img, bx * BCN_BLOCK_SIZE, by * BCN_BLOCK_SIZE, width,
-                              height, nchannels);
-                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                extract_block(rgb, unpacked_img, bx * 4, by * 4, width, height, nchannels);
+                for (int i = 0; i < 4 * 4; ++i) {
                     block_pixels[i].r = rgb[i * 3];
                     block_pixels[i].g = rgb[i * 3 + 1];
                     block_pixels[i].b = rgb[i * 3 + 2];
                     block_pixels[i].a = 255u;
                 }
             } else /* nchannels == 4 */ {
-                extract_block(&block_pixels[0].r, unpacked_img, bx * BCN_BLOCK_SIZE,
-                              by * BCN_BLOCK_SIZE, width, height, nchannels);
+                extract_block(&block_pixels[0].r, unpacked_img, bx * 4, by * 4, width, height,
+                              nchannels);
             }
 
             ert::tracked_stat y_stats;
@@ -1032,8 +1019,8 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         }                                                                \
     } while (0)
 
-    const uint32_t nBlocksX = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-    const uint32_t nBlocksY = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+    const uint32_t nBlocksX = (width + 3) / 4;
+    const uint32_t nBlocksY = (height + 3) / 4;
     const uint32_t nBlocksTotal = nBlocksX * nBlocksY;
     std::vector<float> block_rgb_mse_scales; /* only BC1, BC3, and BC7 */
     bool success = true;
@@ -1041,8 +1028,8 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
     // Intermediate storage for extracted blocks. This is mainly for convenience
     // so that we do not have to repeat logic for extracting and potentially
     // padding a block of 4x4 RGBA pixels
-    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;
-    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 4 x 4 x 4 */
+    const uint32_t rgba_pitch = 4 * 4;
+    uint8_t rgba[4 * rgba_pitch]; /* 4 x 4 x 4 */
     auto& ert_p = params.ert_p;
 
     if (ert_p.m_lambda <= 0.0f) return KTX_SUCCESS;
@@ -1063,17 +1050,16 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 compute_block_rgb_mse_scales(unpacked_img, width, height, BC1_NCHANNELS,
                                              ert_p.m_smooth_block_max_mse_scale, ert_p.m_lambda);
 
-        std::vector<ert::color_rgba> block_pixels(nBlocksTotal * BCN_BLOCK_SIZE * BCN_BLOCK_SIZE);
-        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+        std::vector<ert::color_rgba> block_pixels(nBlocksTotal * 4 * 4);
+        for (uint32_t y = 0; y < height; y += 4) {
+            for (uint32_t x = 0; x < width; x += 4) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC1_NCHANNELS);
                 // Now flatten the extracted block into block_pixels and add alpha because BC1 input
                 // is RGB (without the A). Unpacked BC1 blocks on the other hand are RGBX
                 const uint8_t* p_src = rgba;
-                ert::color_rgba* p_dst_rgbx =
-                    block_pixels.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                ert::color_rgba* p_dst_rgbx = block_pixels.data() + x * 4 + y * 4 * nBlocksX;
+                for (int i = 0; i < 4 * 4; ++i) {
                     p_dst_rgbx->m_comps[0] = p_src[0];
                     p_dst_rgbx->m_comps[1] = p_src[1];
                     p_dst_rgbx->m_comps[2] = p_src[2];
@@ -1089,7 +1075,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
 #endif
 
         rdo_bc1_workload workload(
-            width, height, packed_img, block_pixels.data(), ert_p, params.bc1_params,
+            width, height, packed_img, block_pixels.data(), ert_p,
             params.ultra_smooth_block_mse_handling ? block_rgb_mse_scales.data() : nullptr);
         launchThreads(threads, rdo_bc1_workload_runner, &workload);
         success = workload.m_success;
@@ -1132,20 +1118,17 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 compute_block_rgb_mse_scales(unpacked_img, width, height, BC3_NCHANNELS,
                                              ert_p.m_smooth_block_max_mse_scale, ert_p.m_lambda);
 
-        std::vector<ert::color_rgba> block_pixels_rgbx(nBlocksTotal * BCN_BLOCK_SIZE *
-                                                       BCN_BLOCK_SIZE);
+        std::vector<ert::color_rgba> block_pixels_rgbx(nBlocksTotal * 4 * 4);
         std::vector<ert::color_rgba> block_pixels_axxx(block_pixels_rgbx.size());
-        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+        for (uint32_t y = 0; y < height; y += 4) {
+            for (uint32_t x = 0; x < width; x += 4) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC3_NCHANNELS);
                 // Now flatten the extracted block into block_pixels
                 const uint8_t* pSrc = rgba;
-                ert::color_rgba* pDstRGB =
-                    block_pixels_rgbx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                ert::color_rgba* pDstA =
-                    block_pixels_axxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                ert::color_rgba* pDstRGB = block_pixels_rgbx.data() + x * 4 + y * 4 * nBlocksX;
+                ert::color_rgba* pDstA = block_pixels_axxx.data() + x * 4 + y * 4 * nBlocksX;
+                for (int i = 0; i < 4 * 4; ++i) {
                     pDstRGB->m_comps[0] = pSrc[0];
                     pDstRGB->m_comps[1] = pSrc[1];
                     pDstRGB->m_comps[2] = pSrc[2];
@@ -1167,7 +1150,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
 
         rdo_bc3_workload workload(
             width, height, packed_img, block_pixels_rgbx.data(), block_pixels_axxx.data(), ert_p,
-            ert_p_a, params.bc1_params,
+            ert_p_a,
             params.ultra_smooth_block_mse_handling ? block_rgb_mse_scales.data() : nullptr);
         launchThreads(threads, rdo_bc3_workload_runner, &workload);
         success = workload.m_success;
@@ -1208,20 +1191,18 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 lerp(10.0f, 30.0f, std::min(1.0f, ert_p.m_lambda / 4.0f));
         }
 
-        const uint32_t r_pitch = BCN_BLOCK_SIZE * BC4_NCHANNELS;  // 4 x 1
-        uint8_t r[BCN_BLOCK_SIZE * r_pitch];                      // 4 x 4 x 1
+        const uint32_t r_pitch = 4 * BC4_NCHANNELS;  // 4 x 1
+        uint8_t r[4 * r_pitch];                      // 4 x 4 x 1
 
-        std::vector<ert::color_rgba> block_pixels_rxxx(nBlocksTotal * BCN_BLOCK_SIZE *
-                                                       BCN_BLOCK_SIZE);
-        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+        std::vector<ert::color_rgba> block_pixels_rxxx(nBlocksTotal * 4 * 4);
+        for (uint32_t y = 0; y < height; y += 4) {
+            for (uint32_t x = 0; x < width; x += 4) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(r, unpacked_img, x, y, width, height, BC4_NCHANNELS);
                 // Now flatten the extracted block into block_pixels
-                ert::color_rgba* pDst =
-                    block_pixels_rxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
+                ert::color_rgba* pDst = block_pixels_rxxx.data() + x * 4 + y * 4 * nBlocksX;
                 const uint8_t* pSrc = r;
-                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                for (int i = 0; i < 4 * 4; ++i) {
                     pDst->m_comps[0] = pSrc[0];  // alpha
                     pDst->m_comps[1] = 0;
                     pDst->m_comps[2] = 0;
@@ -1269,20 +1250,17 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
                 lerp(10.0f, 30.0f, std::min(1.0f, ert_p.m_lambda / 4.0f));
         }
 
-        std::vector<ert::color_rgba> block_pixels_rxxx(nBlocksTotal * BCN_BLOCK_SIZE *
-                                                       BCN_BLOCK_SIZE);
+        std::vector<ert::color_rgba> block_pixels_rxxx(nBlocksTotal * 4 * 4);
         std::vector<ert::color_rgba> block_pixels_gxxx(block_pixels_rxxx.size());
-        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+        for (uint32_t y = 0; y < height; y += 4) {
+            for (uint32_t x = 0; x < width; x += 4) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC5_NCHANNELS);
                 // Now flatten the extracted block into block_pixels
                 const uint8_t* pSrc = rgba;
-                ert::color_rgba* pDstR =
-                    block_pixels_rxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                ert::color_rgba* pDstG =
-                    block_pixels_gxxx.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (int i = 0; i < BCN_BLOCK_SIZE * BCN_BLOCK_SIZE; ++i) {
+                ert::color_rgba* pDstR = block_pixels_rxxx.data() + x * 4 + y * 4 * nBlocksX;
+                ert::color_rgba* pDstG = block_pixels_gxxx.data() + x * 4 + y * 4 * nBlocksX;
+                for (int i = 0; i < 4 * 4; ++i) {
                     pDstR->m_comps[0] = pSrc[0];  // R
                     pDstR->m_comps[1] = 0;
                     pDstR->m_comps[2] = 0;
@@ -1354,18 +1332,15 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
         // block, then 2nd raw of 1st block, etc. - Not: 1st raw of 1st block
         // then 1st raw of 2nd block, etc.). This is what the main RDO function
         // ert::reduce_entropy expects.
-        std::vector<ert::color_rgba> block_pixels_rgba(nBlocksTotal * BCN_BLOCK_SIZE *
-                                                       BCN_BLOCK_SIZE);
-        for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-            for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+        std::vector<ert::color_rgba> block_pixels_rgba(nBlocksTotal * 4 * 4);
+        for (uint32_t y = 0; y < height; y += 4) {
+            for (uint32_t x = 0; x < width; x += 4) {
                 // Extract block (non-multiple-of-4 texture dimensions are handled).
                 extract_block(rgba, unpacked_img, x, y, width, height, BC7_NCHANNELS);
                 // Now flatten the extracted block into block_pixels
-                ert::color_rgba* p_dst =
-                    block_pixels_rgba.data() + x * BCN_BLOCK_SIZE + y * BCN_BLOCK_SIZE * nBlocksX;
-                for (uint32_t py{0}; py < BCN_BLOCK_SIZE; ++py) {
-                    memcpy(p_dst + py * BCN_BLOCK_SIZE, rgba + py * rgba_pitch,
-                           BCN_BLOCK_SIZE * BC7_NCHANNELS);
+                ert::color_rgba* p_dst = block_pixels_rgba.data() + x * 4 + y * 4 * nBlocksX;
+                for (uint32_t py{0}; py < 4; ++py) {
+                    memcpy(p_dst + py * 4, rgba + py * rgba_pitch, 4 * BC7_NCHANNELS);
                 }
             }
         }
@@ -1441,24 +1416,33 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
  * @exception KTX_INVALID_VALUE
  *                      @p params is @c NULL or used with incompatible
  *                      @p params.
- * @exception KTX_INVALID_OPERATION
- *                      The texture's images are supercompressed.
+ * @exception KTX_FILE_DATA_ERROR
+ *                      The texture's supercompression scheme is invalid.
  * @exception KTX_INVALID_OPERATION
  *                      The texture's images are already in a block compressed
- *                      format (i.e., @c This->isCompressed is true).
+ *                      format (i.e., @c This->isCompressed is @c true).
  * @exception KTX_INVALID_OPERATION
  *                      The texture image's format is a packed format (e.g.,
  *                      RGB565).
  * @exception KTX_INVALID_OPERATION
  *                      The texture's images are not 2D. Only 2D images can be
  *                      block compressed.
+ * @exception KTX_INVALID_OPERATION
+ *                      The texture does not contain any data (i.e.,
+ *                      @c This->pData is @c NULL and there is no pending data
+ *                      load).
  * @exception  KTX_INVALID_OPERATION
  *                      VkFormat of @p This texture is not supported or does
  *                      not match that of the set BCn color model.
  * @exception KTX_INVALID_OPERATION
- *                      This->generateMipmaps is set.
+ *                      @c This->generateMipmaps is set.
  * @exception KTX_OUT_OF_MEMORY
  *                      Not enough memory to carry out compression.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                      Unsupported or not-yet-to-be-supported target BCn format
+ *                      (e.g., BC1A, BC2, and BC6HS).
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                      Unsupported supercompression scheme.
  */
 extern "C" KTX_error_code
 ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
@@ -1468,12 +1452,32 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     if (params->structSize != sizeof(struct ktxBCnParams)) return KTX_INVALID_VALUE;
 
+    // Set fields to their actual default values if they are zero'ed
+    ktxBCnParams defaulted_params{*params};
+    set_default_bcn_params_fields(defaulted_params);
+
     if (This->generateMipmaps) return KTX_INVALID_OPERATION;
 
     if (This->numDimensions != 2) return KTX_INVALID_OPERATION;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;  // Can't apply multiple schemes.
+    if (This->supercompressionScheme == KTX_SS_BASIS_LZ ||
+        This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
+        return KTX_FILE_DATA_ERROR;  // Not a valid file.
+    }
+    // Safety check.
+    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
+        return KTX_UNSUPPORTED_FEATURE;  // Unsupported scheme.
+    }
+
+    if (This->pData == NULL) {
+        if (ktxTexture_isActiveStream((ktxTexture*)This)) {
+            // Load pending. Complete it.
+            auto result = ktxTexture2_LoadImageData(This, NULL, 0);
+            if (result != KTX_SUCCESS) return result;
+        } else {
+            return KTX_INVALID_OPERATION;  // No data to decode.
+        }
+    }
 
     // Only non-block compressed formats can be encoded into a BCn format.
     if (This->isCompressed) return KTX_INVALID_OPERATION;
@@ -1496,7 +1500,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     bool hdr_one_or_more_signed_values_msg = false;
 #endif
 
-    switch (params->bcn) {
+    switch (defaulted_params.bcn) {
     case KTX_BCN_COMPRESSION_BC1:
         switch (This->vkFormat) {
         case VK_FORMAT_R8G8B8_UNORM:
@@ -1511,27 +1515,16 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC1_NCHANNELS;
         blocksize_in_bytes = BC1_BLOCK_SIZE;
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC1A;
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
 
-#if 0  // bc7enc BC1 encoder does not support punch-through alpha
+    // bc7enc's BC1 encoder does not support punch-through alpha
+    // BC2 encoder is not yet implemented
+    // BC6HS is not supported by Basis Universal's BC6 encoder
     case KTX_BCN_COMPRESSION_BC1A:
-        switch (This->vkFormat) {
-        case VK_FORMAT_R8G8B8A8_UNORM:
-            compressedVkFormat = VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_R8G8B8A8_SRGB:
-            compressedVkFormat = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
-            break;
-        default:
-            return KTX_INVALID_OPERATION;  // Not a valid decompressed vkformat for BC1A
-        }
-        nchannels = BC1_NCHANNELS;
-        blocksize_in_bytes = BC1_BLOCK_SIZE;
-        expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC1A;
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
-        break;
-#endif
+    case KTX_BCN_COMPRESSION_BC2:
+    case KTX_BCN_COMPRESSION_BC6HS:
+        return KTX_UNSUPPORTED_FEATURE;
 
     case KTX_BCN_COMPRESSION_BC3:
         switch (This->vkFormat) {
@@ -1547,7 +1540,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC3_NCHANNELS;
         blocksize_in_bytes = BC3_BLOCK_SIZE;
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC3;
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
 
     case KTX_BCN_COMPRESSION_BC4:
@@ -1557,7 +1550,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC4_NCHANNELS;
         blocksize_in_bytes = BC4_BLOCK_SIZE;
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC4;
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
 
     case KTX_BCN_COMPRESSION_BC5:
@@ -1567,7 +1560,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         nchannels = BC5_NCHANNELS;
         blocksize_in_bytes = BC5_BLOCK_SIZE;
         expected_color_model = khr_df_model_e::KHR_DF_MODEL_BC5;
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode));
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
         break;
 
     case KTX_BCN_COMPRESSION_BC6HU:
@@ -1605,12 +1598,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         return KTX_INVALID_VALUE;  // Provided color bcn is not BCn
     }
 
-    if (This->pData == NULL) {
-        result = ktxTexture2_LoadImageData((ktxTexture2*)This, nullptr, 0);
-        if (result != KTX_SUCCESS) return result;
-    }
-
-    ktx_uint32_t thread_count = params->threadCount;
+    ktx_uint32_t thread_count = defaulted_params.threadCount;
     if (thread_count < 1) thread_count = 1;
 
     // This->numLevels = 0 not allowed for block compressed formats
@@ -1645,7 +1633,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
 
     bcn_compression_workload work;
     work.nchannels = nchannels;
-    work.params = *params;
+    work.params = defaulted_params;
 
     // ASTC encoder does this loop in reverse to (probably) avoid having to add
     // levelDataOffsetOut (which has no additional cost whatsoever)
@@ -1654,8 +1642,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t width = MAX(1, This->baseWidth >> level);
         const uint32_t height = MAX(1, This->baseHeight >> level);
         const uint32_t depth = MAX(1, This->baseDepth >> level);
-        const uint32_t num_blocks_x = (width + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
-        const uint32_t num_blocks_y = (height + BCN_BLOCK_SIZE - 1) / BCN_BLOCK_SIZE;
+        const uint32_t num_blocks_x = (width + 3) / 4;
+        const uint32_t num_blocks_y = (height + 3) / 4;
         const uint32_t num_blocks_total = num_blocks_x * num_blocks_y;
 
         ktx_size_t levelImageSizeIn = 0;
@@ -1668,8 +1656,8 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
 
         assert(levelImageSizeIn == width * height * nchannels *
-                                       ((params->bcn == KTX_BCN_COMPRESSION_BC6HU ||
-                                         params->bcn == KTX_BCN_COMPRESSION_BC6HS)
+                                       ((defaulted_params.bcn == KTX_BCN_COMPRESSION_BC6HU ||
+                                         defaulted_params.bcn == KTX_BCN_COMPRESSION_BC6HS)
                                             ? 2
                                             : 1) &&
                "Probably non-compact data (i.e., some padding)");
@@ -1698,7 +1686,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             work.data_out = pDstLevelImage;
 
             // HDR input may require some cleanup for basisu's bc6hu encoder
-            if (params->bcn == KTX_BCN_COMPRESSION_BC6HU) {
+            if (defaulted_params.bcn == KTX_BCN_COMPRESSION_BC6HU) {
                 // TODO: Basisu's outputs warning if HDR pixels are cleaned up.
                 // Should we also do that in here?
                 [[maybe_unused]] auto hdr_cleanup_res =
@@ -1744,37 +1732,38 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
             launchThreads(thread_count, compression_workload_runner, &work);
 
             // post process the encoded blocks using RDO (if enabled)
-            if (params->bcnRDO) {
+            if (defaulted_params.bcnRDO) {
                 // Don't naively just take provided thread count and divide RDO over those threads
                 // => this will certainly result in non-deterministic output (+ change of actual
                 // used window size)
                 uint32_t thread_count_rdo = 1;
-                if (!params->bcnRDONoMultithreading) {
+                if (!defaulted_params.bcnRDONoMultithreading) {
                     thread_count_rdo = ert::adjust_num_threads_for_deterministic_rdo(
-                        thread_count, params->bcnRDODictSize, blocksize_in_bytes, num_blocks_total);
+                        thread_count, defaulted_params.bcnRDODictSize, blocksize_in_bytes,
+                        num_blocks_total);
                 }
                 assert(thread_count_rdo <= thread_count);
-                assert((num_blocks_total >= params->bcnRDODictSize / blocksize_in_bytes)
+                assert((num_blocks_total >= defaulted_params.bcnRDODictSize / blocksize_in_bytes)
                            ? (num_blocks_total / thread_count_rdo >=
-                              params->bcnRDODictSize / blocksize_in_bytes)
+                              defaulted_params.bcnRDODictSize / blocksize_in_bytes)
                            : thread_count_rdo == 1);
                 rdo_params rdo_p;
-                rdo_p.ert_p.m_lambda = params->bcnRDOQualityScalar;
-                rdo_p.ert_p.m_lookback_window_size = params->bcnRDODictSize;
-                rdo_p.ert_p.m_smooth_block_max_mse_scale = params->bcnRDOMaxSmoothBlockErrorScale;
-                rdo_p.ert_p.m_max_smooth_block_std_dev = params->bcnRDOMaxSmoothBlockStdDev;
-                rdo_p.ert_p.m_try_two_matches = params->bcnRDOTry2Matches;
-                rdo_p.ert_p.m_skip_zero_mse_blocks = params->bcnRDOSkipZeroMSEBlocks;
-                rdo_p.auto_smooth_block_max_mse_scale = params->bcnRDOAutoMaxSmoothBlockErrorScale;
-                rdo_p.ultra_smooth_block_mse_handling = params->bcnRDOUltrasmoothBlockHandling;
-                rdo_p.bc1_params.bc1_approx_mode =
-                    static_cast<rgbcx::bc1_approx_mode>(params->bc1ApproxMode);
-                rdo_p.bc1_params.allow_3color_mode = true;           // hardcoded
-                rdo_p.bc1_params.use_3color_mode_for_black = false;  // hardcoded
+                rdo_p.ert_p.m_lambda = defaulted_params.bcnRDOQualityScalar;
+                rdo_p.ert_p.m_lookback_window_size = defaulted_params.bcnRDODictSize;
+                rdo_p.ert_p.m_smooth_block_max_mse_scale =
+                    defaulted_params.bcnRDOMaxSmoothBlockErrorScale;
+                rdo_p.ert_p.m_max_smooth_block_std_dev =
+                    defaulted_params.bcnRDOMaxSmoothBlockStdDev;
+                rdo_p.ert_p.m_try_two_matches = !defaulted_params.bcnRDOTryOneMatch;
+                rdo_p.ert_p.m_skip_zero_mse_blocks = defaulted_params.bcnRDOSkipZeroMSEBlocks;
+                rdo_p.auto_smooth_block_max_mse_scale =
+                    defaulted_params.bcnRDOMaxSmoothBlockErrorScale == 0;
+                rdo_p.ultra_smooth_block_mse_handling =
+                    !defaulted_params.bcnRDONoUltrasmoothBlockHandling;
                 auto res = postprocess_rdo_bcn(
                     pSrcLevelImage, (size_t)width * height * nchannels, pDstLevelImage,
-                    (size_t)num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p, params->bcn,
-                    width, height, thread_count_rdo);
+                    (size_t)num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p,
+                    defaulted_params.bcn, width, height, thread_count_rdo);
                 if (res != KTX_SUCCESS) {
                     ktxTexture2_Destroy(prototype);
                     return res;

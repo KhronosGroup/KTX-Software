@@ -1392,31 +1392,13 @@ typedef struct ktxAstcParams {
 
 /**
  * @~English
- * @brief Options specifiying BC1/BC3 encoding/decoding approximation modes.
- */
-typedef enum ktx_bc1_approx_mode_e {
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL          = 0U,
-        /*!< The default mode. No rounding for 4-color colors 2,3. This matches
-           the D3D10 docs on BC1.
-         */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_NVIDIA         = 1U,
-        /*!< NVidia GPU mode. May produce artifacts on non-NVidia GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_AMD            = 2U,
-        /*!< AMD GPU mode. May produce artifacts on non-AMD GPUs. */
-    KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL_ROUND_4  = 3U,
-        /*!< Matches AMD Compressonator's output. Rounds 4-color colors 2,3 (not
-           3-color color 2). This matches the D3D9 docs on DXT1.
-         */
-} ktx_bc1_approx_mode_e;
-typedef ktx_uint32_t ktx_bc1_approx_mode;
-
-/**
- * @~English
  * @brief Options specifiying BC1/BC3 encoding quality levels.
  */
 typedef enum ktx_pack_bc1_quality_levels_e {
     KTX_PACK_BC1_QUALITY_LEVEL_FASTEST    = 0U,
         /*!< Fastest compression. */
+    KTX_PACK_BC1_QUALITY_LEVEL_FASTER     = 2U,
+        /*!< Faster compression. */
     KTX_PACK_BC1_QUALITY_LEVEL_FAST       = 5U,
         /*!< Fast compression. */
     KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM     = 10U,
@@ -1463,17 +1445,6 @@ typedef enum ktx_pack_bc7_quality_levels_e {
 typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
 
 /**
- * @memberof ktxTexture
- * @~English
- * @brief Structure for passing BC1 unpack parameters to ktxTexture2_DecodeBCn.
- */
-typedef struct ktxBC1UnpackParams {
-    ktx_bool_t allow_3color_mode;
-    ktx_bool_t use_3color_mode_for_black;
-    ktx_bc1_approx_mode_e bc1_approx_mode;
-} ktxBC1UnpackParams;
-
-/**
  * @~English
  * @brief BCn compression kind.
  */
@@ -1496,9 +1467,23 @@ typedef enum ktx_bcn_compression_e {
  * @brief Structure for passing extended parameters to
  *        ktxTexture2_CompressBCnEx.
  *
- * Since it makes no sense to set the target BCn format to some default value,
- * this struct does not have a default initializer. I.e., initializing this to 0
- * (e.g. " = {0};") is not supported.
+ * If you only want default values at a minimum you must initialize the
+ * structure as follows (you have to explicitly the target BCn compression via
+ * the @e bcn field):
+ * @code
+ *  ktxBCnParams params = {0};
+ *  params.structSize = sizeof(params);
+ *  params.bcn = KTX_BCN_COMPRESSION_BCX;
+ *  // If targeting BC1 or BC3:
+ *  params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_XXXX;
+ *  // If targeting BC7:
+ *  params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_XXXX;
+ * @endcode
+ *
+ * When targeting BC1 or BC3, @e bc1CompressionQuality has to be explicitly set
+ * because 0 is a valid value.
+ * When targeting BC7, @e bc7CompressionQuality has to be explicitly set because
+ * 0 is a valid value.
  */
 typedef struct ktxBCnParams {
     ktx_uint32_t structSize;
@@ -1530,22 +1515,11 @@ typedef struct ktxBCnParams {
 
     /* BC1-5 params */
 
-    ktx_bc1_approx_mode bc1ApproxMode;
-        /*!< BC1/BC3 approximation mode (for both: encoding and decoding).
-           Default is KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL.
-          
-           If you encode textures for a specific vendor's GPU's, beware that
-           using that texture data on other GPU's may result in ugly artifacts.
-           Encode to KTX_PACK_BC1_BLOCK_APPROX_MODE_IDEAL unless you know the
-           texture data will only be deployed or used on a specific vendor's
-           GPU.
-         */
-
     ktx_pack_bc1_quality_levels bc1CompressionQuality;
-        /*!< BC1/BC3 compression quality. Range is [0,19]. Default is
-           KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH (i.e., 15). Lower values give
+        /*!< BC1/BC3 compression quality. Range is [0,19]. Lower values give
            faster compression speed but potentially lower quality. Higher values
-           give slower compression speed but potentially better quality.
+           give slower compression speed but potentially better quality. There
+           is no default. Callers must explicitly set this value.
          */
 
     /* BC7 encoder params */
@@ -1553,8 +1527,8 @@ typedef struct ktxBCnParams {
     ktx_pack_bc7_quality_levels bc7CompressionQuality;
         /*!< BC7 compression quality. Lower values give faster compression speed
            at the expense of potentially lower quality. Higher values give
-           slower compression speed but potentially better quality.
-           Default is KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH.
+           slower compression speed but potentially better quality. There is no
+           default. Callers must explicitly set this value.
 
            This maps to an OR'ed set of lower-level flags which can also be set
            directly for advanced use-cases.
@@ -1589,11 +1563,9 @@ typedef struct ktxBCnParams {
         /*!< RDO max MSE scaling factor for blocks considered to be smooth/flat.
            A value of 1.0 means no smooth block error scaling which may cause
            very noticeable artifacts for smooth/flat blocks (e.g., kodim23 test
-           image). This value can be automatically computed based on the set
-           RDO lamba by setting rdoAutomaticSmoothBlock. rdoMaxSmoothBlockStdDev
-           is used to compute, for a given block, the MSE scale factor in
-           the range: 1.0 (i.e., not a smooth block) up to this max MSE scale
-           factor.
+           image). @e bcnRDOMaxSmoothBlockStdDev is used to compute, for a given
+           block, the MSE scale factor in the range: 1.0 (i.e., not a smooth
+           block) up to this max MSE scale factor.
          
            As to why an MSE factor has to be applied to smooth/flat blocks, the
            MSE for these blocks is too low relative to the visual impact they
@@ -1601,8 +1573,17 @@ typedef struct ktxBCnParams {
            compute the max std dev. of any component and use a linear function
            of that to scale block/trial MSE.
             
-           Range is [1,300]. Default is 10.0 in case
-           @p bcnRDOAutoMaxSmoothBlockErrorScale is not set.
+           Range is [1,300]. Default is to automatically compute a decent
+           conservative smooth block MSE max scaling factor.
+
+           If this is set to 0 (default), automatically compute a decent
+           conservative smooth block MSE max scaling factor. There is no single
+           calculation/set of settings that work perfectly on all input
+           textures, but the formula in the code works OK for most textures at
+           low-ish lambdas (For an example of a difficult texture the currently
+           formulas/settings doesn't handle so well, try encoding kodim03 at
+           lambdas 1-3). Smooth block handling is tuned so lambdas at or near 1
+           look OK on textures with smooth gradients, skies, etc.
          */
 
     float bcnRDOMaxSmoothBlockStdDev;
@@ -1633,33 +1614,24 @@ typedef struct ktxBCnParams {
            encoded texel). Default is false.
          */
 
-    ktx_bool_t bcnRDOAutoMaxSmoothBlockErrorScale;
-        /*!< Automatically compute a decent conservative smooth block MSE max
-           scaling factor. There is no single calculation/set of settings that
-           work perfectly on all input textures, but the formula in the code
-           works OK for most textures at low-ish lambdas (For an example of a
-           difficult texture the currently formulas/settings doesn't handle so
-           well, try encoding kodim03 at lambdas 1-3). Smooth block handling is
-           tuned so lambdas at or near 1 look OK on textures with smooth
-           gradients, skies, etc. If this is set,
-           @p bcnRDOMaxSmoothBlockErrorScale is ignored. Default is true.
-         */
-
-    ktx_bool_t bcnRDOUltrasmoothBlockHandling;
-        /*!< Detect extremely smooth blocks and encode them with a significantly
-           higher MSE scale factor. When enabled, a per-block mask image is
-           computed, filtered, then an array of per-block MSE scale factors is
-           supplied to the ERT. The end result is much less significant
-           artifacts on regions containing very smooth blocks (e.g., gradients).
-           This does hurt rate-distortion performance. Default is true.
+    ktx_bool_t bcnRDONoUltrasmoothBlockHandling;
+        /*!< Disable the detection of extremely smooth blocks and encoding them
+           with a significantly higher MSE scale factor. When disabled, a
+           per-block mask image is computed, filtered, then an array of
+           per-block MSE scale factors is supplied to the ERT. The end result is
+           significantly less artifacts on regions containing very smooth blocks
+           (e.g., gradients, faded background, skies, etc.). Enabling
+           ultrasmooth block handling hurts rate-distortion performance.
+           Default is false.
 
            This only applies to BC1, BC3, and BC7's RGB blocks (alpha is
            ignored). For other formats, this is silently ignored.
          */
 
-    ktx_bool_t bcnRDOTry2Matches;
-        /*!< Inject up to 2 matches into each block vs. 1. Results in a slightly
-           slower, but noticeably higher compression. Default is true.
+    ktx_bool_t bcnRDOTryOneMatch;
+        /*!< If disabled, inject up to 2 matches into each block as opposed to
+           just one match. Enabling this results in faster but but noticeably
+           lower compression. Default is false.
          */
 
     ktx_bool_t bcnRDOSkipZeroMSEBlocks;
@@ -1687,12 +1659,11 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params);
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params);
+ktxTexture2_DecodeBCn(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxUnpackBCn(const ktx_uint8_t* imageDataIn, ktx_uint8_t* imageDataOut,
-             ktx_uint32_t width, ktx_uint32_t height, ktx_bcn_compression_e bcn,
-             ktxBC1UnpackParams* params);
+ktxUnpackBCn(const ktx_uint8_t* imageDataIn, ktx_uint8_t* imageDataOut, ktx_uint32_t width,
+             ktx_uint32_t height, ktx_bcn_compression_e bcn);
 
 /**
  * @~English

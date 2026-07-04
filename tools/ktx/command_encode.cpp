@@ -2,12 +2,12 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <bcn_common.h>
+#include "platform_utils.h"
+#include "bcn_common.h"
 #include "command.h"
 #include "encode_utils_astc.h"
 #include "encode_utils_bcn.h"
 #include "encode_utils_common.h"
-#include "platform_utils.h"
 #include "metrics_utils.h"
 #include "deflate_utils.h"
 #include "encode_utils_basis.h"
@@ -260,11 +260,32 @@ void CommandEncode::executeEncode() {
 
     const auto* bdfd = texture->pDfd + 1;
     auto model = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
+    // Can't directly encode from ASTC to ASTC
     if (model == KHR_DF_MODEL_ASTC && options.encodeASTC)
         fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+    // Can't directly encode from ASTC to BCn
+    if (model == KHR_DF_MODEL_ASTC && options.encodeBCn)
+        fatal_usage("Encoding from ASTC format {} to BCn format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+
 
     const auto is_hdr = ktxTexture2_IsHDR(texture);
 
+    if (model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC3 || model == KHR_DF_MODEL_BC4 ||
+         model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H || model == KHR_DF_MODEL_BC7)
+    {
+      // Can't directly encode from BCn to BCn
+      if (options.encodeBCn)
+        fatal_usage(
+            "Encoding from BCn format {} to another BCn format {} is not supported.",
+            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+      // Can't directly encode from BCn to ASTC
+      if (options.encodeASTC)
+        fatal_usage(
+            "Encoding from BCn format {} to ASTC format {} is not supported.",
+            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+    }
+  
+    // Can't encode from BCn to ASTC
     if ((model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC3 || model == KHR_DF_MODEL_BC4 ||
          model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H || model == KHR_DF_MODEL_BC7) &&
         options.encodeBCn)
@@ -353,11 +374,15 @@ void CommandEncode::executeEncode() {
         int nchannels;
         VkFormat decompressed_format;
         options.bcn = get_bcn_compression_kind(options.vkFormat, decompressed_format, nchannels);
-        if (options.bcn == KTX_BCN_COMPRESSION_NONE)
+        if (options.bcn == KTX_BCN_COMPRESSION_NONE) {  // should never occur
+          assert(false);
           fatal(rc::IO_FAILURE, "Failed to encode KTX2 file to BCn. Target format is not a supported BCn format {}",
               vkFormatString(options.vkFormat));
+        }
         else if (options.bcn == KTX_BCN_COMPRESSION_BC1A)
           fatal(rc::IO_FAILURE, "Punch-through alpha encoding for BC1 format is not supported. Consider supplying an RGB8 input format instead.");
+        else if (options.bcn == KTX_BCN_COMPRESSION_BC2)
+          fatal(rc::IO_FAILURE, "Encoding to BC2 format is not supported (yet).");
         else if (options.bcn == KTX_BCN_COMPRESSION_BC6HS)
           fatal(rc::IO_FAILURE, "Encoding to signed BC6H HDR format (BC6HS) is not supported.");
 
@@ -387,12 +412,6 @@ void CommandEncode::executeEncode() {
 
     // Add KTXwriterScParams metadata
     auto writerScParams = fmt::format("{}{}{}{}{}", options.bcnOptions, options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
-    // This is ugly but is needed for testing ST vs. MT output without having ktxdiff fail because of KTXwriterScParams
-    if (options.testrun && options.encodeBCn) {
-        std::regex threads_r(R"(\s+--threads\s+\d+)", std::regex_constants::icase);
-        std::string writerScParams_without_threads = std::regex_replace(writerScParams, threads_r, "");
-        writerScParams = writerScParams_without_threads;
-    }
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space

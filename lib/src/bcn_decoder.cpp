@@ -20,6 +20,7 @@
 #include "bcn_common.h"
 
 #include "encoder/basisu_gpu_texture.h" /* for BC6HU/BC6HS decoders */
+#include "rgbcx.h"
 #include "transcoder/basisu_transcoder_internal.h"
 #include "vkformat_enum.h" /* for VkFormat enum */
 #include "ktxint.h"
@@ -29,16 +30,17 @@
 #define DECLARE_PROTECTED_EX(n, t2) ktxTexture_protected& n = *(t2->_protected)
 
 static inline bool
-unpack_block_bc1(const void* pBlock, void* pPixels, void* pUser_data) {
-    auto bc1_usr_data = static_cast<unpack_block_bc1_user_data*>(pUser_data);
-    bool used_3color = rgbcx::unpack_bc1(pBlock, pPixels, true, bc1_usr_data->bc1_approx_mode);
+unpack_block_bc1(const void* pBlock, void* pPixels, rgbcx::bc1_approx_mode bc1_approx_mode) {
+    const bool allow_3color_mode = true;           // hardcoded
+    const bool use_3color_mode_for_black = false;  // hardcoded
+    bool used_3color = rgbcx::unpack_bc1(pBlock, pPixels, true, bc1_approx_mode);
     // This check is copied from the original code at: rdo_bc_encoder.h
     if (used_3color) {
-        if (!bc1_usr_data->allow_3color_mode) return false;
-        if (!bc1_usr_data->use_3color_mode_for_black) {
+        if (!allow_3color_mode) return false;
+        if (!use_3color_mode_for_black) {
             auto pBC1_block = static_cast<const rgbcx::bc1_block*>(pBlock);
-            for (uint32_t y = 0; y < BCN_BLOCK_SIZE; ++y)
-                for (uint32_t x = 0; x < BCN_BLOCK_SIZE; ++x)
+            for (uint32_t y = 0; y < 4; ++y)
+                for (uint32_t x = 0; x < 4; ++x)
                     if (pBC1_block->get_selector(x, y) == 3) return false;
         }
     }
@@ -75,39 +77,34 @@ unpack_block_bc1(const void* pBlock, void* pPixels, void* pUser_data) {
  *        (decoded blocks that fall out of the texture's dimensions are simply
  *        discarded).
  *
- * @param [in] This     pointer to the ktxTexture2 object of interest.
- * @param [in] params   pointer to BC1 unpack parameters that are provided to
- *                      BC1 and BC3 block unpackers.
+ * @param [in] This   pointer to the ktxTexture2 object of interest.
  *
- * @return              KTX_SUCCESS on success, other KTX_* enum values on
- *                      error.
+ * @return            KTX_SUCCESS on success, other KTX_* enum values on error.
  *
- * @exception KTX_INVALID_VALUE
- *                      @p params is NULL but @p This texture is BC1 or BC3
- *                      compressed.
  * @exception KTX_FILE_DATA_ERROR
- *                       The texture's supercompression scheme is unsupported.
+ *                    The texture's supercompression scheme is invalid.
  * @exception KTX_INVALID_OPERATION
- *                      The texture's images are supercompressed.
+ *                    The texture is not compressed (i.e.,
+ *                    @c This->isCompressed is @c false).
  * @exception KTX_INVALID_OPERATION
- *                      The texture is not compressed.
+ *                    The texture's images are not in BCn format (i.e., either
+ *                    color model is not set to BCn or This->vkFormat does not
+ *                    correspond to the set BCn color model).
  * @exception KTX_INVALID_OPERATION
- *                      The texture's images are not in BCn format (i.e., either
- *                      color model is not set to BCn or This->vkFormat does not
- *                      correspond to the set BCn color model).
+ *                    The texture does not contain any data (i.e.,
+ *                    @c This->pData is @c NULL and there is no pending data
+ *                    load).
  * @exception KTX_INVALID_OPERATION
- *                      The texture object does not contain any data (i.e.,
- *                      @c This->pData is @c NULL and there is no pending data
- *                      load).
- * @exception KTX_INVALID_OPERATION
- *                      Decoder/Unpacker returned an error exit code or a
- *                      non-success return flag. Only occurs for BC1, BC2, BC3,
- *                      and BC7 (BC2 and BC3 are based on BC1).
+ *                    Decoder/Unpacker returned an error exit code or a
+ *                    non-success return flag. Only occurs for BC1, BC2, BC3,
+ *                    and BC7 (BC2 and BC3 are based on BC1).
  * @exception KTX_OUT_OF_MEMORY
- *                      Not enough memory to carry out decoding.
+ *                    Not enough memory to carry out decoding.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                    Unsupported supercompression scheme.
  */
 extern "C" KTX_error_code
-ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
+ktxTexture2_DecodeBCn(ktxTexture2* This) {
     uint32_t* BDB = This->pDfd + 1;
     uint32_t channelId = KHR_DFDSVAL(BDB, 0, CHANNELID);
     int nchannels;
@@ -185,8 +182,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
                                                faceIndex + depthSliceIndex, &image_offset_out);
                     const auto* image_data_in = This->pData + image_offset_in;
                     auto* image_data_out = prototype->pData + image_offset_out;
-                    auto res =
-                        ktxUnpackBCn(image_data_in, image_data_out, width, height, bcn, params);
+                    auto res = ktxUnpackBCn(image_data_in, image_data_out, width, height, bcn);
                     if (res != KTX_SUCCESS) {
                         ktxTexture2_Destroy(prototype);
                         return res;
@@ -245,43 +241,40 @@ ktxTexture2_DecodeBCn(ktxTexture2* This, ktxBC1UnpackParams* params) {
  *        (decoded blocks that fall out of the image's dimensions are simply
  *        discarded).
  *
- * @param [in] src_blocks   pointer to the BCn-encoded blocks.
- * @param [in] dst          pointer to where to write the decoded image. Should
- *                          be able to hold the size of the corresponding
- *                          decompressed vkFormat.
- * @param [in] width        current image's width.
- * @param [in] height       current image's height.
- * @param [in] bcn          which BCn compression kind the provided image is
- *                          encoded in.
- * @param [in] params       pointer to BC1, and subsequently BC3, decoder
- *                          parameters.
+ * @param [in] src_blocks       pointer to the BCn-encoded blocks.
+ * @param [in] dst              pointer to where to write the decoded image.
+ *                              Should be able to hold the size of the
+ *                              corresponding decompressed vkFormat.
+ * @param [in] width            current image's width.
+ * @param [in] height           current image's height.
+ * @param [in] bcn              which BCn compression kind the provided image is
+ *                              encoded in.
+ * @param [in] bc1_approx_mode  BC1 approximation mode that is passed to BC1/BC3
+ *                              block unpackers.
  *
- * @return                  KTX_SUCCESS on success, other KTX_* enum values on
- *                          error.
+ * @return                      KTX_SUCCESS on success, other KTX_* enum values
+ *                              on error.
  *
- * @exception KTX_INVALID_VALUE
- *                          @p params is NULL but @p This texture is BC1 or BC3
- *                          compressed.
  * @exception KTX_DECOMPRESS_FAILURE
- *                          Decoder/Unpacker returned an error exit code or a
- *                          non-success return flag. Only occurs for BC1, BC2,
- *                          BC3, and BC7 (BC2 and BC3 are based on BC1).
+ *                              Decoder/Unpacker returned an error exit code or a
+ *                              non-success return flag. Only occurs for BC1, BC2,
+ *                              BC3, and BC7 (BC2 and BC3 are based on BC1).
  * @exception KTX_INVALID_OPERATION
- *                          @p bcn is set to KTX_BCN_COMPRESSION_NONE.
+ *                              @p bcn is set to KTX_BCN_COMPRESSION_NONE.
  */
 extern "C" KTX_error_code
 ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width,
-             ktx_uint32_t height, ktx_bcn_compression_e bcn, ktxBC1UnpackParams* params) {
+             ktx_uint32_t height, ktx_bcn_compression_e bcn) {
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
     // combinations (at least for LDR - i.e., not for BC6H formats).
-    const uint32_t rgba_pitch = BCN_BLOCK_SIZE * 4;
-    uint8_t rgba[BCN_BLOCK_SIZE * rgba_pitch]; /* 64 bytes */
+    const uint32_t rgba_pitch = 4 * 4;
+    uint8_t rgba[4 * rgba_pitch]; /* 64 bytes */
 
-    const uint32_t rgbh_pitch = BCN_BLOCK_SIZE * 3;
-    uint16_t rgbh[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * rgbh_pitch];
+    const uint32_t rgbh_pitch = 4 * 3;
+    uint16_t rgbh[4 * 4 * rgbh_pitch];
 
-    uint8_t rgb[BCN_BLOCK_SIZE * BCN_BLOCK_SIZE * 3]; /* only for BC1 */
+    uint8_t rgb[4 * 4 * 3]; /* only for BC1 */
 
     const uint32_t nchannels = get_nchannels(bcn);
 
@@ -289,31 +282,25 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
 
     if (bcn == KTX_BCN_COMPRESSION_NONE) return KTX_INVALID_OPERATION;
 
-    if ((bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
-         bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC3) &&
-        (params == NULL))
-        return KTX_INVALID_VALUE;
-
     if (bcn == KTX_BCN_COMPRESSION_BC1 || bcn == KTX_BCN_COMPRESSION_BC1A ||
         bcn == KTX_BCN_COMPRESSION_BC2 || bcn == KTX_BCN_COMPRESSION_BC3 ||
         bcn == KTX_BCN_COMPRESSION_BC4 || bcn == KTX_BCN_COMPRESSION_BC5)
-        rgbcx::init(static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
+        rgbcx::init(rgbcx::bc1_approx_mode::cBC1Ideal);
 
-    for (uint32_t y = 0; y < height; y += BCN_BLOCK_SIZE) {
-        for (uint32_t x = 0; x < width; x += BCN_BLOCK_SIZE) {
+    for (uint32_t y = 0; y < height; y += 4) {
+        for (uint32_t x = 0; x < width; x += 4) {
             bool rv = true;
             switch (bcn) {
             case KTX_BCN_COMPRESSION_BC1:
             case KTX_BCN_COMPRESSION_BC1A:
                 // BC1A: 8 bytes -> 4 x 4 x 4 = 64 bytes (alpha 1-bit encoded)
-                rv = unpack_block_bc1(src_blocks, rgba, params);
+                rv = unpack_block_bc1(src_blocks, rgba, rgbcx::bc1_approx_mode::cBC1Ideal);
                 src_blocks += BC1_BLOCK_SIZE;
                 break;
 
             case KTX_BCN_COMPRESSION_BC2:
                 // BC2: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                rv = rgbcx::unpack_bc2(
-                    src_blocks, rgba, static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
+                rv = rgbcx::unpack_bc2(src_blocks, rgba, rgbcx::bc1_approx_mode::cBC1Ideal);
                 src_blocks += BC2_BLOCK_SIZE;
                 break;
 
@@ -323,8 +310,7 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
                 // punchthrough has been used which is (apparently) not supported on all GPUs.
                 // Problem is that when using RDO, this always returns false so I decided to just
                 // suppress it for the moment.
-                /* rv = */ rgbcx::unpack_bc3(
-                    src_blocks, rgba, static_cast<rgbcx::bc1_approx_mode>(params->bc1_approx_mode));
+                /* rv = */ rgbcx::unpack_bc3(src_blocks, rgba, rgbcx::bc1_approx_mode::cBC1Ideal);
                 src_blocks += BC3_BLOCK_SIZE;
                 break;
 

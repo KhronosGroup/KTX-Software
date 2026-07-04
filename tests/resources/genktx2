@@ -152,7 +152,7 @@ $ktx create --testrun --format R16G16B16_SFLOAT --scale 0.25 --zstd 15 input/exr
 # oiiotool --colorconvert sRGB linear              input/png/rgba8_unorm_bc7.png -o input/png/rgba8_unorm_bc7.png
 
 # differential
-# BCn textures. Notice that these are created via a transcode using Basis Universal's UASTC format. This is important for 'cross' testing (i.e., using different software to verify ours).
+# BCn textures. Notice that these are created via a transcode using Basis Universal's UASTC format. This is important for differential testing (i.e., using different software with the same output to verify ours).
 $ktx create --testrun --encode uastc                --format R8G8B8_UNORM    input/png/rgb8_unorm_bc1.png -   | $ktx transcode --testrun --target bc1 - ktx2/rgb8_unorm_bc1.ktx2
 $ktx create --testrun --encode uastc                --format R8G8B8_SRGB     input/png/rgb8_srgb_bc1.png -    | $ktx transcode --testrun --target bc1 - ktx2/rgb8_srgb_bc1.ktx2
 $ktx create --testrun --encode uastc                --format R8G8B8A8_UNORM  input/png/rgba8_unorm_bc3.png -  | $ktx transcode --testrun --target bc3 - ktx2/rgba8_unorm_bc3.ktx2
