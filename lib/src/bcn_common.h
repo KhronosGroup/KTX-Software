@@ -15,6 +15,7 @@
 #include <cstring>
 #include "ktx.h"
 #include "vulkan/vulkan_core.h"
+#include <algorithm>
 
 #define BC1_BLOCK_SIZE 8
 #define BC2_BLOCK_SIZE 16
