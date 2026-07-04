@@ -3291,7 +3291,6 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
         const bool isSRGB = KHR_DFDVAL(texture->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB;
 
-        fs::path ktxdiffOut = tmpDir / "ktxdiffOut.txt";
         fs::path original;
         fs::path decoded;
 
@@ -3428,16 +3427,27 @@ class ktxTexture2BCnEncodeDecodeTestBase
         EXPECT_EQ(depth, texture->baseDepth);
         result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
 
+        fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", original.stem().string(),
+                                              decoded.stem().string());
+
         // Compare orginal vs. decoded texture with 0.08 tolerance
         // Since BC6HU input might be cleaned (i.e., signed values are set to 0) running ktxdiff on them will fail
         if (bcn != KTX_BCN_COMPRESSION_BC6HU) {
-            std::string command = (ktxdiffPath.string());
-            command += " " + original.string() + " " + decoded.string() + " 0.08 > " + ktxdiffOut.string();
+            std::string command =
+                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), original.string(),
+                       decoded.string(), ktxdiffOut.string());
             int status = std::system(command.c_str());
             EXPECT_EQ(status, 0)
                 << format("std::system() with command \"{}\" returned error code: {}", command, status);
             // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
             if (status != 0) {
+              // Print ktxdiff output
+              std::cout << std::ifstream(ktxdiffOut).rdbuf();
+              {  // Copy original KTX2 file
+                  std::ifstream src(original, std::ios::binary);
+                  std::ofstream dst(tmpGeneratedFilesOutputPath / original.filename(), std::ios::binary);
+                  dst << src.rdbuf();
+              }
               {  // Copy decoded KTX2 file
                   std::ifstream src(decoded, std::ios::binary);
                   std::ofstream dst(tmpGeneratedFilesOutputPath / decoded.filename(), std::ios::binary);
@@ -3449,7 +3459,6 @@ class ktxTexture2BCnEncodeDecodeTestBase
                   dst << src.rdbuf();
               }
             }
-            fs::remove(ktxdiffOut);
         }
 
         EXPECT_EQ(texture->baseHeight, height);
@@ -3458,6 +3467,8 @@ class ktxTexture2BCnEncodeDecodeTestBase
             ktxTexture_Destroy(ktxTexture(texture));
             fs::remove(original);
             fs::remove(decoded);
+            if (fs::exists(ktxdiffOut))
+                fs::remove(ktxdiffOut);
         }
     }
 };
@@ -3659,41 +3670,40 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_WriteToNamedFile failed: {}", ktxErrorString(result));
 
+        fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
+                                              decodedPath.stem().string());
+
         // Compare orginal vs. decoded texture with 0.08 tolerance
         // Running ktxdiff on 16bit SFLOAT inputs simply fails (regardless of the provided tolerance)
         if (texture->vkFormat != VK_FORMAT_R16G16B16_SFLOAT) {
-            fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
-                                                  decodedPath.stem().string());
             std::string command =
                 format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), bcnOriginalPath.string(),
                        decodedPath.string(), ktxdiffOut.string());
             int status = std::system(command.c_str());
-            // For better test failure logs when ktxdiff fails
-            std::ifstream ktxdiff_out_stream(ktxdiffOut);
-            std::stringstream ktxdiff_msg_buffer;
-            ktxdiff_msg_buffer << ktxdiff_out_stream.rdbuf();
-            EXPECT_EQ(status, 0) << format("{} failed with the following message:\n{}", command,
-                                           ktxdiff_msg_buffer.str());
+            EXPECT_EQ(status, 0)
+                << format("std::system() with command \"{}\" returned error code: {}", command, status);
             // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
             if (status != 0) {
+              // Print ktxdiff output
+              std::cout << std::ifstream(ktxdiffOut).rdbuf();
               {  // Copy decoded KTX2 file
                   std::ifstream src(decodedPath, std::ios::binary);
                   std::ofstream dst(tmpGeneratedFilesOutputPath / decodedPath.filename(), std::ios::binary);
                   dst << src.rdbuf();
               }
-              {  // Then copy ktxdiff output text file
+              {  // Then copy ktxdiff output text file if it exists
                   std::ifstream src(ktxdiffOut, std::ios::binary);
                   std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.filename(), std::ios::binary);
                   dst << src.rdbuf();
               }
             }
-            // Remove generated ktxdiff output file
-            fs::remove(ktxdiffOut);
         }
 
         if (texture) {
             ktxTexture2_Destroy(texture);
             fs::remove(decodedPath);
+            if (fs::exists(ktxdiffOut))
+                fs::remove(ktxdiffOut);
         }
     }
 };
@@ -3709,8 +3719,8 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 //    - VK_FORMAT_R8G8B8_SRGB
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) { runTest(u8"rgb8_unorm_input_for_bc1.ktx2", u8"rgb8_unorm_bc1.ktx2"); }
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1_rdo_zlib.ktx2"); }
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1_rdo_zstd.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1_rdo_zstd.ktx2"); }
 
 // TODO:
 // BC2:
