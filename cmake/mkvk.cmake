@@ -94,7 +94,7 @@ list(APPEND mkvkformatfiles_output
     "${lib_src}/vkformat_enum.h"
     "${lib_src}/vkformat_typesize.c"
     "${lib_src}/vkformat_check.c"
-    "${lib_src}/src/vkformat_str.c"
+    "${lib_src}/vkformat_str.c"
     "${unittests}/vkformat_list.inl")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
