@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab textwidth=70: */
 
 /*
- * Copyright 2024 Mark Callow.
+ * Copyright 2026 Mark Callow.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -19,7 +19,7 @@
 #define _VK2MTL_H_
 
 #include "vkformat_enum.h"
-#include "Metal/MTLPixelFormat.h"
+#include "metalpixel_format.h"
 
 static uint32_t vkFormat2mtlFormat( VkFormat vkFormat )
 {

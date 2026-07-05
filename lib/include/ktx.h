@@ -613,8 +613,8 @@ typedef ktx_uint32_t
 
 /**
  * @~English
- * @brief Helper for calling the GetMtlFormat virtual method of a ktxTexture.
- * @copydoc ktxTexture2.ktxTexture2_GetMtlFormat
+ * @brief Helper for calling the GetMTLFormat virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_GetMTLFormat
  */
 #define ktxTexture_GetMTLFormat(This) \
             (This)->vtbl->GetMTLFormat(This)

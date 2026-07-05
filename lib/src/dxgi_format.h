@@ -1,9 +1,28 @@
-//
-//    Copyright (C) Microsoft.  All rights reserved.
-//
+/* -*- tab-width: 4; -*- */
+/* vi: set sw=2 ts=4 expandtab textwidth=70: */
 
-#ifndef __dxgiformat_h__
-#define __dxgiformat_h__
+/*
+ * Copyright 2026 Mark Callow.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+ /**
+  * @internal
+  * @file
+  * @~English
+  *
+  * @brief Definitions of DXGI pixel formats.
+  *
+  * Obviously this is very similar to the Microsoft original. It uses the same enumerator
+  * and emumeration names to avoid confusion for users of the DX APIs.
+  */
+
+/*
+ * Note: dxgiformat.h has a different include guard __dxgiformat_h__. As there is no
+ * intention to expose this alternative .h to libktx users, that will not be an issue.
+ */
+#ifndef DXGI_FORMAT_H_
+#define DXGI_FORMAT_H_
 
 #define DXGI_FORMAT_DEFINED 1
 
@@ -133,4 +152,4 @@ typedef enum DXGI_FORMAT
     DXGI_FORMAT_FORCE_UINT                  = 0xffffffff
 } DXGI_FORMAT;
 
-#endif // __dxgiformat_h__
+#endif /* DXGI_FORMAT_H_ */
