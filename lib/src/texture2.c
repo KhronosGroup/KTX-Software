@@ -3157,7 +3157,7 @@ ktxTexture2_GetDXGIFormat(ktxTexture2* This)
 }
 
 #include "vk2gl.h"
-/* @memberof ktxTexture2
+/** @memberof ktxTexture2
  * @~English
  * @brief Return information about the equivalent GL format of a ktxTexture2 object.
  *
