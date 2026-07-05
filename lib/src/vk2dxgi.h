@@ -2,7 +2,7 @@
 /* vi: set sw=2 ts=4 expandtab textwidth=70: */
 
 /*
- * Copyright 2024 Mark Callow.
+ * Copyright 2026 Mark Callow.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -19,9 +19,8 @@
 #define _VK2DXGI_H_
 
 #include "vkformat_enum.h"
-#include "dxsdk/include/dxgiformat.h" // TODO: Fix location
+#include "dxgi_format.h"
 
-// DXGI_FORMAT enum is deliberately forced to uint32.
 static uint32_t vkFormat2dxgiFormat( VkFormat vkFormat )
 {
     switch ( vkFormat )
