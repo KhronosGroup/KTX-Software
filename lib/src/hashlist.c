@@ -250,8 +250,10 @@ ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
         ktxKVListEntry* kv;
 
         HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
-        if (kv != NULL)
+        if (kv != NULL) {
             HASH_DEL(*pHead, kv);
+            free(kv);
+        }
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
@@ -275,6 +277,7 @@ ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
 {
     if (pHead && pEntry) {
         HASH_DEL(*pHead, pEntry);
+        free(pEntry);
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
