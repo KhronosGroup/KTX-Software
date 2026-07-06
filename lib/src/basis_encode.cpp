@@ -1099,7 +1099,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
       if (cparams.m_hdr && cparams.m_hdr_mode == hdr_modes::cUASTC_HDR_6X6_INTERMEDIATE) {
             uint32_t image_desc_size = sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
             bgd_size = image_desc_size * num_images;
-            bgd = new ktx_uint8_t[bgd_size];
+            // Don't use new uint8_t[bgd_size] as this will cause alloc-dealloc-mismatch when This texture is freed
+            bgd = (uint8_t*)malloc(bgd_size);
 
             ktxUASTCHDR6x6IntermediateImageDesc* kimages = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(bgd);
 
@@ -1157,7 +1158,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
                  + image_desc_size * num_images
                  + bfh.m_endpoint_cb_file_size + bfh.m_selector_cb_file_size
                  + bfh.m_tables_file_size;
-        bgd = new ktx_uint8_t[bgd_size];
+        // Don't use new[] as this will cause alloc-dealloc-mismatch when This texture is freed
+        bgd = (ktx_uint8_t*)malloc(bgd_size);
         ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
         bgdh.endpointCount = (uint16_t)bfh.m_total_endpoints;
         bgdh.endpointsByteLength = bfh.m_endpoint_cb_file_size;
