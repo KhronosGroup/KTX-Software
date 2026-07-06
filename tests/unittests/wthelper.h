@@ -16,6 +16,8 @@
  * @author Mark Callow, github.com/MarkCallow
  */
 
+#include <memory>
+#include <vector>
 #include "gl_format.h"
 #include "vkformat_enum.h"
 #include "vk_format.h"
@@ -72,6 +74,10 @@ class WriterTestHelper {
     ~WriterTestHelper() {
         ktxHashList_Destruct(&kvHash);
         ktxHashList_Destruct(&kvHash_ktx2);
+        if (kvData) free(kvData);
+        if (kvDataWriter_ktx2) free(kvDataWriter_ktx2);
+        if (kvDataAll_ktx2) free(kvDataAll_ktx2);
+
     }
 
     void resize(createFlags flags,
