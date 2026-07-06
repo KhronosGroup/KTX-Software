@@ -83,7 +83,7 @@ public:
         loadMetadata();
     }
     ~Texture() {
-        std::free(handle);
+        if (handle) ktxTexture2_Destroy(handle);
     }
     void loadFile();
     void loadKTX();
