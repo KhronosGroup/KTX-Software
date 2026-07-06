@@ -9,7 +9,7 @@ clocked at 4.2 GHz, running `astcenc` using AVX2 and 6 threads.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.8.0
 
-**Status:** May 2024
+**Status:** Released May 2024
 
 The 4.8.0 release is a minor maintenance release.
 
@@ -27,7 +27,7 @@ The 4.8.0 release is a minor maintenance release.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.7.0
 
-**Status:** January 2024
+**Status:** Released January 2024
 
 The 4.7.0 release is a major maintenance release, fixing rounding behavior in
 the decompressor to match the Khronos specification. This fix includes the
@@ -62,14 +62,14 @@ updated `astcenc.h` header.
     cannot be reliably determined.
   * **Feature:** Library configuration supports a new optional progress
     reporting callback to be specified. This is called during compression to
-    to allow interactive tooling use cases to display incremental progress. The
+    allow interactive tooling use cases to display incremental progress. The
     command line tool uses this feature to show compression progress unless
     `-silent` is used.
 
 <!-- ---------------------------------------------------------------------- -->
 ## 4.6.1
 
-**Status:** November 2023
+**Status:** Released November 2023
 
 The 4.6.1 release is a minor maintenance release to fix a scaling bug on
 large core count Windows systems.
@@ -85,7 +85,7 @@ large core count Windows systems.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.6.0
 
-**Status:** November 2023
+**Status:** Released November 2023
 
 The 4.6.0 release retunes the compressor heuristics to give improvements to
 performance for trivial losses to image quality. It also includes some minor
@@ -113,7 +113,7 @@ versions. We always recommend rebuilding your client-side code using the updated
 <!-- ---------------------------------------------------------------------- -->
 ## 4.5.0
 
-**Status:** June 2023
+**Status:** Released June 2023
 
 The 4.5.0 release is a maintenance release with small image quality
 improvements, and a number of build system quality of life improvements.
@@ -128,7 +128,7 @@ improvements, and a number of build system quality of life improvements.
     binary for all platforms.
   * **Change:** Windows binary releases are now compiled with VS2022.
   * **Change:** Invariant MSVC builds for VS2022 now use `/fp:precise` instead
-    of `/fp:strict`, which is is now possible because precise no longer implies
+    of `/fp:strict`, which is now possible because precise no longer implies
     contraction. This should improve performance for MSVC builds.
   * **Change:** Non-invariant Clang builds now use `-ffp-model=precise` with
     `-ffp-contract=on`. This should improve performance on older Clang
@@ -144,7 +144,7 @@ improvements, and a number of build system quality of life improvements.
   * **Change:** CMake config `ASTCENC_NO_INVARIANCE` has been inverted to
     remove the negated option, and is now `ASTCENC_INVARIANCE` with a default
     of `ON`. Disabling this option can substantially improve performance, but
-    images can different across platforms and compilers.
+    images can differ across platforms and compilers.
   * **Optimization:** Color quantization and packing for LDR RGB and RGBA has
     been vectorized to improve performance.
   * **Change:** Color quantization for LDR RGB and RGBA endpoints will now try
@@ -156,7 +156,7 @@ improvements, and a number of build system quality of life improvements.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.4.0
 
-**Status:** March 2023
+**Status:** Released March 2023
 
 The 4.4.0 release is a minor release with image quality improvements, a small
 performance boost, and a few new quality-of-life features.
@@ -195,7 +195,7 @@ Key for charts:
 <!-- ---------------------------------------------------------------------- -->
 ## 4.3.1
 
-**Status:** January 2023
+**Status:** Released January 2023
 
 The 4.3.1 release is a minor maintenance release. No performance or image
 quality changes are expected.
@@ -209,7 +209,7 @@ quality changes are expected.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.3.0
 
-**Status:** January 2023
+**Status:** Released January 2023
 
 The 4.3.0 release is an optimization release. There are minor performance
 and image quality improvements in this release.
@@ -247,7 +247,7 @@ Key for charts:
 <!-- ---------------------------------------------------------------------- -->
 ## 4.2.0
 
-**Status:** November 2022
+**Status:** Released November 2022
 
 The 4.2.0 release is an optimization release. There are significant performance
 improvements, minor image quality improvements, and library interface changes in
@@ -259,7 +259,7 @@ versions. We always recommend rebuilding your client-side code using the updated
 
 * **General:**
   * **Bug-fix:** Compression for RGB and RGBA base+offset encodings no
-    longer generate endpoints with the incorrect blue-contract behavior.
+    longer generates endpoints with the incorrect blue-contract behavior.
   * **Bug-fix:** Lowest channel correlation calculation now correctly ignores
     constant color channels for the purposes of filtering 2 plane encodings.
     On average this improves both performance and image quality.
@@ -313,7 +313,7 @@ Key for charts:
 <!-- ---------------------------------------------------------------------- -->
 ## 4.1.0
 
-**Status:** August 2022
+**Status:** Released August 2022
 
 The 4.1.0 release is a maintenance release. There is no performance or image
 quality change in this release.
@@ -338,20 +338,20 @@ quality change in this release.
 <!-- ---------------------------------------------------------------------- -->
 ## 4.0.0
 
-**Status:** July 2022
+**Status:** Released July 2022
 
-The 4.0.0 release introduces some major performance enhancement, and a number
+The 4.0.0 release introduces some major performance enhancements, and a number
 of larger changes to the heuristics used in the codec to find a more effective
 cost:quality trade off.
 
 * **General:**
   * **Change:** The `-array` option for specifying the number of image planes
-    for ASTC 3D volumetric block compression been renamed to `-zdim`.
+    for ASTC 3D volumetric block compression has been renamed to `-zdim`.
   * **Change:** The build root package directory is now `bin` instead of
     `astcenc`, allowing the CMake install step to write binaries into
     `/usr/local/bin` if the user wishes to do so.
   * **Feature:** A new `-ssw` option for specifying the shader sampling swizzle
-    has been added as convenience alternative to the `-cw` option. This is
+    has been added as a convenience alternative to the `-cw` option. This is
     needed to correct error weighting during compression if not all components
     are read in the shader. For example, to extract and compress two components
     from an RGBA input image, weighting the two components equally when
@@ -385,7 +385,7 @@ cost:quality trade off.
     be a significant optimization for paths that are load unit limited.
   * **Optimization:** Decompressed image block writes in the decompressor now
     use a vectorized approach to writing each row of texels in the block,
-    including to ability to exploit masked stores if the target supports them.
+    including the ability to exploit masked stores if the target supports them.
   * **Optimization:** Weight scrambling has been moved into the physical layer;
     the rest of the codec now uses linear order weights.
   * **Optimization:** Weight packing has been moved into the physical layer;
@@ -413,4 +413,4 @@ Key for charts:
 
 - - -
 
-_Copyright © 2022-2024, Arm Limited and contributors. All rights reserved._
+_Copyright © 2022-2024, Arm Limited and contributors._

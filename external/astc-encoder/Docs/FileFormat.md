@@ -8,7 +8,7 @@ payload for a single image surface.
 Header
 ======
 
-The header is a fixed 16 byte structure, defined as storing only bytes to avoid
+The header is a fixed 16-byte structure, defined as storing only bytes to avoid
 any endianness issues or incur any padding overhead.
 
 ```
@@ -27,7 +27,7 @@ struct astc_header
 Magic number
 ------------
 
-The 4 byte magic number at the start of the file acts as a format identifier.
+The 4-byte magic number at the start of the file acts as a format identifier.
 
 ```
     magic[0] = 0x13;
@@ -52,7 +52,7 @@ Note that the image is not required to be an exact multiple of the compressed
 block size; the compressed data may include padding that is discarded during
 decompression.
 
-Each dimension is a 24 bit unsigned value that is reconstructed from the stored
+Each dimension is a 24-bit unsigned value that is reconstructed from the stored
 byte values as:
 
 ```
@@ -68,4 +68,4 @@ determined from the header information.
 
 - - -
 
-_Copyright © 2020-2022, Arm Limited and contributors. All rights reserved._
+_Copyright © 2020-2026, Arm Limited and contributors._

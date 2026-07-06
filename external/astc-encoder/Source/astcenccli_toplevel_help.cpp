@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2024 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -56,7 +56,7 @@ LDR profile, preventing use of the HDR encoding features.
 
 The -*s options are used to configure the codec to support only
 the sRGB LDR profile, preventing use of the HDR encoding features. Input
-texture data must be encoded in the sRGB colorspace for this option to
+texture data must be encoded in the sRGB color space for this option to
 provide correct output results.
 
 The -*h/-*H options are used to configure the codec to support the HDR ASTC
@@ -77,18 +77,18 @@ SYNOPSIS
        astcenc {-h|-help}
        astcenc {-v|-version}
        astcenc {-cl|-cs|-ch|-cH} <in> <out> <blocksize> <quality> [options]
-       astcenc {-dl|-ds|-dh|-dH} <in> <out> <blocksize> <quality> [options]
+       astcenc {-dl|-ds|-dh|-dH} <in> <out>
        astcenc {-tl|-ts|-th|-tH} <in> <out> <blocksize> <quality> [options]
 
 DESCRIPTION
        astcenc compresses image files into the Adaptive Scalable Texture
-       Compression (ASTC) image format, a lossy compression format design
-       for use in real-time graphics applications. It is a fully featured
-       compressor implementation, supporting all of the compression
-       profiles and block sizes specified by the ASTC format:
+       Compression (ASTC) image format, a lossy compression format
+       designed for use in real-time graphics applications. astcenc
+       supports all of the compression profiles and block sizes allowed by
+       the ASTC format:
 
            All color profiles (LDR linear, LDR sRGB, and HDR)
-           All 2D block sizes (4x4 though to 12x12)
+           All 2D block sizes (4x4 through to 12x12)
            All 3D block sizes (3x3x3 through to 6x6x6)
 
        The compressor provides a flexible quality level, allowing users to
@@ -186,7 +186,7 @@ COMPRESSION
            parameters.
 
        -rgbm <max>
-           The input texture is an RGBM encoded texture, storing values HDR
+           The input texture is an RGBM encoded texture, storing HDR
            values between 0 and <max> in an LDR container format with a
            shared multiplier. Shaders reconstruct the HDR value as:
 
@@ -199,13 +199,13 @@ COMPRESSION
 
        -perceptual
            The codec should optimize perceptual error, instead of direct
-           RMS error. This aims to improves perceived image quality, but
+           RMS error. This aims to improve perceived image quality, but
            typically lowers the measured PSNR score. Perceptual methods are
-           currently only available for normal maps and RGB color data.
+           currently only available for RGB color data.
 
        -zdim <zdim>
            Load a sequence of <zdim> 2D image slices to use as a 3D image.
-           The input filename given is used is decorated with the postfix
+           The input filename given is decorated with the postfix
            "_<slice>" to find the file to load. For example, an input named
            "input.png" would load as input_0.png, input_1.png, etc.
 
@@ -244,7 +244,7 @@ ADVANCED COMPRESSION
        computation, used to determine what good compression looks like.
 
        -a <radius>
-           For textures with alpha component, scale per-texel weights by
+           For textures with an alpha component, scale per-texel weights by
            the alpha value. The alpha value chosen for scaling of any
            particular texel is taken as an average across a neighborhood of
            the texel defined by the <radius> argument. Setting <radius> to
@@ -272,8 +272,8 @@ ADVANCED COMPRESSION
        These options provide low-level control of the codec heuristics that
        drive the performance-quality trade off. The presets vary by block
        bitrate; the recommended starting point for a 4x4 block is very
-       different to a 8x8 block. The presets documented here are for the
-	   high bitrate mode (fewer than 25 texels).
+       different to the one for an 8x8 block. The presets documented here
+       are for the high bitrate mode (fewer than 25 texels).
 
        -partitioncountlimit <number>
            Test up to and including <number> partitions for each block.
@@ -370,7 +370,7 @@ ADVANCED COMPRESSION
                -fast          : 1.00 | 1.00
                -medium        : 1.10 | 1.05
                -thorough      : 1.35 | 1.15
-               -verythrorough : 1.60 | 1.40
+               -verythorough  : 1.60 | 1.40
                -exhaustive    : 2.00 | 2.00
 
        -2planelimitcorrelation <factor>
@@ -471,15 +471,16 @@ DECOMPRESSION
 TEST
        To perform a compression test which round-trips a single image
        through compression and decompression and stores the decompressed
-       result back to file, you must specify same settings as COMPRESSION
-       other than swapping the color profile to select test mode. Note that
-       the compressed intermediate data is discarded in this mode.
+       result back to file, you must specify the same settings as
+       COMPRESSION other than swapping the color profile option to select
+       a test mode. Note that the compressed intermediate data is discarded
+       in this mode.
 
        The color profile is specified using the -tl (LDR linear), -ts (LDR
        sRGB), -th (HDR RGB, LDR A), or -tH (HDR RGBA) encoder options.
 
        This operation mode will print error metrics suitable for either LDR
-       and HDR images, allowing some assessment of the compression image
+       or HDR images, allowing some assessment of the compression image
        quality.
 
 COMPRESSION FILE FORMATS

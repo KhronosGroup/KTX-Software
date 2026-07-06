@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2023 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -26,9 +26,16 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
+#include <vector>
 
 #include "astcenc.h"
 #include "astcenc_mathlib.h"
+
+/**
+ * @brief Mark a variable as unused.
+ */
+#define ASTCENC_UNUSED(x) ((void)x)
 
 /**
  * @brief The payload stored in a compressed ASTC image.
@@ -36,28 +43,25 @@
 struct astc_compressed_image
 {
 	/** @brief The block width in texels. */
-	unsigned int block_x;
+	unsigned int block_x { 0 };
 
 	/** @brief The block height in texels. */
-	unsigned int block_y;
+	unsigned int block_y { 0 };
 
 	/** @brief The block depth in texels. */
-	unsigned int block_z;
+	unsigned int block_z { 0 };
 
 	/** @brief The image width in texels. */
-	unsigned int dim_x;
+	unsigned int dim_x { 0 };
 
 	/** @brief The image height in texels. */
-	unsigned int dim_y;
+	unsigned int dim_y { 0 };
 
 	/** @brief The image depth in texels. */
-	unsigned int dim_z;
+	unsigned int dim_z { 0 };
 
 	/** @brief The binary data payload. */
-	uint8_t* data;
-
-	/** @brief The binary data length in bytes. */
-	size_t data_len;
+	std::vector<uint8_t> data;
 };
 
 /**
@@ -117,6 +121,19 @@ static inline void print_error(
 }
 
 /**
+ * @brief A custom deleter so we can use RAII to manage astcenc_image structs.
+ */
+struct astcenc_image_deleter
+{
+	void operator()(astcenc_image* img) const;
+};
+
+/**
+ * @brief A smart pointer wrapper around an astcenc_image.
+ */
+using astcenc_image_ptr = std::unique_ptr<astcenc_image, astcenc_image_deleter>;
+
+/**
  * @brief Load uncompressed image.
  *
  * @param filename               The file path on disk.
@@ -126,7 +143,7 @@ static inline void print_error(
  *
  * @return The astc image file, or nullptr on error.
  */
-astcenc_image* load_ncimage(
+astcenc_image_ptr load_ncimage(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
@@ -142,7 +159,7 @@ astcenc_image* load_ncimage(
  *
  * @return The astc image file, or nullptr on error.
  */
-astcenc_image* load_png_with_wuffs(
+astcenc_image_ptr load_png_with_wuffs(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
@@ -165,7 +182,7 @@ bool store_ncimage(
 /**
  * @brief Check if the output file type requires a specific bitness.
  *
- * @param filename The file name, containing hte extension to check.
+ * @param filename   The file name, containing the extension to check.
  *
  * @return Valid values are:
  *     * -1 - error - unknown file type.
@@ -179,28 +196,20 @@ int get_output_filename_enforced_bitness(
 /**
  * @brief Allocate a new image in a canonical format.
  *
- * Allocated images must be freed with a @c free_image() call.
+ * Allocated images are returned in a RAII-managed smart pointer.
  *
  * @param bitness   The number of bits per component (8, 16, or 32).
  * @param dim_x     The width of the image, in texels.
  * @param dim_y     The height of the image, in texels.
  * @param dim_z     The depth of the image, in texels.
  *
- * @return The allocated image, or @c nullptr on error.
+ * @return The allocated image.
  */
-astcenc_image* alloc_image(
+astcenc_image_ptr alloc_image(
 	unsigned int bitness,
 	unsigned int dim_x,
 	unsigned int dim_y,
 	unsigned int dim_z);
-
-/**
- * @brief Free an image.
- *
- * @param img   The image to free.
- */
-void free_image(
-	astcenc_image* img);
 
 /**
  * @brief Determine the number of active components in an image.
@@ -209,7 +218,7 @@ void free_image(
  *
  * @return The number of active components in the image.
  */
-int determine_image_components(
+unsigned int determine_image_components(
 	const astcenc_image* img);
 
 /**
@@ -274,7 +283,7 @@ bool store_ktx_compressed_image(
  *
  * @return The populated image.
  */
-astcenc_image* astc_img_from_floatx4_array(
+astcenc_image_ptr astc_img_from_floatx4_array(
 	const float* data,
 	unsigned int dim_x,
 	unsigned int dim_y,
@@ -290,7 +299,7 @@ astcenc_image* astc_img_from_floatx4_array(
  *
  * @return The populated image.
  */
-astcenc_image* astc_img_from_unorm8x4_array(
+astcenc_image_ptr astc_img_from_unorm8x4_array(
 	const uint8_t* data,
 	unsigned int dim_x,
 	unsigned int dim_y,
@@ -299,32 +308,16 @@ astcenc_image* astc_img_from_unorm8x4_array(
 /**
  * @brief Create a flattened RGBA FLOAT32 data array for a single slice from an image structure.
  *
- * The returned data array is allocated with @c new[] and must be freed with a @c delete[] call.
- *
  * @param img       The input image.
  * @param y_flip    Should the data in the array be Y flipped?
  * @param z_index   The slice index to convert.
  *
  * @return The data array.
  */
-float* floatx4_array_from_astc_img(
+std::vector<float> floatx4_array_from_astc_img(
 	const astcenc_image* img,
 	bool y_flip,
 	unsigned int z_index);
-
-/**
- * @brief Create a flattened RGBA UNORM8 data array from an image structure.
- *
- * The returned data array is allocated with @c new[] and must be freed with a @c delete[] call.
- *
- * @param img      The input image.
- * @param y_flip   Should the data in the array be Y flipped?
- *
- * @return The data array.
- */
-uint8_t* unorm8x4_array_from_astc_img(
-	const astcenc_image* img,
-	bool y_flip);
 
 /* ============================================================================
   Functions for printing build info and help messages

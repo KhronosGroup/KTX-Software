@@ -1,0 +1,40 @@
+name: Test Python
+run-name: Test Python PR${{ github.event.number }}
+
+# Separate GitHub Actions workflow to run the Python tests only when we have
+# Python source changes in the PR.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.py'
+
+jobs:
+  test-python:
+    name: Python tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy Pillow mypy pylint pycodestyle
+
+      - name: Run Python tests
+        run: |
+          python ./Test/astc_test_python.py
