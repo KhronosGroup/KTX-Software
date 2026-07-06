@@ -308,8 +308,10 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                } else {
                    warning("Dropping unrecognized KTX metadata \"{}\"", key);
                }
+               // TODO: shouldn't we save the next pointer BEFORE deleting the entry?
                ktxHashList_DeleteEntry(&texture->kvDataHead,
                                        pEntry);
+               pEntry = nullptr;
             }
         }
     }
