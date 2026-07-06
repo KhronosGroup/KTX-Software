@@ -1787,6 +1787,9 @@ void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
     std::vector<uint8_t> keyValueStores[2] = {};
     std::map<std::string_view, ktxHashListEntry*> keys[2] = {};
 
+    // To rely on RAII to cleanup hashlist allocated in the loop below
+    std::vector<std::unique_ptr<ktxHashList, void (*)(ktxHashList*)>> hashlists;
+
     for (std::size_t i = 0; i < streams.size(); ++i) {
         if (headers[i].keyValueData.byteLength == 0) continue;
 
@@ -1794,23 +1797,33 @@ void CommandCompare::compareKVD(PrintDiff& diff, InputStreams& streams) {
         read(streams[i], headers[i].keyValueData.byteOffset, keyValueStores[i].data(),
             headers[i].keyValueData.byteLength, "the KVD");
 
-        ktxHashList kvDataHead = nullptr;
-        KTX_error_code result = ktxHashList_Deserialize(&kvDataHead,
+        // hashlists.emplace_back(), ktxHashList_Destroy);
+        // auto kvDataHead = hashlists[i].get();
+        auto kvDataHead = (ktxHashList*)malloc(sizeof(ktxHashList));
+        if (kvDataHead == NULL)
+            fatal(rc::RUNTIME_ERROR, "Out of memory (malloc returned NULL).");
+        *kvDataHead = nullptr;
+        KTX_error_code result = ktxHashList_Deserialize(kvDataHead,
             headers[i].keyValueData.byteLength, keyValueStores[i].data());
-        if (result != KTX_SUCCESS)
+        if (result != KTX_SUCCESS) {
+            free(kvDataHead);
             fatal(rc::KTX_FAILURE, "Failed to parse KVD in file \"{}\".", streams[i].str());
+        }
 
-        if (kvDataHead == nullptr)
+        if (*kvDataHead == nullptr) {
+            free(kvDataHead);
             continue;
+        }
 
         uint32_t entryIndex = 0;
-        ktxHashListEntry* entry = kvDataHead;
+        ktxHashListEntry* entry = *kvDataHead;
         for (; entry != NULL && entryIndex < MAX_NUM_KV_ENTRIES; entry = ktxHashList_Next(entry), ++entryIndex) {
             char* key;
             ktx_uint32_t keyLen;
             ktxHashListEntry_GetKey(entry, &keyLen, &key);
             keys[i].emplace(key, entry);
         }
+        hashlists.emplace_back(kvDataHead, ktxHashList_Destroy);
     }
 
     std::map<std::string_view, ktxHashListEntry*>::iterator it[2] = { keys[0].begin(), keys[1].begin() };
