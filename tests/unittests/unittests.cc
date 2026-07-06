@@ -899,6 +899,7 @@ TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
 class HashListTest : public ::testing::Test {
   protected:
     HashListTest() : writerVal("HashListTest"), orientationVal("ruo") { }
+    ~HashListTest() { ktxHashList_Destruct(&head); }
 
     void constructList(bool sort) {
         KTX_error_code result;
@@ -979,6 +980,7 @@ TEST_F(HashListTest, ConstructCopy) {
     constructList(true);
     ktxHashList_ConstructCopy(&copyHead, head);
     compareList(copyHead, true);
+    ktxHashList_Destruct(&copyHead);
 }
 
 ///////////////////////
@@ -1037,6 +1039,9 @@ class SwizzleTestBase : public ::testing::Test {
                    EXPECT_EQ(swizzle[c], dest[i][c]) << "c = " << c << ", i = "  << i;
            }
        }
+       free(dest);
+       if (texture)
+         ktxTexture2_Destroy(texture);
     }
 
   protected:
