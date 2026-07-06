@@ -253,22 +253,26 @@ class ktxTextureTestBase : public ::testing::Test {
 
         // Create the in-memory KTX file
 
-        ktxTexture* texture = 0;
         if (fv == KTX_FORMAT_VERSION_ONE) {
            kvDataLen = helper.kvDataLen;
-           kvData = helper.kvData;
+           // kvData = helper.kvData;
+           kvData = (unsigned char*)malloc(kvDataLen);
+           memcpy(kvData, helper.kvData, kvDataLen);
            errorCode = ktxTexture1_Create(&texinfo,
                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                            (ktxTexture1**)&texture);
         } else {
             kvDataLen = helper.kvDataLenWriter_ktx2;
-            kvData = helper.kvDataWriter_ktx2;
+            // kvData = helper.kvDataWriter_ktx2;
+            kvData = (unsigned char*)malloc(kvDataLen);
+            memcpy(kvData, helper.kvDataWriter_ktx2, kvDataLen);
             texinfo.vkFormat
                 = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat);
             errorCode = ktxTexture2_Create(&texinfo,
                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                            (ktxTexture2**)&texture);
-            texture->kvDataHead = helper.kvHash_ktx2;
+            // texture->kvDataHead = helper.kvHash_ktx2;
+            ktxHashList_ConstructCopy(&texture->kvDataHead, helper.kvHash_ktx2);
         }
         if (KTX_SUCCESS != errorCode) {
             ADD_FAILURE() << "ktxTexture"
@@ -308,7 +312,10 @@ class ktxTextureTestBase : public ::testing::Test {
     }
 
     ~ktxTextureTestBase() {
-        delete ktxMemFile;
+        free(ktxMemFile);
+        if (texture) {
+            ktxTexture_Destroy(texture);
+        }
     }
 
     KTX_error_code
@@ -342,6 +349,7 @@ class ktxTextureTestBase : public ::testing::Test {
     ktxTextureCreateInfo& createInfo = helper.createInfo;
     unsigned char* kvData;
     unsigned int kvDataLen;
+    ktxTexture* texture = 0;
 
     ktx_uint8_t* ktxMemFile;
     ktx_size_t ktxMemFileLen;
@@ -521,7 +529,7 @@ class ktxTexture1WriteTestBase : public ::testing::Test {
 
         EXPECT_EQ(helper.compareRawImages(filePtr), true);
 
-        delete ktxMemFile;
+        free(ktxMemFile);
         ktxTexture1_Destroy(texture);
     }
 
@@ -682,7 +690,7 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptyAndSetImages) {
 TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
     ktxTexture1* texture = 0;
     KTX_error_code result;
-    ktx_uint8_t* testMemFile;
+    ktx_uint8_t* testMemFile = nullptr;
     ktx_size_t testMemFileLen;
     char orientation[10];
 
@@ -707,6 +715,8 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
 
     if (texture)
         ktxTexture1_Destroy(texture);
+    if (testMemFile)
+        free(testMemFile);
 }
 
 /////////////////////////////////////////
@@ -1927,8 +1937,11 @@ class ktxTexture1WriteKTX2TestBase
         }
 
         EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
-        delete ktxMemFile;
+        free(ktxMemFile);
         ktxTexture_Destroy(ktxTexture(texture));
+        free(dfd);
+        free(kvData);
+        ktxHashList_Destroy(hl);
     }
 
     // Test rejection of unrecognized keys and passing of proprietary keys.
@@ -1978,7 +1991,7 @@ class ktxTexture1WriteKTX2TestBase
         appendLibId(hl, pWriter);
         ktxHashList_Sort(hl);
         ktxHashList_Serialize(hl, &kvDataLen, &kvData);
-        ktxHashList_Destruct(hl);
+        ktxHashList_Destroy(hl);
 
         result = helper.copyImagesToTexture(texture);
         EXPECT_EQ(result, KTX_SUCCESS);
@@ -2026,14 +2039,14 @@ class ktxTexture1WriteKTX2TestBase
             }
 
             EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
-
-            delete ktxMemFile;
+            free(dfd);
+            free(ktxMemFile);
         } else {
             EXPECT_EQ(result, KTX_INVALID_OPERATION);
         }
 
         ktxTexture_Destroy(ktxTexture(texture));
-        delete kvData;
+        free(kvData);
 
     }
   protected:
@@ -2167,7 +2180,7 @@ class ktxTexture2ReadTestBase
     ktxTexture2ReadTestBase() { }
 
     ~ktxTexture2ReadTestBase() {
-        if (ktx2MemFile) delete ktx2MemFile;
+        if (ktx2MemFile) free(ktx2MemFile);
     }
 
     void resize(createFlags flags,
@@ -2209,7 +2222,7 @@ class ktxTexture2ReadTestBase
         fileHeader = (KTX_header2*)ktx2MemFile;
         levelIndex = (ktxLevelIndexEntry*)(ktx2MemFile + sizeof(KTX_header2));
 
-        ktxTexture1_destruct(texture);
+        ktxTexture1_Destroy(texture);
     }
 
     void runTest() {
@@ -2238,8 +2251,7 @@ class ktxTexture2ReadTestBase
             EXPECT_EQ(levelOffset, levelIndex[level].byteOffset - baseOffset);
         }
 
-        ktxTexture2_destruct(texture2);
-
+        ktxTexture2_Destroy(texture2);
     }
 
     protected:
@@ -2434,6 +2446,8 @@ TEST_F(ktxTexture2_GetNumComponentsTestRG8, BasisLZ) {
         EXPECT_EQ(components, 2U);
         ktxTexture2_CompressBasis(texture, 0);
         EXPECT_EQ(components, ktxTexture2_GetNumComponents(texture));
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
     }
 }
 
