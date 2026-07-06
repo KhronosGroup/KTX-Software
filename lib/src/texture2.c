@@ -260,6 +260,10 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         // Either decriptorType or vendorId is not 0
         return false;
     }
+    // Before anything, and to avoid a heap-buffer-overflow, check bounds!
+    if (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, DESCRIPTORBLOCKSIZE) * sizeof(uint32_t) + sizeof(uint32_t)) {
+        return false;
+    }
     // Iterate through all block descriptors and check if sum of their sizes
     // is equal to the totalSize in pDfd[0]
     uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
@@ -278,6 +282,18 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 
     // reset pBdb pointer to the first block descriptor
     pBdb = pDfd + 1;
+
+    // This is ugly (can keep just largest check). This is essential to avoid heap-buffer-overflow accesses which are UB!
+    if ((pDfd[0] <= KHR_DFDVALOFFSET(pBdb, VERSIONNUMBER) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION0) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION1) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION2) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, BYTESPLANE0) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, BYTESPLANE1) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, MODEL) * sizeof(uint32_t) + sizeof(uint32_t)) ||
+        (pDfd[0] <= KHR_DFDSOFFSET(0, CHANNELID) * sizeof(uint32_t) + sizeof(uint32_t))) {
+        return false;
+    }
 
     // Check the DFD is of the expected version.
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
@@ -782,6 +798,15 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
 
     if (pHeader->dataFormatDescriptor.byteLength != This->pDfd[0]) {
         // DFD byteLength does not match dfdTotalSize
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
+    }
+    // TODO: shouldn't this be < sizeof(BDFD)?
+    // I added this check because:
+    //  - ASan reports "unknow-crash" on 'pBDFD->descriptorBlockSize'
+    //  - what if we allocated less than 8 bytes for BDFD struct? (i.e., < 12 bytes total)
+    if ((pHeader->dataFormatDescriptor.byteLength - sizeof(ktx_uint32_t)) < 24) {
+        // BDFD has invalid size
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }

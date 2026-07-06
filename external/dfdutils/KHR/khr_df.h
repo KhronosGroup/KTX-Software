@@ -90,9 +90,15 @@ typedef enum _khr_df_mask_e {
 } khr_df_mask_e;
 
 /* Helper macro:
+   Get offset 'o' that is expected to be used as such in KHR_DFDSVAL: BDB[o]
+   Useful to check offset bounds before a 'call' to KHR_DFDSVAL. */
+#define KHR_DFDVALOFFSET(BDB, X) \
+    (KHR_DF_WORD_ ## X)
+
+/* Helper macro:
    Extract field X from basic descriptor block BDB */
 #define KHR_DFDVAL(BDB, X) \
-    (((BDB)[KHR_DF_WORD_ ## X] >> (KHR_DF_SHIFT_ ## X)) \
+    (((BDB)[KHR_DFDVALOFFSET(BDB, X)] >> (KHR_DF_SHIFT_ ## X)) \
      & (KHR_DF_MASK_ ## X))
 
 /* Helper macro:
@@ -152,12 +158,15 @@ typedef enum _khr_df_samplemask_e {
 } khr_df_samplemask_e;
 
 /* Helper macro:
+   Get offset 'o' that is expected to be used as such in KHR_DFDSVAL: BDB[o]
+   Useful to check offset bounds before a 'call' to KHR_DFDSVAL. */
+#define KHR_DFDSOFFSET(S, X) \
+    (KHR_DF_WORD_SAMPLESTART + ((S) * KHR_DF_WORD_SAMPLEWORDS) + KHR_DF_SAMPLEWORD_##X)
+
+/* Helper macro:
    Extract field X of sample S from basic descriptor block BDB */
 #define KHR_DFDSVAL(BDB, S, X) \
-    (((BDB)[KHR_DF_WORD_SAMPLESTART + \
-            ((S) * KHR_DF_WORD_SAMPLEWORDS) + \
-            KHR_DF_SAMPLEWORD_ ## X] >> (KHR_DF_SAMPLESHIFT_ ## X)) \
-     & (KHR_DF_SAMPLEMASK_ ## X))
+    (((BDB)[KHR_DFDSOFFSET(S, X)] >> (KHR_DF_SAMPLESHIFT_##X)) & (KHR_DF_SAMPLEMASK_##X))
 
 /* Helper macro:
    Set field X of sample S of basic descriptor block BDB */
