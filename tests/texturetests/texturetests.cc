@@ -260,7 +260,7 @@ class ktxTextureTestBase : public ::testing::Test {
            memcpy(kvData, helper.kvData, kvDataLen);
            errorCode = ktxTexture1_Create(&texinfo,
                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                           (ktxTexture1**)&texture);
+                                           (ktxTexture1**)&texture_tmp);
         } else {
             kvDataLen = helper.kvDataLenWriter_ktx2;
             // kvData = helper.kvDataWriter_ktx2;
@@ -270,9 +270,9 @@ class ktxTextureTestBase : public ::testing::Test {
                 = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat);
             errorCode = ktxTexture2_Create(&texinfo,
                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                           (ktxTexture2**)&texture);
+                                           (ktxTexture2**)&texture_tmp);
             // texture->kvDataHead = helper.kvHash_ktx2;
-            ktxHashList_ConstructCopy(&texture->kvDataHead, helper.kvHash_ktx2);
+            ktxHashList_ConstructCopy(&texture_tmp->kvDataHead, helper.kvHash_ktx2);
         }
         if (KTX_SUCCESS != errorCode) {
             ADD_FAILURE() << "ktxTexture"
@@ -292,7 +292,7 @@ class ktxTextureTestBase : public ::testing::Test {
                 ktx_uint32_t numImages = texinfo.numFaces == 6
                                        ? texinfo.numFaces : levelDepth;
                 for (ktx_uint32_t faceSlice = 0; faceSlice < numImages; faceSlice++) {
-                    ktxTexture_SetImageFromMemory(texture,
+                    ktxTexture_SetImageFromMemory(texture_tmp,
                                                   level, layer, faceSlice,
                                                   it->data, it->size);
                 }
@@ -300,10 +300,10 @@ class ktxTextureTestBase : public ::testing::Test {
             it++;
         }
 
-        paddedImageDataSize = texture->dataSize;
-        texture->kvData = kvData;
-        texture->kvDataLen = kvDataLen;
-        errorCode = ktxTexture_WriteToMemory(texture, &ktxMemFile,
+        paddedImageDataSize = texture_tmp->dataSize;
+        texture_tmp->kvData = kvData;
+        texture_tmp->kvDataLen = kvDataLen;
+        errorCode = ktxTexture_WriteToMemory(texture_tmp, &ktxMemFile,
                                              &ktxMemFileLen);
         if (KTX_SUCCESS != errorCode) {
             ADD_FAILURE() << "ktxTexture_WriteToMemory failed: "
@@ -313,8 +313,8 @@ class ktxTextureTestBase : public ::testing::Test {
 
     ~ktxTextureTestBase() {
         free(ktxMemFile);
-        if (texture) {
-            ktxTexture_Destroy(texture);
+        if (texture_tmp) {
+            ktxTexture_Destroy(texture_tmp);
         }
     }
 
@@ -349,7 +349,7 @@ class ktxTextureTestBase : public ::testing::Test {
     ktxTextureCreateInfo& createInfo = helper.createInfo;
     unsigned char* kvData;
     unsigned int kvDataLen;
-    ktxTexture* texture = 0;
+    ktxTexture* texture_tmp = 0;
 
     ktx_uint8_t* ktxMemFile;
     ktx_size_t ktxMemFileLen;
