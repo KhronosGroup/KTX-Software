@@ -253,17 +253,20 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
 bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
+    const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
+    const uint32_t sizeof_DFDBHeader = sizeof(uint32_t) * 2;
+    const uint32_t sizeof_BDFD = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const uint32_t sizeof_BDFDSample = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
+
     uint32_t* pBdb = pDfd + 1;
     // pDfd[0] contains totalSize in bytes, check if it has at least
     // KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE bytes
-    if (pDfd[0] < KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE || *pBdb != 0) {
+    // Added: '+ sizeof(uint32_t)' so that this aligns with printdfd.c, otherwise it doesn't make sense ...
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_DFDBHeader) || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
         return false;
     }
-    // Before anything, and to avoid a heap-buffer-overflow, check bounds!
-    if (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, DESCRIPTORBLOCKSIZE) * sizeof(uint32_t) + sizeof(uint32_t)) {
-        return false;
-    }
+
     // Iterate through all block descriptors and check if sum of their sizes
     // is equal to the totalSize in pDfd[0]
     uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
@@ -283,21 +286,14 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     // reset pBdb pointer to the first block descriptor
     pBdb = pDfd + 1;
 
-    // This is ugly (can keep just largest check). This is essential to avoid heap-buffer-overflow accesses which are UB!
-    if ((pDfd[0] <= KHR_DFDVALOFFSET(pBdb, VERSIONNUMBER) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION0) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION1) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, TEXELBLOCKDIMENSION2) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, BYTESPLANE0) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, BYTESPLANE1) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDVALOFFSET(pBdb, MODEL) * sizeof(uint32_t) + sizeof(uint32_t)) ||
-        (pDfd[0] <= KHR_DFDSOFFSET(0, CHANNELID) * sizeof(uint32_t) + sizeof(uint32_t))) {
-        return false;
-    }
-
     // Check the DFD is of the expected version.
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
         return false;
+    }
+
+    // This is essential to avoid heap-buffer-overflow accesses which are UB!
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD)) {
+        return false;  // Invalid DFD: Missing or partial basic DFD block
     }
 
     // DFD has supported type and version. Process it.
@@ -305,6 +301,9 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
     if (KHR_DFDVAL(pBdb, BYTESPLANE0) == 0) {
+        if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD + sizeof_BDFDSample)) {
+            return false;  // Invalid DFD: Missing or partial basic DFD sample
+        }
         // The DFD uses the deprecated way of indicating a supercompressed
         // texture. Reconstruct the original values.
         reconstructDFDBytesPlanesFromSamples(pDfd);
@@ -327,7 +326,9 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         }
     } else {
         // An uncompressed format.
-
+        if (pDfd[0] < (sizeof_BDFD + sizeof_BDFDSample + sizeof_dfdTotalSize)) {
+            return false;  // Invalid DFD: Missing or partial basic DFD sample
+        }
         // Special case depth & depth stencil formats
         if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_DEPTH) {
             if (KHR_DFDSAMPLECOUNT(pBdb) == 1) {

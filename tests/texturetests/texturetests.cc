@@ -2040,14 +2040,13 @@ class ktxTexture1WriteKTX2TestBase
 
             EXPECT_EQ(helper.compareRawImages(levelIndex, ktxMemFile), true);
             free(dfd);
-            free(ktxMemFile);
         } else {
             EXPECT_EQ(result, KTX_INVALID_OPERATION);
         }
 
         ktxTexture_Destroy(ktxTexture(texture));
         free(kvData);
-
+        free(ktxMemFile);
     }
   protected:
     ktx_uint32_t requiredLevelAlignment;
