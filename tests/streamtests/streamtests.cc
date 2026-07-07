@@ -203,6 +203,9 @@ protected:
 
     static void destruct(ktxStream* str)
     {
+        // It could be that 'self' is no longer a valid address (e.g., ktxTexture outlives the instance that 'self' points to).
+        // This falls down to the following requirement: the destructor of any ktxTexture that references this object (e.g.,
+        // via ktxStream) SHOULD occur BEFORE the destructor of said object.
         auto self = parent(str);
         self->_destructed = true;
     }
@@ -354,74 +357,83 @@ bool expectSameTextureContent(const ktxTexture* tex1, const ktxTexture* tex2)
 TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
 {
     StreambufStream ktx1Stream{std::move(_ktx1Streambuf), std::ios::in};
-    KtxTexture<ktxTexture1> texture1;
+    {  // To make sure texture1 below goes out of scope BEFORE ktx1Stream
+        KtxTexture<ktxTexture1> texture1;
 
-    KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                                      texture1.pHandle());
-    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX1 from C++ stream: " << ktxErrorString(err);
-    ASSERT_NE(texture1, nullptr) << "Newly-created KTX1 is null";
-    EXPECT_TRUE(ktx1Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+        KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                          texture1.pHandle());
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX1 from C++ stream: " << ktxErrorString(err);
+        ASSERT_NE(texture1, nullptr) << "Newly-created KTX1 is null";
+        EXPECT_TRUE(ktx1Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+    }
 }
 
 TEST_F(ktxStreamTest, CanCreateKtx2FromCppStream)
 {
     StreambufStream ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
-    KtxTexture<ktxTexture2> texture2;
+    {  // To make sure texture2 below goes out of scope BEFORE ktx2Stream
+        KtxTexture<ktxTexture2> texture2;
 
-    KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
-    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
-    ASSERT_NE(texture2, nullptr) << "Newly-created KTX2 is null";
-    EXPECT_TRUE(ktx2Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+        KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
+        ASSERT_NE(texture2, nullptr) << "Newly-created KTX2 is null";
+        EXPECT_TRUE(ktx2Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+    }
 }
 
 TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
 {
     StreambufStream ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTx1, no difference
-    KtxTexture<ktxTexture> texture;
+    {  // To make sure texture below goes out of scope BEFORE ktxStream
+        KtxTexture<ktxTexture> texture;
 
-    KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
-    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create auto-detected KTX from C++ stream: " << ktxErrorString(err);
-    ASSERT_NE(texture, nullptr) << "Newly-created auto-detected KTX is null";
-    EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+        KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
+        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create auto-detected KTX from C++ stream: " << ktxErrorString(err);
+        ASSERT_NE(texture, nullptr) << "Newly-created auto-detected KTX is null";
+        EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+    }
 }
 
 TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
 {
     KTX_error_code err{KTX_INVALID_VALUE};
     auto dstStreambuf = std::make_unique<std::stringbuf>();
+
+    StreambufStream srcStream{std::move(_ktx1Streambuf), std::ios::in};
     StreambufStream dstStream{std::move(dstStreambuf)};
 
-    KtxTexture<ktxTexture1> srcTexture1{nullptr};
-    KtxTexture<ktxTexture2> dstTexture2{nullptr};
+    {  // To make sure srcTexture1/dstTexture2 below go out of scope BEFORE srcStream/dstStream
+        KtxTexture<ktxTexture1> srcTexture1{nullptr};
+        KtxTexture<ktxTexture2> dstTexture2{nullptr};
 
-    {
-        std::cerr << "Loading KTX1 from file" << std::endl;
+        {
+            std::cerr << "Loading KTX1 from file" << std::endl;
 
-        StreambufStream srcStream{std::move(_ktx1Streambuf), std::ios::in};
-        err = ktxTexture1_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, srcTexture1.pHandle());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load source KTX1 from C++ stream: " << ktxErrorString(err);
-        ASSERT_NE(srcTexture1, nullptr) << "Source KTX1 is null";
-        EXPECT_TRUE(srcStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
-    }
-    {
-        std::cerr << "Converting KTX1 -> KTX2" << std::endl;
+            err = ktxTexture1_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, srcTexture1.pHandle());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load source KTX1 from C++ stream: " << ktxErrorString(err);
+            ASSERT_NE(srcTexture1, nullptr) << "Source KTX1 is null";
+            EXPECT_TRUE(srcStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+        }
+        {
+            std::cerr << "Converting KTX1 -> KTX2" << std::endl;
 
-        // We're about to write to `dstStream`
-        dstStream.seek_mode(std::ios::out);
+            // We're about to write to `dstStream`
+            dstStream.seek_mode(std::ios::out);
 
-        err = ktxTexture1_WriteKTX2ToStream(srcTexture1, dstStream.stream());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to convert KTX1 -> KTX2 to C++ stream: " << ktxErrorString(err);
-    }
-    {
-        std::cerr << "Loading the converted KTX2" << std::endl;
+            err = ktxTexture1_WriteKTX2ToStream(srcTexture1, dstStream.stream());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to convert KTX1 -> KTX2 to C++ stream: " << ktxErrorString(err);
+        }
+        {
+            std::cerr << "Loading the converted KTX2" << std::endl;
 
-        // Rewind dstStream and set it up for reading
-        dstStream.streambuf()->pubseekpos(0, std::ios::in);
-        dstStream.seek_mode(std::ios::in);
+            // Rewind dstStream and set it up for reading
+            dstStream.streambuf()->pubseekpos(0, std::ios::in);
+            dstStream.seek_mode(std::ios::in);
 
-        err = ktxTexture2_CreateFromStream(dstStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, dstTexture2.pHandle());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
-        ASSERT_NE(dstTexture2, nullptr) << "Destination KTX2 is null";
+            err = ktxTexture2_CreateFromStream(dstStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, dstTexture2.pHandle());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
+            ASSERT_NE(dstTexture2, nullptr) << "Destination KTX2 is null";
+        }
     }
 }
 
@@ -429,43 +441,46 @@ TEST_F(ktxStreamTest, CanWriteKtx2ToCppStream)
 {
     KTX_error_code err{KTX_INVALID_VALUE};
     auto dstStreambuf = std::make_unique<std::stringbuf>();
+
+    StreambufStream srcStream{std::move(_ktx2Streambuf), std::ios::in};
     StreambufStream dstStream{std::move(dstStreambuf)};
 
-    KtxTexture<ktxTexture2> srcTexture2;
-    KtxTexture<ktxTexture2> dstTexture2;
+    {  // To make sure srcTexture2/dstTexture2 below go out of scope BEFORE srcStream/dstStream
+        KtxTexture<ktxTexture2> srcTexture2;
+        KtxTexture<ktxTexture2> dstTexture2;
 
-    {
-        std::cerr << "Loading KTX2 from file" << std::endl;
+        {
+            std::cerr << "Loading KTX2 from file" << std::endl;
 
-        StreambufStream srcStream{std::move(_ktx2Streambuf), std::ios::in};
-        err = ktxTexture2_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, srcTexture2.pHandle());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load source KTX2 from C++ stream: " << ktxErrorString(err);
-        ASSERT_NE(srcTexture2, nullptr) << "Source KTX2 is null";
-        EXPECT_TRUE(srcStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+            err = ktxTexture2_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, srcTexture2.pHandle());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load source KTX2 from C++ stream: " << ktxErrorString(err);
+            ASSERT_NE(srcTexture2, nullptr) << "Source KTX2 is null";
+            EXPECT_TRUE(srcStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+        }
+        {
+            std::cerr << "Writing KTX2 -> copied KTX2" << std::endl;
+
+            // We're about to write to `dstStream`
+            dstStream.seek_mode(std::ios::out);
+
+            err = ktxTexture_WriteToStream(srcTexture2.handle<ktxTexture>(), dstStream.stream());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to convert KTX1 -> KTX2 to C++ stream: " << ktxErrorString(err);
+        }
+        {
+            std::cerr << "Loading the converted KTX2" << std::endl;
+
+            // Rewind dstStream and set it up for reading
+            dstStream.streambuf()->pubseekpos(0, std::ios::in);
+            dstStream.seek_mode(std::ios::in);
+
+            err = ktxTexture2_CreateFromStream(dstStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, dstTexture2.pHandle());
+            EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
+            ASSERT_NE(dstTexture2, nullptr) << "Destination KTX2 is null";
+        }
+
+        // Should be a clone of the same texture
+        expectSameTextureContent(srcTexture2.handle<ktxTexture>(), dstTexture2.handle<ktxTexture>());
     }
-    {
-        std::cerr << "Writing KTX2 -> copied KTX2" << std::endl;
-
-        // We're about to write to `dstStream`
-        dstStream.seek_mode(std::ios::out);
-
-        err = ktxTexture_WriteToStream(srcTexture2.handle<ktxTexture>(), dstStream.stream());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to convert KTX1 -> KTX2 to C++ stream: " << ktxErrorString(err);
-    }
-    {
-        std::cerr << "Loading the converted KTX2" << std::endl;
-
-        // Rewind dstStream and set it up for reading
-        dstStream.streambuf()->pubseekpos(0, std::ios::in);
-        dstStream.seek_mode(std::ios::in);
-
-        err = ktxTexture2_CreateFromStream(dstStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, dstTexture2.pHandle());
-        EXPECT_EQ(err, KTX_SUCCESS) << "Failed to load converted KTX2 from C++ stream: " << ktxErrorString(err);
-        ASSERT_NE(dstTexture2, nullptr) << "Destination KTX2 is null";
-    }
-
-    // Should be a clone of the same texture
-    expectSameTextureContent(srcTexture2.handle<ktxTexture>(), dstTexture2.handle<ktxTexture>());
 }
 
 }  // namespace
