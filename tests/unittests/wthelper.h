@@ -67,18 +67,7 @@ class WriterTestHelper {
     };
     typedef ktx_uint32_t createFlags;
 
-    WriterTestHelper() : writer_ktx2("WriteTestHelper 1.0 __default__") {
-
-    }
-
-    ~WriterTestHelper() {
-        ktxHashList_Destruct(&kvHash);
-        ktxHashList_Destruct(&kvHash_ktx2);
-        if (kvData) free(kvData);
-        if (kvDataWriter_ktx2) free(kvDataWriter_ktx2);
-        if (kvDataAll_ktx2) free(kvDataAll_ktx2);
-
-    }
+    WriterTestHelper() : writer_ktx2("WriteTestHelper 1.0 __default__") { }
 
     void resize(createFlags flags,
                 ktx_uint32_t layers, ktx_uint32_t faces,
@@ -181,31 +170,42 @@ class WriterTestHelper {
         orientation_ktx2[3] = 0;
         orientation_ktx2[dimensions] = 0; // Ensure terminating NULL.
 
-        ktxHashList_Construct(&kvHash);
-        ktxHashList_AddKVPair(&kvHash, KTX_ORIENTATION_KEY,
+        ktxHashList* pKvHash = nullptr;
+        ktxHashList_Create(&pKvHash);
+        kvHash.reset(pKvHash);
+
+        ktxHashList_AddKVPair(kvHash.get(), KTX_ORIENTATION_KEY,
                               (unsigned int)strlen(orientation) + 1,
                               orientation);
-        ktxHashList_Serialize(&kvHash, &kvDataLen, &kvData);
+        ktx_uint8_t* pKvData;
+        ktxHashList_Serialize(kvHash.get(), &kvDataLen, &pKvData);
+        kvData.reset(pKvData);
 
 
-        ktxHashList_Construct(&kvHash_ktx2);
-        ktxHashList_AddKVPair(&kvHash_ktx2, KTX_WRITER_KEY,
+        ktxHashList_Construct(kvHash_ktx2.get());
+        ktxHashList_AddKVPair(kvHash_ktx2.get(), KTX_WRITER_KEY,
                               (ktx_uint32_t)writer_ktx2.size(),
                               writer_ktx2.data());
 
         // Get the library to add its Id to the writer key so it will be
         // included in the serialized data.
         ktxHashListEntry* pWriter;
-        ktxHashList_FindEntry(&kvHash_ktx2, KTX_WRITER_KEY,
+        ktxHashList_FindEntry(kvHash_ktx2.get(), KTX_WRITER_KEY,
                               &pWriter);
-        appendLibId(&kvHash_ktx2, pWriter);
+        appendLibId(kvHash_ktx2.get(), pWriter);
 
-        ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenWriter_ktx2, &kvDataWriter_ktx2);
-        ktxHashList_AddKVPair(&kvHash_ktx2, KTX_ORIENTATION_KEY,
+        ktx_uint8_t* pKvDataWriter_ktx2;
+        ktxHashList_Serialize(kvHash_ktx2.get(), &kvDataLenWriter_ktx2, &pKvDataWriter_ktx2);
+        kvDataWriter_ktx2.reset(pKvDataWriter_ktx2);
+
+        ktxHashList_AddKVPair(kvHash_ktx2.get(), KTX_ORIENTATION_KEY,
                               dimensions + 1,
                               orientation_ktx2);
-        ktxHashList_Sort(&kvHash_ktx2);
-        ktxHashList_Serialize(&kvHash_ktx2, &kvDataLenAll_ktx2, &kvDataAll_ktx2);
+        ktxHashList_Sort(kvHash_ktx2.get());
+
+        ktx_uint8_t* pKvDataAll_ktx2;
+        ktxHashList_Serialize(kvHash_ktx2.get(), &kvDataLenAll_ktx2, &pKvDataAll_ktx2);
+        kvDataAll_ktx2.reset(pKvDataAll_ktx2);
     }
 
     // Compare the raw images, which are tightly packed, with potentially
@@ -340,16 +340,18 @@ class WriterTestHelper {
     ktx_uint32_t depth;
     bool isArray;
 
-    ktx_uint8_t* kvData;
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> kvData{nullptr, std::free};
     ktx_uint32_t kvDataLen;
     char orientation[15];
 
-    ktx_uint8_t* kvDataWriter_ktx2;
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> kvDataWriter_ktx2{nullptr, std::free};
     ktx_uint32_t kvDataLenWriter_ktx2;
-    ktx_uint8_t* kvDataAll_ktx2;
+
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> kvDataAll_ktx2{nullptr, std::free};
     ktx_uint32_t kvDataLenAll_ktx2;
-    ktxHashList kvHash;
-    ktxHashList kvHash_ktx2;
+
+    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destroy)*> kvHash{nullptr, ktxHashList_Destroy};
+    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destroy)*> kvHash_ktx2{nullptr, ktxHashList_Destroy};
     char orientation_ktx2[4];
     std::string writer_ktx2;
     std::string comparisonWriter_ktx2;

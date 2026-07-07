@@ -47,8 +47,11 @@ option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS subm
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
 
-# Enabling sanitizers will cause significantly slow downs (noticeably, tests become significantly slower)
-set(SANITIZE "" CACHE STRING "Build code using sanitizer (address, thread, undefined)")
+# SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
+#   - to enable AddressSanitizer (Asan), set to "address"
+#   - to enable ThreadSanitizer (Tsan), set to "thread"
+#   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
+set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
@@ -193,13 +196,10 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
     else()
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
-    # Optional sanitizer (only Debug builds)
+    # Optional sanitizer (only Debug builds because with Release you will get a wall of warnings)
     if (SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-        string (REPLACE "," ";" SANITIZE_FEATURE_LIST ${SANITIZE})
-        foreach (feature ${SANITIZE_FEATURE_LIST})
-            add_compile_options (-fsanitize=${feature})
-            add_link_options (-fsanitize=${feature})
-        endforeach()
+        add_compile_options (-fsanitize=${SANITIZE})
+        add_link_options (-fsanitize=${SANITIZE})
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             # finds writes past size of std::vector (won't be detected without this)
             add_compile_definitions (_GLIBCXX_SANITIZE_VECTOR=1)
