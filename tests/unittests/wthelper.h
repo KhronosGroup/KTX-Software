@@ -182,7 +182,10 @@ class WriterTestHelper {
         kvData.reset(pKvData);
 
 
-        ktxHashList_Construct(kvHash_ktx2.get());
+        ktxHashList* pKvHash_ktx2 = nullptr;
+        ktxHashList_Create(&pKvHash_ktx2);
+        kvHash_ktx2.reset(pKvHash_ktx2);
+        
         ktxHashList_AddKVPair(kvHash_ktx2.get(), KTX_WRITER_KEY,
                               (ktx_uint32_t)writer_ktx2.size(),
                               writer_ktx2.data());

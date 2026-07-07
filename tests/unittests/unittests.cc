@@ -1041,7 +1041,7 @@ class SwizzleTestBase : public ::testing::Test {
        }
        free(dest);
        if (texture)
-         ktxTexture2_Destroy(texture);
+           ktxTexture2_Destroy(texture);
     }
 
   protected:
