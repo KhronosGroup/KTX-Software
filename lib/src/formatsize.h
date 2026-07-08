@@ -50,7 +50,7 @@ typedef struct ktxFormatSize {
 extern "C" {
 #endif
 
-bool ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd);
+KTX_error_code ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd);
 
 #ifdef __cplusplus
 } // extern "C"

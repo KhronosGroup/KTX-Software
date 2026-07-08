@@ -203,9 +203,15 @@ protected:
 
     static void destruct(ktxStream* str)
     {
-        // It could be that 'self' is no longer a valid address (e.g., ktxTexture outlives the instance that 'self' points to).
-        // This falls down to the following requirement: the destructor of any ktxTexture that references this object (e.g.,
-        // via ktxStream) SHOULD occur BEFORE the destructor of said object.
+        // It could be that 'self' is no longer a valid address (e.g., ktxTexture outlives the instance that 'self'
+        // points to). This falls down to the following requirement: the destructor of any ktxTexture that references
+        // this object (e.g., via ktxStream) SHOULD occur BEFORE the destructor of said object.
+        //
+        // More details:
+        // This stream object (pointed to by self) passes this callback 'destruct' to the ktxStream so that it can be
+        // called when the ktxStream is destroyed. Destruction of such stream occurs on 'ktxTexture_Destroy' which in
+        // turn occurs when the ktx wrapper class object 'KtxTexture' goes out of scope (RAII).
+        // What would happen if self is no longer valid when destruct is called?
         auto self = parent(str);
         self->_destructed = true;
     }

@@ -1298,6 +1298,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
+        // TODO: adding checks here causes numerous Basis tests to fail.
+        //       Why the return value isn't checked here?
         ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;

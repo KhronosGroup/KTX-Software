@@ -248,9 +248,12 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
  * @param[in] This   pointer the ktxFormatSize to initialize.
  * @param[in] pDFD   pointer to the DFD whose data to use.
  *
- * @return    KTX_TRUE on success, otherwise KTX_FALSE.
+ * @return           KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                   Provided DFD is inconsistent with the KTX specification.
  */
-bool
+KTX_error_code
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
@@ -263,7 +266,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     // sizeof(BDFD header) + sizeof(pDfd[0]) bytes
     if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFDHeader) || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
-        return false;
+        return KTX_FILE_DATA_ERROR;
     }
 
     // Iterate through all block descriptors and check if sum of their sizes
@@ -279,7 +282,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         }
     }
     if (descriptorSize != 0) {
-        return false;
+        return KTX_FILE_DATA_ERROR;
     }
 
     // reset pBdb pointer to the first block descriptor
@@ -287,18 +290,18 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 
     // Check the DFD is of the expected version.
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
-        return false;
+        return KTX_FILE_DATA_ERROR;
     }
 
     // This is essential to avoid heap-buffer-overflow accesses which are UB!
     if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD)) {
-        return false;  // Invalid DFD: Missing or partial basic DFD block
+        return KTX_FILE_DATA_ERROR;  // Invalid DFD: Missing or partial basic DFD block
     }
 
     // Equivalent to:
     // pDfd[0] < (KHR_DF_WORD_SAMPLESTART + 1 + KHR_DF_WORD_SAMPLEWORDS) * sizeof(ktx_uint32_t)
     if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD + sizeof_BDFDSample)) {
-        return false;  // Invalid DFD: Missing or partial basic DFD sample
+        return KTX_FILE_DATA_ERROR;  // Invalid DFD: Missing or partial basic DFD sample
     }
 
     // DFD has supported type and version. Process it.
@@ -326,7 +329,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
             This->minBlocksX = This->minBlocksY = 2;
         }
-    } else { // An uncompressed format.
+    } else { // non-supercompressed format.
         // Special case depth & depth stencil formats
         if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_DEPTH) {
             if (KHR_DFDSAMPLECOUNT(pBdb) == 1) {
@@ -336,7 +339,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
                 This->flags |= KTX_FORMAT_SIZE_DEPTH_BIT;
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
             } else {
-                return false;
+                return KTX_FILE_DATA_ERROR;
             }
         } else if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
             This->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
@@ -358,7 +361,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
             result = interpretDFD(pDfd, &rgba[0], &rgba[1], &rgba[2], &rgba[3],
                                   &wordBytes);
             if (result >= i_UNSUPPORTED_ERROR_BIT)
-                return false;
+                return KTX_FILE_DATA_ERROR;
             if (result & i_PACKED_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
             if (result & i_COMPRESSED_FORMAT_BIT)
@@ -367,7 +370,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
                 This->flags |= KTX_FORMAT_SIZE_YUVSDA_BIT;
         }
     }
-    return true;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -464,8 +467,9 @@ ktxTexture2_construct(ktxTexture2* This,
 #ifdef _DEBUG
         // If this fires, an unsupported format or incorrect DFD
         // has crept into vk2dfd.
-        assert(ktxFormatSize_initFromDfd(&formatSize, This->pDfd));
+        assert(ktxFormatSize_initFromDfd(&formatSize, This->pDfd) == KTX_SUCCESS);
 #else
+        // TODO: why no check on return here? Is it guaranteed that ktxVk2dfd will always correctly construct the dfd?
         (void)ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
 #endif
 
@@ -475,7 +479,8 @@ ktxTexture2_construct(ktxTexture2* This,
         if (!This->pDfd)
             return KTX_OUT_OF_MEMORY;
         memcpy(This->pDfd, createInfo->pDfd, *createInfo->pDfd);
-        if (!ktxFormatSize_initFromDfd(&formatSize, This->pDfd)) {
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) {
             result = KTX_UNSUPPORTED_TEXTURE_TYPE;
             goto cleanup;
         }
@@ -802,8 +807,8 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     }
 
     // Before doing any access on pDfd, make use of the extensive checks in ktxFormatSize_initFromDfd
-    if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
-        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+    result = ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd);
+    if (result != KTX_SUCCESS) {
         goto cleanup;
     }
 
