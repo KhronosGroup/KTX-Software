@@ -962,7 +962,7 @@ ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
          * caller will not be able to free the data because the stream pointer
          * is not yet returned.
          */
-        dststr.closeOnDestruct = true;
+        // dststr.closeOnDestruct = true;
         ktxMemStream_destruct(&dststr);
         return result;
     }
