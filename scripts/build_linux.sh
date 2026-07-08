@@ -73,13 +73,19 @@ if [[ -z $BUILD_DIR ]]; then
   if [ "$ARCH" != $(uname -m) ]; then
     BUILD_DIR+="-$ARCH-"
   fi
+  # Add configuration name to directory for single-configuration generators
   if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
     # Single configuration generator. That only a single configuration
     # is specified has already been verified.
     BUILD_DIR+="-$CONFIGURATION"
-    CMAKE_BUILD_TYPE=$CONFIGURATION
   fi
 fi
+
+# Set CMAKE_BUILD_TYPE only for single-configuration generators
+if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
+  CMAKE_BUILD_TYPE=$CONFIGURATION
+fi
+
 cmake_args+=("-B" $BUILD_DIR)
 # Just setting the environment variable does not seem to work so pass to cmake.
 if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
