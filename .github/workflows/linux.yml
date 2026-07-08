@@ -188,7 +188,7 @@ jobs:
 
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
-      # Only perform ASan/UBSan/TSan on linux runners because they significantly slow down tests
+      # Only perform ASan/UBSan/TSan on linux runners because they slow down tests
       SANITIZE: ${{ matrix.options.sanitize || '' }}
 
     steps:

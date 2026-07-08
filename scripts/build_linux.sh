@@ -129,6 +129,9 @@ for arg in "${cmake_args[@]}"; do
   esac
 done
 echo ${config_display%??}
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd $BUILD_DIR
