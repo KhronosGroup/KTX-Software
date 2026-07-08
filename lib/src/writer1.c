@@ -958,6 +958,11 @@ ktxTexture1_WriteKTX2ToMemory(ktxTexture1* This,
     result = ktxTexture1_WriteKTX2ToStream(This, &dststr);
     if(result != KTX_SUCCESS)
     {
+        /* Make sure to free data on destruct in case of errors otherwise the
+         * caller will not be able to free the data because the stream pointer
+         * is not yet returned.
+         */
+        dststr.closeOnDestruct = true;
         ktxMemStream_destruct(&dststr);
         return result;
     }

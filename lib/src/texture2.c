@@ -254,15 +254,14 @@ bool
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
     const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
-    const uint32_t sizeof_DFDBHeader = sizeof(uint32_t) * 2;
+    const uint32_t sizeof_BDFDHeader = KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE;
     const uint32_t sizeof_BDFD = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
     const uint32_t sizeof_BDFDSample = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
 
     uint32_t* pBdb = pDfd + 1;
     // pDfd[0] contains totalSize in bytes, check if it has at least
-    // KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE bytes
-    // Added: '+ sizeof(uint32_t)' so that this aligns with printdfd.c, otherwise it doesn't make sense ...
-    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_DFDBHeader) || *pBdb != 0) {
+    // sizeof(BDFD header) + sizeof(pDfd[0]) bytes
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFDHeader) || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
         return false;
     }
@@ -296,14 +295,17 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         return false;  // Invalid DFD: Missing or partial basic DFD block
     }
 
+    // Equivalent to:
+    // pDfd[0] < (KHR_DF_WORD_SAMPLESTART + 1 + KHR_DF_WORD_SAMPLEWORDS) * sizeof(ktx_uint32_t)
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD + sizeof_BDFDSample)) {
+        return false;  // Invalid DFD: Missing or partial basic DFD sample
+    }
+
     // DFD has supported type and version. Process it.
     This->blockWidth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION0) + 1;
     This->blockHeight = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION1) + 1;
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
     if (KHR_DFDVAL(pBdb, BYTESPLANE0) == 0) {
-        if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD + sizeof_BDFDSample)) {
-            return false;  // Invalid DFD: Missing or partial basic DFD sample
-        }
         // The DFD uses the deprecated way of indicating a supercompressed
         // texture. Reconstruct the original values.
         reconstructDFDBytesPlanesFromSamples(pDfd);
@@ -324,11 +326,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
             This->minBlocksX = This->minBlocksY = 2;
         }
-    } else {
-        // An uncompressed format.
-        if (pDfd[0] < (sizeof_BDFD + sizeof_BDFDSample + sizeof_dfdTotalSize)) {
-            return false;  // Invalid DFD: Missing or partial basic DFD sample
-        }
+    } else { // An uncompressed format.
         // Special case depth & depth stencil formats
         if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_DEPTH) {
             if (KHR_DFDSAMPLECOUNT(pBdb) == 1) {
@@ -802,15 +800,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
-    // TODO: shouldn't this be < sizeof(BDFD)?
-    // I added this check because:
-    //  - ASan reports "unknow-crash" on 'pBDFD->descriptorBlockSize'
-    //  - what if we allocated less than 8 bytes for BDFD struct? (i.e., < 12 bytes total)
-    if ((pHeader->dataFormatDescriptor.byteLength - sizeof(ktx_uint32_t)) < 24) {
-        // BDFD has invalid size
-        result = KTX_FILE_DATA_ERROR;
+
+    // Before doing any access on pDfd, make use of the extensive checks in ktxFormatSize_initFromDfd
+    if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
+        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
         goto cleanup;
     }
+
     pBDFD = (struct BDFD*)(This->pDfd + 1);
     if (pBDFD->descriptorBlockSize < 24 || (pBDFD->descriptorBlockSize - 24) % 16 != 0) {
         // BDFD has invalid size
@@ -838,10 +834,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
           goto cleanup;
     }
 
-    if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
-        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
-        goto cleanup;
-    }
     This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
