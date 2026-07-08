@@ -941,8 +941,6 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
         const khr_df_versionnumber_e versionNumber = KHR_DFDVAL(block, VERSIONNUMBER);
         const uint32_t blockSize = KHR_DFDVAL(block, DESCRIPTORBLOCKSIZE);
 
-        const int model = KHR_DFDVAL(block, MODEL);
-
         if (i == 0) {
             printf("%s", nl);
         } else {
@@ -968,6 +966,7 @@ void printDFDJSON(uint32_t* DFD, uint32_t dataSize, uint32_t base_indent, uint32
             printFlagBitsJSON(LENGTH_OF_INDENT(3), nl, flags, dfdToStringFlagsBit);
             PRINT_INDENT(2, "],%s", nl)
 
+            const int model = KHR_DFDVAL(block, MODEL);
             PRINT_ENUM_C(2, "transferFunction", KHR_DFDVAL(block, TRANSFER), dfdToStringTransferFunction);
             PRINT_ENUM_C(2, "colorPrimaries", KHR_DFDVAL(block, PRIMARIES), dfdToStringColorPrimaries);
             PRINT_ENUM_C(2, "colorModel", model, dfdToStringColorModel);
