@@ -3071,9 +3071,9 @@ class ktxTexture2AstcLdrEncodeDecodeTestBase
             if (status != 0) {
                 std::cout << std::ifstream(ktxdiffOut).rdbuf();
             }
-            fs::remove(original);
-            fs::remove(decoded);
-            fs::remove(ktxdiffOut);
+            if (fs::exists(original)) fs::remove(original);
+            if (fs::exists(decoded)) fs::remove(decoded);
+            if (fs::exists(ktxdiffOut)) fs::remove(ktxdiffOut);
         }
     }
   protected:
