@@ -252,6 +252,8 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
  *
  * @exception KTX_FILE_DATA_ERROR
  *                   Provided DFD is inconsistent with the KTX specification.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
+ *                   DFD not successfully interpreted by @c interpretDFD.
  */
 KTX_error_code
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
@@ -361,7 +363,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
             result = interpretDFD(pDfd, &rgba[0], &rgba[1], &rgba[2], &rgba[3],
                                   &wordBytes);
             if (result >= i_UNSUPPORTED_ERROR_BIT)
-                return KTX_FILE_DATA_ERROR;
+                return KTX_UNSUPPORTED_TEXTURE_TYPE;
             if (result & i_PACKED_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
             if (result & i_COMPRESSED_FORMAT_BIT)
@@ -469,8 +471,11 @@ ktxTexture2_construct(ktxTexture2* This,
         // has crept into vk2dfd.
         assert(ktxFormatSize_initFromDfd(&formatSize, This->pDfd) == KTX_SUCCESS);
 #else
-        // TODO: why no check on return here? Is it guaranteed that ktxVk2dfd will always correctly construct the dfd?
-        (void)ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) {
+          result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+          goto cleanup;
+        }
 #endif
 
     } else {
