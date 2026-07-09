@@ -64,8 +64,8 @@ Binaries are provided for 64-bit builds on Windows, macOS, and Linux.
 
 ## Windows and Linux
 
-For Windows and Linux the builds of the astcenc are provided as multiple
-binaries, each tuned for a specific SIMD instruction set.
+For Windows and Linux, the builds of astcenc are provided as multiple binaries,
+each tuned for a specific SIMD instruction set.
 
 For x86-64 we provide, in order of increasing performance:
 
@@ -89,9 +89,9 @@ style and requires the binary to match the vector length on the host CPU.
 
 ## macOS
 
-For macOS devices we provide a single universal binary `astcenc`, which allows
-the OS to automatically use the correct binary variant for the current host
-machine. Support is provided for three architecture slices:
+For macOS, we provide a single universal binary `astcenc`, which allows the OS
+to automatically use the correct binary variant for the current host machine.
+Support is provided for three architecture slices:
 
 * `x86_64` - uses the `astcenc-sse4.1` build defined above.
 * `x86_64h` - uses the `astcenc-avx2` build defined above.
@@ -108,13 +108,13 @@ The `4.x` branch is a stable branch for the older 4.x release series. It is no
 longer under active development, but is a supported branch that continues to
 get back-ported bug fixes.
 
-The `1.x`, `2.x`, and `3.x` branches are stable branches for older releases.
-They are no longer under active development or getting bug fixes.
+Older releases are no longer available as a release branch, but any official
+releases are still available via their git tag. We recommend that developers
+using an older version migrate to the latest 5.x series stable release tag.
 
 Any other branches you might find are development branches for new features or
 optimizations, so might be interesting to play with but should be considered
 transient and unstable.
-
 
 # Getting started
 
@@ -129,7 +129,7 @@ the astcenc encoder program, like this on Linux or macOS:
 
 Invoking `astcenc -help` gives an extensive help message, including usage
 instructions and details of all available command line options. A summary of
-the main encoder options are shown below.
+the main encoder options is shown below.
 
 ## Compressing an image
 
@@ -175,11 +175,11 @@ For example:
 
     astcenc -tl example.png example.tga 5x5 -thorough
 
-This is equivalent to using using the LDR color profile and a 5x5 block size
-to compress the image, using the `-thorough` quality preset, and then
-immediately decompressing the image and saving the result. This can be used
-to enable a visual inspection of the compressed image quality. In addition
-this mode also prints out some image quality metrics to the console.
+This is equivalent to using the LDR color profile and a 5x5 block size to
+compress the image, using the `-thorough` quality preset, and then immediately
+decompressing the image and saving the result. This can be used to enable a
+visual inspection of the compressed image quality. In addition this mode also
+prints out some image quality metrics to the console.
 
 The modes available mirror the options used for compression, but use a `t`
 prefix.
@@ -193,7 +193,7 @@ there will come a point where the compressed image quality is unacceptable
 because there are simply not enough bits to represent the output with the
 precision needed. We recommend experimenting with the block footprint to find
 the optimum balance between size and quality, as the finely adjustable
-compression ratio is one of major strengths of the ASTC format.
+compression ratio is one of the major strengths of the ASTC format.
 
 The compression speed can be controlled from `-fastest`, through `-fast`,
 `-medium` and `-thorough`, up to `-exhaustive`. In general, the more time the
@@ -241,7 +241,7 @@ or general mobile graphics development or technology please submit them on the
 
 - - -
 
-_Copyright © 2013-2025, Arm Limited and contributors. All rights reserved._
+_Copyright © 2013-2026, Arm Limited and contributors._
 
 [1]: ./Docs/FormatOverview.md
 [2]: https://www.khronos.org/registry/DataFormat/specs/1.4/dataformat.1.4.html#ASTC

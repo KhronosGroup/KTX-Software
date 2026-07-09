@@ -69,7 +69,7 @@ jobs:
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
-        ndk-version: r25c
+        ndk-version: r27d
         add-to-path: false
 
     - name: Force fetch provoking tag's annotation.

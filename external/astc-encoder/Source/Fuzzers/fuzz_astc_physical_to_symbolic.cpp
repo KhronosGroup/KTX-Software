@@ -24,7 +24,6 @@
  * ASTC block footprint.
  */
 
-
 #include "astcenc_internal.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
@@ -77,8 +76,10 @@ bool bsd_initializer()
 	return true;
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+extern "C" int LLVMFuzzerTestOneInput(
+	const uint8_t *data,
+	size_t size
+) {
 	// Preinitialize the block size descriptors we need
 	static bool init = bsd_initializer();
 

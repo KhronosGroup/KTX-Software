@@ -253,7 +253,7 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
     } astcenc;
     astcenc_context*& context = astcenc.context;
 
-    ec = astcenc_context_alloc(&config, threadCount, &context);
+    ec = astcenc_context_alloc(&config, threadCount, &context, nullptr);
     if (ec != ASTCENC_SUCCESS)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": astcenc_context_alloc: {}\n", filepath, astcenc_get_error_string(ec));
 

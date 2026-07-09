@@ -57,7 +57,7 @@ Weight grids have multiple states depending on how they are being used.
 **decimated_weights** represent reduced weight grids, which can store fewer
 weights and which are bilinear interpolated to generate the full weight grid.
 
-Full weights have no variable prefix,but decimated weights are stored with
+Full weights have no variable prefix, but decimated weights are stored with
 a `dec_` prefix.
 
 * `dec_weights_ideal_value`
@@ -72,8 +72,8 @@ interpolation weights. This gets very confusing in functions using all three!
 
 We are slowly refactoring the code to only use "weight" to mean the endpoint
 interpolation weights. The error weighting factors used for other purposes are
-being updated to use the using the term "significance".
+being updated to use the term "significance".
 
 - - -
 
-_Copyright © 2020-2022, Arm Limited and contributors. All rights reserved._
+_Copyright © 2020-2026, Arm Limited and contributors._

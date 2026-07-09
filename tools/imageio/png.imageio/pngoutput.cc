@@ -20,7 +20,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "lodepng.h"
+#include "lodepng/lodepng.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 

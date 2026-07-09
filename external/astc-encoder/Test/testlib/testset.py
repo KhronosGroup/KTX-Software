@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020 Arm Limited
+# Copyright 2020-2026 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -14,83 +14,261 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 # -----------------------------------------------------------------------------
-"""
-An ASTC TestSet is comprised of a set of TestImages. Images are stored in a
-structured directory layout. This structure encodes important metadata about
-each image - such as color profile and data encoding - in the directory and
-file names used.
+'''
+A TestSet is a single suite of related images used for testing, comprised of a
+list of TestImage instances stored on the file system.
 
-TestSets are built by using reflection on a root directory to automatically
-find all of the test images that comprise the set.
-"""
+Images are stored on the file system in a structured layout that encodes
+important metadata about each image, such as color profile and data encoding,
+as part of the directory and file names used.
 
-import os
+The directory hierarchy convention used is:
 
-from testlib.image import TestImage
+    <set_name>/<color_profile>/<file_name>
+
+The file name convention used is:
+
+    <color_profile>-<color_format>-<descriptive_name>[-<flags>].<extension>
+'''
+
+from pathlib import Path
+from typing import Optional
 
 
-class TSetException(Exception):
-    """
+class TestImageException(Exception):
+    '''
+    Exception thrown for bad test image specification.
+    '''
+
+
+class TestSetException(Exception):
+    '''
     Exception thrown for bad test set specification.
-    """
+    '''
 
 
-class TestSet():
-    """
-    Generate a list of images that are test candidates.
+class TestImage:
+    '''
+    Objects of this type contain metadata for a single test image on disk.
 
-    This reflection is built automatically based on a directory of images on
-    disk, provided that the images follow a standard structure.
+    Attributes:
+        file_path: The path of the file on disk.
+        file_path_out: The path of the output file on disk.
+        test_format: The test format group.
+        file_name: The test file name.
+        color_profile: The image compression color profile.
+        color_format: The image color format.
+        name: The image human name.
+        is_3d: True if the image is 3D, else False.
+        is_alpha_scaled: True if the image wants alpha scaling, else False.
+
+    Class Attributes:
+        TEST_EXTS: Expected test image extensions.
+        PROFILES: Tuple of valid color profile values.
+        FORMATS: Tuple of valid color format values.
+        FLAGS: Map of valid flags (key) and their meaning (value).
+    '''
+    TEST_EXTS = ('.jpg', '.png', '.tga', '.dds', '.hdr', '.ktx')
+
+    PROFILES = ('ldr', 'ldrs', 'hdr')
+
+    FORMATS = ('l', 'la', 'xy', 'rgb', 'rgba')
+
+    FLAGS = {
+        '3': '3D image',
+        'a': 'Alpha scaled image'
+    }
+
+    def __init__(self, file_path: Path):
+        '''
+        Create a new image definition, based on a structured file path.
+
+        Args:
+            file_path: The path of the image on disk.
+
+        Raise:
+            TestImageException: The image is not found or path is malformed.
+        '''
+        self.file_path = file_path.resolve()
+        if not self.file_path.exists():
+            raise TestImageException(f'Image does not exist ({file_path})')
+
+        self.test_set = file_path.parent.parent.name
+        self.test_format = file_path.parent.name
+        self.file_name = file_path.name
+
+        # Decode the mandatory fields
+        self.color_profile = self._decode_color_profile(file_path.stem)
+        self.color_format = self._decode_color_format(file_path.stem)
+        self.name = self._decode_name(file_path.stem)
+
+        # Decode flags
+        flags = self._decode_flags(file_path.stem)
+        self.is_3d = '3' in flags
+        self.is_alpha_scaled = 'a' in flags
+
+        # Output file path, with file stored without extension
+        # TODO: Move this elsewhere as it assumes the directory structure
+        root_dir = Path(__file__).parent.parent
+        self.file_path_out = \
+            root_dir / 'TestOutput' / \
+            self.test_set / self.test_format / file_path.stem
+
+    def _decode_color_profile(self, file_name: str) -> str:
+        '''
+        Utility function to decode color profile from file name.
+
+        Args:
+            file_name: The base file name to parse.
+
+        Return:
+            Color profile.
+
+        Raise:
+            TestImageException: File path is malformed.
+        '''
+        parts = file_name.split('-')
+        if len(parts) < 3:
+            raise TestImageException(f'Malformed file name ({file_name})')
+
+        profile = parts[0]
+        if profile not in self.PROFILES:
+            raise TestImageException(f'Unknown color profile ({profile})')
+
+        return profile
+
+    def _decode_color_format(self, file_name: str) -> str:
+        '''
+        Utility function to decode color format from file name.
+
+        Args:
+            file_name: The base file name to parse.
+
+        Return:
+            Color format.
+
+        Raise:
+            TestImageException: File path is malformed.
+        '''
+        parts = file_name.split('-')
+        if len(parts) < 3:
+            raise TestImageException(f'Malformed file name ({self.file_name})')
+
+        cformat = parts[1]
+        if cformat not in self.FORMATS:
+            raise TestImageException(f'Unknown color format ({cformat})')
+
+        return cformat
+
+    def _decode_name(self, file_name: str) -> str:
+        '''
+        Utility function to decode human readable name from file name.
+
+        Args:
+            file_name: The base file name to parse.
+
+        Return:
+            Human readable name.
+
+        Raise:
+            TestImageException: File path is malformed.
+        '''
+        parts = file_name.split('-')
+        if len(parts) < 3:
+            raise TestImageException(f'Malformed file name ({self.file_name})')
+
+        return parts[2]
+
+    def _decode_flags(self, file_name: str) -> set[str]:
+        '''
+        Utility function to decode the flags from file name.
+
+        Args:
+            file_name: The base file name to parse.
+
+        Return:
+            Set of validated flags.
+
+        Raise:
+            TestImageException: File path is malformed.
+        '''
+        flags: set[str] = set()
+        parts = file_name.split('-')
+
+        # No flags specified
+        if len(parts) < 4:
+            return flags
+
+        # ... else decode the flags field
+        raw_flags = parts[3]
+        for flag in raw_flags:
+            if flag in flags:
+                raise TestImageException(f'Duplicate flag ({flag})')
+
+            if flag not in self.FLAGS:
+                raise TestImageException(f'Unknown flag ({flag})')
+
+            flags.add(flag)
+
+        return flags
+
+
+class TestSet:
+    '''
+    A suite of related images used for testing, comprised of a list of
+    TestImage instances. TestImages are discovered by reading images from a
+    directory in the filesystem.
 
     Attributes:
         name: The name of the test set.
         tests: The list of TestImages forming the set.
-    """
+    '''
 
-    def __init__(self, name, rootDir, profiles, formats, imageFilter=None):
-        """
-        Create a new TestSet through reflection.
+    def __init__(self, name: str, set_dir: Path, profiles: list[str],
+                 formats: list[str], target_image: Optional[str] = None):
+        '''
+        Create a new TestSet using file-system discovery to find the images.
 
         Args:
-            name (str): The name of the test set.
-            rootDir (str): The root directory of the test set.
-            profiles (list(str)): The ASTC profiles to allow.
-            formats (list(str)): The image formats to allow.
-            imageFilter (str): The name of the image to include (for bug repo).
+            name: The name of the test set.
+            set_dir: The root directory of the test set.
+            profiles: The compressor profiles to allow.
+            formats: The image formats to allow.
+            target_image: The name of the image to keep (for bug repo).
 
-        Raises:
-            TSetException: The specified TestSet could not be loaded.
-        """
+        Raise:
+            TestSetException: The test set could not be loaded.
+        '''
         self.name = name
 
-        if not os.path.exists(rootDir) and not os.path.isdir(rootDir):
-            raise TSetException("Bad test set root directory (%s)" % rootDir)
+        if not set_dir.exists() or not set_dir.is_dir():
+            raise TestSetException(f'Bad test set directory ({set_dir})')
 
         self.tests = []
 
-        for (dirPath, dirNames, fileNames) in os.walk(rootDir):
-            for fileName in fileNames:
+        for (dir_path, _, file_names) in set_dir.walk():
+            for file_name in file_names:
+                file_path = dir_path / file_name
+
                 # Only select image files
-                fileExt = os.path.splitext(fileName)[1]
-                if fileExt not in TestImage.TEST_EXTS:
+                ext = file_path.suffix
+                if ext not in TestImage.TEST_EXTS:
                     continue
 
                 # Create the TestImage for each file on disk
-                filePath = os.path.join(dirPath, fileName)
-                image = TestImage(filePath)
+                image = TestImage(file_path)
 
-                # Filter out the ones we don't want to allow
-                if image.colorProfile not in profiles:
+                # Filter out the images we don't want to keep
+                if image.color_profile not in profiles:
                     continue
 
-                if image.colorFormat not in formats:
+                if image.color_format not in formats:
                     continue
 
-                if imageFilter and image.testFile != imageFilter:
+                if target_image and image.file_name != target_image:
                     continue
 
-                self.tests.append((filePath, image))
+                self.tests.append(image)
 
-        # Sort the TestImages so they are in a stable order
-        self.tests.sort()
-        self.tests = [x[1] for x in self.tests]
+        # Sort the images so they are in a stable order
+        self.tests.sort(key=lambda x: x.file_path)

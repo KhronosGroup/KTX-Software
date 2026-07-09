@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2021-2024 Arm Limited
+// Copyright 2021-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	// ------------------------------------------------------------------------
 	// Create a context based on the configuration
 	astcenc_context* context;
-	status = astcenc_context_alloc(&config, thread_count, &context);
+	status = astcenc_context_alloc(&config, thread_count, &context, nullptr);
 	if (status != ASTCENC_SUCCESS)
 	{
 		printf("ERROR: Codec context alloc failed: %s\n", astcenc_get_error_string(status));

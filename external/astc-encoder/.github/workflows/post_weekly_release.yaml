@@ -18,11 +18,8 @@ jobs:
     name: Run Coverity static analysis
     runs-on: [self-hosted-ubuntu-latest-x64]
     steps:
-      - name: Clean workspace
-        uses: AutoModality/action-clean@v1
-
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -67,7 +64,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -86,7 +83,7 @@ jobs:
           make install package -j4
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-linux-arm64
           path: |
@@ -94,9 +91,9 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -111,12 +108,18 @@ jobs:
 
   build-ubuntu-x64:
     name: Ubuntu x64
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
 
       - name: Build release
         run: |
@@ -127,7 +130,7 @@ jobs:
           make install package -j4
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-linux-x86_64
           path: |
@@ -135,9 +138,9 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -154,7 +157,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -166,7 +169,7 @@ jobs:
           make install package -j4
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-macos-universal
           path: |
@@ -174,9 +177,9 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -192,7 +195,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -225,7 +228,7 @@ jobs:
         shell: cmd
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-windows-multi-cl
           path: |
@@ -235,9 +238,9 @@ jobs:
             build_rel_arm64/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -256,9 +259,6 @@ jobs:
     runs-on: [self-hosted-ubuntu-latest-x64]
     needs: [build-macos-universal, build-windows-multi]
     steps:
-      - name: Clean workspace
-        uses: AutoModality/action-clean@v1
-
       - name: Checkout signing code
         env:
           SIGNING_REPO_URL: ${{ secrets.SIGNING_REPO_URL }}
@@ -276,13 +276,13 @@ jobs:
           pip install -i https://${ARTIFACTORY_USER}:${ARTIFACTORY_APIKEY}@${ARTIFACTORY_FQDN}/artifactory/api/pypi/dsgcore.pypi/simple code-signer-client
 
       - name: Download macOS binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: astcenc-macos-universal
           path: mac
 
       - name: Download Windows binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: astcenc-windows-multi-cl
           path: windows
@@ -305,7 +305,7 @@ jobs:
           for ZIPFILE in *.zip; do python3 ../signing/windows-client-wrapper.py -b ${GITHUB_RUN_NUMBER} -t ${ARTIFACTORY_APIKEY} ${ZIPFILE}; done
 
       - name: Upload signed binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: signed-binaries
           path: |
@@ -313,7 +313,7 @@ jobs:
             mac/*
 
       - name: Tidy intermediate artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             astcenc-windows-multi-cl
@@ -322,26 +322,26 @@ jobs:
   prepare-release:
     if: ${{ (startsWith(github.event.ref, 'refs/tags/')) && (github.repository_owner == 'Arm-software') }}
     name: Prepare release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [sign-binaries, build-ubuntu-x64]
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download signed binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: signed-binaries
           path: prepare-release
 
       - name: Download Linux x86_64 binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: astcenc-linux-x86_64
           path: prepare-release
 
       - name: Download Linux arm64 binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: astcenc-linux-arm64
           path: prepare-release

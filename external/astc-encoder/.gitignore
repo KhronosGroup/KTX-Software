@@ -9,6 +9,7 @@
 *.o
 *.a
 __pycache__
+pve
 Scratch
 Proto
 
