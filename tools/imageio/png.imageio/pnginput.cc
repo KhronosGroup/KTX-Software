@@ -22,7 +22,7 @@
 #include <stdexcept>
 
 #include "imageio_utility.h"
-#include "lodepng.h"
+#include "lodepng/lodepng.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 

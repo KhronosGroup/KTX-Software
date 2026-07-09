@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   build-ubuntu-arm64-clang:
@@ -13,7 +15,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -39,8 +41,17 @@ jobs:
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_ISA_NONE=ON ..
           make -j4
 
+      - name: Build example
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_VERSION=refs/pull/${{ github.event.number }}/head ..
+          make -j4
+        working-directory: Utils/Example
+
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-linux-arm64
           path: |
@@ -48,9 +59,101 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # Disable SVE for now
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+
+      - name: Run unit tests
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-arm64-clang-asan:
+    name: Ubuntu arm64 Clang (ASAN)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_ISA_NONE=ON -DASTCENC_PACKAGE=arm64 -DASTCENC_ASAN=ON ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # Disable SVE for now
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+
+      - name: Run unit tests
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-arm64-clang-ubasn:
+    name: Ubuntu arm64 Clang (UBSAN)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_SVE_256=ON -DASTCENC_ISA_NONE=ON -DASTCENC_PACKAGE=arm64 -DASTCENC_UBSAN=ON ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -75,7 +178,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -104,10 +207,117 @@ jobs:
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_ISA_NEON=ON DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_NONE=ON ..
           make -j4
 
+      - name: Build example
+        run: |
+          export CXX=g++-14
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_VERSION=refs/pull/${{ github.event.number }}/head ..
+          make -j4
+        working-directory: Utils/Example
+
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # Disable SVE for now
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+
+      - name: Run unit tests
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-arm64-gcc-asan:
+    name: Ubuntu arm64 GCC (ASAN)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Install GCC 14
+        run: sudo apt-get install -y gcc-14
+
+      - name: Build release
+        run: |
+          export CXX=g++-14
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_NONE=ON -DASTCENC_ASAN=ON ..
+          make install -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        # Disable SVE for now
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder neon
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder neon --test-set Small
+
+      - name: Run unit tests
+        # Disable SVE for now
+        run: ctest -E "test-unit-sve_128|test-unit-sve_256" --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-arm64-gcc-ubsan:
+    name: Ubuntu arm64 GCC (UBSAN)
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Install GCC 14
+        run: sudo apt-get install -y gcc-14
+
+      - name: Build release
+        run: |
+          export CXX=g++-14
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_NEON=ON -DASTCENC_ISA_SVE_128=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UBSAN=ON ..
+          make install -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -129,12 +339,18 @@ jobs:
 
   build-ubuntu-x64-clang:
     name: Ubuntu x64 Clang
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
 
       - name: Build release
         run: |
@@ -152,8 +368,17 @@ jobs:
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
           make -j4
 
+      - name: Build example
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_VERSION=refs/pull/${{ github.event.number }}/head ..
+          make -j4
+        working-directory: Utils/Example
+
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-linux-x64
           path: |
@@ -161,9 +386,101 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-x64-clang-asan:
+    name: Ubuntu x64 Clang (ASAN)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_ASAN=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-x64-clang-ubsan:
+    name: Ubuntu x64 Clang (UBSAN)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=clang++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_UBSAN=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -185,12 +502,18 @@ jobs:
 
   build-ubuntu-x64-gcc:
     name: Ubuntu x64 GCC
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
 
       - name: Build release
         run: |
@@ -208,17 +531,118 @@ jobs:
           cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON ..
           make -j4
 
+      - name: Build example
+        run: |
+          export CXX=g++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DASTCENC_VERSION=refs/pull/${{ github.event.number }}/head ..
+          make -j4
+        working-directory: Utils/Example
+
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
           python -m pip install --upgrade pip
           pip install numpy Pillow
 
-      - name: Python rests
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-x64-gcc-asan:
+    name: Ubuntu x64 GCC (ASAN)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=g++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_ASAN=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
+        run: |
+          python ./Test/astc_test_functional.py --encoder none
+          python ./Test/astc_test_functional.py --encoder sse2
+          python ./Test/astc_test_functional.py --encoder sse4.1
+          python ./Test/astc_test_functional.py --encoder avx2
+          python ./Test/astc_test_image.py --encoder none --test-set Small
+          python ./Test/astc_test_image.py --encoder all-x86 --test-set Small
+
+      - name: Run unit tests
+        run: ctest --rerun-failed --output-on-failure
+        working-directory: build_rel
+
+  build-ubuntu-x64-gcc-ubsan:
+    name: Ubuntu x64 GCC (UBSAN)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Update apt packages
+        run: sudo apt-get update
+
+      - name: Install ImageMagick
+        run: sudo apt-get install imagemagick
+
+      - name: Build release
+        run: |
+          export CXX=g++
+          mkdir build_rel
+          cd build_rel
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../ -DASTCENC_UNITTEST=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON -DASTCENC_ISA_SSE2=ON -DASTCENC_ISA_NONE=ON -DASTCENC_UNITTEST=ON -DASTCENC_UBSAN=ON -DASTCENC_PACKAGE=x64 ..
+          make install package -j4
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Get Python modules
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy Pillow
+
+      - name: Run system tests
         run: |
           python ./Test/astc_test_functional.py --encoder none
           python ./Test/astc_test_functional.py --encoder sse2
@@ -236,7 +660,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -255,9 +679,9 @@ jobs:
           make -j4
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -277,7 +701,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -296,7 +720,7 @@ jobs:
           make -j4
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-macos-universal
           path: |
@@ -304,9 +728,9 @@ jobs:
             build_rel/*.zip.sha256
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -326,7 +750,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -350,9 +774,9 @@ jobs:
         shell: cmd
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -374,7 +798,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -400,7 +824,7 @@ jobs:
         shell: cmd
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-windows-x64
           path: |
@@ -408,9 +832,9 @@ jobs:
             build_rel_arm64/*.zip
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Get Python modules
         run: |
@@ -432,7 +856,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Git checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: 'true'
 
@@ -460,7 +884,7 @@ jobs:
         shell: cmd
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: astcenc-windows-arm64
           path: |

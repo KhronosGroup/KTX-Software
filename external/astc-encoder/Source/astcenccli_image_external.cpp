@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2023 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -16,12 +16,13 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Functions for building the implementation of stb_image and tinyexr.
+ * @brief Functions for implementation of stb_image, TinyEXR, and Wuffs.
  */
 
 #include <cstdlib>
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <vector>
 
 #include "astcenccli_internal.h"
@@ -34,9 +35,14 @@
 #define STBI_NO_PNM
 #define STBI_NO_PNG
 #define STBI_NO_PSD
+#define STBI_SUPPORT_ZLIB
+#define STBI_ASSERT(x) astcenc_runtime_assert(x)
 
 // Configure the TinyEXR library build.
 #define TINYEXR_IMPLEMENTATION
+#define TINYEXR_USE_MINIZ 0
+#define TINYEXR_USE_STB_ZLIB 1
+#define TEXR_ASSERT(x) astcenc_runtime_assert(x)
 
 // Configure the Wuffs library build.
 #define WUFFS_IMPLEMENTATION
@@ -47,12 +53,6 @@
 #define WUFFS_CONFIG__MODULE__DEFLATE
 #define WUFFS_CONFIG__MODULE__PNG
 #define WUFFS_CONFIG__MODULE__ZLIB
-#include "wuffs-v0.3.c"
-
-// For both libraries force asserts (which can be triggered by corrupt input
-// images) to be handled at runtime in release builds to avoid security issues.
-#define STBI_ASSERT(x) astcenc_runtime_assert(x)
-#define TEXR_ASSERT(x) astcenc_runtime_assert(x)
 
 /**
  * @brief Trap image load failures and convert into a runtime error.
@@ -61,7 +61,7 @@ static void astcenc_runtime_assert(bool condition)
 {
     if (!condition)
     {
-        print_error("ERROR: Corrupt input image\n");
+        print_error("ERROR: Image header corrupt\n");
         exit(1);
     }
 }
@@ -69,6 +69,15 @@ static void astcenc_runtime_assert(bool condition)
 #include "ThirdParty/stb_image.h"
 #include "ThirdParty/stb_image_write.h"
 #include "ThirdParty/tinyexr.h"
+#include "ThirdParty/wuffs-v0.3.c"
+
+struct wuffs_image_deleter
+{
+	void operator()(void* ptr) const
+	{
+		free(ptr);
+	}
+};
 
 /**
  * @brief Load an image using Wuffs to provide the loader.
@@ -80,7 +89,7 @@ static void astcenc_runtime_assert(bool condition)
  *
  * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
  */
-astcenc_image* load_png_with_wuffs(
+astcenc_image_ptr load_png_with_wuffs(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
@@ -92,7 +101,7 @@ astcenc_image* load_png_with_wuffs(
 	std::ifstream file(filename, std::ios::binary | std::ios::ate);
 	if (!file)
 	{
-		print_error("ERROR: Failed to load image %s (can't fopen)\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return nullptr;
 	}
 
@@ -102,7 +111,7 @@ astcenc_image* load_png_with_wuffs(
 	std::vector<uint8_t> buffer(size);
 	file.read((char*)buffer.data(), size);
 
-	wuffs_png__decoder *dec = wuffs_png__decoder__alloc();
+	std::unique_ptr<wuffs_png__decoder, wuffs_image_deleter> dec { wuffs_png__decoder__alloc() };
 	if (!dec)
 	{
 		return nullptr;
@@ -110,7 +119,7 @@ astcenc_image* load_png_with_wuffs(
 
 	wuffs_base__image_config ic;
 	wuffs_base__io_buffer src = wuffs_base__ptr_u8__reader(buffer.data(), size, true);
-	wuffs_base__status status = wuffs_png__decoder__decode_image_config(dec, &ic, &src);
+	wuffs_base__status status = wuffs_png__decoder__decode_image_config(dec.get(), &ic, &src);
 	if (status.repr)
 	{
 		return nullptr;
@@ -132,23 +141,17 @@ astcenc_image* load_png_with_wuffs(
 	    dim_x, dim_y);
 
 	// Configure the work buffer
-	size_t workbuf_len = wuffs_png__decoder__workbuf_len(dec).max_incl;
+	uint64_t workbuf_len = wuffs_png__decoder__workbuf_len(dec.get()).max_incl;
 	if (workbuf_len > SIZE_MAX)
 	{
 		return nullptr;
 	}
 
-	wuffs_base__slice_u8 workbuf_slice = wuffs_base__make_slice_u8((uint8_t*)malloc(workbuf_len), workbuf_len);
-	if (!workbuf_slice.ptr)
-	{
-		return nullptr;
-	}
+	std::vector<uint8_t> workbuf(workbuf_len);
+	wuffs_base__slice_u8 workbuf_slice = wuffs_base__make_slice_u8(workbuf.data(), workbuf.size());
 
-	wuffs_base__slice_u8 pixbuf_slice = wuffs_base__make_slice_u8((uint8_t*)malloc(num_pixels * 4), num_pixels * 4);
-	if (!pixbuf_slice.ptr)
-	{
-		return nullptr;
-	}
+	std::vector<uint8_t> pixbuf(num_pixels * 4);
+	wuffs_base__slice_u8 pixbuf_slice = wuffs_base__make_slice_u8(pixbuf.data(), pixbuf.size());
 
 	wuffs_base__pixel_buffer pb;
 	status = wuffs_base__pixel_buffer__set_from_slice(&pb, &ic.pixcfg, pixbuf_slice);
@@ -158,17 +161,11 @@ astcenc_image* load_png_with_wuffs(
 	}
 
 	// Decode the pixels
-	status = wuffs_png__decoder__decode_frame(dec, &pb, &src, WUFFS_BASE__PIXEL_BLEND__SRC, workbuf_slice, NULL);
+	status = wuffs_png__decoder__decode_frame(dec.get(), &pb, &src, WUFFS_BASE__PIXEL_BLEND__SRC, workbuf_slice, NULL);
 	if (status.repr)
 	{
 		return nullptr;
 	}
 
-	astcenc_image* img = astc_img_from_unorm8x4_array(pixbuf_slice.ptr, dim_x, dim_y, y_flip);
-
-	free(pixbuf_slice.ptr);
-	free(workbuf_slice.ptr);
-	free(dec);
-
-	return img;
+	return astc_img_from_unorm8x4_array(pixbuf_slice.ptr, dim_x, dim_y, y_flip);
 }

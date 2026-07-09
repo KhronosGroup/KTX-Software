@@ -2,7 +2,7 @@
 
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2021 Arm Limited
+#  Copyright 2020-2026 Arm Limited
 #  Copyright 2020 Google Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -20,12 +20,12 @@
 
 # This script is invoked by oss-fuzz from <root>/Source/
 
-# Generate a dummy version header (normally built by CMake variable expansion)
+# Generate a dummy version header (normally built by CMake)
 echo "#pragma once" > astcenccli_version.h
 echo "#define VERSION_STRING \"0.0.0\"" >> astcenccli_version.h
 echo "#define YEAR_STRING \"2021\"" >> astcenccli_version.h
 
-# Build the core project for fuzz tests to link against
+# Build codec library
 for source in ./*.cpp; do
   BASE="${source##*/}"
   BASE="${BASE%.cpp}"
@@ -36,20 +36,20 @@ for source in ./*.cpp; do
       -DASTCENC_SSE=0 \
       -DASTCENC_AVX=0 \
       -DASTCENC_POPCNT=0 \
-      -I. -std=c++14 -mfpmath=sse -msse2 -fno-strict-aliasing -O0 -g \
+      -I. -std=c++17 -mfpmath=sse -msse2 -fno-strict-aliasing -g \
       $source \
       -o ${BASE}.o
 done
 
 ar -qc libastcenc.a *.o
 
-# Build project local fuzzers
+# Build fuzzers
 for fuzzer in ./Fuzzers/fuzz_*.cpp; do
   $CXX $CXXFLAGS \
       -DASTCENC_SSE=0 \
       -DASTCENC_AVX=0 \
       -DASTCENC_POPCNT=0 \
-      -I. -std=c++14 $fuzzer $LIB_FUZZING_ENGINE ./libastcenc.a \
+      -I. -std=c++17 $fuzzer $LIB_FUZZING_ENGINE ./libastcenc.a \
       -o $OUT/$(basename -s .cpp $fuzzer)
 done
 

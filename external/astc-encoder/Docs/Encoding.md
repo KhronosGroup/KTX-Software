@@ -1,6 +1,6 @@
 # Effective ASTC Encoding
 
-Most texture compression schemes encode a single color format at single
+Most texture compression schemes encode a single color format at a single
 bitrate, so there are relatively few configuration options available to content
 creators beyond selecting which compressed format to use.
 
@@ -94,11 +94,11 @@ component luminance will be returned for all three of the `.rgb` components.
 
 ## Equivalence with other formats
 
-Based on these component encoding requirements we can now derive the the ASTC
+Based on these component encoding requirements we can now derive the ASTC
 coding equivalents for most of the other texture compression formats in common
 use today.
 
-| Formant  | ASTC Coding Swizzle | ASTC Sampling Swizzle | Notes            |
+| Format   | ASTC Coding Swizzle | ASTC Sampling Swizzle | Notes            |
 | -------- | ------------------- | --------------------- | ---------------- |
 | BC1      | `rgba` <sup>1</sup> | `.rgba`               |                  |
 | BC3      | `rgba`              | `.rgba`               |                  |
@@ -120,7 +120,7 @@ component.
 
 **2:** ASTC relies on using the L+A color endpoint type for coding efficiency
 for two component data. It therefore has no direct equivalent of a two-plane
-format sampled though the `.rg` components such as BC5 or EAC_RG11. This can
+format sampled through the `.rg` components such as BC5 or EAC_RG11. This can
 be emulated by setting texture component swizzles in the runtime API - e.g. via
 `glTexParameteri()` for OpenGL ES - although it has been noted that API
 controlled swizzles are not available in WebGL.
@@ -232,4 +232,4 @@ which will treat all components as HDR data.
 
 - - -
 
-_Copyright © 2019-2024, Arm Limited and contributors. All rights reserved._
+_Copyright © 2019-2026, Arm Limited and contributors._

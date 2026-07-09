@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2019-2020 Arm Limited
+# Copyright 2019-2026 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -15,165 +15,158 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 # -----------------------------------------------------------------------------
-"""
-The ``astc_test_image_dl`` utility provides a means to programatically download
-test images that are available online, avoiding the need to duplicate them in
-the git repository.
-"""
+'''
+This script is a utility to download test images that are available online,
+avoiding the need to duplicate them in the repository.
+'''
 
-
-import os
+from pathlib import Path
 import sys
 import urllib.request
 
 from PIL import Image
 
 
-TEST_IMAGE_DIR = os.path.join("Test", "Images")
+TEST_IMAGE_DIR = Path('Test/Images')
 
 
-def download(testSet, index, srcUrl, dstPath):
-    """
+def download(test_set: str, index: int, src_url: str, dst_path: Path) -> None:
+    '''
     Download a single image.
 
     Args:
-        testSet (str): The test set name.
-        index (int): The download index.
-        srcUrl (str): The download URL.
-        dstPath (str): The destination path.
-    """
-    dirName = os.path.dirname(dstPath)
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-
+        test_set: The test set name.
+        index: The download image index.
+        src_url: The download URL.
+        dst_path: The destination file path.
+    '''
     # Skip downloads if the file already exists
-    if not os.path.exists(dstPath):
-        print("%s image %u: Downloading" % (testSet, index))
-        urllib.request.urlretrieve(srcUrl, dstPath)
-    else:
-        print("%s image %u: Skipping" % (testSet, index))
+    if dst_path.exists():
+        print(f'{test_set} image {index}: Skipping')
+        return
+
+    dir_name = dst_path.parent
+    dir_name.mkdir(parents=True, exist_ok=True)
+
+    print(f'{test_set} image {index}: Downloading')
+    urllib.request.urlretrieve(src_url, dst_path)
 
 
-def make_landscape(imgPath):
-    """
-    Make an image on disk landscape aspect (edit in place)
-
-    Args:
-        imgPath: The pth of the image on disk.
-    """
-    img = Image.open(imgPath)
-    if img.size[0] < img.size[1]:
-        img = img.rotate(90, expand=True)
-        img.save(imgPath)
-
-
-def make_mixed_image(imgPathA, imgPathB, dstPath):
-    """
-    Make image consisting of RGB from A's RGB, and alpha from B's luminance.
+def make_landscape(file_path: Path) -> None:
+    '''
+    Modify an existing image on disk to make it landscape aspect.
 
     Args:
-        imgPathA: The path of input A on disk.
-        imgPathB: The path of input B on disk.
-        dstPath: The path of the destination.
-    """
-    imgA = Image.open(imgPathA)
-    imgB = Image.open(imgPathB).convert("L")
-
-    imgA.putalpha(imgB)
-
-    dirs = os.path.dirname(dstPath)
-    if not os.path.exists(dirs):
-        os.makedirs(dirs)
-
-    imgA.save(dstPath)
+        file_path: The path of the image on disk.
+    '''
+    image = Image.open(file_path)
+    if image.size[0] < image.size[1]:
+        rotated_image = image.rotate(90, expand=True)
+        rotated_image.save(file_path)
 
 
-def make_montage(imageDir, dstPath):
-    """
+def make_mixed_image(srca_path: Path, srcb_path: Path, dst_path: Path) -> None:
+    '''
+    Make image consisting of RGB from A, and alpha from B.
+
+    Args:
+        srca_path: The path of input A on disk.
+        srcb_path: The path of input B on disk.
+        dst_path: The path of the destination.
+    '''
+    dir_name = dst_path.parent
+    dir_name.mkdir(parents=True, exist_ok=True)
+
+    image_rgb = Image.open(srca_path)
+    image_alpha = Image.open(srcb_path).convert('L')
+
+    image_rgb.putalpha(image_alpha)
+    image_rgb.save(dst_path)
+
+
+def make_montage(src_dir_path: Path, dst_path: Path):
+    '''
     Make a single mosaic montage consisting of all of the Kodak images.
 
     Args:
-        imgDir: The directory path of the Kodak images on disk.
-        dstPth: The file path of the resulting montage.
-    """
+        src_dir_path: The directory path of the Kodak images on disk.
+        dst_path: The file path of the resulting montage.
+    '''
     cols = 6
     rows = 4
 
     width = 768
     height = 512
 
-    images = os.listdir(imageDir)
+    images = list(src_dir_path.glob('*.png'))
     images.sort()
 
     montage = Image.new('RGB', (width * cols, height * rows))
 
-    for i, src in enumerate(images):
-        im = Image.open(os.path.join(imageDir, src))
+    for i, src_path in enumerate(images):
+        im = Image.open(src_path)
         col = i % cols
         row = i // cols
         montage.paste(im, (width * col, height * row))
 
-    dirs = os.path.dirname(dstPath)
-    if not os.path.exists(dirs):
-        os.makedirs(dirs)
+    dir_name = dst_path.parent
+    dir_name.mkdir(parents=True, exist_ok=True)
 
-    montage.save(dstPath)
+    montage.save(dst_path)
 
 
 def retrieve_kodak_set():
-    """
+    '''
     Download the public domain Kodak image set.
 
     To make test set mosaics easier to build we rotate images to make
     everything landscape.
-    """
-    testSet = "Kodak"
+    '''
+    test_set = 'Kodak'
 
     # Download the original RGB images
     for i in range(1, 25):
-        fle = "ldr-rgb-kodak%02u.png" % i
-        dst = os.path.join(TEST_IMAGE_DIR, "Kodak", "LDR-RGB", fle)
-        src = "http://r0k.us/graphics/kodak/kodak/kodim%02u.png" % i
-        download(testSet, i, src, dst)
+        src_url = f'http://r0k.us/graphics/kodak/kodak/kodim{i:02}.png'
+
+        dst_file = f'ldr-rgb-kodak{i:02}.png'
+        dst_path = TEST_IMAGE_DIR / 'Kodak' / 'LDR-RGB' / dst_file
+        download(test_set, i, src_url, dst_path)
 
         # Canonicalize image aspect
-        make_landscape(dst)
+        make_landscape(dst_path)
 
     # Make some correlated alpha RGBA images
-    fle = "ldr-rgb-kodak%02u.png"  # Expand later
-    pattern = os.path.join(TEST_IMAGE_DIR, "Kodak", "LDR-RGB", fle)
+    src_dir = TEST_IMAGE_DIR / 'Kodak' / 'LDR-RGB'
+    dst_dir = TEST_IMAGE_DIR / 'KodakSim' / 'LDR-RGBA'
 
     for i in (22, 23):
-        imgA = pattern % i
-        fle = "ldr-rgba-kodak%02u+ca.png" % i
-        dst = os.path.join(TEST_IMAGE_DIR, "KodakSim", "LDR-RGBA", fle)
-        make_mixed_image(imgA, imgA, dst)
+        src_path = src_dir / f'ldr-rgb-kodak{i:02}.png'
+        dst_path = dst_dir / f'ldr-rgba-kodak{i:02}+ca.png'
+        make_mixed_image(src_path, src_path, dst_path)
 
     # Make some non-correlated alpha RGBA images
     for i, j in ((22, 24), (23, 20)):
-        imgA = pattern % i
-        imgB = pattern % j
-        fle = "ldr-rgba-kodak%02u+%02u+nca.png" % (i, j)
-        dst = os.path.join(TEST_IMAGE_DIR, "KodakSim", "LDR-RGBA", fle)
-        make_mixed_image(imgA, imgB, dst)
+        srca_path = src_dir / f'ldr-rgb-kodak{i:02}.png'
+        srcb_path = src_dir / f'ldr-rgb-kodak{j:02}.png'
+
+        dst_path = dst_dir / f'ldr-rgba-kodak{i:02}+{j:02}+nca.png'
+        make_mixed_image(srca_path, srcb_path, dst_path)
 
     # Make a large montage
-    srcDir = os.path.join(TEST_IMAGE_DIR, "Kodak", "LDR-RGB")
-    fle = "ldr-rgb-montage.png"
-    dst = os.path.join(TEST_IMAGE_DIR, "KodakMnt", "LDR-RGB", fle)
-    make_montage(srcDir, dst)
+    dst_path = TEST_IMAGE_DIR / 'KodakMnt' / 'LDR-RGBA' / 'ldr-rgb-montage.png'
+    make_montage(src_dir, dst_path)
 
 
-def main():
-    """
+def main() -> int:
+    '''
     The main function.
 
-    Returns:
-        int: The process return code.
-    """
+    Return:
+        The process return code.
+    '''
     retrieve_kodak_set()
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

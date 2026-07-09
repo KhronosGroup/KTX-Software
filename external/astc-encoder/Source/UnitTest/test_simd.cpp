@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2020-2025 Arm Limited
+// Copyright 2020-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -17,6 +17,12 @@
 
 /**
  * @brief Unit tests for the vectorized SIMD functionality.
+ *
+ * One of the implementation requirements for astcenc is to provide a platform
+ * invariant results, so tests deliberately use EXPECT_EQ() for floating-point
+ * functions that might more typically use EXPECT_NEAR(). If we change an
+ * implementation of a function so it rounds differently, the tests may start
+ * failing and the values in the test may need updating.
  */
 
 #include <limits>
@@ -145,19 +151,19 @@ TEST(SuiteVfloat, Atan)
 {
 	vfloat a0(-0.15f);
 	vfloat r0 = atan(a0);
-	EXPECT_NEAR(r0.lane<0>(), -0.149061f, 0.005f);
+	EXPECT_EQ(r0.lane<0>(), -0.149060920f);
 
 	vfloat a1(0.0f);
 	vfloat r1 = atan(a1);
-	EXPECT_NEAR(r1.lane<0>(),  0.000000f, 0.005f);
+	EXPECT_EQ(r1.lane<0>(),  0.000000000f);
 
 	vfloat a2(0.9f);
 	vfloat r2 = atan(a2);
-	EXPECT_NEAR(r2.lane<0>(),  0.733616f, 0.005f);
+	EXPECT_EQ(r2.lane<0>(),  0.733615935f);
 
 	vfloat a3(2.1f);
 	vfloat r3 = atan(a3);
-	EXPECT_NEAR(r3.lane<0>(),  1.123040f, 0.005f);
+	EXPECT_EQ(r3.lane<0>(),  1.123035190f);
 }
 
 /** @brief Test VLA atan2. */
@@ -166,22 +172,22 @@ TEST(SuiteVfloat, Atan2)
 	vfloat a0(-0.15f);
 	vfloat b0( 1.15f);
 	vfloat r0 = atan2(a0, b0);
-	EXPECT_NEAR(r0.lane<0>(), -0.129816f, 0.005f);
+	EXPECT_EQ(r0.lane<0>(), -0.129816383f);
 
 	vfloat a1( 0.0f);
 	vfloat b1(-3.0f);
 	vfloat r1 = atan2(a1, b1);
-	EXPECT_NEAR(r1.lane<0>(),  3.141592f, 0.005f);
+	EXPECT_EQ(r1.lane<0>(),  3.141592740f);
 
 	vfloat a2( 0.9f);
 	vfloat b2(-0.9f);
 	vfloat r2 = atan2(a2, b2);
-	EXPECT_NEAR(r2.lane<0>(),  2.360342f, 0.005f);
+	EXPECT_EQ(r2.lane<0>(),  2.360342740f);
 
 	vfloat a3( 2.1f);
 	vfloat b3( 1.1f);
 	vfloat r3 = atan2(a3, b3);
-	EXPECT_NEAR(r3.lane<0>(),  1.084357f, 0.005f);
+	EXPECT_EQ(r3.lane<0>(),  1.084357620f);
 }
 
 #elif ASTCENC_SIMD_WIDTH == 4
@@ -207,10 +213,10 @@ TEST(SuiteVfloat, Atan)
 	vfloat4 a(-0.15f, 0.0f, 0.9f, 2.1f);
 	vfloat4 r = atan(a);
 
-	EXPECT_NEAR(r.lane<0>(), -0.149061f, 0.005f);
-	EXPECT_NEAR(r.lane<1>(),  0.000000f, 0.005f);
-	EXPECT_NEAR(r.lane<2>(),  0.733616f, 0.005f);
-	EXPECT_NEAR(r.lane<3>(),  1.123040f, 0.005f);
+	EXPECT_EQ(r.lane<0>(), -0.149060920f);
+	EXPECT_EQ(r.lane<1>(),  0.000000000f);
+	EXPECT_EQ(r.lane<2>(),  0.733615935f);
+	EXPECT_EQ(r.lane<3>(),  1.123035190f);
 }
 
 /** @brief Test VLA atan2. */
@@ -220,10 +226,10 @@ TEST(SuiteVfloat, Atan2)
 	vfloat4 b(1.15f, -3.0f, -0.9f, 1.1f);
 	vfloat4 r = atan2(a, b);
 
-	EXPECT_NEAR(r.lane<0>(), -0.129816f, 0.005f);
-	EXPECT_NEAR(r.lane<1>(),  3.141592f, 0.005f);
-	EXPECT_NEAR(r.lane<2>(),  2.360342f, 0.005f);
-	EXPECT_NEAR(r.lane<3>(),  1.084357f, 0.005f);
+	EXPECT_EQ(r.lane<0>(), -0.129816383f);
+	EXPECT_EQ(r.lane<1>(),  3.141592740f);
+	EXPECT_EQ(r.lane<2>(),  2.360342740f);
+	EXPECT_EQ(r.lane<3>(),  1.084357620f);
 }
 
 #elif ASTCENC_SIMD_WIDTH == 8
@@ -259,14 +265,14 @@ TEST(SuiteVfloat, Atan)
 	alignas(32) float ra[8];
 	storea(r, ra);
 
-	EXPECT_NEAR(ra[0], -0.149061f, 0.005f);
-	EXPECT_NEAR(ra[1],  0.000000f, 0.005f);
-	EXPECT_NEAR(ra[2],  0.733616f, 0.005f);
-	EXPECT_NEAR(ra[3],  1.123040f, 0.005f);
-	EXPECT_NEAR(ra[4], -0.149061f, 0.005f);
-	EXPECT_NEAR(ra[5],  0.000000f, 0.005f);
-	EXPECT_NEAR(ra[6],  0.733616f, 0.005f);
-	EXPECT_NEAR(ra[7],  1.123040f, 0.005f);
+	EXPECT_EQ(ra[0], -0.149060920f);
+	EXPECT_EQ(ra[1],  0.000000000f);
+	EXPECT_EQ(ra[2],  0.733615935f);
+	EXPECT_EQ(ra[3],  1.123035190f);
+	EXPECT_EQ(ra[4], -0.149060920f);
+	EXPECT_EQ(ra[5],  0.000000000f);
+	EXPECT_EQ(ra[6],  0.733615935f);
+	EXPECT_EQ(ra[7],  1.123035190f);
 }
 
 /** @brief Test VLA atan2. */
@@ -279,14 +285,14 @@ TEST(SuiteVfloat, Atan2)
 	alignas(32) float ra[8];
 	storea(r, ra);
 
-	EXPECT_NEAR(ra[0], -0.129816f, 0.005f);
-	EXPECT_NEAR(ra[1],  3.141592f, 0.005f);
-	EXPECT_NEAR(ra[2],  2.360342f, 0.005f);
-	EXPECT_NEAR(ra[3],  1.084357f, 0.005f);
-	EXPECT_NEAR(ra[4], -0.129816f, 0.005f);
-	EXPECT_NEAR(ra[5],  3.141592f, 0.005f);
-	EXPECT_NEAR(ra[6],  2.360342f, 0.005f);
-	EXPECT_NEAR(ra[7],  1.084357f, 0.005f);
+	EXPECT_EQ(ra[0], -0.129816383f);
+	EXPECT_EQ(ra[1],  3.141592740f);
+	EXPECT_EQ(ra[2],  2.360342740f);
+	EXPECT_EQ(ra[3],  1.084357620f);
+	EXPECT_EQ(ra[4], -0.129816383f);
+	EXPECT_EQ(ra[5],  3.141592740f);
+	EXPECT_EQ(ra[6],  2.360342740f);
+	EXPECT_EQ(ra[7],  1.084357620f);
 }
 
 #endif
@@ -456,6 +462,30 @@ TEST(SuiteVfloat4, swz2)
 	EXPECT_EQ(r.lane<1>(), 2.0f);
 }
 
+/** @brief Test vfloat4 eq. */
+TEST(SuiteVfloat4, veq)
+{
+	// NaN should not be equal for anything
+	vfloat4 a(qnan, qnan, qnan, qnan);
+	EXPECT_FALSE(any(a == a));
+
+	// Non-NaN should be equal for everything
+	vfloat4 b(0.0f, 0.2f, -0.0f, -0.4f);
+	EXPECT_TRUE(all(b == b));
+}
+
+/** @brief Test vfloat4 neq. */
+TEST(SuiteVfloat4, vneq)
+{
+	// NaN should be unequal for everything
+	vfloat4 a(qnan, qnan, qnan, qnan);
+	EXPECT_TRUE(all(a != a));
+
+	// Non-NaN should not be unequal for anything
+	vfloat4 b(0.0f, 0.2f, -0.0f, -0.4f);
+	EXPECT_FALSE(any(b != b));
+}
+
 /** @brief Test vfloat4 add. */
 TEST(SuiteVfloat4, vadd)
 {
@@ -483,10 +513,10 @@ TEST(SuiteVfloat4, vselfadd1)
 
 	// Test increment by an expression
 	a += b + b;
-	EXPECT_NEAR(a.lane<0>(), 1.0f + 0.3f, 0.001f);
-	EXPECT_NEAR(a.lane<1>(), 2.0f + 0.6f, 0.001f);
-	EXPECT_NEAR(a.lane<2>(), 3.0f + 0.9f, 0.001f);
-	EXPECT_NEAR(a.lane<3>(), 4.0f + 1.2f, 0.001f);
+	EXPECT_EQ(a.lane<0>(), 1.30000007f);
+	EXPECT_EQ(a.lane<1>(), 2.60000014f);
+	EXPECT_EQ(a.lane<2>(), 3.90000010f);
+	EXPECT_EQ(a.lane<3>(), 5.20000029f);
 }
 
 /** @brief Test vfloat4 sub. */
@@ -862,9 +892,9 @@ TEST(SuiteVfloat4, hmax_s)
 TEST(SuiteVfloat4, hadd_s)
 {
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
-	float sum = 1.1f + 1.5f + 1.6f + 4.0f;
+	float sum = (1.1f + 1.6f) + (1.5f + 4.0f);
 	float r = hadd_s(a1);
-	EXPECT_NEAR(r, sum, 0.005f);
+	EXPECT_EQ(r, sum);
 }
 
 /** @brief Test vfloat4 hadd_rgb_s. */
@@ -873,7 +903,7 @@ TEST(SuiteVfloat4, hadd_rgb_s)
 	vfloat4 a1(1.1f, 1.5f, 1.6f, 4.0f);
 	float sum = 1.1f + 1.5f + 1.6f;
 	float r = hadd_rgb_s(a1);
-	EXPECT_NEAR(r, sum, 0.005f);
+	EXPECT_EQ(r, sum);
 }
 
 /** @brief Test vfloat4 sqrt. */
@@ -1026,10 +1056,10 @@ TEST(SuiteVfloat4, normalize)
 {
 	vfloat4 a(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r = normalize(a);
-	EXPECT_NEAR(r.lane<0>(), 1.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r.lane<1>(), 2.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r.lane<2>(), 3.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r.lane<3>(), 4.0f / astc::sqrt(30.0f), 0.0005f);
+	EXPECT_EQ(r.lane<0>(), 1.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r.lane<1>(), 2.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r.lane<2>(), 3.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r.lane<3>(), 4.0f / astc::sqrt(30.0f));
 }
 
 /** @brief Test vfloat4 normalize_safe. */
@@ -1039,10 +1069,10 @@ TEST(SuiteVfloat4, normalize_safe)
 
 	vfloat4 a1(1.0f, 2.0f, 3.0f, 4.0f);
 	vfloat4 r1 = normalize_safe(a1, s);
-	EXPECT_NEAR(r1.lane<0>(), 1.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r1.lane<1>(), 2.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r1.lane<2>(), 3.0f / astc::sqrt(30.0f), 0.0005f);
-	EXPECT_NEAR(r1.lane<3>(), 4.0f / astc::sqrt(30.0f), 0.0005f);
+	EXPECT_EQ(r1.lane<0>(), 1.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r1.lane<1>(), 2.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r1.lane<2>(), 3.0f / astc::sqrt(30.0f));
+	EXPECT_EQ(r1.lane<3>(), 4.0f / astc::sqrt(30.0f));
 
 	vfloat4 a2(0.0f, 0.0f, 0.0f, 0.0f);
 	vfloat4 r2 = normalize_safe(a2, s);
@@ -2160,6 +2190,30 @@ TEST(SuiteVfloat8, Loada)
 	EXPECT_EQ(ra[7], 7.0f);
 }
 
+/** @brief Test vfloat8 eq. */
+TEST(SuiteVfloat8, veq)
+{
+	// NaN should not be equal for anything
+	vfloat8 a = vfloat8_lit(qnan, qnan, qnan, qnan, qnan, qnan, qnan, qnan);
+	EXPECT_FALSE(any(a == a));
+
+	// Non-NaN should be equal for everything
+	vfloat8 b = vfloat8_lit(0.0f, 0.2f, -0.0f, -0.4f, 0.0f, 0.2f, -0.0f, -0.4f);
+	EXPECT_TRUE(all(b == b));
+}
+
+/** @brief Test vfloat8 neq. */
+TEST(SuiteVfloat8, vneq)
+{
+	// NaN should be unequal for everything
+	vfloat8 a = vfloat8_lit(qnan, qnan, qnan, qnan, qnan, qnan, qnan, qnan);
+	EXPECT_TRUE(all(a != a));
+
+	// Non-NaN should not be unequal for anything
+	vfloat8 b = vfloat8_lit(0.0f, 0.2f, -0.0f, -0.4f, 0.0f, 0.2f, -0.0f, -0.4f);
+	EXPECT_FALSE(any(b != b));
+}
+
 /** @brief Test vfloat8 add. */
 TEST(SuiteVfloat8, vadd)
 {
@@ -2656,9 +2710,10 @@ TEST(SuiteVfloat8, hmax_s)
 TEST(SuiteVfloat8, hadd_s)
 {
 	vfloat8 a1 = vfloat8_lit(1.1f, 1.5f, 1.6f, 4.0f, 1.1f, 1.5f, 1.6f, 4.0f);
-	float sum = 1.1f + 1.5f + 1.6f + 4.0f + 1.1f + 1.5f + 1.6f + 4.0f;
+	float sum = ((1.1f + 1.6f) + (1.5f + 4.0f)) +
+	            ((1.1f + 1.6f) + (1.5f + 4.0f));
 	float r = hadd_s(a1);
-	EXPECT_NEAR(r, sum, 0.005f);
+	EXPECT_EQ(r, sum);
 }
 
 /** @brief Test vfloat8 sqrt. */
