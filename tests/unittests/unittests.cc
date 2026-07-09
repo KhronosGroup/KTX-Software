@@ -143,9 +143,8 @@ TEST_F(CheckHeader1Test, DisallowsInvalidEndianness) {
 //////////////////////////////
 
 TEST(MemStreamTest, Read) {
+    std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{nullptr, ktxMemStream_destruct};
     ktxStream stream;
-    std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{&stream,
-                                                                             ktxMemStream_destruct};
     const ktx_uint8_t* data = (ktx_uint8_t*)"28 bytes of rubbish to read.";
     const size_t size = 28;
     char readBuf[size];
@@ -158,8 +157,8 @@ TEST(MemStreamTest, Read) {
 }
 
 TEST(MemStreamTest, Write) {
-    ktxStream stream;
     std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{nullptr, ktxMemStream_destruct};
+    ktxStream stream;
     const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const size_t count = 29;
     size_t returnedCount;
@@ -875,9 +874,8 @@ class HashListTest : public ::testing::Test {
     void constructList(bool sort) {
         KTX_error_code result;
 
-        ktxHashList* p_head = nullptr;
-        ktxHashList_Construct(p_head);
-        head.reset(p_head);
+        head.reset((ktxHashList*)malloc(sizeof(ktxHashList)));
+        ktxHashList_Construct(head.get());
 
         result = ktxHashList_AddKVPair(head.get(), KTX_WRITER_KEY,
                                        (ktx_uint32_t)writerVal.length() + 1,
@@ -949,15 +947,15 @@ TEST_F(HashListTest, ConstructSorted) {
 }
 
 TEST_F(HashListTest, ConstructCopy) {
-    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destroy)*> copyHead_raii{nullptr, ktxHashList_Destroy};
+    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destruct)*> copyHead_raii{nullptr, ktxHashList_Destruct};
 
     constructList(true);
 
-    ktxHashList* copyHead = nullptr;
-    ktxHashList_ConstructCopy(copyHead, *head);
-    copyHead_raii.reset(copyHead);
+    ktxHashList copyHead;
+    ktxHashList_ConstructCopy(&copyHead, *head);
+    copyHead_raii.reset(&copyHead);
 
-    compareList(*copyHead, true);
+    compareList(copyHead, true);
 }
 
 ///////////////////////
