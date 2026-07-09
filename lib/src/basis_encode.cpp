@@ -1298,9 +1298,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
-        // TODO: adding checks here causes numerous Basis tests to fail.
-        //       Why the return value isn't checked here?
-        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) goto cleanup;
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_4x4) {
@@ -1308,7 +1307,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         if (result != KTX_SUCCESS) goto cleanup;
 
         // Reflect this in the formatSize
-        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) goto cleanup;
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 4 * 4;
     } else if (params->codec == ktx_basis_codec_e::KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE) {
@@ -1318,7 +1318,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
         This->supercompressionScheme = KTX_SS_UASTC_HDR_6x6_INTERMEDIATE;
 
         // Reflect this in the formatSize
-        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) goto cleanup;
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     } else {
@@ -1327,7 +1328,8 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
         This->supercompressionScheme = KTX_SS_BASIS_LZ;
         // Reflect this in the formatSize
-        ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) goto cleanup;
         // and the requiredLevelAlignment.
         priv._requiredLevelAlignment = 1;
     }
