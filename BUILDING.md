@@ -69,9 +69,16 @@ and a driver on the run-time machine.
 > associated git tag (e.g `v4.3.2`)
 > 
 > ```bash
-> cmake . -G Ninja -B build -DKTX_GIT_VERSION_FULL=v4.3.2
+> cmake . -G Ninja -B build -D KTX_GIT_VERSION_FULL=v4.3.2
 > ```
 > Use with caution.
+
+> **Note:**
+>
+> If you are building for an older pre-Haswell Intel x86_64 CPU you must add
+> `-D ASTCENC_ISA_SSE41=ON` to the CMake configure command because the ASTC
+> encoder defaults to using AVX2 which is not found on older CPUs. These days
+> such older chips are mostly seen on Apple Macintoshes with Intel CPUs.
 
 The information below about signing on iOS, macOS and Windows applies to library only and complete builds.
 
