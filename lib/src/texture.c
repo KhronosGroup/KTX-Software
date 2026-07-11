@@ -236,8 +236,10 @@ ktxTexture_destruct(ktxTexture* This)
 {
     ktxStream stream = *(ktxTexture_getStream(This));
 
-    if (stream.data.file != NULL)
+    if (stream.data.file != NULL) {
         stream.destruct(&stream);
+        stream.data.file = NULL;
+    }
     if (This->kvDataHead != NULL)
         ktxHashList_Destruct(&This->kvDataHead);
     if (This->kvData != NULL)

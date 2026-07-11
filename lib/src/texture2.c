@@ -2578,6 +2578,7 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
 
     // No further need for this.
     stream->destruct(stream);
+    stream->data.file = NULL;  // So that destruct is not invoked again
     This->_private->_firstLevelFileOffset = 0;
 cleanup:
     free(dataBuf);
@@ -2744,6 +2745,7 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
 
     // No further need for stream or file offset.
     prtctd->_stream.destruct(&prtctd->_stream);
+    prtctd->_stream.data.file = NULL;
     private->_firstLevelFileOffset = 0;
 
 cleanup:

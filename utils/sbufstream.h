@@ -70,18 +70,16 @@ public:
     StreambufStream(StreambufStream&&) = delete;
     StreambufStream &operator=(StreambufStream&&) = delete;
 
-    virtual ~StreambufStream()
-    {
-        if (!_destructed)
-            stream()->destruct(stream());
-    }
-
     inline ktxStream* stream() const
     {
         return _stream.get();
     }
 
-    std::streambuf* streambuf() const;
+    // TODO: why wasn't this defined before? This was causing linkage errors
+    std::streambuf* streambuf() const
+    {
+        return _streambuf.get();
+    }
 
     inline std::ios::openmode seek_mode() const
     {
@@ -206,20 +204,7 @@ protected:
     std::unique_ptr<ktxStream> _stream;
     // ktxTexture?_CreateFromStream destructs the ktxStream when finished, if
     // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed. This variable tracks
-    // if the ktxStream's destructor has been called.
+    // if the ktxStream's destructor has been called on the ktxStream that was
+    // passed the ktxTexture?_CreateFromStream (which is copied).
     bool _destructed;
 };
-
-// I have not yet found a way to do this inside the template definition.
-// However `inline` should prevent any multiple definition errors.
-template<>
-inline std::streambuf* StreambufStream<std::streambuf*>::streambuf() const
-{
-    return _streambuf;
-}
-
-template<>
-inline std::streambuf* StreambufStream<std::unique_ptr<std::streambuf>>::streambuf() const
-{
-    return _streambuf.get();
-}
