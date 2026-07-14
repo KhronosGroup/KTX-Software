@@ -48,9 +48,10 @@ If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMak
 
 > **Note:**
 >
-> When linking to the static library, make sure to
-> define `KHRONOS_STATIC` before including KTX header files.
-> This is especially important on Windows.
+> When linking to the static library not using a CMake build, make sure to
+> define `KHRONOS_STATIC` before including KTX header files. This is
+> especially important on Windows. CMake defines this macro when building
+> apps that will be linked to the static library.
 
 If you want the Basis Universal encoders in `libktx` to use OpenCL
 add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command. In this case
