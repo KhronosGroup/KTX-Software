@@ -195,32 +195,43 @@ bool expectSameTextureContent(const ktxTexture* tex1, const ktxTexture* tex2)
 // --- Tests ---
 
 /// Test any memory issues (mainly through ASan) that might occur when ktxTexture?
-/// outilives the ktxStream owner StreambufStream. This mainly tests that
+/// outlives the ktxStream owner StreambufStream. This mainly tests that
 /// ~StreambufStream() is well implemented.
 TEST_F(ktxStreamTest, KtxTextureOutlivesStreambufStreamCase0)
 {
     KtxTexture<ktxTexture2> texture2;
-    {  // ktxTexture2 outlives StreambufStream but calls destruct before StreambufStream goes out of scope
+    {
+        // ktxTexture2_CreateFromStream with KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT will destroy
+        // the stream when it finishes loading the data. Thus this tests that no issues occur when the
+        // StreambufStream outlives its underlying ktxStream.
         StreambufStream ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
         ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
     }
-}  // ktxTexture? should NOT call destruct because it will cause invalid memory access
+}  // ktxTexture? should NOT call ktxStream->destruct() again because it will cause invalid memory access
 
-/// This is commented out because this illustrates an incorrect usage of ktxStreams.
-/// If you create an object (ktxTexture2) that still needs to access data owned by another object
-/// (in this case StreambufStream) then it is your responsibility to guarantee that the dependency
-/// at least outlives (>=) the dependant
-
-// TEST_F(ktxStreamTest, KtxTextureOutlivesStreambufStreamCase1)
-// {
-//     KtxTexture<ktxTexture2> texture2;
-//     {  // ktxTexture2 outlives StreambufStream but doesn't call 
-//         StreambufStream srcStream{std::move(_ktx2Streambuf), std::ios::in};
-//         ktxTexture2_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_NO_FLAGS, texture2.pHandle());
-//         // ktxStream copy created by ktxTexture?_CreateFromStream should be destroyed otherwise you get all
-//         // sorts of issues. StreambufStream simply cannot guarantee this.
-//     }
-// }   // ktxTexture? should NOT call destruct again
+/// This section below is disabled because it illustrates an incorrect usage of
+/// ktxStream. If you create an object (say 'ktxTexture2') that still needs
+/// to access data owned by another object (say 'StreambufStream') then it is
+/// your responsibility to guarantee that the dependency at least outlives (>=)
+/// the dependent.
+#if 0
+TEST_F(ktxStreamTest, KtxTextureOutlivesStreambufStreamCase1) {
+    KtxTexture<ktxTexture2> texture2;
+    {
+        // ktxTexture2 outlives StreambufStream but doesn't call
+        // ktxStream->destruct() because of the supplied
+        // KTX_TEXTURE_CREATE_NO_FLAGS.
+        StreambufStream srcStream{std::move(_ktx2Streambuf), std::ios::in};
+        ktxTexture2_CreateFromStream(srcStream.stream(), KTX_TEXTURE_CREATE_NO_FLAGS,
+                                     texture2.pHandle());
+        // ktxStream copy created by ktxTexture?_CreateFromStream should be
+        // destroyed otherwise you get all sorts of issues. StreambufStream
+        // simply cannot guarantee this.
+    }  // The original ktxStream (alongside the data it owns/points to) is destroyed.
+       // ktxTexture2 will still call ktxStream->destruct() (on its copy of ktxStream struct)
+       // which will cause all sorts of memory issues.
+}  // ktxTexture? should NOT call destruct because the original ktxStream went out of scope
+#endif
 
 TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
 {

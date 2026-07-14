@@ -40,7 +40,7 @@ static std::ostream& logstream = cnull;
 /// @code
 ///     // Can use stringbuf or any class derived from it.
 ///     auto filebuf = std::make_unique<std::filebuf>();
-///     StreambufStream<std::unique_ptr<std::streambuf>>ktxStream(
+///     StreambufStream<std::unique_ptr<std::streambuf>> ktxStream(
 ///                                                        std::move(filebuf),
 ///                                                        ios::in);
 /// @endcode
@@ -75,10 +75,13 @@ public:
         return _stream.get();
     }
 
-    // TODO: why wasn't this defined before? This was causing linkage errors
-    std::streambuf* streambuf() const
-    {
-        return _streambuf.get();
+    // Implementation depends on whether a std::unique_ptr or a raw pointer is
+    // passed.
+    std::streambuf* streambuf() const {
+        if constexpr (std::is_pointer<T>::value)
+            return _streambuf;
+        else
+            return _streambuf.get();
     }
 
     inline std::ios::openmode seek_mode() const
@@ -202,9 +205,10 @@ protected:
     T _streambuf;
     std::ios::openmode _seek_mode;
     std::unique_ptr<ktxStream> _stream;
-    // ktxTexture?_CreateFromStream destructs the ktxStream when finished, if
-    // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed. This variable tracks
-    // if the ktxStream's destructor has been called on the ktxStream that was
-    // passed the ktxTexture?_CreateFromStream (which is copied).
+
+    // ktxTexture?_CreateFromStream makes a copy of the stream structure passed
+    // as its pStream parameter. Once the application has called one of these
+    // functions this stream object has no further use but this class has no way
+    // to know when its usefulness has passed.
     bool _destructed;
 };
