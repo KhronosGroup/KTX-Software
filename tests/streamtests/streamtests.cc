@@ -206,7 +206,6 @@ class StreambufStreamTest : public StreambufStream<T> {
     inline bool destructed() { return _destructed; }
 
   protected:
-    // NOOP function to be passed to ktxStream's destruct
     static void destruct(ktxStream* str) {
         auto self = (StreambufStreamTest*)StreambufStream<T>::parent(str);
         self->_destructed = true;
