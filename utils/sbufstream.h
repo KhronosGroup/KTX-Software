@@ -59,7 +59,6 @@ public:
         : _streambuf{std::move(streambuf)}
         , _seek_mode{seek_mode}
         , _stream{std::make_unique<ktxStream>()}
-        , _destructed{false}
     {
         initialize_stream();
     }
@@ -94,11 +93,6 @@ public:
         _seek_mode = newmode;
     }
 
-    inline bool destructed() const
-    {
-        return _destructed;
-    }
-
 protected:
     void initialize_stream() {
         _stream->type = eStreamTypeCustom;
@@ -115,7 +109,7 @@ protected:
         _stream->getpos = getpos;
         _stream->setpos = setpos;
         _stream->getsize = getsize;
-        _stream->destruct = destruct;
+        _stream->destruct = destruct_noop;
     }
 
     // C++ streambuf overrides
@@ -196,19 +190,10 @@ protected:
         return (oldpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
-    static void destruct(ktxStream* str)
-    {
-        auto self = parent(str);
-        self->_destructed = true;
-    }
+    // NOOP function to be passed to ktxStream's destruct
+    static void destruct_noop(ktxStream*) {}
 
     T _streambuf;
     std::ios::openmode _seek_mode;
     std::unique_ptr<ktxStream> _stream;
-
-    // ktxTexture?_CreateFromStream makes a copy of the stream structure passed
-    // as its pStream parameter. Once the application has called one of these
-    // functions this stream object has no further use but this class has no way
-    // to know when its usefulness has passed.
-    bool _destructed;
 };

@@ -192,6 +192,29 @@ bool expectSameTextureContent(const ktxTexture* tex1, const ktxTexture* tex2)
     return ok;
 }
 
+// Derived `StreambufStream` so that we can track if `destruct()` is called on
+// the ktxStream copied by `ktxTexture?_CreateFromStream()` when it is supplied
+// with `KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT` flag.
+template <typename T>
+class StreambufStreamTest : public StreambufStream<T> {
+  public:
+    StreambufStreamTest(T streambuf, std::ios::openmode seek_mode = std::ios::in | std::ios::out)
+        : StreambufStream<T>(std::move(streambuf), seek_mode) {
+        this->_stream->destruct = destruct;
+    }
+
+    inline bool destructed() { return _destructed; }
+
+  protected:
+    // NOOP function to be passed to ktxStream's destruct
+    static void destruct(ktxStream* str) {
+        auto self = (StreambufStreamTest*)StreambufStream<T>::parent(str);
+        self->_destructed = true;
+    }
+
+    bool _destructed;
+};
+
 // --- Tests ---
 
 /// Test any memory issues (mainly through ASan) that might occur when ktxTexture?
@@ -235,7 +258,7 @@ TEST_F(ktxStreamTest, KtxTextureOutlivesStreambufStreamCase1) {
 
 TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
 {
-    StreambufStream ktx1Stream{std::move(_ktx1Streambuf), std::ios::in};
+    StreambufStreamTest ktx1Stream{std::move(_ktx1Streambuf), std::ios::in};
     KtxTexture<ktxTexture1> texture1;
 
     KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
@@ -247,7 +270,7 @@ TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
 
 TEST_F(ktxStreamTest, CanCreateKtx2FromCppStream)
 {
-    StreambufStream ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
+    StreambufStreamTest ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
     KtxTexture<ktxTexture2> texture2;
 
     KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
@@ -258,7 +281,7 @@ TEST_F(ktxStreamTest, CanCreateKtx2FromCppStream)
 
 TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
 {
-    StreambufStream ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTx1, no difference
+    StreambufStreamTest ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTx1, no difference
     KtxTexture<ktxTexture> texture;
 
     KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
@@ -272,8 +295,8 @@ TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
     KTX_error_code err{KTX_INVALID_VALUE};
     auto dstStreambuf = std::make_unique<std::stringbuf>();
 
-    StreambufStream srcStream{std::move(_ktx1Streambuf), std::ios::in};
-    StreambufStream dstStream{std::move(dstStreambuf)};
+    StreambufStreamTest srcStream{std::move(_ktx1Streambuf), std::ios::in};
+    StreambufStreamTest dstStream{std::move(dstStreambuf)};
 
     KtxTexture<ktxTexture1> srcTexture1{nullptr};
     KtxTexture<ktxTexture2> dstTexture2{nullptr};
@@ -314,8 +337,8 @@ TEST_F(ktxStreamTest, CanWriteKtx2ToCppStream)
     KTX_error_code err{KTX_INVALID_VALUE};
     auto dstStreambuf = std::make_unique<std::stringbuf>();
 
-    StreambufStream srcStream{std::move(_ktx2Streambuf), std::ios::in};
-    StreambufStream dstStream{std::move(dstStreambuf)};
+    StreambufStreamTest srcStream{std::move(_ktx2Streambuf), std::ios::in};
+    StreambufStreamTest dstStream{std::move(dstStreambuf)};
 
     KtxTexture<ktxTexture2> srcTexture2;
     KtxTexture<ktxTexture2> dstTexture2;
