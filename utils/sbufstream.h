@@ -195,5 +195,9 @@ protected:
 
     T _streambuf;
     std::ios::openmode _seek_mode;
+
+    // Note that ktxTexture?_CreateFromStream makes a copy of _stream, the
+    // stream structure passed as its pStream parameter. The static stream
+    // functions above will receive a pointer to that copy not to this _stream.
     std::unique_ptr<ktxStream> _stream;
 };
