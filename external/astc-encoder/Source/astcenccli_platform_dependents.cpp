@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2024 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -32,13 +32,19 @@
 
 #include "astcenccli_internal.h"
 
+#include <vector>
+
 /* ============================================================================
    Platform code for Windows using the Win32 APIs.
 ============================================================================ */
 #if defined(_WIN32) && !defined(__CYGWIN__)
 
 #define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
+
+#if !defined(NOMINMAX)
+	#define NOMINMAX
+#endif
+
 #include <windows.h>
 #include <Processthreadsapi.h>
 #include <algorithm>
@@ -165,7 +171,7 @@ void set_thread_name(
 }
 
 /* ============================================================================
-   Platform code for an platform using POSIX APIs.
+   Platform code for a platform using POSIX APIs.
 ============================================================================ */
 #else
 
@@ -251,7 +257,7 @@ void launch_threads(
 	}
 
 	// Otherwise spawn worker threads
-	launch_desc *thread_descs = new launch_desc[thread_count];
+	std::vector<launch_desc> thread_descs(thread_count);
 	int actual_thread_count { 0 };
 
 	for (int i = 0; i < thread_count; i++)
@@ -266,7 +272,7 @@ void launch_threads(
 			&(thread_descs[actual_thread_count].thread_handle),
 			nullptr,
 			launch_threads_helper,
-			reinterpret_cast<void*>(thread_descs + actual_thread_count));
+			reinterpret_cast<void*>(&thread_descs[actual_thread_count]));
 
 		// Track how many threads we actually created
 		if (!error)
@@ -304,6 +310,4 @@ void launch_threads(
 	{
 		func(1, 0, payload);
 	}
-
-	delete[] thread_descs;
 }

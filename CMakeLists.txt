@@ -47,6 +47,15 @@ option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS subm
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
 
+# Although MSVC added support for '-fsanitize', it hasn't been tested yet
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
+    #   - to enable AddressSanitizer (Asan), set to "address"
+    #   - to enable ThreadSanitizer (Tsan), set to "thread"
+    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
+    set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
+endif()
+
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
@@ -181,14 +190,24 @@ if(MSVC)
     # Enable UTF-8 support
     add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
     add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
-       OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
     add_compile_options( $<IF:$<CONFIG:Debug>,-O0$<SEMICOLON>-g,-O3> )
     if(EMSCRIPTEN)
         add_link_options( $<IF:$<CONFIG:Debug>,-gsource-map,-O3> )
     else()
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
+    endif()
+    # Optional sanitizer (only Debug builds because with Release you will get a wall of warnings)
+    if (SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options (-fsanitize=${SANITIZE})
+        add_link_options (-fsanitize=${SANITIZE})
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            # finds writes past size of std::vector (won't be detected without this)
+            add_compile_definitions (_GLIBCXX_SANITIZE_VECTOR=1)
+        endif ()
+        # This has to be added to all (i.e., not using the target_compile_options variant)
+        add_compile_options (-fno-omit-frame-pointer -fPIC)
     endif()
 else()
     message(FATAL_ERROR "${CMAKE_CXX_COMPILER_ID} not yet supported.")

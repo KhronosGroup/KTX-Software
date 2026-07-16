@@ -330,7 +330,7 @@ ktxTexture2_DecodeAstc(ktxTexture2 *This) {
     if (astc_error != ASTCENC_SUCCESS)
         return mapAstcError(astc_error);
 
-    astc_error  = astcenc_context_alloc(&astc_config, threadCount, &astc_context);
+    astc_error  = astcenc_context_alloc(&astc_config, threadCount, &astc_context, nullptr);
 
     if (astc_error != ASTCENC_SUCCESS)
         return mapAstcError(astc_error);
@@ -953,7 +953,7 @@ ktxTexture2_CompressAstcEx(ktxTexture2* This, ktxAstcParams* params) {
         return mapAstcError(astc_error);
 
     astc_error  = astcenc_context_alloc(&astc_config, threadCount,
-                                        &astc_context);
+                                        &astc_context, nullptr);
 
     if (astc_error != ASTCENC_SUCCESS)
         return mapAstcError(astc_error);

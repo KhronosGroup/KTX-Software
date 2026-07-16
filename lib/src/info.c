@@ -223,7 +223,6 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
             }
         }
     }
-
     ktxHashList_Destruct(&kvDataHead);
 }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2024 Arm Limited
+// Copyright 2024-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -20,7 +20,7 @@
  *
  * This module contains the second command line entry point veneer, used to
  * validate that Arm SVE vector width matches the tool build. When used, it is
- * compiled with SVE ISA support but without any vector legnth override, so it
+ * compiled with SVE ISA support but without any vector length override, so it
  * will see the native SVE vector length exposed to the application.
  */
 

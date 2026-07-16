@@ -67,6 +67,20 @@ jobs:
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF
           }
+        # We perform ASan/UBSan/TSan on only one job because they greatly slow
+        # down test runs. We use a linux runner because they consume the fewest
+        # GH Actions credits
+        - name: ASan GCC (x86_64)
+          os: ubuntu-latest
+          generator: Ninja
+          arch: x86_64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Debug,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: ON,
+            sse: ON, opencl: OFF, sanitize: 'address'
+          }
         - name: Clang
           os: ubuntu-latest
           generator: Ninja Multi-Config
@@ -176,6 +190,8 @@ jobs:
       VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
 
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
+
+      SANITIZE: ${{ matrix.options.sanitize || '' }}
 
     steps:
       - uses: actions/checkout@v6

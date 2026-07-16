@@ -143,19 +143,21 @@ TEST_F(CheckHeader1Test, DisallowsInvalidEndianness) {
 //////////////////////////////
 
 TEST(MemStreamTest, Read) {
+    std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{nullptr, ktxMemStream_destruct};
     ktxStream stream;
     const ktx_uint8_t* data = (ktx_uint8_t*)"28 bytes of rubbish to read.";
     const size_t size = 28;
     char readBuf[size];
 
     ktxMemStream_construct_ro(&stream, data, size);
+    stream_raii.reset(&stream);
+
     stream.read(&stream, readBuf, size);
     EXPECT_EQ(memcmp(data, readBuf, size), 0);
-
-    ktxMemStream_destruct(&stream);
 }
 
 TEST(MemStreamTest, Write) {
+    std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{nullptr, ktxMemStream_destruct};
     ktxStream stream;
     const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const size_t count = 29;
@@ -163,18 +165,19 @@ TEST(MemStreamTest, Write) {
     ktx_uint8_t* returnedData;
 
     ktxMemStream_construct(&stream, KTX_TRUE);
+    stream_raii.reset(&stream);
+
     stream.write(&stream, data, 1, count);
 
     stream.getsize(&stream, &returnedCount);
     ktxMemStream_getdata(&stream, &returnedData);
     EXPECT_EQ(returnedCount, count);
     EXPECT_EQ(memcmp(data, returnedData, count), 0);
-
-    ktxMemStream_destruct(&stream);
 }
 
 TEST(MemStreamTest, WriteExpand) {
     ktxStream stream;
+    std::unique_ptr<ktxStream, decltype(ktxMemStream_destruct)*> stream_raii{nullptr, ktxMemStream_destruct};
     const ktx_uint8_t* data = (ktx_uint8_t*)"29 bytes of rubbish to write.";
     const ktx_uint8_t* data2 = (ktx_uint8_t*)" 26 more bytes of rubbish.";
     const size_t count = 29;
@@ -183,15 +186,15 @@ TEST(MemStreamTest, WriteExpand) {
     ktx_uint8_t* returnedData;
 
     ktxMemStream_construct(&stream, KTX_TRUE);
+    stream_raii.reset(&stream);
     stream.write(&stream, data, 1, count);
     stream.write(&stream, data2, 1, count2);
     stream.getsize(&stream, &returnedCount);
+
     EXPECT_EQ(returnedCount, count + count2);
     ktxMemStream_getdata(&stream, &returnedData);
     EXPECT_EQ(memcmp(data, returnedData, count), 0);
     EXPECT_EQ(memcmp(data2, &returnedData[count], count2), 0);
-
-    ktxMemStream_destruct(&stream);
 }
 
 //////////////////////////////
@@ -386,12 +389,11 @@ TEST_F(createDFDUnpackedTest4, FormatSRGBA8) {
               }
              );
 
-    uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDUnpackedTest4, FormatSBGRA8) {
@@ -406,12 +408,11 @@ TEST_F(createDFDUnpackedTest4, FormatSBGRA8) {
               }
              );
 
-    uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_TRUE, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDUnpacked(KTX_FALSE, 4, 1, KTX_TRUE, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDUnpackedTest4, FormatRGBA8) {
@@ -425,12 +426,11 @@ TEST_F(createDFDUnpackedTest4, FormatRGBA8) {
               }
              );
 
-    uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDUnpacked(KTX_FALSE, 4, 1, KTX_FALSE, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDUnpackedTest3, FormatSRGB8) {
@@ -443,12 +443,11 @@ TEST_F(createDFDUnpackedTest3, FormatSRGB8) {
               }
              );
 
-    uint32_t* dfd = createDFDUnpacked(KTX_FALSE, 3, 1, KTX_FALSE, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDUnpacked(KTX_FALSE, 3, 1, KTX_FALSE, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDPackedTest3, FormatRGB565) {
@@ -469,12 +468,12 @@ TEST_F(createDFDPackedTest3, FormatRGB565) {
         KHR_DF_CHANNEL_RGBSDA_RED,
         0
     };
-    uint32_t* dfd = createDFDPacked(KTX_FALSE, 3, bits, channels, s_UNORM);
+
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDPacked(KTX_FALSE, 3, bits, channels, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
@@ -486,12 +485,11 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_R8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_UNORM);
-
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd {
+        createDFDCompressed(c_ETC1S, 4, 4, 1, s_UNORM),
+                                                        std::free};
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
@@ -503,12 +501,11 @@ TEST_F(createDFDCompressedTest1, FormatETC1S_SR8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC1S, 4, 4, 1, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{
+        createDFDCompressed(c_ETC1S, 4, 4, 1, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
@@ -520,12 +517,10 @@ TEST_F(createDFDCompressedTest1, FormatETC2_R8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest2, FormatETC2_R8G8B8A8) {
@@ -538,12 +533,10 @@ TEST_F(createDFDCompressedTest2, FormatETC2_R8G8B8A8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1, FormatETC2_SR8B8G8) {
@@ -555,12 +548,10 @@ TEST_F(createDFDCompressedTest1, FormatETC2_SR8B8G8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ETC2_R8G8B8, 4, 4, 1, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
@@ -574,12 +565,10 @@ TEST_F(createDFDCompressedTest2, FormatETC2_SR8G8B8A8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ETC2_R8G8B8A8, 4, 4, 1, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1x16, FormatASTC_12x12_SRGB) {
@@ -591,12 +580,10 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_12x12_SRGB) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 12, 12, 1, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ASTC, 12, 12, 1, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1x16, FormatASTC_10x5_SRGB) {
@@ -608,12 +595,10 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x5_SRGB) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 5, 1, s_SRGB);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ASTC, 10, 5, 1, s_SRGB), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1x16, FormatASTC_5x4) {
@@ -625,12 +610,10 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_5x4) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 5, 4, 1, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ASTC, 5, 4, 1, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1x16, FormatASTC_10x8) {
@@ -642,12 +625,10 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_10x8) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 10, 8, 1, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ASTC, 10, 8, 1, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1x16, FormatASTC_3x3x3) {
@@ -659,12 +640,10 @@ TEST_F(createDFDCompressedTest1x16, FormatASTC_3x3x3) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_ASTC, 3, 3, 3, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_ASTC, 3, 3, 3, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 TEST_F(createDFDCompressedTest1, FormatBC1) {
@@ -676,12 +655,10 @@ TEST_F(createDFDCompressedTest1, FormatBC1) {
               }
              );
 
-    uint32_t* dfd = createDFDCompressed(c_BC1_RGB, 4, 4, 1, s_UNORM);
+    std::unique_ptr<uint32_t, decltype(std::free)*> dfd{createDFDCompressed(c_BC1_RGB, 4, 4, 1, s_UNORM), std::free};
 
     EXPECT_EQ(*dfd, sizeof(expected) + 4U);
-    EXPECT_EQ(memcmp(&expected, dfd+1, sizeof(expected)), 0);
-
-    free(dfd);
+    EXPECT_EQ(memcmp(&expected, dfd.get() + 1, sizeof(expected)), 0);
 }
 
 class DFDVkFormatListTest : public ::testing::Test {
@@ -697,24 +674,21 @@ extern "C" const char* vkFormatString(VkFormat format);
 
 TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
 
-    uint32_t* dfd;
-    uint32_t* bdb;
     uint32_t origBytesPlane03, origBytesPlane47;
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
-        dfd = vk2dfd(formats[i]);
+        std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(formats[i]), std::free};
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
                                  << vkFormatString(formats[i]);
-        bdb = dfd + 1;
+        uint32_t* bdb = dfd.get() + 1;
         // There are 4 bytesPlane values in one word. Capture all at once.
         origBytesPlane03 = bdb[KHR_DF_WORD_BYTESPLANE0];
         origBytesPlane47 = bdb[KHR_DF_WORD_BYTESPLANE4];
         bdb[KHR_DF_WORD_BYTESPLANE0] = 0U;
         bdb[KHR_DF_WORD_BYTESPLANE1] = 0U;
-        reconstructDFDBytesPlanesFromSamples(dfd);
+        reconstructDFDBytesPlanesFromSamples(dfd.get());
         EXPECT_EQ(origBytesPlane03, bdb[KHR_DF_WORD_BYTESPLANE0]);
         EXPECT_EQ(origBytesPlane47, bdb[KHR_DF_WORD_BYTESPLANE4]);
-        free(dfd);
     }
 
     // No need to test reconstruction for UASTC as, colorModel aside, the DFD
@@ -727,8 +701,8 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
                            + sampleCount * KHR_DF_WORD_SAMPLEWORDS;
         bdbSize *= sizeof(uint32_t);
         uint32_t dfdSize = bdbSize + 1 * sizeof(uint32_t);
-        dfd = new uint32_t[dfdSize];
-        bdb = dfd + 1;
+        std::unique_ptr<uint32_t[]> dfd{std::make_unique<uint32_t[]>(dfdSize)};
+        uint32_t* bdb = dfd.get() + 1;
 
         KHR_DFDSETVAL(bdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
         KHR_DFDSETVAL(bdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
@@ -764,7 +738,7 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
             KHR_DFDSETSVAL(bdb, sample, SAMPLELOWER, 0);
             KHR_DFDSETSVAL(bdb, sample, SAMPLEUPPER, UINT32_MAX);
         }
-        reconstructDFDBytesPlanesFromSamples(dfd);
+        reconstructDFDBytesPlanesFromSamples(dfd.get());
         EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE0));
         if (sampleCount == 2)
             EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE1));
@@ -773,18 +747,16 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
         EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE2));
         EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE3));
         EXPECT_EQ(0U, bdb[KHR_DF_WORD_BYTESPLANE4]);
-
-        delete[] dfd;
     }
 }
 
 TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
-        uint32_t* dfd = vk2dfd(formats[i]);
+        std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(formats[i]), std::free};
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
                                  << vkFormatString(formats[i]);
-        VkFormat formatOut = dfd2vk(dfd);
+        VkFormat formatOut = dfd2vk(dfd.get());
         // The SCALED formats are indistinguishable from the INT formats
         // and dfd2vk resolves the ambiguity in favor of the format more
         // likely to be used as a texture.
@@ -888,7 +860,6 @@ TEST_F(DFDVkFormatListTest, BidirectionalVk2DfDTest) {
           default:
             EXPECT_EQ(formatOut, formats[i]);
         }
-        free(dfd);
     }
 }
 
@@ -903,23 +874,25 @@ class HashListTest : public ::testing::Test {
     void constructList(bool sort) {
         KTX_error_code result;
 
-        ktxHashList_Construct(&head);
-        result = ktxHashList_AddKVPair(&head, KTX_WRITER_KEY,
+        head.reset((ktxHashList*)malloc(sizeof(ktxHashList)));
+        ktxHashList_Construct(head.get());
+
+        result = ktxHashList_AddKVPair(head.get(), KTX_WRITER_KEY,
                                        (ktx_uint32_t)writerVal.length() + 1,
                                        writerVal.c_str());
         EXPECT_EQ(result, KTX_SUCCESS);
-        result = ktxHashList_AddKVPair(&head, KTX_ORIENTATION_KEY,
+        result = ktxHashList_AddKVPair(head.get(), KTX_ORIENTATION_KEY,
                                        (ktx_uint32_t)orientationVal.length() + 1,
                                        orientationVal.c_str());
         EXPECT_EQ(result, KTX_SUCCESS);
         if (sort) {
-            ktxHashList_Sort(&head);
+            ktxHashList_Sort(head.get());
             sorted = true;
         }
     }
 
     void checkList() {
-        compareList(head, sorted);
+        compareList(*head, sorted);
     }
 
     void compareList(ktxHashList list, bool isSorted) {
@@ -956,7 +929,7 @@ class HashListTest : public ::testing::Test {
         EXPECT_EQ(entryCount, 2U);
     }
 
-    ktxHashList head;
+    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destroy)*> head{nullptr, ktxHashList_Destroy};
     std::string writerVal;
     std::string orientationVal;
     bool sorted;
@@ -974,10 +947,14 @@ TEST_F(HashListTest, ConstructSorted) {
 }
 
 TEST_F(HashListTest, ConstructCopy) {
-    ktxHashList copyHead;
+    std::unique_ptr<ktxHashList, decltype(ktxHashList_Destruct)*> copyHead_raii{nullptr, ktxHashList_Destruct};
 
     constructList(true);
-    ktxHashList_ConstructCopy(&copyHead, head);
+
+    ktxHashList copyHead;
+    ktxHashList_ConstructCopy(&copyHead, *head);
+    copyHead_raii.reset(&copyHead);
+
     compareList(copyHead, true);
 }
 
@@ -1000,14 +977,17 @@ class SwizzleTestBase : public ::testing::Test {
     }
 
     void runTest(swizzle_e swizzle[4]) {
-        ktxTexture2* texture;
+        std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> texture_raii{nullptr, ktxTexture2_Destroy};
         ktx_error_code_e result;
 
         helper.texinfo.vkFormat
                 = vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat);
+        ktxTexture2* texture;
         result = ktxTexture2_Create(&helper.texinfo,
                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                     &texture);
+        texture_raii.reset(texture);
+
         ASSERT_TRUE(result == KTX_SUCCESS);
         ASSERT_TRUE(texture != NULL) << "ktxTexture_Create failed: "
                                      << ktxErrorString(result);
@@ -1019,9 +999,9 @@ class SwizzleTestBase : public ::testing::Test {
         size_t destByteLen = width * height * 4 * sizeof(GLubyte);
         size_t srcByteLen = width * height * num_components * sizeof(GLubyte);
         typedef GLubyte color[4];
-        color* dest = (color*)malloc(destByteLen);
-        memset(dest, 0x7f, destByteLen);
-        swizzle_to_rgba((uint8_t*)dest,
+        std::unique_ptr<color, decltype(std::free)*> dest{(color*)malloc(destByteLen), std::free};
+        memset(dest.get(), 0x7f, destByteLen);
+        swizzle_to_rgba((uint8_t*)dest.get(),
                         texture->pData,
                         num_components,
                         srcByteLen,
@@ -1030,11 +1010,11 @@ class SwizzleTestBase : public ::testing::Test {
        for (uint32_t i = 0; i < width * height; i++) {
            for (uint32_t c = 0; c < 4; c++) {
                if (swizzle[c] == ZERO)
-                   EXPECT_EQ(dest[i][c], 0);
+                   EXPECT_EQ(dest.get()[i][c], 0);
                else if (swizzle[c] == ONE)
-                   EXPECT_EQ(dest[i][c], 255);
+                   EXPECT_EQ(dest.get()[i][c], 255);
                else
-                   EXPECT_EQ(swizzle[c], dest[i][c]) << "c = " << c << ", i = "  << i;
+                   EXPECT_EQ(swizzle[c], dest.get()[i][c]) << "c = " << c << ", i = "  << i;
            }
        }
     }

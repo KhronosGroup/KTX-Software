@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2020-2025 Arm Limited
+#  Copyright 2020-2026 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -43,7 +43,8 @@ target_sources(${ASTCENC_TEST}
     PRIVATE
         test_simd.cpp
         test_softfloat.cpp
-        test_decode.cpp)
+        test_decode.cpp
+        test_encode.cpp)
 
 target_include_directories(${ASTCENC_TEST}
     PRIVATE
@@ -188,6 +189,30 @@ elseif(${ASTCENC_ISA_SIMD} MATCHES "avx2")
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-mavx2 -mpopcnt -mf16c>
             $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>)
 
+endif()
+
+if(${ASTCENC_ASAN})
+    target_compile_options(${ASTCENC_TEST}
+        PRIVATE
+            $<${is_gnu_fe}:-fsanitize=address>
+            $<${is_gnu_fe}:-fno-sanitize-recover=all>)
+
+    target_link_options(${ASTCENC_TEST}
+        PRIVATE
+            $<${is_gnu_fe}:-fsanitize=address>
+            $<${is_clang}:-fuse-ld=lld>)
+endif()
+
+if(${ASTCENC_UBSAN})
+    target_compile_options(${ASTCENC_TEST}
+        PRIVATE
+            $<${is_gnu_fe}:-fsanitize=undefined>
+            $<${is_gnu_fe}:-fno-sanitize-recover=all>)
+
+    target_link_options(${ASTCENC_TEST}
+        PRIVATE
+            $<${is_gnu_fe}:-fsanitize=undefined>
+            $<${is_clang}:-fuse-ld=lld>)
 endif()
 
 target_link_libraries(${ASTCENC_TEST}

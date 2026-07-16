@@ -151,11 +151,13 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
     ASSERT_EQ(hasAlpha,textureSet.hasAlpha);
 
     if( !hasAlpha && !format.supportsNonAlpha ) {
+        free(basisData);
         return;
     }
 
     if(!(isPo2(bWidth) && isPo2(bHeight))
         && !format.supportsNonPo2 ) {
+        free(basisData);
         return;
     }
 
@@ -208,7 +210,6 @@ void test_texture_set( TextureSet & textureSet, FormatFeature & format ) {
 
     free(data);
     free(basisTranscodedData);
-
     free(basisData);
 }
 

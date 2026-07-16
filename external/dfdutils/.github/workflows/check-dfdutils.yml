@@ -50,10 +50,10 @@ jobs:
           # ".dll.a" extension. I have neither the time nor energy to find out
           # how to change the behaviour. Use VS.
           - os: windows-latest
-            generator: 'Visual Studio 17 2022'
+            generator: 'Visual Studio 18 2026'
             config: Release
           - os: windows-latest
-            generator: 'Visual Studio 17 2022'
+            generator: 'Visual Studio 18 2026'
             config: Debug
 
     runs-on: ${{ matrix.os }}
@@ -63,7 +63,7 @@ jobs:
       #WERROR: ON
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 #      with:
 #        # Fetch all history to make sure tags are
 #        # included (used for version creation)
@@ -91,7 +91,7 @@ jobs:
 
     - name: Upload artifact libdfdutils
       if: matrix.config == 'Release'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: libdfdutils-${{ runner.os }}-${{ runner.arch }}
         path: ${{env.BUILD_DIR}}/Release/*dfdutils*
@@ -99,7 +99,7 @@ jobs:
     - name: Upload generated HTML documentation for GitHub Pages
       if: matrix.os == 'ubuntu-latest' && matrix.config == 'Release'
       id: deployment
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: ${{ env.BUILD_DIR }}/doc/html
 

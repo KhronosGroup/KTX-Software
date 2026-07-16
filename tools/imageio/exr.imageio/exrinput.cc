@@ -11,11 +11,15 @@
 #include <optional>
 #include <string_view>
 #include <vector>
-// TEXR is not defined in tinyexr.h. Current GitHub tinyexr master uses
-// assert. The version in astc-encoder must be old.
-#define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
-#include "tinyexr.h"
+#define TEXR_ASSERT(x) assert(x)
+// Use tinyexr.h from basis_universal because it is self-contained. By default
+// tinyexr.h uses miniz but the astc-encoder has decided to use the stb_zlib
+// so have omitted miniz.h from their source. It is easier to use the one from
+// basis_universal than figure out how to make stb_zlib or standard zlib
+// available. The tinyexr versions appear broadly similar but I have not found
+// a way to determine the version from the .h file.
+#include "basis_universal/encoder/3rdparty/tinyexr.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
@@ -136,8 +140,8 @@ void ExrInput::open(ImageSpec& newspec) {
         }
     }
 
-    const uint32_t width = header.data_window[2] - header.data_window[0] + 1;
-    const uint32_t height = header.data_window[3] - header.data_window[1] + 1;
+    const uint32_t width = header.data_window.max_x - header.data_window.min_x + 1;
+    const uint32_t height = header.data_window.max_y - header.data_window.min_y + 1;
 
     // Use "chromaticities" attribute, if present, to determine color primaries.
     // Per the EXR spec. in the absence of chromaticities, use bt.709.

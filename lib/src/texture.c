@@ -105,21 +105,21 @@ ktxTexture_construct(ktxTexture* This,
      * 1D, 2D, 3D, cube, and array variants of these.
      */
     if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3)
-        return KTX_INVALID_VALUE;
+        goto error_invalid_value;
 
     if (createInfo->baseWidth == 0 || createInfo->baseHeight == 0
         || createInfo->baseDepth == 0)
-        return KTX_INVALID_VALUE;
+        goto error_invalid_value;
 
     switch (createInfo->numDimensions) {
       case 1:
         if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         break;
 
       case 2:
         if (createInfo->baseDepth > 1)
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         break;
 
       case 3:
@@ -128,7 +128,7 @@ ktxTexture_construct(ktxTexture* This,
          */
         if (createInfo->isArray || createInfo->numFaces != 1
             || createInfo->numLayers != 1)
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         break;
     }
     This->numDimensions = createInfo->numDimensions;
@@ -137,29 +137,29 @@ ktxTexture_construct(ktxTexture* This,
     This->baseHeight = createInfo->baseHeight;
 
     if (createInfo->numLayers == 0)
-        return KTX_INVALID_VALUE;
+        goto error_invalid_value;
     This->numLayers = createInfo->numLayers;
     This->isArray = createInfo->isArray;
 
     if (createInfo->numFaces == 6) {
         if (This->numDimensions != 2) {
             /* cube map needs 2D faces */
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         }
         if (createInfo->baseWidth != createInfo->baseHeight) {
             /* cube maps require square images */
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         }
         This->isCubemap = KTX_TRUE;
     } else if (createInfo->numFaces != 1) {
         /* numFaces must be either 1 or 6 */
-        return KTX_INVALID_VALUE;
+        goto error_invalid_value;
     }
     This->numFaces = createInfo->numFaces;
 
     /* Check number of mipmap levels */
     if (createInfo->numLevels == 0)
-        return KTX_INVALID_VALUE;
+        goto error_invalid_value;
     This->numLevels = createInfo->numLevels;
     This->generateMipmaps = createInfo->generateMipmaps;
 
@@ -169,12 +169,20 @@ ktxTexture_construct(ktxTexture* This,
         if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
-            return KTX_INVALID_OPERATION;
+            goto error_invalid_operation;
         }
     }
 
     ktxHashList_Construct(&This->kvDataHead);
     return KTX_SUCCESS;
+
+error_invalid_value:
+    free(This->_protected);
+    return KTX_INVALID_VALUE;
+
+error_invalid_operation:
+    free(This->_protected);
+    return KTX_INVALID_OPERATION;
 }
 
 /**
@@ -228,8 +236,10 @@ ktxTexture_destruct(ktxTexture* This)
 {
     ktxStream stream = *(ktxTexture_getStream(This));
 
-    if (stream.data.file != NULL)
+    if (stream.data.file != NULL) {
         stream.destruct(&stream);
+        stream.data.file = NULL;
+    }
     if (This->kvDataHead != NULL)
         ktxHashList_Destruct(&This->kvDataHead);
     if (This->kvData != NULL)

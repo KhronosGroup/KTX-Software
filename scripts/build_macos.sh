@@ -76,6 +76,10 @@ cmake_args+=( \
   "-D" "BASISU_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SSE=$SUPPORT_SSE"
 )
+# The ASTC encoder defaults to AVX2 for x86_64 but most Macintoshes with Intel
+# CPUs have older pre-Haswell chips which do not support AVX2. As Apple is
+# removing Intel support there is no point making the effort to automate the
+# selection. Use this simple workaround instead.
 if [ "$ARCHS" = "x86_64" ]; then cmake_args+=("-D" "ASTCENC_ISA_SSE41=ON"); fi
 if [ -n "$CODE_SIGN_IDENTITY" ]; then
   cmake_args+=( \

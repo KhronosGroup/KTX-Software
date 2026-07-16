@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2025 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -26,7 +26,11 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
+#include <memory>
+#include <new>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #include "astcenccli_internal.h"
 
@@ -81,6 +85,30 @@ static std::string get_output_filename(
   Image load and store through the stb_image and tinyexr libraries
 ============================================================================ */
 
+struct tinyexr_image_deleter
+{
+	void operator()(void* ptr) const
+	{
+		free(ptr);
+	}
+};
+
+struct tinyexr_error_deleter
+{
+	void operator()(const void* ptr) const
+	{
+		free(const_cast<void*>(ptr));
+	}
+};
+
+struct stbi_image_deleter
+{
+	void operator()(void* ptr) const
+	{
+		stbi_image_free(ptr);
+	}
+};
+
 /**
  * @brief Load a .exr image using TinyExr to provide the loader.
  *
@@ -91,26 +119,27 @@ static std::string get_output_filename(
  *
  * @return The loaded image data in a canonical 4 channel format.
  */
-static astcenc_image* load_image_with_tinyexr(
+static astcenc_image_ptr load_image_with_tinyexr(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
 	unsigned int& component_count
 ) {
 	int dim_x, dim_y;
-	float* image;
-	const char* err;
+	float* image_raw;
+	const char* err { nullptr };
 
-	int load_res = LoadEXR(&image, &dim_x, &dim_y, filename, &err);
+	int load_res = LoadEXR(&image_raw, &dim_x, &dim_y, filename, &err);
 	if (load_res != TINYEXR_SUCCESS)
 	{
-		print_error("ERROR: Failed to load image %s (%s)\n", filename, err);
-		free(reinterpret_cast<void*>(const_cast<char*>(err)));
+		std::unique_ptr<const char, tinyexr_error_deleter> err_ptr { err };
+		print_error("ERROR: Image load failed '%s' (%s)\n",
+		            filename, err_ptr.get() ? err_ptr.get() : "unknown error");
 		return nullptr;
 	}
 
-	astcenc_image* res_img = astc_img_from_floatx4_array(image, dim_x, dim_y, y_flip);
-	free(image);
+	std::unique_ptr<float, tinyexr_image_deleter> image { image_raw };
+	auto res_img = astc_img_from_floatx4_array(image.get(), dim_x, dim_y, y_flip);
 
 	is_hdr = true;
 	component_count = 4;
@@ -127,7 +156,7 @@ static astcenc_image* load_image_with_tinyexr(
  *
  * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
  */
-static astcenc_image* load_image_with_stb(
+static astcenc_image_ptr load_image_with_stb(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
@@ -137,11 +166,12 @@ static astcenc_image* load_image_with_stb(
 
 	if (stbi_is_hdr(filename))
 	{
-		float* data = stbi_loadf(filename, &dim_x, &dim_y, nullptr, STBI_rgb_alpha);
+		std::unique_ptr<float, stbi_image_deleter> data {
+			stbi_loadf(filename, &dim_x, &dim_y, nullptr, STBI_rgb_alpha)
+		};
 		if (data)
 		{
-			astcenc_image* img = astc_img_from_floatx4_array(data, dim_x, dim_y, y_flip);
-			stbi_image_free(data);
+			auto img = astc_img_from_floatx4_array(data.get(), dim_x, dim_y, y_flip);
 			is_hdr = true;
 			component_count = 4;
 			return img;
@@ -149,18 +179,19 @@ static astcenc_image* load_image_with_stb(
 	}
 	else
 	{
-		uint8_t* data = stbi_load(filename, &dim_x, &dim_y, nullptr, STBI_rgb_alpha);
+		std::unique_ptr<uint8_t, stbi_image_deleter> data {
+			stbi_load(filename, &dim_x, &dim_y, nullptr, STBI_rgb_alpha)
+		};
 		if (data)
 		{
-			astcenc_image* img = astc_img_from_unorm8x4_array(data, dim_x, dim_y, y_flip);
-			stbi_image_free(data);
+			auto img = astc_img_from_unorm8x4_array(data.get(), dim_x, dim_y, y_flip);
 			is_hdr = false;
 			component_count = 4;
 			return img;
 		}
 	}
 
-	print_error("ERROR: Failed to load image %s (%s)\n", filename, stbi_failure_reason());
+	print_error("ERROR: Image load failed '%s' (%s)\n", filename, stbi_failure_reason());
 	return nullptr;
 }
 
@@ -183,10 +214,9 @@ static bool store_exr_image_with_tinyexr(
 	for (unsigned int i = 0; i < img->dim_z; i++)
 	{
 		std::string fnmod = get_output_filename(img, filename, i);
-		float* buf = floatx4_array_from_astc_img(img, y_flip, i);
+		std::vector<float> buf = floatx4_array_from_astc_img(img, y_flip, i);
 
-		res = SaveEXR(buf, img->dim_x, img->dim_y, 4, 1, fnmod.c_str(), nullptr);
-		delete[] buf;
+		res = SaveEXR(buf.data(), img->dim_x, img->dim_y, 4, 1, fnmod.c_str(), nullptr);
 		if (res < 0)
 		{
 			break;
@@ -317,10 +347,9 @@ static bool store_hdr_image_with_stb(
 	for (unsigned int i = 0; i < img->dim_z; i++)
 	{
 		std::string fnmod = get_output_filename(img, filename, i);
-		float* buf = floatx4_array_from_astc_img(img, y_flip, i);
+		std::vector<float> buf = floatx4_array_from_astc_img(img, y_flip, i);
 
-		res = stbi_write_hdr(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf);
-		delete[] buf;
+		res = stbi_write_hdr(fnmod.c_str(), img->dim_x, img->dim_y, 4, buf.data());
 		if (res == 0)
 		{
 			break;
@@ -398,7 +427,7 @@ enum scanline_transfer
 static void copy_scanline(
 	void* dst,
 	const void* src,
-	int pixel_count,
+	size_t pixel_count,
 	scanline_transfer method
 ) {
 
@@ -410,7 +439,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[i]); \
 			d[4 * i + 1] = 0;              \
@@ -424,7 +453,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[2 * i    ]); \
 			d[4 * i + 1] = convfunc(s[2 * i + 1]); \
@@ -438,7 +467,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[3 * i    ]); \
 			d[4 * i + 1] = convfunc(s[3 * i + 1]); \
@@ -452,7 +481,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++)\
+		for (size_t i = 0; i < pixel_count; i++)\
 		{ \
 			d[4 * i    ] = convfunc(s[3 * i + 2]); \
 			d[4 * i + 1] = convfunc(s[3 * i + 1]); \
@@ -466,7 +495,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++)\
+		for (size_t i = 0; i < pixel_count; i++)\
 		{ \
 			d[4 * i    ] = convfunc(s[4 * i    ]); \
 			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
@@ -480,7 +509,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++)\
+		for (size_t i = 0; i < pixel_count; i++)\
 		{ \
 			d[4 * i    ] = convfunc(s[4 * i + 2]); \
 			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
@@ -494,7 +523,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[4 * i    ]); \
 			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
@@ -508,7 +537,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[4 * i + 2]); \
 			d[4 * i + 1] = convfunc(s[4 * i + 1]); \
@@ -522,7 +551,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[i]); \
 			d[4 * i + 1] = convfunc(s[i]); \
@@ -536,7 +565,7 @@ static void copy_scanline(
 	do { \
 		const srctype* s = reinterpret_cast<const srctype*>(src); \
 		dsttype* d = reinterpret_cast<dsttype*>(dst); \
-		for (int i = 0; i < pixel_count; i++) \
+		for (size_t i = 0; i < pixel_count; i++) \
 		{ \
 			d[4 * i    ] = convfunc(s[2 * i    ]); \
 			d[4 * i + 1] = convfunc(s[2 * i    ]); \
@@ -630,10 +659,10 @@ static void copy_scanline(
  */
 static void switch_endianness2(
 	void* dataptr,
-	int byte_count
+	size_t byte_count
 ) {
 	uint8_t* data = reinterpret_cast<uint8_t*>(dataptr);
-	for (int i = 0; i < byte_count / 2; i++)
+	for (size_t i = 0; i < byte_count / 2; i++)
 	{
 		uint8_t d0 = data[0];
 		uint8_t d1 = data[1];
@@ -651,10 +680,10 @@ static void switch_endianness2(
  */
 static void switch_endianness4(
 	void* dataptr,
-	int byte_count
+	size_t byte_count
 ) {
 	uint8_t* data = reinterpret_cast<uint8_t*>(dataptr);
-	for (int i = 0; i < byte_count / 4; i++)
+	for (size_t i = 0; i < byte_count / 4; i++)
 	{
 		uint8_t d0 = data[0];
 		uint8_t d1 = data[1];
@@ -667,46 +696,6 @@ static void switch_endianness4(
 		data += 4;
 	}
 }
-
-/*
- Notes about KTX:
-
- After the header and the key/value data area, the actual image data follows.
- Each image starts with a 4-byte "imageSize" value indicating the number of bytes of image data follow.
- (For cube-maps, this value appears only after first image; the remaining 5 images are all of equal size.)
- If the size of an image is not a multiple of 4, then it is padded to the next multiple of 4.
- Note that this padding is NOT included in the "imageSize" field.
- In a cubemap, the padding appears after each face note that in a 2D/3D texture, padding does
- NOT appear between the lines/planes of the texture!
-
- In a KTX file, there may be multiple images; they are organized as follows:
-
- For each mipmap_level in numberOfMipmapLevels
- 	UInt32 imageSize;
- 	For each array_element in numberOfArrayElements
- 	* for each face in numberOfFaces
- 		* for each z_slice in pixelDepth
- 			* for each row or row_of_blocks in pixelHeight
- 				* for each pixel or block_of_pixels in pixelWidth
- 					Byte data[format-specific-number-of-bytes]
- 				* end
- 			* end
- 		*end
- 		Byte cubePadding[0-3]
- 	*end
- 	Byte mipPadding[3 - ((imageSize+ 3) % 4)]
- *end
-
- In the ASTC codec, we will, for the time being only harvest the first image,
- and we will support only a limited set of formats:
-
- gl_type: UNSIGNED_BYTE UNSIGNED_SHORT HALF_FLOAT FLOAT UNSIGNED_INT_8_8_8_8 UNSIGNED_INT_8_8_8_8_REV
- gl_format: RED, RG. RGB, RGBA BGR, BGRA
- gl_internal_format: used for upload to OpenGL; we can ignore it on uncompressed-load, but
- 	need to provide a reasonable value on store: RGB8 RGBA8 RGB16F RGBA16F
- gl_base_internal_format: same as gl_format unless texture is compressed (well, BGR is turned into RGB)
- 	RED, RG, RGB, RGBA
-*/
 
 // Khronos enums
 #define GL_RED                                      0x1903
@@ -931,33 +920,30 @@ static void ktx_header_switch_endianness(ktx_header * kt)
  *
  * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
  */
-static astcenc_image* load_ktx_uncompressed_image(
+static astcenc_image_ptr load_ktx_uncompressed_image(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
 	unsigned int& component_count
 ) {
-	FILE *f = fopen(filename, "rb");
-	if (!f)
+	std::ifstream file(filename, std::ios::in | std::ios::binary);
+	if (!file)
 	{
-		printf("Failed to open file %s\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return nullptr;
 	}
 
 	ktx_header hdr;
-	size_t header_bytes_read = fread(&hdr, 1, sizeof(hdr), f);
-
-	if (header_bytes_read != sizeof(hdr))
+	file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
+	if (file.fail())
 	{
-		printf("Failed to read header of KTX file %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return nullptr;
 	}
 
 	if (memcmp(hdr.magic, ktx_magic, 12) != 0 || (hdr.endianness != 0x04030201 && hdr.endianness != 0x01020304))
 	{
-		printf("File %s does not have a valid KTX header\n", filename);
-		fclose(f);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return nullptr;
 	}
 
@@ -970,16 +956,15 @@ static astcenc_image* load_ktx_uncompressed_image(
 
 	if (hdr.gl_type == 0 || hdr.gl_format == 0)
 	{
-		printf("File %s appears to be compressed, not supported as input\n", filename);
-		fclose(f);
+		print_error("ERROR: Image uses unsupported KTX format '%s'\n", filename);
 		return nullptr;
 	}
 
-	// the formats we support are:
+	// Supported formats are all pairings of:
+	//   type=(UNSIGNED_BYTE, UNSIGNED_SHORT, HALF_FLOAT, FLOAT)
+	//   gl_format=(RED, RG, RGB, RGBA, BGR, BGRA)
 
-	// Cartesian product of gl_type=(UNSIGNED_BYTE, UNSIGNED_SHORT, HALF_FLOAT, FLOAT) x gl_format=(RED, RG, RGB, RGBA, BGR, BGRA)
-
-	int components;
+	unsigned int components;
 	switch (hdr.gl_format)
 	{
 	case GL_RED:
@@ -1007,14 +992,13 @@ static astcenc_image* load_ktx_uncompressed_image(
 		components = 2;
 		break;
 	default:
-		printf("KTX file %s has unsupported GL type\n", filename);
-		fclose(f);
+		print_error("ERROR: Image uses unsupported KTX format '%s'\n", filename);
 		return nullptr;
 	}
 
 	// Although these are set up later, use default initializer to remove warnings
-	int bitness = 8;              // Internal precision after conversion
-	int bytes_per_component = 1;  // Bytes per component in the KTX file
+	unsigned int bitness = 8;              // Internal precision after conversion
+	unsigned int bytes_per_component = 1;  // Bytes per component in the KTX file
 	scanline_transfer copy_method = R8_TO_RGBA8;
 
 	switch (hdr.gl_type)
@@ -1152,112 +1136,147 @@ static astcenc_image* load_ktx_uncompressed_image(
 			break;
 		}
 	default:
-		printf("KTX file %s has unsupported GL format\n", filename);
-		fclose(f);
+		print_error("ERROR: Image uses unsupported KTX format '%s'\n", filename);
 		return nullptr;
 	}
 
 	if (hdr.number_of_mipmap_levels > 1)
 	{
-		printf("WARNING: KTX file %s has %d mipmap levels; only the first one will be encoded.\n", filename, hdr.number_of_mipmap_levels);
+		printf("WARNING: Only the first of %u mipmap levels will be compressed '%s'.\n", hdr.number_of_mipmap_levels, filename);
 	}
 
 	if (hdr.number_of_array_elements > 1)
 	{
-		printf("WARNING: KTX file %s contains a texture array with %d layers; only the first one will be encoded.\n", filename, hdr.number_of_array_elements);
+		printf("WARNING: Only the first of %u array layers will be compressed '%s'.\n", hdr.number_of_array_elements, filename);
 	}
 
 	if (hdr.number_of_faces > 1)
 	{
-		printf("WARNING: KTX file %s contains a cubemap with 6 faces; only the first one will be encoded.\n", filename);
+		printf("WARNING: Only the first of %u cube faces will be compressed '%s'.\n", hdr.number_of_faces, filename);
 	}
-
 
 	unsigned int dim_x = hdr.pixel_width;
 	unsigned int dim_y = astc::max(hdr.pixel_height, 1u);
 	unsigned int dim_z = astc::max(hdr.pixel_depth, 1u);
 
 	// ignore the key/value data
-	fseek(f, hdr.bytes_of_key_value_data, SEEK_CUR);
-
-	uint32_t specified_bytes_of_surface = 0;
-	size_t sb_read = fread(&specified_bytes_of_surface, 1, 4, f);
-	if (sb_read != 4)
+	file.seekg(hdr.bytes_of_key_value_data, std::ios::cur);
+	if (file.fail())
 	{
-		printf("Failed to read header of KTX file %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	uint32_t specified_bytes_per_image = 0;
+	file.read(reinterpret_cast<char*>(&specified_bytes_per_image), sizeof(specified_bytes_per_image));
+	if (file.fail())
+	{
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return nullptr;
 	}
 
 	if (switch_endianness)
 	{
-		specified_bytes_of_surface = reverse_bytes_u32(specified_bytes_of_surface);
+		specified_bytes_per_image = reverse_bytes_u32(specified_bytes_per_image);
 	}
 
-	// read the surface
-	uint32_t xstride = bytes_per_component * components * dim_x;
-	uint32_t ystride = xstride * dim_y;
-	uint32_t computed_bytes_of_surface = dim_z * ystride;
-	if (computed_bytes_of_surface != specified_bytes_of_surface)
+	// Compute surface size, checking for overflow caused by bad user-defined sizes
+	// These values are trusted and cannot overflow
+	size_t bytes_per_pixel = bytes_per_component * components;
+
+	bool overflow { false };
+
+	size_t bytes_per_row = astc::mul_safe(bytes_per_pixel, dim_x, overflow);
+	size_t bytes_per_plane = astc::mul_safe(bytes_per_row, dim_y, overflow);
+	size_t bytes_per_image = astc::mul_safe(bytes_per_plane, dim_z, overflow);
+
+	// Also verify that our output plane allocation does not overflow because
+	// this always uses 4 components which can be more than the input file used
+	size_t plane_texels = astc::mul_safe(dim_x, dim_y, overflow);
+	astc::mul_safe(plane_texels, 4, overflow);
+
+	if (overflow || bytes_per_image != specified_bytes_per_image)
 	{
-		fclose(f);
-		printf("%s: KTX file inconsistency: computed surface size is %d bytes, but specified size is %d bytes\n", filename, computed_bytes_of_surface, specified_bytes_of_surface);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return nullptr;
 	}
 
-	uint8_t *buf = new uint8_t[specified_bytes_of_surface];
-	size_t bytes_read = fread(buf, 1, specified_bytes_of_surface, f);
-	fclose(f);
-	if (bytes_read != specified_bytes_of_surface)
+	std::unique_ptr<uint8_t[]> buf;
+	try
 	{
-		delete[] buf;
-		printf("Failed to read file %s\n", filename);
+		buf = std::make_unique<uint8_t[]>(bytes_per_image);
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
 		return nullptr;
 	}
 
-	// perform an endianness swap on the surface if needed.
+	file.read(reinterpret_cast<char*>(buf.get()), bytes_per_image);
+	if (file.fail())
+	{
+		print_error("ERROR: File read failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	// Perform an endianness swap on the surface if needed.
 	if (switch_endianness)
 	{
 		if (hdr.gl_type_size == 2)
 		{
-			switch_endianness2(buf, specified_bytes_of_surface);
+			switch_endianness2(buf.get(), bytes_per_image);
 		}
 
 		if (hdr.gl_type_size == 4)
 		{
-			switch_endianness4(buf, specified_bytes_of_surface);
+			switch_endianness4(buf.get(), bytes_per_image);
 		}
 	}
 
 	// Transfer data from the surface to our own image data structure
-	astcenc_image *astc_img = alloc_image(bitness, dim_x, dim_y, dim_z);
-
-	for (unsigned int z = 0; z < dim_z; z++)
+	astcenc_image_ptr astc_img;
+	try
 	{
-		for (unsigned int y = 0; y < dim_y; y++)
+		astc_img = alloc_image(bitness, dim_x, dim_y, dim_z);
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	// TODO: Change astenc_image struct to store size_t rather than unsigned
+	// int then make dim_x/y/z size_t at the start of the function. This is an
+	// API break, so needs to wait until we make a major version.
+	size_t dim_y_sz = dim_y;
+	size_t dim_z_sz = dim_z;
+
+	for (size_t z = 0; z < dim_z_sz; z++)
+	{
+		for (size_t y = 0; y < dim_y_sz; y++)
 		{
-			unsigned int ymod = y_flip ? dim_y - y - 1 : y;
-			unsigned int ydst = ymod;
+			size_t mod_y = y_flip ? dim_y_sz - y - 1 : y;
 			void *dst;
 
 			if (astc_img->data_type == ASTCENC_TYPE_U8)
 			{
 				uint8_t* data8 = static_cast<uint8_t*>(astc_img->data[z]);
-				dst = static_cast<void*>(&data8[4 * dim_x * ydst]);
+				dst = static_cast<void*>(&data8[4 * dim_x * mod_y]);
 			}
 			else // if (astc_img->data_type == ASTCENC_TYPE_F16)
 			{
 				assert(astc_img->data_type == ASTCENC_TYPE_F16);
 				uint16_t* data16 = static_cast<uint16_t*>(astc_img->data[z]);
-				dst = static_cast<void*>(&data16[4 * dim_x * ydst]);
+				dst = static_cast<void*>(&data16[4 * dim_x * mod_y]);
 			}
 
-			uint8_t *src = buf + (z * ystride) + (y * xstride);
+			uint8_t *src = buf.get() + (z * bytes_per_plane) + (y * bytes_per_row);
 			copy_scanline(dst, src, dim_x, copy_method);
 		}
 	}
 
-	delete[] buf;
 	is_hdr = bitness >= 16;
 	component_count = components;
 	return astc_img;
@@ -1277,27 +1296,25 @@ bool load_ktx_compressed_image(
 	bool& is_srgb,
 	astc_compressed_image& img
 ) {
-	FILE *f = fopen(filename, "rb");
-	if (!f)
+	std::ifstream file(filename, std::ios::in | std::ios::binary);
+	if (!file)
 	{
-		printf("Failed to open file %s\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return true;
 	}
 
 	ktx_header hdr;
-	size_t actual = fread(&hdr, 1, sizeof(hdr), f);
-	if (actual != sizeof(hdr))
+	file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
+	if (file.fail())
 	{
-		printf("Failed to read header from %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return true;
 	}
 
 	if (memcmp(hdr.magic, ktx_magic, 12) != 0 ||
 	    (hdr.endianness != 0x04030201 && hdr.endianness != 0x01020304))
 	{
-		printf("File %s does not have a valid KTX header\n", filename);
-		fclose(f);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return true;
 	}
 
@@ -1311,36 +1328,31 @@ bool load_ktx_compressed_image(
 	if (hdr.gl_type != 0 || hdr.gl_format != 0 || hdr.gl_type_size != 1 ||
 	    hdr.gl_base_internal_format != GL_RGBA)
 	{
-		printf("File %s is not a compressed ASTC file\n", filename);
-		fclose(f);
+		print_error("ERROR: Image uses unsupported KTX format '%s'\n", filename);
 		return true;
 	}
 
 	const format_entry* fmt = get_format(hdr.gl_internal_format);
 	if (!fmt)
 	{
-		printf("File %s is not a compressed ASTC file\n", filename);
-		fclose(f);
+		print_error("ERROR: Image uses unsupported KTX format '%s'\n", filename);
 		return true;
 	}
 
 	// Skip over any key-value pairs
-	int seekerr;
-	seekerr = fseek(f, hdr.bytes_of_key_value_data, SEEK_CUR);
-	if (seekerr)
+	file.seekg(hdr.bytes_of_key_value_data, std::ios::cur);
+	if (file.fail())
 	{
-		printf("Failed to skip key-value pairs in %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return true;
 	}
 
-	// Read the length of the data and endianess convert
-	unsigned int data_len;
-	actual = fread(&data_len, 1, sizeof(data_len), f);
-	if (actual != sizeof(data_len))
+	// Read the length of the data and convert endianness
+	uint32_t data_len;
+	file.read(reinterpret_cast<char*>(&data_len), sizeof(data_len));
+	if (file.fail())
 	{
-		printf("Failed to read mip 0 size from %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return true;
 	}
 
@@ -1350,13 +1362,12 @@ bool load_ktx_compressed_image(
 	}
 
 	// Read the data
-	unsigned char* data = new unsigned char[data_len];
-	actual = fread(data, 1, data_len, f);
-	if (actual != data_len)
+	img.data.resize(data_len);
+	file.read(reinterpret_cast<char*>(img.data.data()), data_len);
+	if (file.fail())
 	{
-		printf("Failed to read mip 0 data from %s\n", filename);
-		fclose(f);
-		delete[] data;
+		print_error("ERROR: File read failed '%s'\n", filename);
+		img.data.clear();
 		return true;
 	}
 
@@ -1368,12 +1379,8 @@ bool load_ktx_compressed_image(
 	img.dim_y = hdr.pixel_height;
 	img.dim_z = hdr.pixel_depth == 0 ? 1 : hdr.pixel_depth;
 
-	img.data_len = data_len;
-	img.data = data;
-
 	is_srgb = fmt->is_srgb;
 
-	fclose(f);
 	return false;
 }
 
@@ -1413,31 +1420,21 @@ bool store_ktx_compressed_image(
 	ktx_header_switch_endianness(&hdr);
 #endif
 
-	size_t expected = sizeof(ktx_header) + 4 + img.data_len;
-	size_t actual = 0;
-
-	FILE *wf = fopen(filename, "wb");
-	if (!wf)
+	std::ofstream file(filename, std::ios::out | std::ios::binary);
+	if (!file)
 	{
 		return true;
 	}
 
-	uint32_t data_len = static_cast<uint32_t>(img.data_len);
+	uint32_t data_len = static_cast<uint32_t>(img.data.size());
 #if defined(ASTCENC_BIG_ENDIAN)
 	data_len = reverse_bytes_u32(data_len);
 #endif
 
-	actual += fwrite(&hdr, 1, sizeof(ktx_header), wf);
-	actual += fwrite(&data_len, 1, sizeof(uint32_t), wf);
-	actual += fwrite(img.data, 1, img.data_len, wf);
-	fclose(wf);
-
-	if (actual != expected)
-	{
-		return true;
-	}
-
-	return false;
+	file.write(reinterpret_cast<const char*>(&hdr), sizeof(ktx_header));
+	file.write(reinterpret_cast<const char*>(&data_len), sizeof(uint32_t));
+	file.write(reinterpret_cast<const char*>(img.data.data()), img.data.size());
+	return file.fail();
 }
 
 /**
@@ -1454,12 +1451,34 @@ static bool store_ktx_uncompressed_image(
 	const char* filename,
 	int y_flip
 ) {
-	unsigned int dim_x = img->dim_x;
-	unsigned int dim_y = img->dim_y;
-	unsigned int dim_z = img->dim_z;
+	size_t dim_x = img->dim_x;
+	size_t dim_y = img->dim_y;
+	size_t dim_z = img->dim_z;
 
-	int bitness = img->data_type == ASTCENC_TYPE_U8 ? 8 : 16;
-	int image_components = determine_image_components(img);
+	unsigned int bitness = img->data_type == ASTCENC_TYPE_U8 ? 8 : 16;
+	unsigned int image_components = determine_image_components(img);
+
+	// Size of the image data in bytes
+	bool overflow { false };
+	size_t image_bytes = astc::mul_safe(dim_x, dim_y, overflow);
+	image_bytes = astc::mul_safe(image_bytes, dim_z, overflow);
+	image_bytes = astc::mul_safe(image_bytes, image_components, overflow);
+	image_bytes = astc::mul_safe(image_bytes, bitness / 8, overflow);
+	if (overflow)
+	{
+		return false;
+	}
+
+	// Size of image data padded to a multiple of 4 bytes
+	size_t image_write_bytes = (image_bytes + 3) & ~3;
+
+	// The KTX imageSize field is a fixed 32-bit value, so check that the size_t
+	/// value can be safely narrowed, and does not wrap when padded
+	uint32_t image_bytes_field = static_cast<uint32_t>(image_bytes);
+	if ((image_bytes_field != image_bytes) || (image_write_bytes < image_bytes))
+	{
+		return false;
+	}
 
 	ktx_header hdr;
 
@@ -1480,6 +1499,7 @@ static bool store_ktx_uncompressed_image(
 	hdr.gl_type = (bitness == 16) ? GL_HALF_FLOAT : GL_UNSIGNED_BYTE;
 	hdr.gl_type_size = bitness / 8;
 	hdr.gl_format = gl_format_of_components[image_components - 1];
+
 	if (bitness == 16)
 	{
 		hdr.gl_internal_format = gl_sized_format_of_components_hdr[image_components - 1];
@@ -1488,136 +1508,151 @@ static bool store_ktx_uncompressed_image(
 	{
 		hdr.gl_internal_format = gl_sized_format_of_components_ldr[image_components - 1];
 	}
+
 	hdr.gl_base_internal_format = hdr.gl_format;
-	hdr.pixel_width = dim_x;
-	hdr.pixel_height = dim_y;
-	hdr.pixel_depth = (dim_z == 1) ? 0 : dim_z;
+	hdr.pixel_width = static_cast<uint32_t>(dim_x);
+	hdr.pixel_height = static_cast<uint32_t>(dim_y);
+	hdr.pixel_depth = static_cast<uint32_t>((dim_z == 1) ? 0 : dim_z);
 	hdr.number_of_array_elements = 0;
 	hdr.number_of_faces = 1;
 	hdr.number_of_mipmap_levels = 1;
 	hdr.bytes_of_key_value_data = 0;
 
 	// Collect image data to write
-	uint8_t ***row_pointers8 = nullptr;
-	uint16_t ***row_pointers16 = nullptr;
+	std::vector<uint8_t> pixel_data8;
+	std::vector<uint8_t*> row_data8;
+	std::vector<uint8_t**> row_pointers8;
+
+	std::vector<uint16_t> pixel_data16;
+	std::vector<uint16_t*> row_data16;
+	std::vector<uint16_t**> row_pointers16;
+
 	if (bitness == 8)
 	{
-		row_pointers8 = new uint8_t **[dim_z];
-		row_pointers8[0] = new uint8_t *[dim_y * dim_z];
-		row_pointers8[0][0] = new uint8_t[dim_x * dim_y * dim_z * image_components + 3];
+		row_pointers8.resize(dim_z);
+		row_data8.resize(dim_y * dim_z);
+		// + 3 to ensure this can be padded to be word aligned when written
+		pixel_data8.resize(dim_x * dim_y * dim_z * image_components + 3);
 
-		for (unsigned int z = 1; z < dim_z; z++)
+		row_pointers8[0] = row_data8.data();
+		row_pointers8[0][0] = pixel_data8.data();
+
+		for (size_t z = 1; z < dim_z; z++)
 		{
 			row_pointers8[z] = row_pointers8[0] + dim_y * z;
-			row_pointers8[z][0] = row_pointers8[0][0] + dim_y * dim_x * image_components * z;
+			row_pointers8[z][0] = row_pointers8[0][0] + dim_x * dim_y * image_components * z;
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
-			for (unsigned int y = 1; y < dim_y; y++)
+			for (size_t y = 1; y < dim_y; y++)
 			{
 				row_pointers8[z][y] = row_pointers8[z][0] + dim_x * image_components * y;
 			}
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
 			uint8_t* data8 = static_cast<uint8_t*>(img->data[z]);
-			for (unsigned int y = 0; y < dim_y; y++)
+			for (size_t y = 0; y < dim_y; y++)
 			{
-				int ym = y_flip ? dim_y - y - 1 : y;
+				size_t mod_y = y_flip ? dim_y - y - 1 : y;
 				switch (image_components)
 				{
-				case 1:		// single-component, treated as Luminance
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 1:  // One component, treated as Luminance
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][x] = data8[(4 * dim_x * ym) + (4 * x    )];
+						row_pointers8[z][y][x] = data8[(4 * dim_x* mod_y) + (4 * x    )];
 					}
 					break;
-				case 2:		// two-component, treated as Luminance-Alpha
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 2:  // Two component, treated as Luminance-Alpha
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][2 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][2 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers8[z][y][2 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][2 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
-				case 3:		// three-component, treated a
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 3:  // Three component, treated as RGB
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][3 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][3 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers8[z][y][3 * x + 2] = data8[(4 * dim_x * ym) + (4 * x + 2)];
+						row_pointers8[z][y][3 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][3 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers8[z][y][3 * x + 2] = data8[(4 * dim_x* mod_y) + (4 * x + 2)];
 					}
 					break;
-				case 4:		// four-component, treated as RGBA
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 4:  // Four component, treated as RGBA
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][4 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][4 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers8[z][y][4 * x + 2] = data8[(4 * dim_x * ym) + (4 * x + 2)];
-						row_pointers8[z][y][4 * x + 3] = data8[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers8[z][y][4 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][4 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers8[z][y][4 * x + 2] = data8[(4 * dim_x* mod_y) + (4 * x + 2)];
+						row_pointers8[z][y][4 * x + 3] = data8[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
 				}
 			}
 		}
 	}
-	else						// if bitness == 16
+	else  // if bitness == 16
 	{
-		row_pointers16 = new uint16_t **[dim_z];
-		row_pointers16[0] = new uint16_t *[dim_y * dim_z];
-		row_pointers16[0][0] = new uint16_t[dim_x * dim_y * dim_z * image_components + 1];
+		row_pointers16.resize(dim_z);
+		row_data16.resize(dim_y * dim_z);
+		// + 1 to ensure this can be padded to be word aligned when written
+		pixel_data16.resize(dim_x * dim_y * dim_z * image_components + 1);
 
-		for (unsigned int z = 1; z < dim_z; z++)
+		row_pointers16[0] = row_data16.data();
+		row_pointers16[0][0] = pixel_data16.data();
+
+		for (size_t z = 1; z < dim_z; z++)
 		{
 			row_pointers16[z] = row_pointers16[0] + dim_y * z;
-			row_pointers16[z][0] = row_pointers16[0][0] + dim_y * dim_x * image_components * z;
+			row_pointers16[z][0] = row_pointers16[0][0] + dim_x * dim_y * image_components * z;
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
-			for (unsigned int y = 1; y < dim_y; y++)
+			for (size_t y = 1; y < dim_y; y++)
 			{
 				row_pointers16[z][y] = row_pointers16[z][0] + dim_x * image_components * y;
 			}
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
 			uint16_t* data16 = static_cast<uint16_t*>(img->data[z]);
-			for (unsigned int y = 0; y < dim_y; y++)
+			for (size_t y = 0; y < dim_y; y++)
 			{
-				int ym = y_flip ? dim_y - y - 1 : y;
+				size_t mod_y = y_flip ? dim_y - y - 1 : y;
 				switch (image_components)
 				{
-				case 1:		// single-component, treated as Luminance
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 1:  // One component, treated as Luminance
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][x] = data16[(4 * dim_x * ym) + (4 * x    )];
+						row_pointers16[z][y][x] = data16[(4 * dim_x* mod_y) + (4 * x    )];
 					}
 					break;
-				case 2:		// two-component, treated as Luminance-Alpha
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 2:  // Two component, treated as Luminance-Alpha
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][2 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][2 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers16[z][y][2 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][2 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
-				case 3:		// three-component, treated as RGB
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 3:  // Three component, treated as RGB
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][3 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][3 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers16[z][y][3 * x + 2] = data16[(4 * dim_x * ym) + (4 * x + 2)];
+						row_pointers16[z][y][3 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][3 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers16[z][y][3 * x + 2] = data16[(4 * dim_x* mod_y) + (4 * x + 2)];
 					}
 					break;
-				case 4:		// four-component, treated as RGBA
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 4:  // Four component, treated as RGBA
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][4 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][4 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers16[z][y][4 * x + 2] = data16[(4 * dim_x * ym) + (4 * x + 2)];
-						row_pointers16[z][y][4 * x + 3] = data16[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers16[z][y][4 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][4 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers16[z][y][4 * x + 2] = data16[(4 * dim_x* mod_y) + (4 * x + 2)];
+						row_pointers16[z][y][4 * x + 3] = data16[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
 				}
@@ -1626,22 +1661,17 @@ static bool store_ktx_uncompressed_image(
 	}
 
 	bool retval { true };
-	uint32_t image_bytes = dim_x * dim_y * dim_z * image_components * (bitness / 8);
-	uint32_t image_write_bytes = (image_bytes + 3) & ~3;
-
-	FILE *wf = fopen(filename, "wb");
-	if (wf)
+	std::ofstream file(filename, std::ios::out | std::ios::binary);
+	if (file)
 	{
 		void* dataptr = (bitness == 16) ?
 			reinterpret_cast<void*>(row_pointers16[0][0]) :
 			reinterpret_cast<void*>(row_pointers8[0][0]);
 
-		size_t expected_bytes_written = sizeof(ktx_header) + image_write_bytes + 4;
-		size_t hdr_bytes_written = fwrite(&hdr, 1, sizeof(ktx_header), wf);
-		size_t bytecount_bytes_written = fwrite(&image_bytes, 1, 4, wf);
-		size_t data_bytes_written = fwrite(dataptr, 1, image_write_bytes, wf);
-		fclose(wf);
-		if (hdr_bytes_written + bytecount_bytes_written + data_bytes_written != expected_bytes_written)
+		file.write(reinterpret_cast<const char*>(&hdr), sizeof(ktx_header));
+		file.write(reinterpret_cast<const char*>(&image_bytes_field), sizeof(image_bytes_field));
+		file.write(reinterpret_cast<const char*>(dataptr), image_write_bytes);
+		if (file.fail())
 		{
 			retval = false;
 		}
@@ -1649,20 +1679,6 @@ static bool store_ktx_uncompressed_image(
 	else
 	{
 		retval = false;
-	}
-
-	if (row_pointers8)
-	{
-		delete[] row_pointers8[0][0];
-		delete[] row_pointers8[0];
-		delete[] row_pointers8;
-	}
-
-	if (row_pointers16)
-	{
-		delete[] row_pointers16[0][0];
-		delete[] row_pointers16[0];
-		delete[] row_pointers16;
 	}
 
 	return retval;
@@ -1746,10 +1762,10 @@ struct dds_header
 struct dds_header_dx10
 {
 	uint32_t dxgi_format;
-	uint32_t resource_dimension;	// 2=1d-texture, 3=2d-texture or cubemap, 4=3d-texture
-	uint32_t misc_flag;			// 4 if cubemap, else 0
-	uint32_t array_size;		// size of array in case of a texture array; set to 1 for a non-array
-	uint32_t reserved;			// set to 0.
+	uint32_t resource_dimension;  // Set to 2 (1D tex), 3 (2D tex or cube), or 4 (3D tex)
+	uint32_t misc_flag;           // Set to 4 if cubemap, else 0
+	uint32_t array_size;          // Set to size of array if texture array; else 1
+	uint32_t reserved;            // Set to 0.
 };
 
 #define DDS_MAGIC 0x20534444
@@ -1765,26 +1781,25 @@ struct dds_header_dx10
  *
  * @return The loaded image data in a canonical 4 channel format, or @c nullptr on error.
  */
-static astcenc_image* load_dds_uncompressed_image(
+static astcenc_image_ptr load_dds_uncompressed_image(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
 	unsigned int& component_count
 ) {
-	FILE *f = fopen(filename, "rb");
-	if (!f)
+	std::ifstream file(filename, std::ios::in | std::ios::binary);
+	if (!file)
 	{
-		printf("Failed to open file %s\n", filename);
+		print_error("ERROR: File open failed '%s'\n", filename);
 		return nullptr;
 	}
 
 	// Read and check the DDS magic number
 	uint32_t magic;
-	size_t magic_bytes_read = fread(&magic, 1, sizeof(uint32_t), f);
-	if (magic_bytes_read != 4)
+	file.read(reinterpret_cast<char*>(&magic), sizeof(uint32_t));
+	if (file.fail())
 	{
-		printf("Failed to read magic number from file %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return nullptr;
 	}
 
@@ -1794,23 +1809,21 @@ static astcenc_image* load_dds_uncompressed_image(
 
 	if (magic != DDS_MAGIC)
 	{
-		printf("File %s has incorrect magic number\n", filename);
-		fclose(f);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return nullptr;
 	}
 
 	// Validate that we can read the DDS header
 	dds_header hdr;
-	size_t header_bytes_read = fread(&hdr, 1, sizeof(hdr), f);
-	if (header_bytes_read != sizeof(hdr))
+	file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
+	if (file.fail())
 	{
-		printf("Failed to read header from file %s\n", filename);
-		fclose(f);
+		print_error("ERROR: File read failed '%s'\n", filename);
 		return nullptr;
 	}
 
 #if defined(ASTCENC_BIG_ENDIAN)
-	// DDS header fields all 32-bit words
+	// DDS header fields are all 32-bit words
 	uint32_t* words = reinterpret_cast<uint32_t*>(&hdr);
 	size_t word_count = sizeof(hdr) / sizeof(uint32_t);
 
@@ -1823,8 +1836,7 @@ static astcenc_image* load_dds_uncompressed_image(
 
 	if (hdr.size != 124)
 	{
-		printf("File %s has incorrect header\n", filename);
-		fclose(f);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return nullptr;
 	}
 
@@ -1837,8 +1849,7 @@ static astcenc_image* load_dds_uncompressed_image(
 		}
 		else
 		{
-			printf("DDS file %s is compressed, not supported\n", filename);
-			fclose(f);
+			print_error("ERROR: Image uses unsupported DDS format '%s'\n", filename);
 			return nullptr;
 		}
 	}
@@ -1846,25 +1857,24 @@ static astcenc_image* load_dds_uncompressed_image(
 	dds_header_dx10 dx10_header;
 	if (use_dx10_header)
 	{
-		size_t dx10_header_bytes_read = fread(&dx10_header, 1, sizeof(dx10_header), f);
-		if (dx10_header_bytes_read != sizeof(dx10_header))
+		file.read(reinterpret_cast<char*>(&dx10_header), sizeof(dx10_header));
+		if (file.fail())
 		{
-			printf("Failed to read header of DDS file %s\n", filename);
-			fclose(f);
+			print_error("ERROR: File read failed '%s'\n", filename);
 			return nullptr;
 		}
 	}
 
-	unsigned int dim_x = hdr.width;
-	unsigned int dim_y = hdr.height;
-	unsigned int dim_z = (hdr.flags & 0x800000) ? hdr.depth : 1;
+	size_t dim_x = hdr.width;
+	size_t dim_y = hdr.height;
+	size_t dim_z = (hdr.flags & 0x800000) ? hdr.depth : 1;
 
 	// The bitcount that we will use internally in the codec
-	int bitness = 0;
+	unsigned int bitness = 0;
 
 	// The bytes per component in the DDS file itself
-	int bytes_per_component = 0;
-	int components = 0;
+	unsigned int bytes_per_component = 0;
+	unsigned int components = 0;
 	scanline_transfer copy_method = R8_TO_RGBA8;
 
 	// figure out the format actually used in the DDS file.
@@ -1877,41 +1887,41 @@ static astcenc_image* load_dds_uncompressed_image(
 		#define DXGI_FORMAT_R16G16B16A16_UNORM  11
 		#define DXGI_FORMAT_R32G32_FLOAT        16
 		#define DXGI_FORMAT_R8G8B8A8_UNORM      28
-		#define DXGI_FORMAT_R16G16_FLOAT    34
-		#define DXGI_FORMAT_R16G16_UNORM    35
-		#define DXGI_FORMAT_R32_FLOAT       41
-		#define DXGI_FORMAT_R8G8_UNORM      49
-		#define DXGI_FORMAT_R16_FLOAT       54
-		#define DXGI_FORMAT_R16_UNORM       56
-		#define DXGI_FORMAT_R8_UNORM        61
-		#define DXGI_FORMAT_B8G8R8A8_UNORM  86
-		#define DXGI_FORMAT_B8G8R8X8_UNORM  87
+		#define DXGI_FORMAT_R16G16_FLOAT        34
+		#define DXGI_FORMAT_R16G16_UNORM        35
+		#define DXGI_FORMAT_R32_FLOAT           41
+		#define DXGI_FORMAT_R8G8_UNORM          49
+		#define DXGI_FORMAT_R16_FLOAT           54
+		#define DXGI_FORMAT_R16_UNORM           56
+		#define DXGI_FORMAT_R8_UNORM            61
+		#define DXGI_FORMAT_B8G8R8A8_UNORM      86
+		#define DXGI_FORMAT_B8G8R8X8_UNORM      87
 
 		struct dxgi_params
 		{
-			int bitness;
-			int bytes_per_component;
-			int components;
+			unsigned int bitness;
+			unsigned int bytes_per_component;
+			unsigned int components;
 			scanline_transfer copy_method;
 			uint32_t dxgi_format_number;
 		};
 
 		static const dxgi_params format_params[] {
-			{16, 4, 4, RGBA32F_TO_RGBA16F, DXGI_FORMAT_R32G32B32A32_FLOAT},
-			{16, 4, 3, RGB32F_TO_RGBA16F, DXGI_FORMAT_R32G32B32_FLOAT},
-			{16, 2, 4, RGBA16F_TO_RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT},
-			{16, 2, 4, RGBA16_TO_RGBA16F, DXGI_FORMAT_R16G16B16A16_UNORM},
-			{16, 4, 2, RG32F_TO_RGBA16F, DXGI_FORMAT_R32G32_FLOAT},
-			{8, 1, 4, RGBA8_TO_RGBA8, DXGI_FORMAT_R8G8B8A8_UNORM},
-			{16, 2, 2, RG16F_TO_RGBA16F, DXGI_FORMAT_R16G16_FLOAT},
-			{16, 2, 2, RG16_TO_RGBA16F, DXGI_FORMAT_R16G16_UNORM},
-			{16, 4, 1, R32F_TO_RGBA16F, DXGI_FORMAT_R32_FLOAT},
-			{8, 1, 2, RG8_TO_RGBA8, DXGI_FORMAT_R8G8_UNORM},
-			{16, 2, 1, R16F_TO_RGBA16F, DXGI_FORMAT_R16_FLOAT},
-			{16, 2, 1, R16_TO_RGBA16F, DXGI_FORMAT_R16_UNORM},
-			{8, 1, 1, R8_TO_RGBA8, DXGI_FORMAT_R8_UNORM},
-			{8, 1, 4, BGRA8_TO_RGBA8, DXGI_FORMAT_B8G8R8A8_UNORM},
-			{8, 1, 4, BGRX8_TO_RGBA8, DXGI_FORMAT_B8G8R8X8_UNORM},
+			{ 16, 4, 4, RGBA32F_TO_RGBA16F, DXGI_FORMAT_R32G32B32A32_FLOAT },
+			{ 16, 4, 3,  RGB32F_TO_RGBA16F,    DXGI_FORMAT_R32G32B32_FLOAT },
+			{ 16, 2, 4, RGBA16F_TO_RGBA16F, DXGI_FORMAT_R16G16B16A16_FLOAT },
+			{ 16, 2, 4,  RGBA16_TO_RGBA16F, DXGI_FORMAT_R16G16B16A16_UNORM },
+			{ 16, 4, 2,   RG32F_TO_RGBA16F,       DXGI_FORMAT_R32G32_FLOAT },
+			{  8, 1, 4,     RGBA8_TO_RGBA8,     DXGI_FORMAT_R8G8B8A8_UNORM },
+			{ 16, 2, 2,   RG16F_TO_RGBA16F,       DXGI_FORMAT_R16G16_FLOAT },
+			{ 16, 2, 2,    RG16_TO_RGBA16F,       DXGI_FORMAT_R16G16_UNORM },
+			{ 16, 4, 1,    R32F_TO_RGBA16F,          DXGI_FORMAT_R32_FLOAT },
+			{  8, 1, 2,       RG8_TO_RGBA8,         DXGI_FORMAT_R8G8_UNORM },
+			{ 16, 2, 1,    R16F_TO_RGBA16F,          DXGI_FORMAT_R16_FLOAT },
+			{ 16, 2, 1,     R16_TO_RGBA16F,          DXGI_FORMAT_R16_UNORM },
+			{  8, 1, 1,        R8_TO_RGBA8,           DXGI_FORMAT_R8_UNORM },
+			{  8, 1, 4,     BGRA8_TO_RGBA8,     DXGI_FORMAT_B8G8R8A8_UNORM },
+			{  8, 1, 4,      BGRX8_TO_RGBA8,    DXGI_FORMAT_B8G8R8X8_UNORM },
 		};
 
 		int dxgi_modes_supported = sizeof(format_params) / sizeof(format_params[0]);
@@ -1931,8 +1941,7 @@ static astcenc_image* load_dds_uncompressed_image(
 
 		if (!did_select_format)
 		{
-			printf("DDS file %s: DXGI format not supported by codec\n", filename);
-			fclose(f);
+			print_error("ERROR: Image uses unsupported DDS format '%s'\n", filename);
 			return nullptr;
 		}
 	}
@@ -2019,58 +2028,101 @@ static astcenc_image* load_dds_uncompressed_image(
 		}
 		else
 		{
-			printf("DDS file %s: Non-DXGI format not supported by codec\n", filename);
-			fclose(f);
+			print_error("ERROR: Image uses unsupported DDS format '%s'\n", filename);
 			return nullptr;
 		}
 
 		bitness = bytes_per_component * 8;
 	}
 
-	// then, load the actual file.
-	uint32_t xstride = bytes_per_component * components * dim_x;
-	uint32_t ystride = xstride * dim_y;
-	uint32_t bytes_of_surface = ystride * dim_z;
+	// Compute surface size, checking for overflow caused by bad user-defined sizes
+	// These values are trusted and cannot overflow
+	size_t bytes_per_pixel = bytes_per_component * components;
 
-	uint8_t *buf = new uint8_t[bytes_of_surface];
-	size_t bytes_read = fread(buf, 1, bytes_of_surface, f);
-	fclose(f);
-	if (bytes_read != bytes_of_surface)
+	// These values are not and can overflow
+	bool overflow { false };
+	size_t bytes_per_row = astc::mul_safe(bytes_per_pixel, dim_x, overflow);
+	size_t bytes_per_plane = astc::mul_safe(bytes_per_row, dim_y, overflow);
+	size_t bytes_per_image = astc::mul_safe(bytes_per_plane, dim_z, overflow);
+
+	// Also verify that our output plane allocation does not overflow because
+	// this always uses 4 components which can be more than the input file used
+	size_t plane_texels = astc::mul_safe(dim_x, dim_y, overflow);
+	astc::mul_safe(plane_texels, 4, overflow);
+
+	if (overflow)
 	{
-		delete[] buf;
-		printf("Failed to read file %s\n", filename);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return nullptr;
 	}
 
-	// then transfer data from the surface to our own image-data-structure.
-	astcenc_image *astc_img = alloc_image(bitness, dim_x, dim_y, dim_z);
-
-	for (unsigned int z = 0; z < dim_z; z++)
+	std::unique_ptr<uint8_t[]> buf;
+	try
 	{
-		for (unsigned int y = 0; y < dim_y; y++)
+		buf = std::make_unique<uint8_t[]>(bytes_per_image);
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	file.read(reinterpret_cast<char*>(buf.get()), bytes_per_image);
+	if (file.fail())
+	{
+		print_error("ERROR: File read failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	// Transfer data from the surface to our own image data structure
+	astcenc_image_ptr astc_img;
+	try
+	{
+		astc_img = alloc_image(
+			bitness,
+			// TODO: Casts are ugly, should fix astcenc_image to accept size_t
+			static_cast<unsigned int>(dim_x),
+			static_cast<unsigned int>(dim_y),
+			static_cast<unsigned int>(dim_z));
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
+		return nullptr;
+	}
+
+	// TODO: Change astenc_image struct to store size_t rather than unsigned
+	// int then make dim_x/y/z size_t at the start of the function. This is an
+	// API break, so needs to wait until we make a major version.
+	size_t dim_y_sz = dim_y;
+	size_t dim_z_sz = dim_z;
+
+	for (size_t z = 0; z < dim_z_sz; z++)
+	{
+		for (size_t y = 0; y < dim_y_sz; y++)
 		{
-			unsigned int ymod = y_flip ? dim_y - y - 1 : y;
-			unsigned int ydst = ymod;
+			size_t mod_y = y_flip ? dim_y_sz - y - 1 : y;
 			void* dst;
 
 			if (astc_img->data_type == ASTCENC_TYPE_U8)
 			{
 				uint8_t* data8 = static_cast<uint8_t*>(astc_img->data[z]);
-				dst = static_cast<void*>(&data8[4 * dim_x * ydst]);
+				dst = static_cast<void*>(&data8[4 * dim_x * mod_y]);
 			}
 			else // if (astc_img->data_type == ASTCENC_TYPE_F16)
 			{
 				assert(astc_img->data_type == ASTCENC_TYPE_F16);
 				uint16_t* data16 = static_cast<uint16_t*>(astc_img->data[z]);
-				dst = static_cast<void*>(&data16[4 * dim_x * ydst]);
+				dst = static_cast<void*>(&data16[4 * dim_x * mod_y]);
 			}
 
-			uint8_t *src = buf + (z * ystride) + (y * xstride);
+			uint8_t *src = buf.get() + (z * bytes_per_plane) + (y * bytes_per_row);
 			copy_scanline(dst, src, dim_x, copy_method);
 		}
 	}
 
-	delete[] buf;
 	is_hdr = bitness >= 16;
 	component_count = components;
 	return astc_img;
@@ -2090,12 +2142,34 @@ static bool store_dds_uncompressed_image(
 	const char* filename,
 	int y_flip
 ) {
-	unsigned int dim_x = img->dim_x;
-	unsigned int dim_y = img->dim_y;
-	unsigned int dim_z = img->dim_z;
+	size_t dim_x = img->dim_x;
+	size_t dim_y = img->dim_y;
+	size_t dim_z = img->dim_z;
 
-	int bitness = img->data_type == ASTCENC_TYPE_U8 ? 8 : 16;
-	int image_components = (bitness == 16) ? 4 : determine_image_components(img);
+	unsigned int bitness = img->data_type == ASTCENC_TYPE_U8 ? 8 : 16;
+	unsigned int image_components = (bitness == 16) ? 4 : determine_image_components(img);
+
+	// Size of the image data in bytes
+	bool overflow { false };
+	size_t image_bytes = astc::mul_safe(dim_x, dim_y, overflow);
+	image_bytes = astc::mul_safe(image_bytes, dim_z, overflow);
+	image_bytes = astc::mul_safe(image_bytes, image_components, overflow);
+	image_bytes = astc::mul_safe(image_bytes, bitness / 8, overflow);
+	if (overflow)
+	{
+		return false;
+	}
+
+	// Must be smaller than image_bytes, so no need to check overflow here
+	size_t pitch_bytes = dim_x * image_components * (bitness / 8);
+
+	// The pitch_or_linear_size field is a fixed 32-bit value, so the size_t used
+	// for buffer sizing must be narrowed before it is serialized into the file.
+	uint32_t pitch_bytes_field = static_cast<uint32_t>(pitch_bytes);
+	if (pitch_bytes_field != pitch_bytes)
+	{
+		return false;
+	}
 
 	// DDS-pixel-format structures to use when storing LDR image with 1,2,3 or 4 components.
 	static const dds_pixelformat format_of_image_components[4] =
@@ -2122,10 +2196,10 @@ static bool store_dds_uncompressed_image(
 	dds_header hdr;
 	hdr.size = 124;
 	hdr.flags = 0x100F | (dim_z > 1 ? 0x800000 : 0);
-	hdr.height = dim_y;
-	hdr.width = dim_x;
-	hdr.pitch_or_linear_size = image_components * (bitness / 8) * dim_x;
-	hdr.depth = dim_z;
+	hdr.height = static_cast<uint32_t>(dim_y);
+	hdr.width = static_cast<uint32_t>(dim_x);
+	hdr.pitch_or_linear_size = pitch_bytes_field;
+	hdr.depth = static_cast<uint32_t>(dim_z);
 	hdr.mipmapcount = 1;
 	for (unsigned int i = 0; i < 11; i++)
 	{
@@ -2135,6 +2209,7 @@ static bool store_dds_uncompressed_image(
 	hdr.caps2 = (dim_z > 1) ? 0x200000 : 0;
 	hdr.caps3 = 0;
 	hdr.caps4 = 0;
+	hdr.reserved2 = 0;
 
 	// Pixel-format data
 	if (bitness == 8)
@@ -2155,129 +2230,140 @@ static bool store_dds_uncompressed_image(
 	dx10.reserved = 0;
 
 	// Collect image data to write
-	uint8_t ***row_pointers8 = nullptr;
-	uint16_t ***row_pointers16 = nullptr;
+	std::vector<uint8_t> pixel_data8;
+	std::vector<uint8_t*> row_data8;
+	std::vector<uint8_t**> row_pointers8;
+
+	std::vector<uint16_t> pixel_data16;
+	std::vector<uint16_t*> row_data16;
+	std::vector<uint16_t**> row_pointers16;
 
 	if (bitness == 8)
 	{
-		row_pointers8 = new uint8_t **[dim_z];
-		row_pointers8[0] = new uint8_t *[dim_y * dim_z];
-		row_pointers8[0][0] = new uint8_t[dim_x * dim_y * dim_z * image_components];
+		row_pointers8.resize(dim_z);
+		row_data8.resize(dim_y * dim_z);
+		pixel_data8.resize(dim_x * dim_y * dim_z * image_components);
 
-		for (unsigned int z = 1; z < dim_z; z++)
+		row_pointers8[0] = row_data8.data();
+		row_pointers8[0][0] = pixel_data8.data();
+
+		for (size_t z = 1; z < dim_z; z++)
 		{
 			row_pointers8[z] = row_pointers8[0] + dim_y * z;
-			row_pointers8[z][0] = row_pointers8[0][0] + dim_y * dim_z * image_components * z;
+			row_pointers8[z][0] = row_pointers8[0][0] + dim_x * dim_y * image_components * z;
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
-			for (unsigned int y = 1; y < dim_y; y++)
+			for (size_t y = 1; y < dim_y; y++)
 			{
 				row_pointers8[z][y] = row_pointers8[z][0] + dim_x * image_components * y;
 			}
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
 			uint8_t* data8 = static_cast<uint8_t*>(img->data[z]);
 
-			for (unsigned int y = 0; y < dim_y; y++)
+			for (size_t y = 0; y < dim_y; y++)
 			{
-				int ym = y_flip ? dim_y - y - 1 : y;
+				size_t mod_y = y_flip ? dim_y - y - 1 : y;
 				switch (image_components)
 				{
-				case 1:		// single-component, treated as Luminance
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 1:  // One component, treated as Luminance
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][x] = data8[(4 * dim_x * ym) + (4 * x    )];
+						row_pointers8[z][y][x] = data8[(4 * dim_x* mod_y) + (4 * x    )];
 					}
 					break;
-				case 2:		// two-component, treated as Luminance-Alpha
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 2:  // Two component, treated as Luminance-Alpha
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][2 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][2 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers8[z][y][2 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][2 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
-				case 3:		// three-component, treated as RGB
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 3:  // Three component, treated as RGB
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][3 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][3 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers8[z][y][3 * x + 2] = data8[(4 * dim_x * ym) + (4 * x + 2)];
+						row_pointers8[z][y][3 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][3 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers8[z][y][3 * x + 2] = data8[(4 * dim_x* mod_y) + (4 * x + 2)];
 					}
 					break;
-				case 4:		// four-component, treated as RGBA
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 4:  // Four component, treated as RGBA
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers8[z][y][4 * x    ] = data8[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers8[z][y][4 * x + 1] = data8[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers8[z][y][4 * x + 2] = data8[(4 * dim_x * ym) + (4 * x + 2)];
-						row_pointers8[z][y][4 * x + 3] = data8[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers8[z][y][4 * x    ] = data8[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers8[z][y][4 * x + 1] = data8[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers8[z][y][4 * x + 2] = data8[(4 * dim_x* mod_y) + (4 * x + 2)];
+						row_pointers8[z][y][4 * x + 3] = data8[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
 				}
 			}
 		}
 	}
-	else						// if bitness == 16
+	else  // if bitness == 16
 	{
-		row_pointers16 = new uint16_t **[dim_z];
-		row_pointers16[0] = new uint16_t *[dim_y * dim_z];
-		row_pointers16[0][0] = new uint16_t[dim_x * dim_y * dim_z * image_components];
+		row_pointers16.resize(dim_z);
+		row_data16.resize(dim_y * dim_z);
+		pixel_data16.resize(dim_x * dim_y * dim_z * image_components);
 
-		for (unsigned int z = 1; z < dim_z; z++)
+		row_pointers16[0] = row_data16.data();
+		row_pointers16[0][0] = pixel_data16.data();
+
+		for (size_t z = 1; z < dim_z; z++)
 		{
 			row_pointers16[z] = row_pointers16[0] + dim_y * z;
-			row_pointers16[z][0] = row_pointers16[0][0] + dim_y * dim_x * image_components * z;
+			row_pointers16[z][0] = row_pointers16[0][0] + dim_x * dim_y * image_components * z;
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
-			for (unsigned int y = 1; y < dim_y; y++)
+			for (size_t y = 1; y < dim_y; y++)
 			{
 				row_pointers16[z][y] = row_pointers16[z][0] + dim_x * image_components * y;
 			}
 		}
 
-		for (unsigned int z = 0; z < dim_z; z++)
+		for (size_t z = 0; z < dim_z; z++)
 		{
 			uint16_t* data16 = static_cast<uint16_t*>(img->data[z]);
 
-			for (unsigned int y = 0; y < dim_y; y++)
+			for (size_t y = 0; y < dim_y; y++)
 			{
-				int ym = y_flip ? dim_y - y - 1: y;
+				size_t mod_y = y_flip ? dim_y - y - 1: y;
 				switch (image_components)
 				{
-				case 1:		// single-component, treated as Luminance
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 1:  // One component, treated as Luminance
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][x] = data16[(4 * dim_x * ym) + (4 * x    )];
+						row_pointers16[z][y][x] = data16[(4 * dim_x* mod_y) + (4 * x    )];
 					}
 					break;
-				case 2:		// two-component, treated as Luminance-Alpha
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 2:  // Two component, treated as Luminance-Alpha
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][2 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][2 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers16[z][y][2 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][2 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
-				case 3:		// three-component, treated as RGB
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 3:  // Three component, treated as RGB
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][3 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][3 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers16[z][y][3 * x + 2] = data16[(4 * dim_x * ym) + (4 * x + 2)];
+						row_pointers16[z][y][3 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][3 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers16[z][y][3 * x + 2] = data16[(4 * dim_x* mod_y) + (4 * x + 2)];
 					}
 					break;
-				case 4:		// four-component, treated as RGBA
-					for (unsigned int x = 0; x < dim_x; x++)
+				case 4:  // Four-component, treated as RGBA
+					for (size_t x = 0; x < dim_x; x++)
 					{
-						row_pointers16[z][y][4 * x    ] = data16[(4 * dim_x * ym) + (4 * x    )];
-						row_pointers16[z][y][4 * x + 1] = data16[(4 * dim_x * ym) + (4 * x + 1)];
-						row_pointers16[z][y][4 * x + 2] = data16[(4 * dim_x * ym) + (4 * x + 2)];
-						row_pointers16[z][y][4 * x + 3] = data16[(4 * dim_x * ym) + (4 * x + 3)];
+						row_pointers16[z][y][4 * x    ] = data16[(4 * dim_x* mod_y) + (4 * x    )];
+						row_pointers16[z][y][4 * x + 1] = data16[(4 * dim_x* mod_y) + (4 * x + 1)];
+						row_pointers16[z][y][4 * x + 2] = data16[(4 * dim_x* mod_y) + (4 * x + 2)];
+						row_pointers16[z][y][4 * x + 3] = data16[(4 * dim_x* mod_y) + (4 * x + 3)];
 					}
 					break;
 				}
@@ -2286,36 +2372,25 @@ static bool store_dds_uncompressed_image(
 	}
 
 	bool retval { true };
-	uint32_t image_bytes = dim_x * dim_y * dim_z * image_components * (bitness / 8);
 
 	uint32_t dds_magic = DDS_MAGIC;
 
-	FILE *wf = fopen(filename, "wb");
-	if (wf)
+	std::ofstream file(filename, std::ios::out | std::ios::binary);
+	if (file)
 	{
 		void *dataptr = (bitness == 16) ?
 			reinterpret_cast<void*>(row_pointers16[0][0]) :
 			reinterpret_cast<void*>(row_pointers8[0][0]);
 
-		size_t expected_bytes_written = 4 + sizeof(dds_header) + (bitness > 8 ? sizeof(dds_header_dx10) : 0) + image_bytes;
-
-		size_t magic_bytes_written = fwrite(&dds_magic, 1, 4, wf);
-		size_t hdr_bytes_written = fwrite(&hdr, 1, sizeof(dds_header), wf);
-
-		size_t dx10_bytes_written;
+		file.write(reinterpret_cast<const char*>(&dds_magic), sizeof(dds_magic));
+		file.write(reinterpret_cast<const char*>(&hdr), sizeof(dds_header));
 		if (bitness > 8)
 		{
-			dx10_bytes_written = fwrite(&dx10, 1, sizeof(dx10), wf);
-		}
-		else
-		{
-			dx10_bytes_written = 0;
+			file.write(reinterpret_cast<const char*>(&dx10), sizeof(dx10));
 		}
 
-		size_t data_bytes_written = fwrite(dataptr, 1, image_bytes, wf);
-
-		fclose(wf);
-		if (magic_bytes_written + hdr_bytes_written + dx10_bytes_written + data_bytes_written != expected_bytes_written)
+		file.write(reinterpret_cast<const char*>(dataptr), image_bytes);
+		if (file.fail())
 		{
 			retval = false;
 		}
@@ -2325,68 +2400,74 @@ static bool store_dds_uncompressed_image(
 		retval = false;
 	}
 
-	if (row_pointers8)
-	{
-		delete[] row_pointers8[0][0];
-		delete[] row_pointers8[0];
-		delete[] row_pointers8;
-	}
-
-	if (row_pointers16)
-	{
-		delete[] row_pointers16[0][0];
-		delete[] row_pointers16[0];
-		delete[] row_pointers16;
-	}
-
 	return retval;
 }
 
 /**
- * @brief Supported uncompressed image load functions, and their associated file extensions.
+ * @brief Image loader function pointer.
  */
-static const struct
+using image_loader = astcenc_image_ptr(*)(const char*, bool, bool&, unsigned int&);
+
+/**
+ * @brief Specs for an image loader function.
+ */
+struct loader_specs
 {
 	const char* ending1;
 	const char* ending2;
-	astcenc_image* (*loader_func)(const char*, bool, bool&, unsigned int&);
-} loader_descs[] {
+	const image_loader loader_func;
+};
+
+/**
+ * @brief Supported uncompressed image load functions, and their associated file extensions.
+ */
+const loader_specs loader_descs[] {
 	// LDR formats
-	{".png",   ".PNG",  load_png_with_wuffs},
+	{  ".png",  ".PNG", load_png_with_wuffs},
 	// HDR formats
-	{".exr",   ".EXR",  load_image_with_tinyexr },
+	{  ".exr",  ".EXR", load_image_with_tinyexr },
 	// Container formats
-	{".ktx",   ".KTX",  load_ktx_uncompressed_image },
-	{".dds",   ".DDS",  load_dds_uncompressed_image },
+	{  ".ktx",  ".KTX", load_ktx_uncompressed_image },
+	{  ".dds",  ".DDS", load_dds_uncompressed_image },
 	// Generic catch all; this one must be last in the list
 	{ nullptr, nullptr, load_image_with_stb }
 };
 
-static const int loader_descr_count = sizeof(loader_descs) / sizeof(loader_descs[0]);
+static const size_t loader_descr_count = sizeof(loader_descs) / sizeof(loader_descs[0]);
 
 /**
- * @brief Supported uncompressed image store functions, and their associated file extensions.
+ * @brief Image storer function pointer.
  */
-static const struct
+using image_storer = bool(*)(const astcenc_image*, const char*, int y_flip);
+
+/**
+ * @brief Specs for an image storer function.
+ */
+struct storer_specs
 {
 	const char *ending1;
 	const char *ending2;
 	int enforced_bitness;
-	bool (*storer_func)(const astcenc_image *output_image, const char *filename, int y_flip);
-} storer_descs[] {
-	// LDR formats
-	{".bmp", ".BMP",  8, store_bmp_image_with_stb},
-	{".png", ".PNG",  8, store_png_image_with_stb},
-	{".tga", ".TGA",  8, store_tga_image_with_stb},
-	// HDR formats
-	{".exr", ".EXR", 16, store_exr_image_with_tinyexr},
-	{".hdr", ".HDR", 16, store_hdr_image_with_stb},
-	// Container formats
-	{".dds", ".DDS",  0, store_dds_uncompressed_image},
-	{".ktx", ".KTX",  0, store_ktx_uncompressed_image}
+	image_storer storer_func;
 };
 
-static const int storer_descr_count = sizeof(storer_descs) / sizeof(storer_descs[0]);
+/**
+ * @brief Supported uncompressed image store functions, and their associated file extensions.
+ */
+const storer_specs storer_descs[] {
+	// LDR formats
+	{ ".bmp", ".BMP",  8, store_bmp_image_with_stb },
+	{ ".png", ".PNG",  8, store_png_image_with_stb },
+	{ ".tga", ".TGA",  8, store_tga_image_with_stb },
+	// HDR formats
+	{ ".exr", ".EXR", 16, store_exr_image_with_tinyexr },
+	{ ".hdr", ".HDR", 16, store_hdr_image_with_stb },
+	// Container formats
+	{ ".dds", ".DDS",  0, store_dds_uncompressed_image },
+	{ ".ktx", ".KTX",  0, store_ktx_uncompressed_image }
+};
+
+static const size_t storer_descr_count = sizeof(storer_descs) / sizeof(storer_descs[0]);
 
 /* See header for documentation. */
 int get_output_filename_enforced_bitness(
@@ -2398,7 +2479,7 @@ int get_output_filename_enforced_bitness(
 		return 0;
 	}
 
-	for (int i = 0; i < storer_descr_count; i++)
+	for (size_t i = 0; i < storer_descr_count; i++)
 	{
 		if (strcmp(eptr, storer_descs[i].ending1) == 0
 		 || strcmp(eptr, storer_descs[i].ending2) == 0)
@@ -2411,7 +2492,7 @@ int get_output_filename_enforced_bitness(
 }
 
 /* See header for documentation. */
-astcenc_image* load_ncimage(
+astcenc_image_ptr load_ncimage(
 	const char* filename,
 	bool y_flip,
 	bool& is_hdr,
@@ -2425,18 +2506,31 @@ astcenc_image* load_ncimage(
 	}
 
 	// Scan through descriptors until a matching loader is found
-	for (unsigned int i = 0; i < loader_descr_count; i++)
+	image_loader loader { nullptr };
+	for (size_t i = 0; i < loader_descr_count; i++)
 	{
 		if (loader_descs[i].ending1 == nullptr
 			|| strcmp(eptr, loader_descs[i].ending1) == 0
 			|| strcmp(eptr, loader_descs[i].ending2) == 0)
 		{
-			return loader_descs[i].loader_func(filename, y_flip, is_hdr, component_count);
+			loader = loader_descs[i].loader_func;
+			break;
 		}
 	}
 
-	// Should never reach here - stb_image provides a generic handler
-	return nullptr;
+	// We must always match a loader - stb_image provides a generic handler
+	assert(loader);
+
+	try
+	{
+		return loader(filename, y_flip, is_hdr, component_count);
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
+		return nullptr;
+	}
 }
 
 /* See header for documentation. */
@@ -2451,18 +2545,26 @@ bool store_ncimage(
 		eptr = ".ktx"; // use KTX file format if we don't have an ending.
 	}
 
-	for (int i = 0; i < storer_descr_count; i++)
+	// Scan through descriptors until a matching storer is found
+	image_storer storer { nullptr };
+	for (size_t i = 0; i < storer_descr_count; i++)
 	{
 		if (strcmp(eptr, storer_descs[i].ending1) == 0
 		 || strcmp(eptr, storer_descs[i].ending2) == 0)
 		{
-			return storer_descs[i].storer_func(output_image, filename, y_flip);
+			storer = storer_descs[i].storer_func;
+			break;
 		}
 	}
 
-	// Should never reach here - get_output_filename_enforced_bitness should
-	// have acted as a preflight check
-	return false;
+	// Should never fail this, get_output_filename_enforced_bitness should have
+	// acted as a preflight check
+	if (!storer)
+	{
+		return false;
+	}
+
+	return storer(output_image, filename, y_flip);
 }
 
 /* ============================================================================
@@ -2474,9 +2576,9 @@ struct astc_header
 	uint8_t block_x;
 	uint8_t block_y;
 	uint8_t block_z;
-	uint8_t dim_x[3];			// dims = dim[0] + (dim[1] << 8) + (dim[2] << 16)
-	uint8_t dim_y[3];			// Sizes are given in texels;
-	uint8_t dim_z[3];			// block count is inferred
+	uint8_t dim_x[3];  // Dims = dim[0] + (dim[1] << 8) + (dim[2] << 16)
+	uint8_t dim_y[3];  // Sizes are in texels
+	uint8_t dim_z[3];  // Block count is inferred
 };
 
 static const uint32_t ASTC_MAGIC_ID = 0x5CA1AB13;
@@ -2516,18 +2618,18 @@ int load_cimage(
 	unsigned int magicval = unpack_bytes(hdr.magic[0], hdr.magic[1], hdr.magic[2], hdr.magic[3]);
 	if (magicval != ASTC_MAGIC_ID)
 	{
-		print_error("ERROR: File not recognized '%s'\n", filename);
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return 1;
 	}
 
 	// Ensure these are not zero to avoid div by zero
-	unsigned int block_x = astc::max(static_cast<unsigned int>(hdr.block_x), 1u);
-	unsigned int block_y = astc::max(static_cast<unsigned int>(hdr.block_y), 1u);
-	unsigned int block_z = astc::max(static_cast<unsigned int>(hdr.block_z), 1u);
+	size_t block_x = astc::max(static_cast<unsigned int>(hdr.block_x), 1u);
+	size_t block_y = astc::max(static_cast<unsigned int>(hdr.block_y), 1u);
+	size_t block_z = astc::max(static_cast<unsigned int>(hdr.block_z), 1u);
 
-	unsigned int dim_x = unpack_bytes(hdr.dim_x[0], hdr.dim_x[1], hdr.dim_x[2], 0);
-	unsigned int dim_y = unpack_bytes(hdr.dim_y[0], hdr.dim_y[1], hdr.dim_y[2], 0);
-	unsigned int dim_z = unpack_bytes(hdr.dim_z[0], hdr.dim_z[1], hdr.dim_z[2], 0);
+	size_t dim_x = unpack_bytes(hdr.dim_x[0], hdr.dim_x[1], hdr.dim_x[2], 0);
+	size_t dim_y = unpack_bytes(hdr.dim_y[0], hdr.dim_y[1], hdr.dim_y[2], 0);
+	size_t dim_z = unpack_bytes(hdr.dim_z[0], hdr.dim_z[1], hdr.dim_z[2], 0);
 
 	if (dim_x == 0 || dim_y == 0 || dim_z == 0)
 	{
@@ -2535,29 +2637,53 @@ int load_cimage(
 		return 1;
 	}
 
-	unsigned int xblocks = (dim_x + block_x - 1) / block_x;
-	unsigned int yblocks = (dim_y + block_y - 1) / block_y;
-	unsigned int zblocks = (dim_z + block_z - 1) / block_z;
+	// These cannot overflow as dim_* values are limited to 2^24 - 1
+	size_t blocks_x = (dim_x + block_x - 1) / block_x;
+	size_t blocks_y = (dim_y + block_y - 1) / block_y;
+	size_t blocks_z = (dim_z + block_z - 1) / block_z;
 
-	size_t data_size = xblocks * yblocks * zblocks * 16;
-	uint8_t *buffer = new uint8_t[data_size];
+	// This can overflow if dim_* sizes are large
+	bool overflow { false };
 
-	file.read(reinterpret_cast<char*>(buffer), data_size);
-	if (file.fail())
+	size_t data_size = astc::mul_safe(blocks_x, blocks_y, overflow);
+	data_size = astc::mul_safe(data_size, blocks_z, overflow);
+	data_size = astc::mul_safe(data_size, 16, overflow);
+
+	if (overflow)
 	{
-		print_error("ERROR: Image data size exceeded file size '%s'\n", filename);
-		delete[] buffer;
+		print_error("ERROR: Image header corrupt '%s'\n", filename);
 		return 1;
 	}
 
-	img.data = buffer;
-	img.data_len = data_size;
-	img.block_x = block_x;
-	img.block_y = block_y;
-	img.block_z = block_z;
-	img.dim_x = dim_x;
-	img.dim_y = dim_y;
-	img.dim_z = dim_z;
+	// Allocation may fail if image is suspiciously large
+	try
+	{
+		img.data.resize(data_size);
+	}
+	catch (const std::bad_alloc &e)
+	{
+		ASTCENC_UNUSED(e);
+		print_error("ERROR: Image memory allocation failed '%s'\n", filename);
+		return 1;
+	}
+
+	file.read(reinterpret_cast<char*>(img.data.data()), data_size);
+	if (file.fail())
+	{
+		print_error("ERROR: File read failed '%s'\n", filename);
+		img.data.clear();
+		return 1;
+	}
+
+	// Casts are safe - we know individual values are small enough
+	img.block_x = static_cast<unsigned int>(block_x);
+	img.block_y = static_cast<unsigned int>(block_y);
+	img.block_z = static_cast<unsigned int>(block_z);
+
+	img.dim_x = static_cast<unsigned int>(dim_x);
+	img.dim_y = static_cast<unsigned int>(dim_y);
+	img.dim_z = static_cast<unsigned int>(dim_z);
+
 	return 0;
 }
 
@@ -2596,6 +2722,6 @@ int store_cimage(
 	}
 
 	file.write(reinterpret_cast<char*>(&hdr), sizeof(astc_header));
-	file.write(reinterpret_cast<char*>(img.data), img.data_len);
+	file.write(reinterpret_cast<const char*>(img.data.data()), img.data.size());
 	return 0;
 }

@@ -250,8 +250,10 @@ ktxHashList_DeleteKVPair(ktxHashList* pHead, const char* key)
         ktxKVListEntry* kv;
 
         HASH_FIND_STR( *pHead, key, kv );  /* kv: pointer to target entry. */
-        if (kv != NULL)
+        if (kv != NULL) {
             HASH_DEL(*pHead, kv);
+            free(kv);
+        }
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
@@ -275,6 +277,7 @@ ktxHashList_DeleteEntry(ktxHashList* pHead, ktxHashListEntry* pEntry)
 {
     if (pHead && pEntry) {
         HASH_DEL(*pHead, pEntry);
+        free(pEntry);
         return KTX_SUCCESS;
     } else
         return KTX_INVALID_VALUE;
@@ -499,6 +502,10 @@ ktxHashList_Sort(ktxHashList* pHead)
  * @note The bytes of the 32-bit key-value lengths within the serialized data
  *       are expected to be in native endianness.
  *
+ * @note In case of KTX_SUCCESS, caller is expected to free the allocated data.
+ *       In case of any return code other than KTX_SUCCESS, allocated data is
+ *       freed by this function.
+ *
  * @param [in]      pHead       pointer to the head of the target hash list.
  * @param [in]      kvdLen      the length of the serialized key-value data.
  * @param [in]      pKvd        pointer to the serialized key-value data.
@@ -527,7 +534,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
     while (result == KTX_SUCCESS && src < (char *)pKvd + kvdLen) {
         if (src + 6 > (char *)pKvd + kvdLen) {
             // Not enough space for another entry
-            return KTX_FILE_DATA_ERROR;
+            goto cleanup;
         }
 
         char* key;
@@ -537,7 +544,7 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 
         if (src + 4 + keyAndValueByteSize > (char *)pKvd + kvdLen) {
             // Not enough space for this entry
-            return KTX_FILE_DATA_ERROR;
+            goto cleanup;
         }
 
         src += sizeof(keyAndValueByteSize);
@@ -548,12 +555,12 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
 
         if (keyLen == keyAndValueByteSize || key[keyLen] != '\0') {
             // Missing NULL terminator or no value
-            return KTX_FILE_DATA_ERROR;
+            goto cleanup;
         }
 
         if (keyLen >= 3 && key[0] == '\xEF' && key[1] == '\xBB' && key[2] == '\xBF') {
             // Forbidden BOM
-            return KTX_FILE_DATA_ERROR;
+            goto cleanup;
         }
 
         keyLen += 1;
@@ -566,7 +573,20 @@ ktxHashList_Deserialize(ktxHashList* pHead, unsigned int kvdLen, void* pKvd)
             src += _KTX_PAD4(keyAndValueByteSize);
         }
     }
+
+    // Cleanup in case result is not success
+    if (result != KTX_SUCCESS) {
+        ktxHashList_Destruct(pHead);
+        *pHead = NULL;
+        return result;
+    }
+
     return result;
+
+cleanup:
+    ktxHashList_Destruct(pHead);
+    *pHead = NULL;
+    return KTX_FILE_DATA_ERROR;
 }
 
 

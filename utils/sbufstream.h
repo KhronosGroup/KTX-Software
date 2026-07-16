@@ -40,7 +40,7 @@ static std::ostream& logstream = cnull;
 /// @code
 ///     // Can use stringbuf or any class derived from it.
 ///     auto filebuf = std::make_unique<std::filebuf>();
-///     StreambufStream<std::unique_ptr<std::streambuf>>ktxStream(
+///     StreambufStream<std::unique_ptr<std::streambuf>> ktxStream(
 ///                                                        std::move(filebuf),
 ///                                                        ios::in);
 /// @endcode
@@ -59,7 +59,6 @@ public:
         : _streambuf{std::move(streambuf)}
         , _seek_mode{seek_mode}
         , _stream{std::make_unique<ktxStream>()}
-        , _destructed{false}
     {
         initialize_stream();
     }
@@ -70,18 +69,19 @@ public:
     StreambufStream(StreambufStream&&) = delete;
     StreambufStream &operator=(StreambufStream&&) = delete;
 
-    virtual ~StreambufStream()
-    {
-        if (!_destructed)
-            stream()->destruct(stream());
-    }
-
     inline ktxStream* stream() const
     {
         return _stream.get();
     }
 
-    std::streambuf* streambuf() const;
+    // Implementation depends on whether a std::unique_ptr or a raw pointer is
+    // passed.
+    std::streambuf* streambuf() const {
+        if constexpr (std::is_pointer<T>::value)
+            return _streambuf;
+        else
+            return _streambuf.get();
+    }
 
     inline std::ios::openmode seek_mode() const
     {
@@ -91,11 +91,6 @@ public:
     inline void seek_mode(std::ios::openmode newmode)
     {
         _seek_mode = newmode;
-    }
-
-    inline bool destructed() const
-    {
-        return _destructed;
     }
 
 protected:
@@ -114,7 +109,7 @@ protected:
         _stream->getpos = getpos;
         _stream->setpos = setpos;
         _stream->getsize = getsize;
-        _stream->destruct = destruct;
+        _stream->destruct = destruct_noop;
     }
 
     // C++ streambuf overrides
@@ -195,31 +190,14 @@ protected:
         return (oldpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
-    static void destruct(ktxStream* str)
-    {
-        auto self = parent(str);
-        self->_destructed = true;
-    }
+    // NOOP function to be passed to ktxStream's destruct
+    static void destruct_noop(ktxStream*) {}
 
     T _streambuf;
     std::ios::openmode _seek_mode;
+
+    // Note that ktxTexture?_CreateFromStream makes a copy of _stream, the
+    // stream structure passed as its pStream parameter. The static stream
+    // functions above will receive a pointer to that copy not to this _stream.
     std::unique_ptr<ktxStream> _stream;
-    // ktxTexture?_CreateFromStream destructs the ktxStream when finished, if
-    // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed. This variable tracks
-    // if the ktxStream's destructor has been called.
-    bool _destructed;
 };
-
-// I have not yet found a way to do this inside the template definition.
-// However `inline` should prevent any multiple definition errors.
-template<>
-inline std::streambuf* StreambufStream<std::streambuf*>::streambuf() const
-{
-    return _streambuf;
-}
-
-template<>
-inline std::streambuf* StreambufStream<std::unique_ptr<std::streambuf>>::streambuf() const
-{
-    return _streambuf.get();
-}

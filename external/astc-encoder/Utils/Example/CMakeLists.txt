@@ -1,6 +1,6 @@
 #  SPDX-License-Identifier: Apache-2.0
 #  ----------------------------------------------------------------------------
-#  Copyright 2021 Arm Limited
+#  Copyright 2021-2026 Arm Limited
 #
 #  Licensed under the Apache License, Version 2.0 (the "License"); you may not
 #  use this file except in compliance with the License. You may obtain a copy
@@ -17,9 +17,12 @@
 
 # CMake configuration
 cmake_minimum_required(VERSION 3.15)
+
 include(ExternalProject)
 
 project(astcencoder_example VERSION 1.1.0)
+
+set(ASTCENC_VERSION "main" CACHE STRING "ASTCEncoder git version to import")
 
 # Add the external project and pull out the project directories we need
 
@@ -32,11 +35,21 @@ project(astcencoder_example VERSION 1.1.0)
 #  *  Add "-DASTCENC_ISA_SSE41:String=ON" and link against "astcenc-sse4.1-static"
 #  *  Add "-DASTCENC_ISA_AVX2:String=ON" and link against "astcenc-avx2-static"
 #  *  Add "-DASTCENC_ISA_NEON:String=ON" and link against "astcenc-neon-static"
+#
+# The DOWNLOAD_COMMAND here is slightly convoluted so that we can point the
+# example build at GitHub PRs in our Actions pipelines. Normal users can remove
+# the DOWNLOAD_COMMAND and UPDATE_COMMAND and set GIT_TAG instead.
 ExternalProject_Add(astcencoder
     GIT_REPOSITORY https://github.com/ARM-software/astc-encoder
-    GIT_TAG main
     CMAKE_CACHE_ARGS -DASTCENC_CLI:STRING=OFF -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-    INSTALL_COMMAND "")
+    DOWNLOAD_COMMAND
+      git clone https://github.com/ARM-software/astc-encoder <SOURCE_DIR> &&
+      cd <SOURCE_DIR> &&
+      git fetch origin ${ASTCENC_VERSION} &&
+      git checkout --detach FETCH_HEAD
+    UPDATE_COMMAND ""
+    INSTALL_COMMAND ""
+)
 
 ExternalProject_Get_property(astcencoder
     SOURCE_DIR)

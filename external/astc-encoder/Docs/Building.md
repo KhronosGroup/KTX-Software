@@ -114,9 +114,9 @@ cd build
 make install -j16
 ```
 
-## macOS using XCode
+## macOS using Xcode
 
-Builds for macOS and Linux are tested with CMake 3.17, and XCode 14.0 or
+Builds for macOS and Linux are tested with CMake 3.17, and Xcode 14.0 or
 newer.
 
 ### Configuring the build
@@ -179,9 +179,13 @@ are an extra build output that are not currently used by the command line tool.
 All normal builds will support all ASTC block sizes, including the worst case
 6x6x6 3D block size (216 texels per block). Compressor memory footprint and
 performance can be improved by limiting the block sizes supported in the build
-by adding `-DASTCENC_BLOCK_MAX_TEXELS=<texel_count>` to to CMake command line
+by adding `-DASTCENC_BLOCK_MAX_TEXELS=<texel_count>` to the CMake command line
 when configuring. Legal block sizes that are unavailable in a restricted build
 will return the error `ASTCENC_ERR_NOT_IMPLEMENTED` during context creation.
+
+If your use case only needs to support the 2D texture format, we recommend
+that you use `-DASTCENC_BLOCK_MAX_TEXELS=144` which will support all 2D block
+sizes.
 
 ### Non-invariant builds
 
@@ -217,7 +221,7 @@ microarchitecture pairing that you are targeting.
 ### Test builds
 
 We support building unit tests. These use the `googletest` framework, which is
-pulled in though a git submodule. On first use, you must fetch the submodule
+pulled in through a git submodule. On first use, you must fetch the submodule
 dependency:
 
 ```shell
@@ -248,12 +252,13 @@ CMake command line when configuring.
 
 ### Android builds
 
-Builds of the command line utility for Android are not officially supported, but can be a useful
-development build for testing on e.g. different Arm CPU microarchitectures.
+Builds of the command line utility for Android are not officially supported,
+but can be a useful development build for testing on e.g. different Arm CPU
+microarchitectures.
 
-The build script below shows one possible route to building the command line tool for Android. Once
-built the application can be pushed to e.g. `/data/local/tmp` and executed from an Android shell
-terminal over `adb`.
+The build script below shows one possible route to building the command line
+tool for Android. Once built the application can be pushed to, e.g.,
+`/data/local/tmp` and executed from an Android shell terminal over `adb`.
 
 ```shell
 ANDROID_ABI=arm64-v8a
@@ -283,6 +288,31 @@ cmake \
 make -j16
 ```
 
+### Enabling the VLEN=256 RISC-V Vector backend
+
+The current RISC-V Vector backend only supports VLEN=256 hardware, due to
+toolchain limitations that make a vector-length-agnostic port challenging.
+Hopefully there will be one in the future.
+
+Since the backend only works when the vector length is exactly 256 bits, and
+you can only enable this as a global compiler flag, there is no separate build
+target for the backend yet. To enable it, simply build the NONE or NATIVE build
+target, with the `-mrvv-vector-bits=zvl` CXXFLAG and a `zvl256b` in the
+`-march` ISA configuration string.
+
+You can cross-compile to RISC-V with the backend enabled using the following
+commands:
+
+```bash
+export CXX=riscv64-linux-gnu-g++
+export CXXFLAGS="-march=rv64gcv_zvl256b -mrvv-vector-bits=zvl"
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DASTCENC_ISA_NONE=ON ..
+cmake --build build -j$(nproc)
+```
+
+See also [.github/workflows](../.github/workflows) for how the CI builds and
+runs the unit tests.
+
 ## Packaging a release bundle
 
 We support building a release bundle of all enabled binary configurations in
@@ -290,7 +320,7 @@ the current CMake configuration using the `package` build target
 
 Configure CMake with:
 
-* `-DASTCENC_PACAKGE=<arch>` to set the package architecture/variant name used
+* `-DASTCENC_PACKAGE=<arch>` to set the package architecture/variant name used
 to name the package archive (not set by default).
 
 ```shell
@@ -305,11 +335,70 @@ Windows packages will use the `.zip` format, other packages will use the
 ## Integrating as a library into another project
 
 The core codec of `astcenc` is built as a library, and so can be easily
-integrated into other projects using CMake. An example of the CMake integration
-and the codec API usage can be found in the `./Utils/Example` directory in the
-repository. See the [Example Readme](../Utils/Example/README.md) for more
-details.
+integrated into other projects. We recommend integrating the project in a way
+that lets you control which version of `astcenc` you are using, as this allows
+you to manage API version changes.
+
+A basic example of CMake integration and codec API usage can be found in the `./Utils/Example` directory. See the [Example Readme](../Utils/Example/README.md) for more details.
+
+> [!CAUTION]
+> This example is designed to always use the latest main branch so that it
+> stays in sync with any changes we make to the repository. This is not
+> recommended for external production integration because you cannot control
+> which API version your application is using.
+
+### Library API stability across versions
+
+Since version 5.4.0, the library API exposed in `astcenc.h` will follow
+semantic versioning guidelines and remain backwards compatible within each
+major version (`X.*.*`). Any breaking change will result in a major version
+increment.
+
+When updating to a newer major version, callers of the API should expect that
+they will need to update to synchronize with any changes. When a major API
+version makes changes to the API, they will be done in a way that deliberately
+causes a compilation failure. This avoids applications hitting failures that
+only occur at runtime.
+
+> [!IMPORTANT]
+> Prior to version 5.4.0, we did not follow this policy and minor versions
+> (`*.X.*`) could introduce API breaks.
+
+When we make changes that modify API entrypoints, we do not usually try to
+maintain backwards compatibility by adding parallel entrypoints to support both
+the new and original behaviors, and prefer to just increment the major version.
+
+## Configuring a new build machine
+
+Install native packages:
+
+```shell
+sudo apt update
+
+# Build tools
+sudo apt install clang cmake git
+
+# Test tools
+sudo apt install imagemagick python3-pip
+
+# Profile tools
+sudo apt install graphviz valgrind
+```
+
+Install Python modules from within a virtual environment:
+
+```shell
+# Setup virtual environment
+python3 -m venv pve
+. ./pve/bin/activate
+
+# Test tools
+python3 -m pip install numpy pillow pycodestyle pylint
+
+# Profile tools
+python3 -m pip install gprof2dot
+```
 
 - - -
 
-_Copyright © 2019-2024, Arm Limited and contributors. All rights reserved._
+_Copyright © 2019-2026, Arm Limited and contributors._

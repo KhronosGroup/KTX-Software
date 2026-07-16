@@ -1,4 +1,4 @@
-**Status:** ${STATUS_DATE}
+**Status:** Released ${STATUS_DATE}
 
 The ${RELEASE_VERSION} release is a minor/major maintenance release.
 
