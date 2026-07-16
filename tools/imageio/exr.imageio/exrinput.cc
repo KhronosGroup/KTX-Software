@@ -14,9 +14,9 @@
 #define TINYEXR_IMPLEMENTATION
 #define TEXR_ASSERT(x) assert(x)
 // Use tinyexr.h from basis_universal because it is self-contained. By default
-// tinyexr.h uses miniz but the astc-encoder has decided to use the std_zlib
+// tinyexr.h uses miniz but the astc-encoder has decided to use the stb_zlib
 // so have omitted miniz.h from their source. It is easier to use the one from
-// basis_universal than figure out how to make std_zlib or standard zlib
+// basis_universal than figure out how to make stb_zlib or standard zlib
 // available. The tinyexr versions appear broadly similar but I have not found
 // a way to determine the version from the .h file.
 #include "basis_universal/encoder/3rdparty/tinyexr.h"

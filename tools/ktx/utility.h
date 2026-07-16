@@ -352,7 +352,17 @@ public:
         other.handle_ = nullptr;
     }
 
-    KTXTexture2& operator=(KTXTexture2&& other) & {
+    KTXTexture2& operator=(KTXTexture2&& other) noexcept {
+        // If self assignement => don't do anything
+        if (&other == this) {
+          return *this;
+        }
+        // Release our ktxTexture resource
+        if (handle_ != nullptr) {
+            ktxTexture_Destroy(ktxTexture(handle_));
+            handle_ = nullptr;
+        }
+        // Take ownership of other's ktxTexture resource
         handle_ = other.handle_;
         other.handle_ = nullptr;
         return *this;

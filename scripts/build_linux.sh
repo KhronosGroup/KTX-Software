@@ -73,13 +73,19 @@ if [[ -z $BUILD_DIR ]]; then
   if [ "$ARCH" != $(uname -m) ]; then
     BUILD_DIR+="-$ARCH-"
   fi
+  # Add configuration name to directory for single-configuration generators
   if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
     # Single configuration generator. That only a single configuration
     # is specified has already been verified.
     BUILD_DIR+="-$CONFIGURATION"
-    CMAKE_BUILD_TYPE=$CONFIGURATION
   fi
 fi
+
+# Set CMAKE_BUILD_TYPE only for single-configuration generators
+if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
+  CMAKE_BUILD_TYPE=$CONFIGURATION
+fi
+
 cmake_args+=("-B" $BUILD_DIR)
 # Just setting the environment variable does not seem to work so pass to cmake.
 if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
@@ -108,7 +114,8 @@ cmake_args+=(\
   "-D" "LIBKTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SSE=$SUPPORT_SSE" \
-  "-D" "KTX_WERROR=$WERROR"
+  "-D" "KTX_WERROR=$WERROR" \
+  "-D" "SANITIZE=$SANITIZE"
 )
 if [ "$FEATURE_PY" = "ON" ]; then
   cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")
@@ -128,6 +135,9 @@ for arg in "${cmake_args[@]}"; do
   esac
 done
 echo ${config_display%??}
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd $BUILD_DIR
