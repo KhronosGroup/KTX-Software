@@ -261,10 +261,13 @@ void CommandConvert::executeConvert() {
 }
 
 void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& outputStream) {
+    std::unique_ptr<ktxTexture1, decltype(ktxTexture1_Destroy)*> texture_raii{nullptr,
+                                                                          ktxTexture1_Destroy};
     ktxTexture1* texture = nullptr;
     StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture1_CreateFromStream(ktxStream.stream(),
                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+    texture_raii.reset(texture);
     if (ret != KTX_SUCCESS) {
         if (ret == KTX_UNSUPPORTED_TEXTURE_TYPE) {
             inputStream->seekg(0);
@@ -308,8 +311,10 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                } else {
                    warning("Dropping unrecognized KTX metadata \"{}\"", key);
                }
+               auto next_entry = ktxHashList_Next(pEntry);
                ktxHashList_DeleteEntry(&texture->kvDataHead,
                                        pEntry);
+               pEntry = next_entry;
             }
         }
     }
@@ -321,7 +326,6 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                          writer.c_str());
 
     outputStream.writeKTX2(texture, *this);
-    ktxTexture_Destroy(ktxTexture(texture));
 }
 
 } // namespace ktx

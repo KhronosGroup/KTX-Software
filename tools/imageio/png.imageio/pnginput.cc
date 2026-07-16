@@ -33,6 +33,9 @@ class PngInput final : public ImageInput {
     virtual void open(ImageSpec& newspec) override;
     virtual void close() override {
         decodingBegun = false;
+        // In case lodepng_finish_decode hasn't been reached (pIdat is not cleaned)
+        if (pIdat)
+          free(pIdat);
     }
 
     virtual void readImage(void* bufferOut, size_t bufferByteCount,
@@ -51,7 +54,7 @@ class PngInput final : public ImageInput {
 
     std::vector<char> pngBuffer;
     lodepng::State state;
-    void* pIdat;
+    void* pIdat = nullptr;
     size_t idatsize;
     bool colorConvert = false;
     uint32_t nextScanline = 0;
@@ -362,6 +365,9 @@ PngInput::readImage(void* bufferOut, size_t bufferOutByteCount,
                                           &state,
                                           pIdat,
                                           idatsize);
+
+    // Assume lodepng_finish_decode freed pIdat regardless of error
+    pIdat = nullptr;
 
     if (lodepngError)
         throw std::runtime_error(fmt::format(
