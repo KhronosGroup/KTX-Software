@@ -260,7 +260,8 @@ TEST_F(ktxStreamTest, CanCreateKtx1FromCppStream)
     StreambufStreamTest ktx1Stream{std::move(_ktx1Streambuf), std::ios::in};
     KtxTexture<ktxTexture1> texture1;
 
-    KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+    KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(),
+                                                      KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                                       texture1.pHandle());
     EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX1 from C++ stream: " << ktxErrorString(err);
     ASSERT_NE(texture1, nullptr) << "Newly-created KTX1 is null";
@@ -272,21 +273,92 @@ TEST_F(ktxStreamTest, CanCreateKtx2FromCppStream)
     StreambufStreamTest ktx2Stream{std::move(_ktx2Streambuf), std::ios::in};
     KtxTexture<ktxTexture2> texture2;
 
-    KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
-    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
-    ASSERT_NE(texture2, nullptr) << "Newly-created KTX2 is null";
+    KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(),
+                                                      KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                      texture2.pHandle());
+    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX1 from C++ stream: " << ktxErrorString(err);
+    ASSERT_NE(texture2, nullptr) << "Newly-created KTX1 is null";
     EXPECT_TRUE(ktx2Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
 }
 
 TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
 {
-    StreambufStreamTest ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTx1, no difference
+    StreambufStreamTest ktxStream{std::move(_ktx2Streambuf), std::ios::in}; // Or could use the KTX1, no difference
     KtxTexture<ktxTexture> texture;
 
-    KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture.pHandle());
+    KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(),
+                                                     KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                     texture.pHandle());
     EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create auto-detected KTX from C++ stream: " << ktxErrorString(err);
     ASSERT_NE(texture, nullptr) << "Newly-created auto-detected KTX is null";
     EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+}
+
+TEST_F(ktxStreamTest, CanCreateKtx1FromStdCin)
+{
+    // Save cin's read buffer
+    std::streambuf* real_cin_sbuf = std::cin.rdbuf();
+    // Open input file and get its streambuf.
+    std::unique_ptr<std::streambuf> filebuf = testImageFilebuf(ktxPath, SAMPLE_KTX1);
+    // Redirect cin to read from filebuf.
+    std::cin.rdbuf(filebuf.get());
+
+    StreambufStreamTest ktx1Stream{std::cin.rdbuf(), std::ios::in};
+    KtxTexture<ktxTexture1> texture1;
+
+    KTX_error_code err = ktxTexture1_CreateFromStream(ktx1Stream.stream(),
+                                                      KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                      texture1.pHandle());
+    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
+    ASSERT_NE(texture1, nullptr) << "Newly-created KTX2 is null";
+    EXPECT_TRUE(ktx1Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    // cout to its old self
+    std::cin.rdbuf(real_cin_sbuf);
+}
+
+TEST_F(ktxStreamTest, CanCreateKtx2FromStdCin)
+{
+    // Save cin's read buffer
+    std::streambuf* real_cin_sbuf = std::cin.rdbuf();
+    // Open input file and get its streambuf.
+    std::unique_ptr<std::streambuf> filebuf = testImageFilebuf(ktx2Path, SAMPLE_KTX2);
+    // Redirect cin to read from filebuf.
+    std::cin.rdbuf(filebuf.get());
+
+    StreambufStreamTest ktx2Stream{std::cin.rdbuf(), std::ios::in};
+    KtxTexture<ktxTexture2> texture2;
+
+    KTX_error_code err = ktxTexture2_CreateFromStream(ktx2Stream.stream(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, texture2.pHandle());
+    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
+    ASSERT_NE(texture2, nullptr) << "Newly-created KTX2 is null";
+    EXPECT_TRUE(ktx2Stream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    // cout to its old self
+    std::cin.rdbuf(real_cin_sbuf);
+}
+
+TEST_F(ktxStreamTest, CanCreateAutoFromStdCin)
+{
+    // Save cin's read buffer
+    std::streambuf* real_cin_sbuf = std::cin.rdbuf();
+    // Open input file and get its streambuf.
+    std::unique_ptr<std::streambuf> filebuf = testImageFilebuf(ktx2Path, SAMPLE_KTX2);
+    // Redirect cin to read from filebuf.
+    std::cin.rdbuf(filebuf.get());
+
+    StreambufStreamTest ktxStream{std::cin.rdbuf(), std::ios::in};
+    KtxTexture<ktxTexture> texture;
+
+    KTX_error_code err = ktxTexture_CreateFromStream(ktxStream.stream(),
+                                                     KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                                     texture.pHandle());
+    EXPECT_EQ(err, KTX_SUCCESS) << "Failed to create KTX2 from C++ stream: " << ktxErrorString(err);
+    ASSERT_NE(texture, nullptr) << "Newly-created KTX2 is null";
+    EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
+
+    // cout to its old self
+    std::cin.rdbuf(real_cin_sbuf);
 }
 
 TEST_F(ktxStreamTest, CanWriteKtx1AsKtx2ToCppStream)
