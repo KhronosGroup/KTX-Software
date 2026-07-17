@@ -35,12 +35,19 @@ for arg in "${cmake_args[@]}"; do
 done
 
 echo ${config_display%??}
+
+# To be supplied as `-j $njobs`. We might add `+ 1` if the particular cmd is IO
+# bound (this is done in a lot of CIs). On GH CIs, this is most likely to be 4.
+njobs=$(($(nproc) + 1))
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd "$BUILD_DIR"
 
 echo "Build KTX-Software (Android $ANDROID_ABI Debug)"
-cmake --build . --config Debug -j
+cmake --build . --config Debug -j $njobs
 # echo "Test KTX-Software (Android $ANDROID_ABI Debug)"
 # ctest --output-on-failure -C Debug # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI Debug)"
