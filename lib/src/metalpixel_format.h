@@ -14,7 +14,9 @@
   * @brief Definitions of Metal pixel formats.
   *
   * Obviously this is very similar to the Apple original. It uses the same enumerator
-  * and emumeration names to avoid confusion for users of the Metal API.
+  * and emumeration names because (a) that is what is used in the database used to generate the
+  * switch statement body which needs these definitions and (b) we want to avoid confusion for
+  * users of the Metal API.
   */
 
 /*
