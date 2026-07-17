@@ -471,10 +471,9 @@ public:
 class OutputStream {
 protected:
     std::string filepath;
-    FILE* file;
     bool removeAtDestruct = false;
-    // std::ostream* activeStream = nullptr;
-    // std::ofstream file; // Unused for stdin/stdout
+    std::ostream* activeStream = nullptr;
+    std::ofstream file; // Unused for stdin/stdout
 
 public:
     OutputStream(const std::string& filepath, Reporter& report);
@@ -490,8 +489,9 @@ public:
         return filepath;
     }
 
-    bool isStdout() { return (file == stdout); }
-    void flush() { fflush(file); }
+    bool isStdout() { return (activeStream == &std::cout); }
+    void flush() { activeStream->flush(); }
+
     void removeOnDestruct() { removeAtDestruct = true; }
     void writeKTX2(ktxTexture* texture, Reporter& report);
     void write(const char* data, std::size_t size, Reporter& report);

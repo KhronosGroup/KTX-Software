@@ -97,9 +97,10 @@ public:
 #endif
 
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
-        const auto ret = ktxTexture1_WriteKTX2ToStdioStream(texture, file);
+        StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+        const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
         if (KTX_SUCCESS != ret) {
-            if (file != stdout)
+            if (!isStdout())
                 std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
             report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.",
                          filepath, ktxErrorString(ret));

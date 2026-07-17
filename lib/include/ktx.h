@@ -859,7 +859,7 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  * using the 64-bit stream functions.
  */
 #if defined(_MSC_VER) && defined(_WIN64)
-  typedef unsigned __int64 ktx_off_t;
+  typedef __int64 ktx_off_t;
 #else
   typedef   off_t ktx_off_t;
 #endif
