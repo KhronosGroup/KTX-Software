@@ -121,38 +121,15 @@ InputStream::InputStream(const std::string& filepath, Reporter& report) :
 OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
         filepath(filepath) {
 
-#if !USE_OUTPUT_STREAM
-    if (filepath == "-") {
-#if defined(_WIN32)
-          // Set "stdout" to binary mode
-          const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
-          if (setmodeResult == -1)
-              report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}.", setmodeResult);
-          // #else
-          // std::freopen(nullptr, "wb", stdout);
-#endif
-        file = stdout;
-    } else {
-#if defined(_WIN32)
-          file = _wfopen(DecodeUTF8Path(filepath).c_str(), L"wb");
-#else
-          file = fopen(DecodeUTF8Path(filepath).c_str(), "wb");
-#endif
-        if (!file)
-            report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
-    }
-#else
-    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
-    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
      if (filepath == "-") {
-         #if defined(_WIN32)
+#if defined(_WIN32)
          // Set "stdout" to binary mode
          const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
          if (setmodeResult == -1)
              report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}", setmodeResult);
          // #else
          // std::freopen(nullptr, "wb", stdout);
-         #endif
+#endif
          activeStream = &std::cout;
      } else {
          file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::out);
@@ -160,45 +137,30 @@ OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
              report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}", filepath, errnoMessage());
          activeStream = &file;
      }
-#endif
 }
 
 OutputStream::~OutputStream() {
     if (!isStdout()) {
-#if !USE_OUTPUT_STREAM
-        fclose(file);
-#else
         file.close();
-#endif
         if (removeAtDestruct) std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
     }
 }
 
 void OutputStream::write(const char* data, std::size_t size, Reporter& report) {
-#if !USE_OUTPUT_STREAM
-    const auto written = std::fwrite(data, 1, size, file);
-    if (written != size)
-#else
+
     activeStream->write(data, size);
     if (!activeStream->good())
-#endif
         report.fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}.", fmtOutFile(filepath), errnoMessage());
 }
 
 void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
-#if !USE_OUTPUT_STREAM
-    const auto ret = ktxTexture_WriteToStdioStream(texture, file);
-#else
-    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
-    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
-     StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::in | std::ios::binary);
-     const auto ret = ktxTexture_WriteToStream(texture, stream.stream());
-#endif
+    StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+    const auto ret = ktxTexture_WriteToStream(texture, stream.stream());
     if (KTX_SUCCESS != ret) {
-         if (!isStdout())
-             std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
-         report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": {}.", fmtOutFile(filepath), ktxErrorString(ret));
-     }
+        if (!isStdout())
+            std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+        report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": {}.", fmtOutFile(filepath), ktxErrorString(ret));
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

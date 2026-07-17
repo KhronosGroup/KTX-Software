@@ -97,12 +97,8 @@ public:
 #endif
 
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
-#if !USE_OUTPUT_STREAM
-        const auto ret = ktxTexture1_WriteKTX2ToStdioStream(texture, file);
-#else
-     StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::in | std::ios::binary);
-     const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
-#endif
+        StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+        const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
         if (KTX_SUCCESS != ret) {
             if (!isStdout())
                 std::filesystem::remove(DecodeUTF8Path(filepath).c_str());

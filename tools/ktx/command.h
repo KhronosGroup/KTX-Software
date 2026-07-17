@@ -469,16 +469,11 @@ public:
 
 /// Helper to handle stdout and fstream uniformly
 class OutputStream {
-#define USE_OUTPUT_STREAM 1
 protected:
     std::string filepath;
     bool removeAtDestruct = false;
-#if !USE_OUTPUT_STREAM
-    FILE* file;
-#else
     std::ostream* activeStream = nullptr;
     std::ofstream file; // Unused for stdin/stdout
-#endif
 
 public:
     OutputStream(const std::string& filepath, Reporter& report);
@@ -494,13 +489,8 @@ public:
         return filepath;
     }
 
-#if !USE_OUTPUT_STREAM
-    bool isStdout() { return (file == stdout); }
-    void flush() { fflush(file); }
-#else
     bool isStdout() { return (activeStream == &std::cout); }
     void flush() { activeStream->flush(); }
-#endif
 
     void removeOnDestruct() { removeAtDestruct = true; }
     void writeKTX2(ktxTexture* texture, Reporter& report);
