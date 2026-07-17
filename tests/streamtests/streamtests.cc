@@ -294,6 +294,9 @@ TEST_F(ktxStreamTest, CanCreateAutoKtxFromCppStream)
     EXPECT_TRUE(ktxStream.destructed()) << "ktxStream should have been destructed (LOAD_IMAGE_DATA_BIT set)";
 }
 
+// As the source is the streambuf from a reading a disk file, these tests of std::cin are
+// unable to test for correct handling when seeking is not possible. Looking for ideas
+// on how to test that within gtest.
 TEST_F(ktxStreamTest, CanCreateKtx1FromStdCin)
 {
     // Save cin's read buffer
