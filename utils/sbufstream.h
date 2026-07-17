@@ -183,7 +183,7 @@ protected:
     static KTX_error_code getpos(ktxStream* str, ktx_off_t *pos)
     {
         auto self = parent(str);
-        const ktx_off_t seekoffval =
+        const auto seekoffval =
                   ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
         logstream << "\tgetpos: " << *pos << std::endl;
 
