@@ -117,10 +117,16 @@ static void writeSample(uint32_t *DFD, int sampleNo, int channel,
     if (channel == 3) channel = KHR_DF_CHANNEL_RGBSDA_ALPHA;
     channel = setChannelFlags(channel, suffix);
 
+    // `channel` is cast into an uint32_t to avoid the following issue:
+    //  When `channel` is 192, the following UB occurs: 11000000 << 24
+    //  Setting sign bit of an integer via a left shift operation is UB.
+    //
+    //  TODO: This is the least intrusive solution for the moment. Ideally,
+    //        writeSample should take uint32_t params.
     sample[KHR_DF_SAMPLEWORD_BITOFFSET] =
         (offset << KHR_DF_SAMPLESHIFT_BITOFFSET) |
         ((bits - 1) << KHR_DF_SAMPLESHIFT_BITLENGTH) |
-        (channel << KHR_DF_SAMPLESHIFT_CHANNELID);
+        ((uint32_t)channel << KHR_DF_SAMPLESHIFT_CHANNELID);
 
     sample[KHR_DF_SAMPLEWORD_SAMPLEPOSITION_ALL] = 0;
 
