@@ -268,6 +268,41 @@ set( LOAD_TEST_COMMON_RESOURCE_FILES
     ${LOAD_TEST_COMMON_MODELS}
 )
 
+if(WIN32)
+    # On Windows resources for both gl3loadtests and vkloadtests go in the same resources
+    # folder therefore to support parallel builds and avoid races copying must be done via
+    # custom targets.
+#if(WIN32 AND KTX_FEATURE_LOADTEST_APPS)
+#    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+#        set(target_dir $<TARGET_FILE_DIR:gl3loadtests>/resources)
+#    elseif(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
+#        set(target_dir $<TARGET_FILE_DIR:vkloadtests>/resources)
+    set(resources_dir resources)
+    add_custom_command(
+        OUTPUT ${resources_dir}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${resources_dir}"
+        COMMENT "Make resources directory"
+    )
+    add_custom_target(
+        resources_dir
+        DEPENDS ${resources_dir}
+    )
+    unset(resources_dir)
+
+    LOAD_TEST_COMMON_MODELS
+    list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND ${resources_dir} OUTPUT_VARIABLE copied_models)
+    add_custom_command(
+        OUTPUT ${copied_models}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "${resources_dir}"
+        COMMENT "Copy models to build destination"
+    )
+    add_custom_target(
+        copied_models
+        DEPENDS ${copied_models}
+    )
+    unset(copied_models)
+endif()
+
 if(LINUX)
     set( LOAD_TEST_DESTROOT "/opt" )
 endif()
