@@ -3317,12 +3317,15 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
   public:
     void runTest(ktx_bcn_compression_e bcn, bool rdo) {
-        ktxTexture2* texture;
+        ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
         KTX_error_code result;
+
+        ktxTexture2* texture;
         auto tmpDir = fs::temp_directory_path();
 
-        result = ktxTexture2_CreateFromMemory(ktxMemFile, ktxMemFileLen,
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
                                               KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+        texture_raii.reset((ktxTexture*)texture);
         EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_NE(texture, nullptr)
             << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
@@ -3505,13 +3508,9 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
         EXPECT_EQ(texture->baseHeight, height);
         EXPECT_EQ(texture->baseWidth, width);
-        if (texture) {
-            ktxTexture_Destroy(ktxTexture(texture));
-            fs::remove(original);
-            fs::remove(decoded);
-            if (fs::exists(ktxdiffOut))
-                fs::remove(ktxdiffOut);
-        }
+        if (fs::exists(original)) fs::remove(original);
+        if (fs::exists(decoded)) fs::remove(decoded);
+        if (fs::exists(ktxdiffOut)) fs::remove(ktxdiffOut);
     }
 };
 
@@ -3601,8 +3600,9 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc7_rdo_t
 class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
   public:
     void runTest(const std::u8string& bcnOriginal, const std::u8string& bcnFileName) {
-        ktxTexture2* texture;
+        ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
         KTX_error_code result;
+        ktxTexture2* texture;
         ktx_uint32_t expectedDecompressedFormat;
         fs::path bcnPath = ktx2Path;
         fs::path bcnOriginalPath = ktx2Path;
@@ -3613,6 +3613,7 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         result = ktxTexture2_CreateFromNamedFile(
             reinterpret_cast<const char*>(bcnPath.u8string().c_str()),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+        texture_raii.reset((ktxTexture*)texture);
 
         EXPECT_EQ(result, KTX_SUCCESS);
         ASSERT_NE(texture, nullptr) 
@@ -3714,7 +3715,6 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 
         fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
                                               decodedPath.stem().string());
-
         // Compare orginal vs. decoded texture with 0.08 tolerance
         // Running ktxdiff on 16bit SFLOAT inputs simply fails (regardless of the provided tolerance)
         if (texture->vkFormat != VK_FORMAT_R16G16B16_SFLOAT) {
@@ -3740,13 +3740,8 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
               }
             }
         }
-
-        if (texture) {
-            ktxTexture2_Destroy(texture);
-            fs::remove(decodedPath);
-            if (fs::exists(ktxdiffOut))
-                fs::remove(ktxdiffOut);
-        }
+        if (fs::exists(decodedPath)) fs::remove(decodedPath);
+        if (fs::exists(ktxdiffOut)) fs::remove(ktxdiffOut);
     }
 };
 
