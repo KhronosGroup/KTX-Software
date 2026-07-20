@@ -372,7 +372,7 @@ typedef struct ktxTexture {
  * full pyramid but always starts at the base level.
  */
 /**
- * @typedef ktxTexture::numLevels
+ * @typedef ktxTexture::numLayers
  * @~English
  * @brief Number of array layers in the texture.
  */
