@@ -169,10 +169,6 @@ foreach ($item in $cmake_args) {
 $config_display = $config_display -replace ', $', ''
 echo $config_display
 
-# To be supplied as `-j $njobs`. We might add `+ 1` if the particular cmd is IO
-# bound (this is done in a lot of CIs). On GH CIs, this is most likely to be 4.
-$njobs = [Environment]::ProcessorCount
-
 # Print cmake command to be able to verify configuration and replicate locally
 echo "running cmake command (in source directory): cmake . $cmake_args"
 cmake . $cmake_args
@@ -200,7 +196,7 @@ foreach ($config in $configArray) {
   try {
     #git status
     echo "Build KTX-Software (Windows $ARCH $config)"
-    cmake --build . --config $config -j $njobs
+    cmake --build . --config $config
     # Return an error code if cmake fails
     if(!$?){
       popd
