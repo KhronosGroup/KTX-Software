@@ -121,77 +121,46 @@ InputStream::InputStream(const std::string& filepath, Reporter& report) :
 OutputStream::OutputStream(const std::string& filepath, Reporter& report) :
         filepath(filepath) {
 
-    if (filepath == "-") {
-        #if defined(_WIN32)
-        // Set "stdout" to binary mode
-        const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
-        if (setmodeResult == -1)
-            report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}.", setmodeResult);
-        // #else
-        // std::freopen(nullptr, "wb", stdout);
-        #endif
-        file = stdout;
-    } else {
+     if (filepath == "-") {
 #if defined(_WIN32)
-        file = _wfopen(DecodeUTF8Path(filepath).c_str(), L"wb");
-#else
-        file = fopen(DecodeUTF8Path(filepath).c_str(), "wb");
+         // Set "stdout" to binary mode
+         const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
+         if (setmodeResult == -1)
+             report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}", setmodeResult);
+         // #else
+         // std::freopen(nullptr, "wb", stdout);
 #endif
-        if (!file)
-            report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}.", filepath, errnoMessage());
-    }
-
-    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
-    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
-    // if (filepath == "-") {
-    //     #if defined(_WIN32)
-    //     // Set "stdout" to binary mode
-    //     const auto setmodeResult = _setmode(_fileno(stdout), _O_BINARY);
-    //     if (setmodeResult == -1)
-    //         report.fatal(rc::IO_FAILURE, "Failed to set stdout mode to binary: {}", setmodeResult);
-    //     // #else
-    //     // std::freopen(nullptr, "wb", stdout);
-    //     #endif
-    //     activeStream = &std::cout;
-    // } else {
-    //     file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::out);
-    //     if (!file)
-    //         report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}", filepath, errnoMessage());
-    //     activeStream = &file;
-    // }
+         activeStream = &std::cout;
+     } else {
+         file.open(DecodeUTF8Path(filepath).c_str(), std::ios::binary | std::ios::out);
+         if (!file)
+             report.fatal(rc::IO_FAILURE, "Could not open output file \"{}\": {}", filepath, errnoMessage());
+         activeStream = &file;
+     }
 }
 
 OutputStream::~OutputStream() {
-    if (file != stdout) {
-        fclose(file);
+    if (!isStdout()) {
+        file.close();
         if (removeAtDestruct) std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
     }
 }
 
 void OutputStream::write(const char* data, std::size_t size, Reporter& report) {
-    const auto written = std::fwrite(data, 1, size, file);
-    if (written != size)
+
+    activeStream->write(data, size);
+    if (!activeStream->good())
         report.fatal(rc::IO_FAILURE, "Failed to write output file \"{}\": {}.", fmtOutFile(filepath), errnoMessage());
 }
 
 void OutputStream::writeKTX2(ktxTexture* texture, Reporter& report) {
-    const auto ret = ktxTexture_WriteToStdioStream(texture, file);
+    StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+    const auto ret = ktxTexture_WriteToStream(texture, stream.stream());
     if (KTX_SUCCESS != ret) {
-        if (file != stdout)
+        if (!isStdout())
             std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
-        report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.", filepath, ktxErrorString(ret));
+        report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": {}.", fmtOutFile(filepath), ktxErrorString(ret));
     }
-
-    // TODO: Investigate and resolve the portability issue with the C++ streams. The issue will most likely
-    //       be in StreambufStream's position reporting and seeking. Currently a fallback is implemented in C above.
-    // StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::in | std::ios::binary);
-    // const auto ret = ktxTexture_WriteToStream(texture, stream.stream());
-    //
-    // if (KTX_SUCCESS != ret) {
-    //     if (activeStream != &std::cout)
-    //         std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
-    //     report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": {}.", fmtOutFile(filepath), ktxErrorString(ret));
-    // }
 }
 
 // -------------------------------------------------------------------------------------------------

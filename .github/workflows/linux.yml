@@ -68,8 +68,12 @@ jobs:
             sse: ON, opencl: OFF
           }
         # We perform ASan/UBSan/TSan on only one job because they greatly slow
-        # down test runs. We use a linux runner because they consume the fewest
-        # GH Actions credits
+        # down test runs. We only use a linux runner because they, most likely,
+        # consume the fewest GH Actions credits.
+        # TODO: at some point, we can reduce CI runners time by adding
+        #       ASan/UBSan/TSan to the `Default` job and removing this
+        #       additional job but then we may also get additional errors about
+        #       load tests.
         - name: ASan GCC (x86_64)
           os: ubuntu-latest
           generator: Ninja

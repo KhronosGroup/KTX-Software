@@ -118,6 +118,7 @@ protected:
 
     inline static StreambufStream* parent(ktxStream *str)
     {
+        assert(str->type == eStreamTypeCustom);
         return reinterpret_cast<StreambufStream*>(str->data.custom_ptr.address);
     }
 
@@ -146,7 +147,23 @@ protected:
 
         const std::streampos curpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
         const std::streampos newpos = self->_streambuf->pubseekoff(std::streamoff(count), std::ios::cur, self->_seek_mode);
-        return (curpos > newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
+
+        if (curpos == -1) {
+            if (self->streambuf() == std::cin.rdbuf()) {
+                for (ktx_uint32_t i = 0; i < count; i++) {
+                    int ret = self->_streambuf->sbumpc();
+                    if (ret == EOF) {
+                        return KTX_FILE_UNEXPECTED_EOF;
+                    }
+                }
+                str->readpos += count;
+                return KTX_SUCCESS;
+            } else {
+                return KTX_FILE_ISPIPE;
+            }
+        }
+        str->readpos += count;
+        return (newpos > curpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
     static KTX_error_code write(ktxStream* str, const void* src, ktx_size_t size, ktx_size_t count)
@@ -163,20 +180,38 @@ protected:
         return (nput == ntotal) ? KTX_SUCCESS : KTX_FILE_WRITE_ERROR;
     }
 
-    static KTX_error_code getpos(ktxStream* str, ktx_off_t *offset)
+    static KTX_error_code getpos(ktxStream* str, ktx_off_t *pos)
     {
         auto self = parent(str);
-        *offset = ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
-        logstream << "\tgetpos: " << *offset << std::endl;
+        const auto seekoffval =
+                  ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
+        logstream << "\tgetpos: " << *pos << std::endl;
+
+        if (seekoffval == -1) {
+            if (self->streambuf() == std::cin.rdbuf())
+                *pos = str->readpos;
+            else
+                return KTX_FILE_ISPIPE;
+        }
+        *pos = seekoffval;
         return KTX_SUCCESS;
     }
 
-    static KTX_error_code setpos(ktxStream* str, ktx_off_t offset)
+    static KTX_error_code setpos(ktxStream* str, ktx_off_t pos)
     {
         auto self = parent(str);
-        const auto newpos = std::streamoff(offset);
-        const std::streampos setpos = self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
-        logstream << "\tsetpos: " << offset << std::endl;
+        const auto newpos = std::streamoff(pos);
+
+        const std::streampos setpos =
+                self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
+        logstream << "\tsetpos: " << setpos << std::endl;
+
+        if (setpos == -1) {
+            if (self->streambuf() == std::cin.rdbuf() && pos > str->readpos)
+                return str->skip(str, pos - str->readpos);
+            else
+                return KTX_FILE_ISPIPE;
+        }
         return (setpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
@@ -184,6 +219,9 @@ protected:
     {
         auto self = parent(str);
         const std::streampos oldpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
+        if (oldpos == -1)
+            return KTX_FILE_ISPIPE;
+
         *size = ktx_size_t(self->_streambuf->pubseekoff(0, std::ios::end));
         const std::streampos newpos = self->_streambuf->pubseekoff(oldpos, std::ios::beg, self->_seek_mode);
         logstream << "\t  size: " << *size << 'B' << std::endl;

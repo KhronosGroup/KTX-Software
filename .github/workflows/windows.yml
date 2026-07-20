@@ -334,7 +334,9 @@ jobs:
       id: teststep
       # Tests built for arm64 can't be run as the CI runners are all x64.
       if: matrix.options.tests == 'ON'
-      run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
+      run: |
+        $njobs = [Environment]::ProcessorCount
+        ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release -j $njobs
 
 #    - name: Upload generated CTS output files if CTS tests fail
 #      if: failure() && matrix.options.tools_cts == 'ON'  && steps.teststep.outcome == 'failure'
