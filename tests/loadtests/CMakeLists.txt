@@ -177,7 +177,7 @@ if(APPLE)
     # Assets are copied to the bundle in the build target setup.
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
     set( KTX_DOC_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
-    cmake_print_variables(assimp_LIBRARIES)
+    #cmake_print_variables(assimp_LIBRARIES)
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
             assimp::assimp
@@ -191,7 +191,6 @@ elseif(LINUX)
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
-        #${SDL3_LIBRARIES}
         SDL3::SDL3
     )
 elseif(WIN32)
@@ -356,7 +355,6 @@ if(NOT APPLE)
     list(TRANSFORM LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
         OUTPUT_VARIABLE common_ktx_image_copies
     )
-    cmake_print_variables( common_ktx_image_copies )
     add_custom_command(
         OUTPUT ${common_ktx_image_copies}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}

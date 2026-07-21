@@ -386,7 +386,7 @@ else()
         copied_shaders
         DEPENDS ${copied_shaders}
     )
-    cmake_print_variables( BUILDTIME_RESOURCES_DIR )
+    
     list(TRANSFORM vkloadtests_ktx2_image_sources REPLACE ^[a-zA-Z0-9:/<>].*/ktx2 ${BUILDTIME_RESOURCES_DIR}
         OUTPUT_VARIABLE copied_vkloadtests_ktx2_images
     )
