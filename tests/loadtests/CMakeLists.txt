@@ -64,30 +64,6 @@ if(APPLE AND IOS)
     find_library(UIKit_LIBRARY UIKit)
 endif()
 
-function( ensure_runtime_dependencies_windows target test_images )
-    # Custom copy commands to ensure all dependencies (test images,
-    # shaders, models) are in correct location relative to executable.
-
-#    add_custom_command( TARGET ${target} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${target}>/resources"
-#        COMMENT "Make resources directory"
-#    )
-#    if(${target} MATCHES "vkloadtests")
-#        add_custom_command( TARGET ${target} POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
-#            COMMENT "Copy shaders to build destination"
-#        )
-#    endif()
-#    add_custom_command( TARGET ${target} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_images} "$<TARGET_FILE_DIR:${target}>/resources"
-#        COMMENT "Copy testimages to build destination"
-#    )
-#    add_custom_command( TARGET ${target} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/resources"
-#        COMMENT "Copy models to build destination"
-#    )
-endfunction()
-
 add_library( appfwSDL STATIC
     appfwSDL/AppBaseSDL.cpp
     appfwSDL/AppBaseSDL.h
