@@ -10,12 +10,14 @@ if(WIN32)
     find_package(GLEW REQUIRED)
 endif()
 
-function( create_gl_target target version sources common_resources test_image_sources
+function( create_gl_target target version sources common_resources ktx_image_sources
           KTX_GL_CONTEXT_PROFILE
           KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION
           EMULATE_GLES)
 
-    set( resources ${common_resources};${test_image_sources} )
+    set( resources
+       ${common_resources};${ktx_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
+    )
 
     add_executable( ${target}
         ${EXE_FLAG}
@@ -110,7 +112,7 @@ function( create_gl_target target version sources common_resources test_image_so
         # Beware of de-duplication in list expansion for commands and options.
         # SHELL: prevents it but if they are separate items in the list they
         # be de-duplicated.
-        list( TRANSFORM test_image_sources REPLACE
+        list( TRANSFORM ktx_image_sources REPLACE
             "(${PROJECT_SOURCE_DIR}/tests/resources/(ktx|ktx2)/([a-zA-Z0-9_].*$))"
             "SHELL:--preload-file \\1@\\3"
             OUTPUT_VARIABLE preloads
@@ -261,27 +263,29 @@ function( create_gl_target target version sources common_resources test_image_so
 #              ${resources}
 #              $<TARGET_FILE_DIR:${target}>/../resources
 #        )
-        list(TRANSFORM test_image_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
-            OUTPUT_VARIABLE test_image_copies
+        # Copy the KTX images specific to the current target.
+        list(TRANSFORM ktx_image_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
+            OUTPUT_VARIABLE ktx_image_copies
         )
-        cmake_print_variables( test_image_copies )
-#        add_custom_command(
-#            OUTPUT ${test_image_copies}
-#           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_image_sources} ${BUILDTIME_RESOURCES_DIR}
-#            COMMENT "Copy test images to build destination"
-#            VERBATIM
-#        )
-#        add_custom_target(
-#            copied_${target}_test_images
-#            DEPENDS ${test_image_copies}
-#        )
-#        add_dependencies(
-#            copied_${target}_test_images
-#            buildtime_resources_dir
-#        )
+        cmake_print_variables( ktx_image_copies )
+        add_custom_command(
+            OUTPUT ${ktx_image_copies}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
+            COMMENT "Copy ${target}'s ktx images to build destination"
+            VERBATIM
+        )
+        add_custom_target(
+            copied_${target}_ktx_images
+            DEPENDS ${ktx_image_copies}
+        )
+        add_dependencies(
+            copied_${target}_ktx_images
+            buildtime_resources_dir
+        )
         add_dependencies( ${target}
             copied_models
-#            copied_${target}_test_images
+            copied_common_ktx_images
+            copied_${target}_ktx_images
         )
 
         # See important comment and TODO:s starting at line 365
@@ -334,24 +338,12 @@ function( create_gl_target target version sources common_resources test_image_so
     endif()
 endfunction( create_gl_target target )
 
-
-set( es1_test_image_sources
+set( es1_ktx_image_sources
     no_npot.ktx
     hi_mark.ktx
     l8_unorm_metadata.ktx
-    orient_up_metadata.ktx
-    orient_down_metadata.ktx
-    etc1.ktx
-    etc2_rgb.ktx
-    etc2_rgba1.ktx
-    etc2_rgba8.ktx
-    r8g8b8a8_srgb.ktx
-    r8g8b8_srgb.ktx
-    r8g8b8_unorm_amg.ktx
-    r8g8b8_srgb_mip.ktx
-    hi_mark_sq.ktx
 )
-list( TRANSFORM es1_test_image_sources
+list( TRANSFORM es1_ktx_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
 )
 
@@ -363,64 +355,30 @@ set( es1_sources
     glloadtests/gles1/TexturedCube.h
 )
 
-set( gl3_ktx2_test_image_sources
-    astc_8x8_unorm_array_7.ktx2
-    bc3_unorm_array_7.ktx2
-    color_grid_uastc_zstd_5.ktx2
-    color_grid_zstd_5.ktx2
-    color_grid_blze.ktx2
-    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
-    cubemap_yokohama_blze.ktx2
-    etc2_unorm_array_7.ktx2
+set( gl3_ktx2_image_sources
     FlightHelmet_baseColor_blze.ktx2
-    Iron_Bars_001_normal_blze.ktx2
-    Iron_Bars_001_normal_uastc_zstd_10.ktx2
-    kodim17_blze.ktx2
-    orient_down_metadata.ktx2
-    orient_up_metadata.ktx2
-    pattern_02_bc2.ktx2
     r8g8b8a8_srgb.ktx2
     r8g8b8a8_srgb_3d_7.ktx2
-    r8g8b8_srgb_mip.ktx2
 )
-set( gl3_ktx_test_image_sources
-    astc_8x8_unorm_array_7.ktx
-    bc3_unorm_array_7.ktx
+
+set( gl3_ktx_image_sources
     conftestimage_R11_EAC.ktx
     conftestimage_SIGNED_R11_EAC.ktx
     conftestimage_RG11_EAC.ktx
     conftestimage_SIGNED_RG11_EAC.ktx
-    etc1.ktx
-    etc2_rgb.ktx
-    etc2_rgba1.ktx
-    etc2_rgba8.ktx
-    etc2_srgb.ktx
-    etc2_srgba1.ktx
-    etc2_srgba8.ktx
-    etc2_unorm_array_7.ktx
     hi_mark.ktx
-    hi_mark_sq.ktx
-    metalplate_amg.ktx
-    not4_r8g8b8_srgb.ktx
-    orient_down_metadata.ktx
-    orient_up_metadata.ktx
-    pattern_02_bc2.ktx
-    r8g8b8a8_srgb.ktx
-    r8g8b8_srgb.ktx
-    r8g8b8_unorm_amg.ktx
-    r8g8b8_srgb_mip.ktx
 )
-list( TRANSFORM gl3_ktx_test_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
-)
-list( TRANSFORM gl3_ktx2_test_image_sources
+list( TRANSFORM gl3_ktx2_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
 )
-set( gl3_test_image_sources ${gl3_ktx2_test_image_sources} ${gl3_ktx_test_image_sources} )
-#set( gl3_resource_files ${LOAD_TEST_COMMON_RESOURCE_FILES} ${gl3_test_image_sources} )
+list( TRANSFORM gl3_ktx_image_sources
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
+)
+
+set( gl3_ktx12_image_sources ${gl3_ktx2_image_sources} ${gl3_ktx_image_sources} )
 
 
-set( GL3_SOURCES
+set( gl3_sources
     common/TranscodeTargetStrToFmt.cpp
     common/TranscodeTargetStrToFmt.h
     common/disable_glm_warnings.h
@@ -451,7 +409,6 @@ set( GL3_SOURCES
     glloadtests/utils/GLTextureTranscoder.hpp
 )
 
-
 if(WIN32)
     if(NOT OPENGL_ES_EMULATOR)
         message("OPENGL_ES_EMULATOR not set. Will not build OpenGL ES load tests applications.")
@@ -462,22 +419,22 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE_PATH}" "${es1_test_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE_PATH}" "${es1_ktx_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "ES3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_test_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
+    create_gl_target( es3loadtests "ES3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_ktx12_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "GL3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_test_image_sources}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
+    create_gl_target( gl3loadtests "GL3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_ktx12_image_sources}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()
 
 unset( es1_sources )
 unset( gl3_sources )
-unset( es1_test_image_sources )
-unset( gl3_ktx2_test_image_sources )
-unset( gl3_ktx_test_image_sources )
-unset( gl3_test_image_sources )
+unset( es1_ktx_image_sources )
+unset( gl3_ktx2_image_sources )
+unset( gl3_ktx_image_sources )
+unset( gl3_ktx12_image_sources )

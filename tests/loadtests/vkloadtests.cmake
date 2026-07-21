@@ -71,70 +71,25 @@ add_custom_target(
     shader_texturemipmap
 )
 
-set( vk_ktx2_test_images
-    astc_8x8_unorm_array_7.ktx2
-    bc3_unorm_array_7.ktx2
+set( vkloadtests_ktx2_image_sources
     alpha_complex_straight.ktx2
     alpha_complex_premultiplied.ktx2
-    color_grid_uastc_zstd_5.ktx2
-    color_grid_zstd_5.ktx2
-    color_grid_blze.ktx2
-    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
-    cubemap_yokohama_blze.ktx2
     Desk_uastc_hdr4x4_zstd_15.ktx2
     Desk_uastc_hdr6x6i.ktx2
-    etc2_unorm_array_7.ktx2
-    Iron_Bars_001_normal_blze.ktx2
-    Iron_Bars_001_normal_uastc_zstd_10.ktx2
     ktx_document_blze.ktx2
     ktx_document_uastc_rdo_4_zstd_5.ktx2
-    kodim17_blze.ktx2
-    orient_down_metadata.ktx2
-    orient_up_metadata.ktx2
-    pattern_02_bc2.ktx2
-    r8g8b8a8_srgb.ktx2
-    r8g8b8a8_srgb_mip_blze.ktx2
-    r8g8b8a8_srgb_3d_7.ktx2
     r8g8b8a8_srgb_array_7_mip.ktx2
-    skybox_zstd_22.ktx2
 )
-set( vk_ktx_test_images
-    astc_8x8_unorm_array_7.ktx
-    bc3_unorm_array_7.ktx
-    etc2_rgb.ktx
-    etc2_rgba8.ktx
-    etc2_srgb.ktx
-    #etc2_srgba1.ktx
-    etc2_srgba8.ktx
-    etc2_unorm_array_7.ktx
-    metalplate_amg.ktx
-    not4_r8g8b8_srgb.ktx
-    orient_down_metadata.ktx
-    orient_up_metadata.ktx
-    pattern_02_bc2.ktx
-    r8g8b8_unorm_amg.ktx
-    r8g8b8a8_srgb.ktx
-)
-list( TRANSFORM vk_ktx2_test_images
+list( TRANSFORM vkloadtests_ktx2_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
-    OUTPUT_VARIABLE vk_ktx2_test_image_sources
 )
-list( TRANSFORM vk_ktx_test_images
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
-    OUTPUT_VARIABLE vk_ktx_test_image_sources
+# All the ktx1 images used are shared with the other apps.
+
+set( KTX_RESOURCES
+    ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
+    ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
+    ${vkloadtests_ktx2_image_sources}
 )
-list( TRANSFORM vk_ktx2_test_images
-    PREPEND "${BUILDTIME_RESOURCES_DIR}/"
-    OUTPUT_VARIABLE vk_ktx2_test_image_copies
-)
-list( TRANSFORM vk_ktx_test_images
-    PREPEND "${BUILDTIME_RESOURCES_DIR}/"
-    OUTPUT_VARIABLE vk_ktx_test_image_copies
-)
-set( VK_TEST_IMAGE_SOURCES ${vk_ktx2_test_image_sources} ${vk_ktx_test_image_sources} )
-set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${VK_TEST_IMAGE_SOURCES} )
-unset( vk_ktx2_test_images )
-unset( vk_ktx_test_images )
 
 if(APPLE)
     # Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
@@ -187,7 +142,8 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
     ${Vulkan_SHARE_VULKAN}
     ${SHADER_SOURCES}
-    ${VK_TEST_IMAGE_SOURCES}
+    ${vkloadtests_ktx2_image_sources}
+    ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
     vkloadtests.cmake
 )
 
@@ -408,13 +364,10 @@ else()
     # This is for other platforms.
     # This copies the resources next to the executable for ease
     # of use during debugging and testing.
-#    add_custom_command( TARGET vkloadtests POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E make_directory
-#          $<TARGET_FILE_DIR:vkloadtests>/../resources
-#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#          ${KTX_RESOURCES} ${SHADER_SOURCES}
-#          $<TARGET_FILE_DIR:vkloadtests>/../resources
-#    )
+    # As these custom commands and targets are only referenced by vkloadtests
+    # we could use just custom commands without fear of races but for
+    # consistency we handle these resources in the same way as the shared
+    # resources.
 
     # TODO: SHADER_SOURCES appears misnamed. It iis actually the list of .spv files.
     list(TRANSFORM SHADER_SOURCES REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
@@ -430,30 +383,35 @@ else()
         copied_shaders
         DEPENDS ${COPIED_SHADERS}
     )
-    set(vkloadtests_test_image_copies ${vk_ktx2_test_image_copies} ${vk_ktx_test_image_copies})
+    cmake_print_variables( BUILDTIME_RESOURCES_DIR )
+    list(TRANSFORM vkloadtests_ktx2_image_sources REPLACE ^[a-zA-Z0-9:/<>].*/ktx2 ${BUILDTIME_RESOURCES_DIR}
+        OUTPUT_VARIABLE vkloadtests_ktx2_image_copies
+    )
+
     add_custom_command(
-        OUTPUT ${vkloadtests_test_image_copies}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${VK_TEST_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy test images to build destination"
+        OUTPUT ${vkloadtests_ktx2_image_copies}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${vkloadtests_ktx2_image_sources} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy vkloadtests ktx2 images to build destination"
         VERBATIM
     )
     add_custom_target(
-        copied_vkloadtests_test_images
-        DEPENDS ${vk_ktx2_test_image_copies} ${vk_ktx_test_image_copies}
+        copied_vkloadtests_ktx2_images
+        DEPENDS ${vkloadtests_ktx2_image_copies}
     )
     add_dependencies(
         copied_shaders
         buildtime_resources_dir
     )
     add_dependencies(
-        copied_vkloadtests_test_images
+        copied_vkloadtests_ktx2_images
         buildtime_resources_dir
     )
-    add_dependencies(
+    add_dependencies(   
         vkloadtests
-        copied_shaders
-        copied_vkloadtests_test_images
         copied_models
+        copied_shaders
+        copied_common_ktx_images
+        copied_vkloadtests_ktx2_images
     )
 
     # To keep the resources (test images and models) close to the

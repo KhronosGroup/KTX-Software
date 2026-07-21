@@ -248,7 +248,7 @@ set( LOAD_TEST_OBJ_MODELS
      "sphere.obj"
      "torusknot.obj"
 )
-list(TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+list( TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
     OUTPUT_VARIABLE LOAD_TEST_OBJ_MODEL_SOURCES
 )
 # Hack to prevent *.obj 3D files being mistaken as linkable obj files
@@ -266,6 +266,60 @@ set( LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
 )
 
+
+set( load_test_common_ktx2_image_sources
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
+    color_grid_uastc_zstd_5.ktx2
+    color_grid_zstd_5.ktx2
+    color_grid_blze.ktx2
+    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+    cubemap_yokohama_blze.ktx2
+    etc2_unorm_array_7.ktx2
+    Iron_Bars_001_normal_blze.ktx2
+    Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    kodim17_blze.ktx2
+    orient_down_metadata.ktx2
+    orient_up_metadata.ktx2
+    pattern_02_bc2.ktx2
+    skybox_zstd_22.ktx2
+)
+list( TRANSFORM load_test_common_ktx2_image_sources
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
+)
+
+set( load_test_common_ktx_image_sources
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
+    etc1.ktx                     # For {es1,gl3,es3}loadtests
+    etc2_rgb.ktx
+    etc2_rgba1.ktx               # For {es1,gl3,es3}loadtests
+    etc2_rgba8.ktx
+    etc2_srgb.ktx
+    etc2_srgba1.ktx              # For {gl3,es3}loadtests
+    etc2_srgba8.ktx
+    etc2_unorm_array_7.ktx
+    hi_mark_sq.ktx               # For {es1,gl3,es3}loadtests
+    metalplate_amg.ktx
+    not4_r8g8b8_srgb.ktx
+    orient_down_metadata.ktx
+    orient_up_metadata.ktx
+    pattern_02_bc2.ktx
+    r8g8b8_srgb.ktx
+    r8g8b8_srgb_mip.ktx         # For {es1,gl3,es3}loadtests
+    r8g8b8_unorm_amg.ktx
+    r8g8b8a8_srgb.ktx
+)
+list( TRANSFORM load_test_common_ktx_image_sources
+    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
+)
+set( LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES
+    ${load_test_common_ktx2_image_sources}
+    ${load_test_common_ktx_image_sources}
+)
+unset( load_test_common_ktx2_image_sources )
+unset( load_test_common_ktx_image_sources )
+
 # A custom loadtest_models target does not work as configure fails at
 # an install_target that uses this with an error "the target is not
 # an executable, library or module."
@@ -279,13 +333,13 @@ if(NOT APPLE)
     # are copied into the built bundles.
     #
     # We cannot use just custom commands because the resources directory
-    # being created and the models are shared by both gl3loadtests and
-    # vkloadtests so when building in parallel the instances of the rule may
-    # conflict giving rise to races. To avoid this use custom targets which
-    # are dependencies of the apps which imposes a strict runtime order on
-    # the builds, avoiding races.
+    # being created, the models and some of the KTX files are shared by
+    # both gl3loadtests and vkloadtests so when building in parallel the
+    # instances of the rule may conflict giving rise to races. To avoid
+    # this use custom targets that become dependencies of the apps which
+    # imposes a strict runtime order on the builds, avoiding races.
     #
-    # IMPORTANT NOTICE
+    # IMPORTANT NOTE
     # These targets and copies play no part in eventual installation of the
     # application and are only for convenience during development. Therefore 
     # the above mentioned error does not occur.
@@ -299,7 +353,6 @@ if(NOT APPLE)
     set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
     list(TRANSFORM LOAD_TEST_COMMON_RESOURCES_COPIED PREPEND ${BUILDTIME_RESOURCES_DIR}/)
 
-    cmake_print_variables(BUILDTIME_RESOURCES_DIR LOAD_TEST_COMMON_RESOURCES_COPIED)
     set_source_files_properties(buildtime_resources_dir PROPERTIES SYMBOLIC 1)
     add_custom_command(
         OUTPUT ${BUILDTIME_RESOURCES_DIR}
@@ -311,7 +364,6 @@ if(NOT APPLE)
         buildtime_resources_dir
         DEPENDS ${BUILDTIME_RESOURCES_DIR}
     )
-    cmake_print_variables(BUILDTIME_RESOURCES_DIR)    
     add_custom_command(
         OUTPUT ${LOAD_TEST_COMMON_RESOURCES_COPIED}
         COMMAND ${CMAKE_COMMAND} -E echo  ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
@@ -323,8 +375,24 @@ if(NOT APPLE)
         copied_models
         DEPENDS ${LOAD_TEST_COMMON_RESOURCES_COPIED}
     )
-    add_dependencies(copied_models buildtime_resources_dir)
+    add_dependencies( copied_models buildtime_resources_dir )
     unset(LOAD_TEST_COMMON_RESOURCES_COPIED)
+    list(TRANSFORM LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
+        OUTPUT_VARIABLE common_ktx_image_copies
+    )
+    cmake_print_variables( common_ktx_image_copies )
+    add_custom_command(
+        OUTPUT ${common_ktx_image_copies}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy common KTX and KTX2 images to build destination"
+        VERBATIM
+    )
+    add_custom_target(
+        copied_common_ktx_images
+        DEPENDS ${common_ktx_image_copies}  
+    )
+    add_dependencies( copied_common_ktx_images buildtime_resources_dir )
+    unset( common_ktx_image_copies )
 endif()
 
 if(LINUX)
