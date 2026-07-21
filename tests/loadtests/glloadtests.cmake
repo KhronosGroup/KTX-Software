@@ -254,20 +254,14 @@ function( create_gl_target target version sources common_resources ktx_image_sou
             set_target_properties(${target} PROPERTIES SUFFIX ".html")
         endif()
 
-        # This copies the resources next to the executable for ease
-        # of use during debugging and testing.
-#        add_custom_command( TARGET ${target} POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E make_directory
-#              $<TARGET_FILE_DIR:${target}>/../resources
-#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#              ${resources}
-#              $<TARGET_FILE_DIR:${target}>/../resources
-#        )
+        # These custom targets, custom commands and dependencies copy
+        # the resources next to the executable for ease of use during
+        # debugging and testing. They have no effect on the install target.
+
         # Copy the KTX images specific to the current target.
         list(TRANSFORM ktx_image_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
             OUTPUT_VARIABLE ktx_image_copies
         )
-        cmake_print_variables( ktx_image_copies )
         add_custom_command(
             OUTPUT ${ktx_image_copies}
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
@@ -357,6 +351,7 @@ set( es1_sources
 
 set( gl3_ktx2_image_sources
     FlightHelmet_baseColor_blze.ktx2
+    r8g8b8_srgb_mip.ktx2
     r8g8b8a8_srgb.ktx2
     r8g8b8a8_srgb_3d_7.ktx2
 )
@@ -376,7 +371,6 @@ list( TRANSFORM gl3_ktx_image_sources
 )
 
 set( gl3_ktx12_image_sources ${gl3_ktx2_image_sources} ${gl3_ktx_image_sources} )
-
 
 set( gl3_sources
     common/TranscodeTargetStrToFmt.cpp

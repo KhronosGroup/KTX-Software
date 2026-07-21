@@ -362,8 +362,11 @@ if(APPLE)
     )
 else()
     # This is for other platforms.
-    # This copies the resources next to the executable for ease
-    # of use during debugging and testing.
+
+    # These custom targets, custom commands and dependencies copy
+    # the resources next to the executable for ease of use during
+    # debugging and testing. They have no effect on the install target.
+
     # As these custom commands and targets are only referenced by vkloadtests
     # we could use just custom commands without fear of races but for
     # consistency we handle these resources in the same way as the shared
@@ -371,32 +374,32 @@ else()
 
     # TODO: SHADER_SOURCES appears misnamed. It iis actually the list of .spv files.
     list(TRANSFORM SHADER_SOURCES REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
-        OUTPUT_VARIABLE COPIED_SHADERS
+        OUTPUT_VARIABLE copied_shaders
     )
     add_custom_command(
-        OUTPUT ${COPIED_SHADERS}
+        OUTPUT ${copied_shaders}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy shaders to build destination"
         VERBATIM
     )
     add_custom_target(
         copied_shaders
-        DEPENDS ${COPIED_SHADERS}
+        DEPENDS ${copied_shaders}
     )
     cmake_print_variables( BUILDTIME_RESOURCES_DIR )
     list(TRANSFORM vkloadtests_ktx2_image_sources REPLACE ^[a-zA-Z0-9:/<>].*/ktx2 ${BUILDTIME_RESOURCES_DIR}
-        OUTPUT_VARIABLE vkloadtests_ktx2_image_copies
+        OUTPUT_VARIABLE copied_vkloadtests_ktx2_images
     )
 
     add_custom_command(
-        OUTPUT ${vkloadtests_ktx2_image_copies}
+        OUTPUT ${copied_vkloadtests_ktx2_images}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${vkloadtests_ktx2_image_sources} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy vkloadtests ktx2 images to build destination"
         VERBATIM
     )
     add_custom_target(
         copied_vkloadtests_ktx2_images
-        DEPENDS ${vkloadtests_ktx2_image_copies}
+        DEPENDS ${copied_vkloadtests_ktx2_images}
     )
     add_dependencies(
         copied_shaders
@@ -413,6 +416,9 @@ else()
         copied_common_ktx_images
         copied_vkloadtests_ktx2_images
     )
+
+    unset( copied_shaders )
+    unset( copied_vkloadtests_ktx2_images )
 
     # To keep the resources (test images and models) close to the
     # executable and to be compliant with the Filesystem Hierarchy
