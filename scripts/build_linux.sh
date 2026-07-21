@@ -155,7 +155,7 @@ do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   # Build and test
   echo "Build KTX-Software (Linux $ARCH $config)"
-  cmake --build . --config $config
+  cmake --build . --config $config -j 1  # -j $njobs
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
     ctest --output-on-failure -C $config -j $njobs #--verbose

@@ -47,10 +47,8 @@ done
 
 echo ${config_display%??}
 
-# To be supplied as `-j $njobs`. This is set to 1 because multi-core builds
-# might, occasionally, fail due to some filesystem race condition(s) caused by
-# `add_custom_command` calls in CMake.
-njobs=1
+# To be supplied as `-j $njobs`. On GH CIs, this is most likely to be 4.
+njobs=$(nproc)
 
 # Print cmake command to be able to verify configuration and replicate locally
 echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"

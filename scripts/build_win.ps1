@@ -169,6 +169,10 @@ foreach ($item in $cmake_args) {
 $config_display = $config_display -replace ', $', ''
 echo $config_display
 
+# To be supplied as `-j $njobs`. This is set to 1, because multi-core builds
+# might, occasionally, fail due to some filesystem race condition(s).
+$njobs = 1
+
 # Print cmake command to be able to verify configuration and replicate locally
 echo "running cmake command (in source directory): cmake . $cmake_args"
 cmake . $cmake_args
@@ -196,7 +200,7 @@ foreach ($config in $configArray) {
   try {
     #git status
     echo "Build KTX-Software (Windows $ARCH $config)"
-    cmake --build . --config $config
+    cmake --build . --config $config -j $njobs
     # Return an error code if cmake fails
     if(!$?){
       popd
