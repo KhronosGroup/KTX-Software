@@ -1,4 +1,4 @@
-# Copyright 2020 Andreas Atteneder
+# Copyright 2020-2026 Andreas Atteneder, Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
 set(OPENGL_ES_EMULATOR "" CACHE PATH "Path to OpenGL ES emulation libraries")
@@ -413,7 +413,7 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE_PATH}" "${es1_ktx_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE}" "${es1_ktx_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)

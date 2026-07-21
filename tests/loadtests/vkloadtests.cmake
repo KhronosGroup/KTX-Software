@@ -1,4 +1,4 @@
-# Copyright 2020 Andreas Atteneder
+# Copyright 2020-2026 Andreas Atteneder, Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
 # Find Vulkan package

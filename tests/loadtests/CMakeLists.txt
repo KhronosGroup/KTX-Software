@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Khronos Group Inc.
+# Copyright 2017-2026 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 #if(WIN32)
@@ -175,8 +175,8 @@ if(APPLE)
     # On iOS an icon is a directory of images not a single file.
     # BASENAME is the name of the directory in the common .xcassets directory.
     # Assets are copied to the bundle in the build target setup.
-    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
-    set( KTX_DOC_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
+    set( KTX_DOC_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
     cmake_print_variables(assimp_LIBRARIES)
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
@@ -188,7 +188,7 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
         #${SDL3_LIBRARIES}
@@ -196,7 +196,7 @@ elseif(LINUX)
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
-    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
     )
@@ -237,8 +237,8 @@ set( LOAD_TEST_COMMON_MODEL_SOURCES
 )
 
 set( LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES
-    ${KTX_APP_ICON_SOURCE_PATH}
-    ${KTX_DOC_ICON_SOURCE_PATH}
+    ${KTX_APP_ICON_SOURCE}
+    ${KTX_DOC_ICON_SOURCE}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
 )
 
