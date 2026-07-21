@@ -10,12 +10,12 @@ if(WIN32)
     find_package(GLEW REQUIRED)
 endif()
 
-function( create_gl_target target version sources common_resources test_images
+function( create_gl_target target version sources common_resources test_image_sources
           KTX_GL_CONTEXT_PROFILE
           KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION
           EMULATE_GLES)
 
-    set( resources ${common_resources};${test_images} )
+    set( resources ${common_resources};${test_image_sources} )
 
     add_executable( ${target}
         ${EXE_FLAG}
@@ -110,7 +110,7 @@ function( create_gl_target target version sources common_resources test_images
         # Beware of de-duplication in list expansion for commands and options.
         # SHELL: prevents it but if they are separate items in the list they
         # be de-duplicated.
-        list( TRANSFORM test_images REPLACE
+        list( TRANSFORM test_image_sources REPLACE
             "(${PROJECT_SOURCE_DIR}/tests/resources/(ktx|ktx2)/([a-zA-Z0-9_].*$))"
             "SHELL:--preload-file \\1@\\3"
             OUTPUT_VARIABLE preloads
@@ -153,7 +153,6 @@ function( create_gl_target target version sources common_resources test_images
                 ${GLEW_LIBRARIES}
             )
         endif()
-        ensure_runtime_dependencies_windows(${target} "${test_images}")
     elseif(LINUX)
         # The output file is configured at CMake config time.
         configure_file(glloadtests/resources/linux/glloadtests.desktop.in
@@ -255,12 +254,34 @@ function( create_gl_target target version sources common_resources test_images
 
         # This copies the resources next to the executable for ease
         # of use during debugging and testing.
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-              $<TARGET_FILE_DIR:${target}>/../resources
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              ${resources}
-              $<TARGET_FILE_DIR:${target}>/../resources
+#        add_custom_command( TARGET ${target} POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E make_directory
+#              $<TARGET_FILE_DIR:${target}>/../resources
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#              ${resources}
+#              $<TARGET_FILE_DIR:${target}>/../resources
+#        )
+        list(TRANSFORM test_image_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
+            OUTPUT_VARIABLE test_image_copies
+        )
+        cmake_print_variables( test_image_copies )
+#        add_custom_command(
+#            OUTPUT ${test_image_copies}
+#           COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_image_sources} ${BUILDTIME_RESOURCES_DIR}
+#            COMMENT "Copy test images to build destination"
+#            VERBATIM
+#        )
+#        add_custom_target(
+#            copied_${target}_test_images
+#            DEPENDS ${test_image_copies}
+#        )
+#        add_dependencies(
+#            copied_${target}_test_images
+#            buildtime_resources_dir
+#        )
+        add_dependencies( ${target}
+            copied_models
+#            copied_${target}_test_images
         )
 
         # See important comment and TODO:s starting at line 365
@@ -314,7 +335,7 @@ function( create_gl_target target version sources common_resources test_images
 endfunction( create_gl_target target )
 
 
-set( ES1_TEST_IMAGES
+set( es1_test_image_sources
     no_npot.ktx
     hi_mark.ktx
     l8_unorm_metadata.ktx
@@ -330,11 +351,11 @@ set( ES1_TEST_IMAGES
     r8g8b8_srgb_mip.ktx
     hi_mark_sq.ktx
 )
-list( TRANSFORM ES1_TEST_IMAGES
+list( TRANSFORM es1_test_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
 )
 
-set( ES1_SOURCES
+set( es1_sources
     glloadtests/gles1/ES1LoadTests.cpp
     glloadtests/gles1/DrawTexture.cpp
     glloadtests/gles1/DrawTexture.h
@@ -342,7 +363,7 @@ set( ES1_SOURCES
     glloadtests/gles1/TexturedCube.h
 )
 
-set( gl3_ktx2_test_images
+set( gl3_ktx2_test_image_sources
     astc_8x8_unorm_array_7.ktx2
     bc3_unorm_array_7.ktx2
     color_grid_uastc_zstd_5.ktx2
@@ -362,7 +383,7 @@ set( gl3_ktx2_test_images
     r8g8b8a8_srgb_3d_7.ktx2
     r8g8b8_srgb_mip.ktx2
 )
-set( gl3_ktx_test_images
+set( gl3_ktx_test_image_sources
     astc_8x8_unorm_array_7.ktx
     bc3_unorm_array_7.ktx
     conftestimage_R11_EAC.ktx
@@ -389,16 +410,15 @@ set( gl3_ktx_test_images
     r8g8b8_unorm_amg.ktx
     r8g8b8_srgb_mip.ktx
 )
-list( TRANSFORM gl3_ktx_test_images
+list( TRANSFORM gl3_ktx_test_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
 )
-list( TRANSFORM gl3_ktx2_test_images
+list( TRANSFORM gl3_ktx2_test_image_sources
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
 )
-set( GL3_TEST_IMAGES ${gl3_ktx2_test_images} ${gl3_ktx_test_images} )
-set( GL3_RESOURCE_FILES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${GL3_TEST_IMAGES} )
-unset( gl3_ktx2_test_images )
-unset( gl3_ktx_test_images )
+set( gl3_test_image_sources ${gl3_ktx2_test_image_sources} ${gl3_ktx_test_image_sources} )
+#set( gl3_resource_files ${LOAD_TEST_COMMON_RESOURCE_FILES} ${gl3_test_image_sources} )
+
 
 set( GL3_SOURCES
     common/TranscodeTargetStrToFmt.cpp
@@ -442,16 +462,22 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${ES1_SOURCES}" "${KTX_APP_ICON_PATH}" "${ES1_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE_PATH}" "${es1_test_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "ES3" "${GL3_SOURCES}" "${LOAD_TEST_COMMON_RESOURCE_FILES}" "${GL3_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
+    create_gl_target( es3loadtests "ES3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_test_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "GL3" "${GL3_SOURCES}" "${LOAD_TEST_COMMON_RESOURCE_FILES}" "${GL3_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
+    create_gl_target( gl3loadtests "GL3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_test_image_sources}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()
 
+unset( es1_sources )
+unset( gl3_sources )
+unset( es1_test_image_sources )
+unset( gl3_ktx2_test_image_sources )
+unset( gl3_ktx_test_image_sources )
+unset( gl3_test_image_sources )

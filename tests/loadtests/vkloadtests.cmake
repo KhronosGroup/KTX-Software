@@ -117,12 +117,22 @@ set( vk_ktx_test_images
 )
 list( TRANSFORM vk_ktx2_test_images
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
+    OUTPUT_VARIABLE vk_ktx2_test_image_sources
 )
 list( TRANSFORM vk_ktx_test_images
     PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
+    OUTPUT_VARIABLE vk_ktx_test_image_sources
 )
-set( VK_TEST_IMAGES ${vk_ktx2_test_images} ${vk_ktx_test_images} )
-set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
+list( TRANSFORM vk_ktx2_test_images
+    PREPEND "${BUILDTIME_RESOURCES_DIR}/"
+    OUTPUT_VARIABLE vk_ktx2_test_image_copies
+)
+list( TRANSFORM vk_ktx_test_images
+    PREPEND "${BUILDTIME_RESOURCES_DIR}/"
+    OUTPUT_VARIABLE vk_ktx_test_image_copies
+)
+set( VK_TEST_IMAGE_SOURCES ${vk_ktx2_test_image_sources} ${vk_ktx_test_image_sources} )
+set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${VK_TEST_IMAGE_SOURCES} )
 unset( vk_ktx2_test_images )
 unset( vk_ktx_test_images )
 
@@ -174,10 +184,10 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTests.h
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
-    ${LOAD_TEST_COMMON_RESOURCE_FILES}
+    ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
     ${Vulkan_SHARE_VULKAN}
     ${SHADER_SOURCES}
-    ${VK_TEST_IMAGES}
+    ${VK_TEST_IMAGE_SOURCES}
     vkloadtests.cmake
 )
 
@@ -273,8 +283,6 @@ if(APPLE)
     else()
         set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist.in" )
     endif()
-elseif(WIN32)
-    ensure_runtime_dependencies_windows(vkloadtests ${VK_TEST_IMAGES})
 elseif(LINUX)
         target_sources(
             vkloadtests
@@ -392,16 +400,60 @@ if(APPLE)
         #     #fixup_bundle($<TARGET_BUNDLE_DIR:vkloadtests> \"\" \"\")"
         # )
     endif()
+    add_dependencies(
+        vkloadtests
+        spirv_shaders
+    )
 else()
     # This is for other platforms.
     # This copies the resources next to the executable for ease
     # of use during debugging and testing.
-    add_custom_command( TARGET vkloadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-          $<TARGET_FILE_DIR:vkloadtests>/../resources
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          ${KTX_RESOURCES} ${SHADER_SOURCES}
-          $<TARGET_FILE_DIR:vkloadtests>/../resources
+#    add_custom_command( TARGET vkloadtests POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E make_directory
+#          $<TARGET_FILE_DIR:vkloadtests>/../resources
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#          ${KTX_RESOURCES} ${SHADER_SOURCES}
+#          $<TARGET_FILE_DIR:vkloadtests>/../resources
+#    )
+
+    # TODO: SHADER_SOURCES appears misnamed. It iis actually the list of .spv files.
+    list(TRANSFORM SHADER_SOURCES REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
+        OUTPUT_VARIABLE COPIED_SHADERS
+    )
+    add_custom_command(
+        OUTPUT ${COPIED_SHADERS}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy shaders to build destination"
+        VERBATIM
+    )
+    add_custom_target(
+        copied_shaders
+        DEPENDS ${COPIED_SHADERS}
+    )
+    set(vkloadtests_test_image_copies ${vk_ktx2_test_image_copies} ${vk_ktx_test_image_copies})
+    add_custom_command(
+        OUTPUT ${vkloadtests_test_image_copies}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${VK_TEST_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy test images to build destination"
+        VERBATIM
+    )
+    add_custom_target(
+        copied_vkloadtests_test_images
+        DEPENDS ${vk_ktx2_test_image_copies} ${vk_ktx_test_image_copies}
+    )
+    add_dependencies(
+        copied_shaders
+        buildtime_resources_dir
+    )
+    add_dependencies(
+        copied_vkloadtests_test_images
+        buildtime_resources_dir
+    )
+    add_dependencies(
+        vkloadtests
+        copied_shaders
+        copied_vkloadtests_test_images
+        copied_models
     )
 
     # To keep the resources (test images and models) close to the
@@ -458,8 +510,4 @@ else()
 #    endif()
 endif()
 
-add_dependencies(
-    vkloadtests
-    spirv_shaders
-)
 

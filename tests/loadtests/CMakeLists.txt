@@ -68,24 +68,24 @@ function( ensure_runtime_dependencies_windows target test_images )
     # Custom copy commands to ensure all dependencies (test images,
     # shaders, models) are in correct location relative to executable.
 
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Make resources directory"
-    )
-    if(${target} MATCHES "vkloadtests")
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
-            COMMENT "Copy shaders to build destination"
-        )
-    endif()
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_images} "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Copy testimages to build destination"
-    )
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Copy models to build destination"
-    )
+#    add_custom_command( TARGET ${target} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${target}>/resources"
+#        COMMENT "Make resources directory"
+#    )
+#    if(${target} MATCHES "vkloadtests")
+#        add_custom_command( TARGET ${target} POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
+#            COMMENT "Copy shaders to build destination"
+#        )
+#    endif()
+#    add_custom_command( TARGET ${target} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_images} "$<TARGET_FILE_DIR:${target}>/resources"
+#        COMMENT "Copy testimages to build destination"
+#    )
+#    add_custom_command( TARGET ${target} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/resources"
+#        COMMENT "Copy models to build destination"
+#    )
 endfunction()
 
 add_library( appfwSDL STATIC
@@ -199,8 +199,8 @@ if(APPLE)
     # On iOS an icon is a directory of images not a single file.
     # BASENAME is the name of the directory in the common .xcassets directory.
     # Assets are copied to the bundle in the build target setup.
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
-    set( KTX_DOC_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
+    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
+    set( KTX_DOC_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
     cmake_print_variables(assimp_LIBRARIES)
     if(IOS)
         set( LOAD_TEST_COMMON_LIBS
@@ -212,7 +212,7 @@ if(APPLE)
         )
     endif()
 elseif(LINUX)
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
+    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
         #${SDL3_LIBRARIES}
@@ -220,7 +220,7 @@ elseif(LINUX)
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
+    set( KTX_APP_ICON_SOURCE_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
     )
@@ -229,13 +229,16 @@ endif()
 set( LOAD_TEST_COLLADA_MODELS
      "teapot.dae"
 )
-list(TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+
+list(TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+    OUTPUT_VARIABLE LOAD_TEST_COLLADA_MODEL_SOURCES
+)
 # An Xcode (or possibly CMake) update in late 2024 or early 2025 started
 # compressing .dae files when copying them to bundle resources. This piece
 # of undocumented magic makes it just copy. The Xcode GUI presents an option
 # menu on the file with "Copy" and "Compress" in the project settings browser.
 # This attribute sets it to "Copy."
-set_source_files_properties( ${LOAD_TEST_COLLADA_MODELS}
+set_source_files_properties( ${LOAD_TEST_COLLADA_MODEL_SOURCES}
     PROPERTIES
         XCODE_FILE_ATTRIBUTES "--decompress"
 )
@@ -245,14 +248,22 @@ set( LOAD_TEST_OBJ_MODELS
      "sphere.obj"
      "torusknot.obj"
 )
-list(TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+list(TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+    OUTPUT_VARIABLE LOAD_TEST_OBJ_MODEL_SOURCES
+)
 # Hack to prevent *.obj 3D files being mistaken as linkable obj files
-set_source_files_properties( ${LOAD_TEST_OBJ_MODELS}
+set_source_files_properties( ${LOAD_TEST_OBJ_MODEL_SOURCES}
     PROPERTIES HEADER_FILE_ONLY TRUE
 )
-set( LOAD_TEST_COMMON_MODELS
-     ${LOAD_TEST_COLLADA_MODELS}
-     ${LOAD_TEST_OBJ_MODELS}
+set( LOAD_TEST_COMMON_MODEL_SOURCES
+     ${LOAD_TEST_COLLADA_MODEL_SOURCES}
+     ${LOAD_TEST_OBJ_MODEL_SOURCES}
+)
+
+set( LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES
+    ${KTX_APP_ICON_SOURCE_PATH}
+    ${KTX_DOC_ICON_SOURCE_PATH}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES}
 )
 
 # A custom loadtest_models target does not work as configure fails at
@@ -262,45 +273,58 @@ set( LOAD_TEST_COMMON_MODELS
 #    SOURCES ${LOAD_TEST_COMMON_MODELS}
 #)
 
-set( LOAD_TEST_COMMON_RESOURCE_FILES
-    ${KTX_APP_ICON_PATH}
-    ${KTX_DOC_ICON_PATH}
-    ${LOAD_TEST_COMMON_MODELS}
-)
+if(NOT APPLE)
+    # Arrange to copy resources next to the executable for ease of use
+    # during debugging and testing. Not needed on Apple because resources
+    # are copied into the built bundles.
+    #
+    # We cannot use just custom commands because the resources directory
+    # being created and the models are shared by both gl3loadtests and
+    # vkloadtests so when building in parallel the instances of the rule may
+    # conflict giving rise to races. To avoid this use custom targets which
+    # are dependencies of the apps which imposes a strict runtime order on
+    # the builds, avoiding races.
+    #
+    # IMPORTANT NOTICE
+    # These targets and copies play no part in eventual installation of the
+    # application and are only for convenience during development. Therefore 
+    # the above mentioned error does not occur.
 
-if(WIN32)
-    # On Windows resources for both gl3loadtests and vkloadtests go in the same resources
-    # folder therefore to support parallel builds and avoid races copying must be done via
-    # custom targets.
-#if(WIN32 AND KTX_FEATURE_LOADTEST_APPS)
-#    if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
-#        set(target_dir $<TARGET_FILE_DIR:gl3loadtests>/resources)
-#    elseif(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
-#        set(target_dir $<TARGET_FILE_DIR:vkloadtests>/resources)
-    set(resources_dir resources)
+    set(LOAD_TEST_COMMON_RESOURCES_COPIED
+        ${KTX_APP_ICON}  # TODO: Is this needed on Windows?
+    #    ${KTX_DOC_ICON} # Only needed on Apple.
+        ${LOAD_TEST_COLLADA_MODELS}
+        ${LOAD_TEST_OBJ_MODELS}
+    )
+    set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
+    list(TRANSFORM LOAD_TEST_COMMON_RESOURCES_COPIED PREPEND ${BUILDTIME_RESOURCES_DIR}/)
+
+    cmake_print_variables(BUILDTIME_RESOURCES_DIR LOAD_TEST_COMMON_RESOURCES_COPIED)
+    set_source_files_properties(buildtime_resources_dir PROPERTIES SYMBOLIC 1)
     add_custom_command(
-        OUTPUT ${resources_dir}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${resources_dir}"
+        OUTPUT ${BUILDTIME_RESOURCES_DIR}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
         COMMENT "Make resources directory"
+        VERBATIM
     )
     add_custom_target(
-        resources_dir
-        DEPENDS ${resources_dir}
+        buildtime_resources_dir
+        DEPENDS ${BUILDTIME_RESOURCES_DIR}
     )
-    unset(resources_dir)
-
-    LOAD_TEST_COMMON_MODELS
-    list(TRANSFORM LOAD_TEST_COMMON_MODELS PREPEND ${resources_dir} OUTPUT_VARIABLE copied_models)
+    cmake_print_variables(BUILDTIME_RESOURCES_DIR)    
     add_custom_command(
-        OUTPUT ${copied_models}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "${resources_dir}"
+        OUTPUT ${LOAD_TEST_COMMON_RESOURCES_COPIED}
+        COMMAND ${CMAKE_COMMAND} -E echo  ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy models to build destination"
+        VERBATIM
     )
     add_custom_target(
         copied_models
-        DEPENDS ${copied_models}
+        DEPENDS ${LOAD_TEST_COMMON_RESOURCES_COPIED}
     )
-    unset(copied_models)
+    add_dependencies(copied_models buildtime_resources_dir)
+    unset(LOAD_TEST_COMMON_RESOURCES_COPIED)
 endif()
 
 if(LINUX)
