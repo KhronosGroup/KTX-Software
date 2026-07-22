@@ -8,13 +8,13 @@ function(compile_shader shader_target shader_name shader_src_path shader_path)
     set(vert2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${vert_name}.spv")
 
     add_custom_command(OUTPUT
-    ${vert2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-    COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
-    DEPENDS ${vert2spirv_in}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT "Compiling ${vert_name}."
-    VERBATIM
+        ${vert2spirv_out}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
+        COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
+        DEPENDS ${vert2spirv_in}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        COMMENT "Compiling ${vert_name}."
+        VERBATIM
     )
 
     set(frag_name "${shader_name}.frag")
@@ -22,13 +22,13 @@ function(compile_shader shader_target shader_name shader_src_path shader_path)
     set(frag2spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${frag_name}.spv")
 
     add_custom_command(OUTPUT
-    ${frag2spirv_out}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-    COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
-    DEPENDS ${frag2spirv_in}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    COMMENT "Compiling ${frag_name}."
-    VERBATIM
+        ${frag2spirv_out}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
+        COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
+        DEPENDS ${frag2spirv_in}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+        COMMENT "Compiling ${frag_name}."
+        VERBATIM
     )
 
     add_custom_target(
@@ -43,7 +43,8 @@ function(compile_shader shader_target shader_name shader_src_path shader_path)
 
     set_target_properties(${shader_target} PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-    set(SHADER_SOURCES ${SHADER_SOURCES} ${frag2spirv_out} ${vert2spirv_out} PARENT_SCOPE)
+    set(SHADER_SOURCES ${SHADER_SOURCES} ${frag2spirv_in} ${vert2spirv_in} PARENT_SCOPE)
+    set(SHADER_SPVS ${SHADER_SPVS} ${frag2spirv_out} ${vert2spirv_out} PARENT_SCOPE)
 
 endfunction(compile_shader)
 
@@ -75,6 +76,7 @@ function(compile_shader_list shader_target shader_src_path shader_path)
 
     set_target_properties(${shader_target} PROPERTIES EXCLUDE_FROM_ALL "FALSE")
 
-    set(SHADER_SOURCES ${SHADER_SOURCES} ${outputs} PARENT_SCOPE)
+    set(SHADER_SOURCES ${SHADER_SOURCES} ${inputs} PARENT_SCOPE)
+    set(SHADER_SPVS ${SHADER_SPVS} ${outputs} PARENT_SCOPE)
 
 endfunction()

@@ -48,6 +48,7 @@ endif()
 include(compile_shader.cmake)
 
 set(SHADER_SOURCES "")
+set(SHADER_SPVS "")
 
 compile_shader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
 compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
@@ -119,6 +120,7 @@ add_executable( vkloadtests
     common/disable_glm_warnings.h
     common/ltexceptions.h
     common/reenable_warnings.h
+    compile_shader.cmake
     vkloadtests/InstancedSampleBase.cpp
     vkloadtests/InstancedSampleBase.h
     vkloadtests/Texture.cpp
@@ -139,12 +141,12 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTests.h
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
+    vkloadtests.cmake
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
-    ${Vulkan_SHARE_VULKAN}
     ${SHADER_SOURCES}
     ${vkloadtests_ktx2_image_sources}
     ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
-    vkloadtests.cmake
+    ${Vulkan_SHARE_VULKAN}
 )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
@@ -257,7 +259,7 @@ PRIVATE
     $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
-set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SPVS}" )
 
 if(APPLE)
     set( product_name vkloadtests )
@@ -372,13 +374,12 @@ else()
     # consistency we handle these resources in the same way as the shared
     # resources.
 
-    # TODO: SHADER_SOURCES appears misnamed. It iis actually the list of .spv files.
-    list(TRANSFORM SHADER_SOURCES REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
+    list(TRANSFORM SHADER_SPVS REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
         OUTPUT_VARIABLE copied_shaders
     )
     add_custom_command(
         OUTPUT ${copied_shaders}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SPVS} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy shaders to build destination"
         VERBATIM
     )
