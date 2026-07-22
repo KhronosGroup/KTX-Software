@@ -55,18 +55,18 @@ function(compile_shader_list shader_target shader_src_path shader_path)
         set(spirv_out "${CMAKE_CURRENT_BINARY_DIR}/${shader_path}/${shader}.spv")
 
         add_custom_command(OUTPUT
-        ${spirv_out}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-        COMMAND glslc -o "${spirv_out}" "${spirv_in}"
-        DEPENDS ${spirv_in}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-        COMMENT "Compiling ${shader}."
-        VERBATIM
+            ${spirv_out}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
+            COMMAND glslc -o "${spirv_out}" "${spirv_in}"
+            DEPENDS ${spirv_in}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+            COMMENT "Compiling ${shader}."
+            VERBATIM
         )
 
         list(APPEND inputs ${spirv_in})
         list(APPEND outputs ${spirv_out})
-     endforeach()
+    endforeach()
 
     add_custom_target(
         ${shader_target}
