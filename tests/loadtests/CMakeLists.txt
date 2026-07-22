@@ -325,7 +325,10 @@ if(NOT APPLE)
         ${LOAD_TEST_COLLADA_MODELS}
         ${LOAD_TEST_OBJ_MODELS}
     )
-    set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
+    # The resources directory is created in the build tree next to the
+    # executable's directory. This sibling relationship will be maintained
+    # when the app and its resources are installed on a system.
+    set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../resources)
     list(TRANSFORM LOAD_TEST_COMMON_RESOURCES_COPIED PREPEND ${BUILDTIME_RESOURCES_DIR}/)
 
     set_source_files_properties(buildtime_resources_dir PROPERTIES SYMBOLIC 1)
@@ -341,7 +344,6 @@ if(NOT APPLE)
     )
     add_custom_command(
         OUTPUT ${LOAD_TEST_COMMON_RESOURCES_COPIED}
-        COMMAND ${CMAKE_COMMAND} -E echo  ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy models to build destination"
         VERBATIM
