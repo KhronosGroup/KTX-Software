@@ -25,13 +25,6 @@ Supported platforms (please see their specific requirements first)
 
 The minimal way to a build is to clone this repository and follow the instructions for your desired build below.
 
-> **Note:**
->
-> Multi-core builds (i.e., running CMake build command with `-j[N]` N > 1) is
-> not supported. Multi-core builds may, occasionally, fail due to
-> filesystem race condition caused by calls to `add_custom_command` in CMake.
-> Running CTest in parallel is, on the other hand, well supported.
-
 _libktx_ only
 -------------
 To build only _libktx_ and nothing else, run the following in a terminal
