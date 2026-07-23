@@ -371,6 +371,7 @@ list( TRANSFORM gl3_ktx_image_sources
 )
 
 set( gl3_ktx12_image_sources ${gl3_ktx2_image_sources} ${gl3_ktx_image_sources} )
+source_group("Resources/KTX Images" FILES ${gl3_ktx12_image_sources})
 
 set( gl3_sources
     common/TranscodeTargetStrToFmt.cpp

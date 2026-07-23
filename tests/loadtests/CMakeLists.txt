@@ -234,13 +234,17 @@ set( LOAD_TEST_COMMON_MODEL_SOURCES
      ${LOAD_TEST_COLLADA_MODEL_SOURCES}
      ${LOAD_TEST_OBJ_MODEL_SOURCES}
 )
+source_group("Resources/Models" FILES ${LOAD_TEST_COMMON_MODEL_SOURCES})
 
 set( LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES
     ${KTX_APP_ICON_SOURCE}
     ${KTX_DOC_ICON_SOURCE}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
 )
-
+source_group("Resources" FILES
+    ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE}
+)
+source_group("Resources/Models" ${LOAD_TEST_COMMON_MODEL_SOURCES})
 
 set( load_test_common_ktx2_image_sources
     astc_8x8_unorm_array_7.ktx2
@@ -292,6 +296,8 @@ set( LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES
     ${load_test_common_ktx2_image_sources}
     ${load_test_common_ktx_image_sources}
 )
+source_group("Resources/KTX Images" FILES ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES})
+
 unset( load_test_common_ktx2_image_sources )
 unset( load_test_common_ktx_image_sources )
 

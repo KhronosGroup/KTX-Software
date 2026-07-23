@@ -143,11 +143,15 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.h
     vkloadtests.cmake
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES}
     ${SHADER_SOURCES}
     ${vkloadtests_ktx2_image_sources}
     ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
     ${Vulkan_SHARE_VULKAN}
 )
+
+source_group("Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group("Resources/KTX Images" FILES ${vkloadtests_ktx2_image_sources})
 
 # Keep this in case something changes in the Vulkan implementation and we need to
 # explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
