@@ -10,8 +10,7 @@
 #include "sbufstream.h"
 #include "validate.h"
 
-// #define TINYDDS_IMPLEMENTATION
-// #define BASISU_NOTE_UNUSED(x) (void)(x)
+// Implementation is already included in Basis Universal
 #include "basis_universal/encoder/3rdparty/tinydds.h"
 
 #include <exception>
@@ -193,6 +192,7 @@ private:
     void convertDDS(InputStream&, OutputStreamEx&);
     void executeConvert();
 
+    // Callbacks for TinyDDS
     static void tinydds_error(void* user, char const* msg);
     static void* tinydds_alloc(void* user, size_t size);
     static void tinydds_free(void* user, void* memory);
@@ -365,13 +365,21 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
     outputStream.writeKTX2(texture, *this);
 }
 
+/// Get the corresponding VkFormat from the provided TinyDDS format. Not all
+/// formats have an equivalent in Vulkan. All BC1-BC7 formats are supported.
+/// The usual LDR and HDR uncompressed formats are also supported. For any
+/// non-supported format, this returns VK_FORMAT_UNDEFINED.
 inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
     // clang-format off
   switch (dds_format) {
         /* LDR uncompressed formats */
     case TDDS_UNDEFINED: return VK_FORMAT_UNDEFINED;
+    case TDDS_B5G6R5_UNORM: return VK_FORMAT_B5G6R5_UNORM_PACK16;
+    case TDDS_B5G5R5A1_UNORM: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
     case TDDS_R8_UNORM: return VK_FORMAT_R8_UNORM;
     case TDDS_R8_SNORM: return VK_FORMAT_R8_SNORM;
+    case TDDS_A8_UNORM: return VK_FORMAT_A8_UNORM_KHR;
+//  case TDDS_R1_UNORM: return VK_FORMAT_UNDEFINED;
     case TDDS_R8_UINT: return VK_FORMAT_R8_UINT;
     case TDDS_R8_SINT: return VK_FORMAT_R8_SINT;
     case TDDS_R8G8_UNORM: return VK_FORMAT_R8G8_UNORM;
@@ -385,29 +393,26 @@ inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
     case TDDS_R8G8B8A8_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
     case TDDS_B8G8R8A8_UNORM: return VK_FORMAT_B8G8R8A8_UNORM;
     case TDDS_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_SRGB;
-	// TDDS_R9G9B9E5_UFLOAT = TIF_DXGI_FORMAT_R9G9B9E5_SHAREDEXP,
-	// TDDS_R10G10B10A2_UNORM = TIF_DXGI_FORMAT_R10G10B10A2_UNORM,
-	// TDDS_R10G10B10A2_UINT = TIF_DXGI_FORMAT_R10G10B10A2_UINT,
-	// TDDS_R11G11B10_UFLOAT = TIF_DXGI_FORMAT_R11G11B10_FLOAT,
-	// TDDS_R16_UNORM = TIF_DXGI_FORMAT_R16_UNORM,
-	// TDDS_R16_SNORM = TIF_DXGI_FORMAT_R16_SNORM,
-	// TDDS_R16_UINT = TIF_DXGI_FORMAT_R16_UINT,
-	// TDDS_R16_SINT = TIF_DXGI_FORMAT_R16_SINT,
-	// TDDS_R16_SFLOAT = TIF_DXGI_FORMAT_R16_FLOAT,
-
-	// TDDS_R16G16_UNORM = TIF_DXGI_FORMAT_R16G16_UNORM,
-	// TDDS_R16G16_SNORM = TIF_DXGI_FORMAT_R16G16_SNORM,
-	// TDDS_R16G16_UINT = TIF_DXGI_FORMAT_R16G16_UINT,
-	// TDDS_R16G16_SINT = TIF_DXGI_FORMAT_R16G16_SINT,
-	// TDDS_R16G16_SFLOAT = TIF_DXGI_FORMAT_R16G16_FLOAT,
-
-	// TDDS_R16G16B16A16_UNORM = TIF_DXGI_FORMAT_R16G16B16A16_UNORM,
-	// TDDS_R16G16B16A16_SNORM = TIF_DXGI_FORMAT_R16G16B16A16_SNORM,
-	// TDDS_R16G16B16A16_UINT = TIF_DXGI_FORMAT_R16G16B16A16_UINT,
-	// TDDS_R16G16B16A16_SINT = TIF_DXGI_FORMAT_R16G16B16A16_SINT,
-	// TDDS_R16G16B16A16_SFLOAT = TIF_DXGI_FORMAT_R16G16B16A16_FLOAT,
-
-         /* HDR uncompressed formats */
+//  case TDDS_R9G9B9E5_UFLOAT: return VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+//  case TDDS_R10G10B10A2_UNORM: return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+//  case TDDS_R10G10B10A2_UINT: return VK_FORMAT_A2R10G10B10_UINT_PACK32;
+    case TDDS_R11G11B10_UFLOAT: return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+    case TDDS_R16_UNORM: return VK_FORMAT_R16_UNORM;
+    case TDDS_R16_SNORM: return VK_FORMAT_R16_SNORM;
+    case TDDS_R16_UINT: return VK_FORMAT_R16_UINT;
+    case TDDS_R16_SINT: return VK_FORMAT_R16_SINT;
+    case TDDS_R16_SFLOAT: return VK_FORMAT_R16_SFLOAT;
+    case TDDS_R16G16_UNORM: return VK_FORMAT_R16G16_UNORM;
+    case TDDS_R16G16_SNORM: return VK_FORMAT_R16G16_SNORM;
+    case TDDS_R16G16_UINT: return VK_FORMAT_R16G16_UINT;
+    case TDDS_R16G16_SINT: return VK_FORMAT_R16G16_SINT;
+    case TDDS_R16G16_SFLOAT: return VK_FORMAT_R16G16_SFLOAT;
+    case TDDS_R16G16B16A16_UNORM: return VK_FORMAT_R16G16B16A16_UNORM;
+    case TDDS_R16G16B16A16_SNORM: return VK_FORMAT_R16G16B16A16_SNORM;
+    case TDDS_R16G16B16A16_UINT: return VK_FORMAT_R16G16B16A16_UINT;
+    case TDDS_R16G16B16A16_SINT: return VK_FORMAT_R16G16B16A16_SINT;
+    case TDDS_R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
+        /* HDR uncompressed formats */
     case TDDS_R32_UINT: return VK_FORMAT_R32_UINT;
     case TDDS_R32_SINT: return VK_FORMAT_R32_SINT;
     case TDDS_R32_SFLOAT: return VK_FORMAT_R32_SFLOAT;
@@ -420,8 +425,7 @@ inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
     case TDDS_R32G32B32A32_UINT: return VK_FORMAT_R32G32B32A32_UINT;
     case TDDS_R32G32B32A32_SINT: return VK_FORMAT_R32G32B32A32_SINT;
     case TDDS_R32G32B32A32_SFLOAT: return VK_FORMAT_R32G32B32A32_SFLOAT;
-
-        /* compressed formats */
+        /* BC1-BC7 compressed formats */
     case TDDS_BC1_RGBA_UNORM_BLOCK: return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
     case TDDS_BC1_RGBA_SRGB_BLOCK: return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
     case TDDS_BC2_UNORM_BLOCK: return VK_FORMAT_BC2_UNORM_BLOCK;
@@ -436,9 +440,73 @@ inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
     case TDDS_BC6H_SFLOAT_BLOCK: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
     case TDDS_BC7_UNORM_BLOCK: return VK_FORMAT_BC7_UNORM_BLOCK;
     case TDDS_BC7_SRGB_BLOCK: return VK_FORMAT_BC7_SRGB_BLOCK;
-
-    // TODO: I have no idea what other formats even mean let alone what they translate to in Vulkan...
-    //       Most are probably legacy formats, but, again, I have no idea how to handle them.
+        /* TODO: I have no idea what other formats even mean let alone what they translate to in Vulkan...
+         *       Most are probably legacy formats, but, again, I have no idea how to handle them. */
+//  case TDDS_AYUV: return VK_FORMAT_UNDEFINED;
+//  case TDDS_Y410: return VK_FORMAT_UNDEFINED;
+//  case TDDS_Y416: return VK_FORMAT_UNDEFINED;
+//  case TDDS_NV12: return VK_FORMAT_UNDEFINED;
+//  case TDDS_P010: return VK_FORMAT_UNDEFINED;
+//  case TDDS_P016: return VK_FORMAT_UNDEFINED;
+//  case TDDS_420_OPAQUE: return VK_FORMAT_UNDEFINED;
+//  case TDDS_YUY2: return VK_FORMAT_UNDEFINED;
+//  case TDDS_Y210: return VK_FORMAT_UNDEFINED;
+//  case TDDS_Y216: return VK_FORMAT_UNDEFINED;
+//  case TDDS_NV11: return VK_FORMAT_UNDEFINED;
+//  case TDDS_AI44: return VK_FORMAT_UNDEFINED;
+//  case TDDS_IA44: return VK_FORMAT_UNDEFINED;
+//  case TDDS_P8: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A8P8: return VK_FORMAT_UNDEFINED;
+    case TDDS_B4G4R4A4_UNORM: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+//  case TDDS_R10G10B10_7E3_A2_FLOAT: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R10G10B10_6E4_A2_FLOAT: return VK_FORMAT_UNDEFINED;
+    case TDDS_D16_UNORM_S8_UINT: return VK_FORMAT_D16_UNORM_S8_UINT;
+//  case TDDS_R16_UNORM_X8_TYPELESS: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X16_TYPELESS_G8_UINT: return VK_FORMAT_UNDEFINED;
+//  case TDDS_P208: return VK_FORMAT_UNDEFINED;
+//  case TDDS_V208: return VK_FORMAT_UNDEFINED;
+//  case TDDS_V408: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R10G10B10_SNORM_A2_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R4G4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_G4R4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A4B4G4R4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X4B4G4R4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A4R4G4B4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X4R4G4B4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B4G4R4X4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R4G4B4A4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R4G4B4X4_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B5G5R5X1_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R5G5B5A1_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R5G5B5X1_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A1R5G5B5_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X1R5G5B5_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A1B5G5R5_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X1B5G5R5_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R5G6B5_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B2G3R3_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B2G3R3A8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_G8R8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_G8R8_SNORM: return VK_FORMAT_UNDEFINED;
+	  case TDDS_R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
+	  case TDDS_B8G8R8_UNORM: return VK_FORMAT_B8G8R8_UNORM;
+    case TDDS_A8B8G8R8_SNORM: return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
+	  case TDDS_B8G8R8A8_SNORM: return VK_FORMAT_B8G8R8A8_SNORM;
+//  case TDDS_R8G8B8X8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B8G8R8X8_UNORM: return VK_FORMAT_UNDEFINED;
+    case TDDS_A8B8G8R8_UNORM: return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+//  case TDDS_X8B8G8R8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A8R8G8B8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_X8R8G8B8_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_R10G10B10A2_SNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B10G10R10A2_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_B10G10R10A2_SNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A2B10G10R10_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_A2B10G10R10_SNORM: return VK_FORMAT_UNDEFINED;
+	  case TDDS_A2R10G10B10_UNORM: return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+    case TDDS_A2R10G10B10_SNORM: return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
+//  case TDDS_G16R16_UNORM: return VK_FORMAT_UNDEFINED;
+//  case TDDS_G16R16_SNORM: return VK_FORMAT_UNDEFINED;
     default: return VK_FORMAT_UNDEFINED;
   }
   // clang-format off
@@ -449,6 +517,7 @@ struct TinyDDS_CustomData {
     ktxStream* str;
 };
 
+/// Deleter that wraps `TinyDDS_DestroyContext` to be passed to std::unique_ptr
 void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*handle); }
 
 void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& outputStream) {
@@ -479,13 +548,17 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     dds_raii.reset(&dds_handle);
 
     // Then read the header
-    if (!TinyDDS_ReadHeader(dds_handle)) {
+    if (!TinyDDS_ReadHeader(dds_handle))
         fatal(rc::INVALID_FILE, "Failed to read DDS header");
-    }
+
+    // Check endianess (this will always return false but there is a TODO pending in its
+    // implementation)
+    if (TinyDDS_NeedsEndianCorrecting(dds_handle))
+        fatal(rc::INVALID_FILE, "Handling of big endian DDS data is not yet supported");
 
     // Get some specs that will be passed to ktxTexture2 creation struct
-    uint32_t width, height, depth, slices;
-    if (!TinyDDS_Dimensions(dds_handle, &width, &height, &depth, &slices))
+    uint32_t width, height, depth, layers;
+    if (!TinyDDS_Dimensions(dds_handle, &width, &height, &depth, &layers))
         fatal(rc::INVALID_FILE, "Failed to retrieve texture dimensions from DDS input");
 
     // libktx expects dimensions to be >= 1 while TinyDDS can report, for instance, depth of 0
@@ -494,6 +567,19 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     depth = std::max(depth, 1u);
 
     uint32_t num_levels = TinyDDS_NumberOfMipmaps(dds_handle);
+    if (num_levels == 0)
+        fatal(rc::INVALID_FILE, "Expected at least one mipmap level but retrieved 0");
+
+    uint32_t num_dims = 2;
+    if (height > 1 && depth > 1)
+        num_dims = 3;
+    else if (height <= 1)
+        num_dims = 1;
+
+    uint32_t num_faces = 1u;
+    if (TinyDDS_IsCubemap(dds_handle))
+        num_faces = 6;  // from the source code of tinydds.h it seems that DDS
+                        // cubemap textures can only be of exactly 6 faces.
 
     // TODO: is TinyDDS up-to-date with latest DDS spec?
     //       see: https://github.com/microsoft/DirectXTex
@@ -513,12 +599,12 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     create_info.baseWidth = width;
     create_info.baseHeight = height;
     create_info.baseDepth = depth;
-    create_info.numDimensions = 2;
+    create_info.numDimensions = num_dims;
     create_info.numLevels = num_levels;
-    create_info.numLayers = 1;                // TODO: dds arrays support
-    create_info.numFaces = 1;                 // TODO: dds cubemaps support
-    create_info.isArray = KTX_FALSE;          // TODO: dds arrays support
-    create_info.generateMipmaps = KTX_FALSE;  // TODO: always false?
+    create_info.numLayers = std::max(layers, 1u);
+    create_info.numFaces = num_faces;
+    create_info.isArray = layers >= 1;  // TinyDDS sets this to 0 for non-array textures
+    create_info.generateMipmaps = KTX_FALSE;
 
 #if 0
     std::cout << "calling ktxTexture2_Create with: "
@@ -531,7 +617,7 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
               << "numLayers=" << create_info.numLayers << "; "
               << "numFaces=" << create_info.numFaces << "; "
               << "isArray=" << create_info.isArray << "; "
-              << "generateMipmaps=" << create_info.generateMipmaps << "; "
+              << "generateMipmaps=" << create_info.generateMipmaps
               << std::endl;
 #endif
 
@@ -539,10 +625,9 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     auto result = ktxTexture2_Create(&create_info, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
     texture_raii.reset(texture);
 
-    if (result != KTX_SUCCESS) {
+    if (result != KTX_SUCCESS)
         fatal(rc::RUNTIME_ERROR, "ktxTexture2_Create returned ktx_error_code: {}",
               static_cast<uint32_t>(result));
-    }
 
     // Loop over all images and set them
     for (uint32_t level_idx = 0; level_idx < texture->numLevels; ++level_idx) {
@@ -555,24 +640,22 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
                     // mip level.
                     const size_t data_size = TinyDDS_ImageSize(dds_handle, level_idx);
                     const size_t expected_size = ktxTexture2_GetImageSize(texture, level_idx);
-                    if (data_size != expected_size) {
+                    if (data_size != expected_size)
                         fatal(rc::RUNTIME_ERROR,
                               "libktx expects {} bytes to be written for this mip level {} but {} "
                               "bytes are instead attempted to be written",
                               expected_size, level_idx, data_size);
-                    }
                     // Get raw data (whether compressed, uncompressed, we don't care). The data
                     // should just match the set vkFormat, that's all. Remember that this is a
                     // lossless conversion so we do not decode/encode anything at all.
                     auto data_ptr = (const ktx_uint8_t*)TinyDDS_ImageRawData(dds_handle, level_idx);
                     auto status =
-                        ktxTexture_SetImageFromMemory(ktxTexture(texture), level_idx, 0,
+                        ktxTexture_SetImageFromMemory(ktxTexture(texture), level_idx, layer_idx,
                                                       face_idx + slice_idx, data_ptr, data_size);
-                    if (status != KTX_SUCCESS) {
+                    if (status != KTX_SUCCESS)
                         fatal(rc::RUNTIME_ERROR,
                               "ktxTexture_SetImageFromMemory returned KTX exit error code: {}",
                               static_cast<uint32_t>(status));
-                    }
                 }  // slices
             }  // faces
         }  // layers
