@@ -168,10 +168,10 @@ set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
-    set( ktx_app_icon_basename ktx_app)
-    set( ktx_doc_icon_basename ktx_document)
-    set( KTX_APP_ICON ${ktx_app_icon_basename}.icns)
-    set( KTX_DOC_ICON ${ktx_doc_icon_basename}.icns)
+    set( KTX_APP_ICON_BASENAME ktx_app)
+    set( KTX_DOC_ICON_BASENAME ktx_document)
+    set( KTX_APP_ICON ${KTX_APP_ICON_BASENAME}.icns)
+    set( KTX_DOC_ICON ${KTX_DOC_ICON_BASENAME}.icns)
     # On iOS an icon is a directory of images not a single file.
     # BASENAME is the name of the directory in the common .xcassets directory.
     # Assets are copied to the bundle in the build target setup.
