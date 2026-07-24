@@ -440,8 +440,9 @@ inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
     case TDDS_BC6H_SFLOAT_BLOCK: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
     case TDDS_BC7_UNORM_BLOCK: return VK_FORMAT_BC7_UNORM_BLOCK;
     case TDDS_BC7_SRGB_BLOCK: return VK_FORMAT_BC7_SRGB_BLOCK;
-        /* TODO: I have no idea what other formats even mean let alone what they translate to in Vulkan...
-         *       Most are probably legacy formats, but, again, I have no idea how to handle them. */
+        /* I have no idea what other formats even mean let alone what they
+         * translate to in Vulkan. These are already unsupported by TinyDDS.
+         * Most are probably legacy formats */
 //  case TDDS_AYUV: return VK_FORMAT_UNDEFINED;
 //  case TDDS_Y410: return VK_FORMAT_UNDEFINED;
 //  case TDDS_Y416: return VK_FORMAT_UNDEFINED;
@@ -520,6 +521,44 @@ struct TinyDDS_CustomData {
 /// Deleter that wraps `TinyDDS_DestroyContext` to be passed to std::unique_ptr
 void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*handle); }
 
+#if 0
+/// Mimics `ktxTexture2_GetImageSize` because TinyDDS' `TinyDDS_ImageSize`
+/// returns the size of an entire 3D texture, or entire array, or entire
+/// cubemap.
+///
+/// Calculate & return the size in bytes of
+/// an image at the specified mip level. For arrays, this is the size of a
+/// layer, for cubemaps, the size of a face and for 3D textures, the size of a
+/// depth slice.
+///
+/// TODO: The size reflects the padding of each row to KTX\_GL\_UNPACK\_ALIGNMENT.
+size_t TinyDDS_GetImageSize(TinyDDS_ContextHandle handle, int mipmaplevel) {
+    const TinyDDS_Context* ctx = (TinyDDS_Context*)handle;
+    if (ctx == NULL) return 0;
+    if (!ctx->headerValid) {
+        ctx->callbacks.errorFn(ctx->user, "Header data hasn't been read yet or is invalid");
+        return 0;
+    }
+    size_t w = std::max(ctx->header.width >> mipmaplevel, 1u);
+    size_t h = std::max(ctx->header.height >> mipmaplevel, 1u);
+    size_t d = std::max(ctx->header.depth >> mipmaplevel, 1u);
+    const size_t s = ctx->headerDx10.arraySize ? ctx->headerDx10.arraySize : 1;
+    if (d > 1 && s > 1) {
+        ctx->callbacks.errorFn(ctx->user, "Volume texture arrays are not supoprted by DDS");
+        return 0;
+    }
+    if (TinyDDS_IsCompressed(ctx->format)) {
+        // padd to block boundaries
+        w = (w + 3) / 4;
+        h = (h + 3) / 4;
+    }
+    // 1 bit special case
+    if (ctx->format == TDDS_R1_UNORM) w = (w + 7) / 8;
+    const size_t formatSize = TinyDDS_FormatSize(ctx->format);
+    return w * h * formatSize;
+}
+#endif
+
 void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& outputStream) {
     std::unique_ptr<TinyDDS_ContextHandle, decltype(TinyDDS_Deleter)*> dds_raii{nullptr,
                                                                                 TinyDDS_Deleter};
@@ -548,8 +587,7 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     dds_raii.reset(&dds_handle);
 
     // Then read the header
-    if (!TinyDDS_ReadHeader(dds_handle))
-        fatal(rc::INVALID_FILE, "Failed to read DDS header");
+    if (!TinyDDS_ReadHeader(dds_handle)) fatal(rc::INVALID_FILE, "Failed to read DDS header");
 
     // Check endianess (this will always return false but there is a TODO pending in its
     // implementation)
@@ -565,6 +603,7 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     width = std::max(width, 1u);
     height = std::max(height, 1u);
     depth = std::max(depth, 1u);
+    layers = std::max(layers, 1u);
 
     uint32_t num_levels = TinyDDS_NumberOfMipmaps(dds_handle);
     if (num_levels == 0)
@@ -575,6 +614,10 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
         num_dims = 3;
     else if (height <= 1)
         num_dims = 1;
+
+    // DDS doesn't support volume/cubemap texture arrays
+    if (layers > 1 && (num_dims == 3 || TinyDDS_IsCubemap(dds_handle)))
+        fatal(rc::INVALID_FILE, "DDS does not support Volume/Cubemap texture arrays");
 
     uint32_t num_faces = 1u;
     if (TinyDDS_IsCubemap(dds_handle))
@@ -601,12 +644,12 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     create_info.baseDepth = depth;
     create_info.numDimensions = num_dims;
     create_info.numLevels = num_levels;
-    create_info.numLayers = std::max(layers, 1u);
+    create_info.numLayers = layers;
     create_info.numFaces = num_faces;
-    create_info.isArray = layers >= 1;  // TinyDDS sets this to 0 for non-array textures
+    create_info.isArray = layers > 1;
     create_info.generateMipmaps = KTX_FALSE;
 
-#if 0
+#if 1
     std::cout << "calling ktxTexture2_Create with: "
               << "vkFormat=" << create_info.vkFormat << "; "
               << "baseWidth=" << create_info.baseWidth << "; "
@@ -617,8 +660,7 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
               << "numLayers=" << create_info.numLayers << "; "
               << "numFaces=" << create_info.numFaces << "; "
               << "isArray=" << create_info.isArray << "; "
-              << "generateMipmaps=" << create_info.generateMipmaps
-              << std::endl;
+              << "generateMipmaps=" << create_info.generateMipmaps << std::endl;
 #endif
 
     ktxTexture2* texture = nullptr;
@@ -632,26 +674,46 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     // Loop over all images and set them
     for (uint32_t level_idx = 0; level_idx < texture->numLevels; ++level_idx) {
         const uint32_t depth = std::max(texture->baseDepth >> level_idx, 1u);
+        // Get raw data (whether compressed, uncompressed, we don't care). The data should just
+        // match the set vkFormat, that's all. Remember that this is a lossless conversion so we do
+        // not decode/encode anything at all.
+        //
+        // For cubemaps, this points to first face
+        // For 3d textures, this points to first depth slice
+        // For 2d texture arrays, this points to first array layer
+        //   => in all of these cases, an offset needs to be added
+        //
+        auto data_ptr = (const ktx_uint8_t*)TinyDDS_ImageRawData(dds_handle, level_idx);
+        if (data_ptr == NULL)
+            fatal(rc::RUNTIME_ERROR,
+                  "Failed to retrieve raw image data from DDS file at mipmap level {}", level_idx);
+        // Before anything, be absolutely certain that what we are about to write is of
+        // the exact same size (in bytes) of what libktx expects us to write for this
+        // mip level.
+        //
+        // This doesn't return the image size in the same manner that libktx does.
+        // For cubemaps, this returns size of all faces (i.e., size of a face multiplied 6)
+        // For volumes, this returns size of all volume image
+        // For arrays, this returns size of all array layers
+        //    => hence why a division is needed (you can safely multiply these because
+        //       DDS does not support volume/cubemap arrays.
+        const size_t data_size = TinyDDS_ImageSize(dds_handle, level_idx) /
+                                 (texture->numLayers * texture->numFaces * depth);
+        const size_t expected_size = ktxTexture2_GetImageSize(texture, level_idx);
+        if (data_size != expected_size)
+            fatal(rc::RUNTIME_ERROR,
+                  "libktx expects {} bytes to be written for this mip level {} but {} "
+                  "bytes are instead attempted to be written",
+                  expected_size, level_idx, data_size);
         for (ktx_uint32_t layer_idx = 0; layer_idx < texture->numLayers; ++layer_idx) {
             for (uint32_t face_idx = 0; face_idx < texture->numFaces; ++face_idx) {
                 for (uint32_t slice_idx = 0; slice_idx < depth; ++slice_idx) {
-                    // Before anything, be absolutely certain that what we are about to write is of
-                    // the exact same size (in bytes) of what libktx expects us to write for this
-                    // mip level.
-                    const size_t data_size = TinyDDS_ImageSize(dds_handle, level_idx);
-                    const size_t expected_size = ktxTexture2_GetImageSize(texture, level_idx);
-                    if (data_size != expected_size)
-                        fatal(rc::RUNTIME_ERROR,
-                              "libktx expects {} bytes to be written for this mip level {} but {} "
-                              "bytes are instead attempted to be written",
-                              expected_size, level_idx, data_size);
-                    // Get raw data (whether compressed, uncompressed, we don't care). The data
-                    // should just match the set vkFormat, that's all. Remember that this is a
-                    // lossless conversion so we do not decode/encode anything at all.
-                    auto data_ptr = (const ktx_uint8_t*)TinyDDS_ImageRawData(dds_handle, level_idx);
-                    auto status =
-                        ktxTexture_SetImageFromMemory(ktxTexture(texture), level_idx, layer_idx,
-                                                      face_idx + slice_idx, data_ptr, data_size);
+                    // DDS doesn't support volume/cubemap texture arrays, so the following addition
+                    // is an addition on mutually exclusive indices
+                    size_t offset = data_size * (layer_idx + face_idx + slice_idx);
+                    auto status = ktxTexture_SetImageFromMemory(ktxTexture(texture), level_idx,
+                                                                layer_idx, face_idx + slice_idx,
+                                                                data_ptr + offset, data_size);
                     if (status != KTX_SUCCESS)
                         fatal(rc::RUNTIME_ERROR,
                               "ktxTexture_SetImageFromMemory returned KTX exit error code: {}",
