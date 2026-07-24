@@ -264,6 +264,7 @@ function( create_gl_target target version sources common_resources ktx_image_sou
         )
         add_custom_command(
             OUTPUT ${ktx_image_copies}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
             COMMENT "Copy ${target}'s ktx images to build destination"
             DEPENDS ${ktx_image_sources}
@@ -278,6 +279,7 @@ function( create_gl_target target version sources common_resources ktx_image_sou
             copied_common_ktx_images
         )
         add_dependencies( ${target}
+            copied_ktx_icons
             copied_models
             copied_${target}_ktx_images
         )

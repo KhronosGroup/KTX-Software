@@ -168,10 +168,10 @@ set( LOAD_TEST_COMMON_LIBS )
 
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
-    set( KTX_APP_ICON_BASENAME ktx_app)
-    set( KTX_DOC_ICON_BASENAME ktx_document)
-    set( KTX_APP_ICON ${KTX_APP_ICON_BASENAME}.icns)
-    set( KTX_DOC_ICON ${KTX_DOC_ICON_BASENAME}.icns)
+    set( ktx_app_icon_basename ktx_app)
+    set( ktx_doc_icon_basename ktx_document)
+    set( KTX_APP_ICON ${ktx_app_icon_basename}.icns)
+    set( KTX_DOC_ICON ${ktx_doc_icon_basename}.icns)
     # On iOS an icon is a directory of images not a single file.
     # BASENAME is the name of the directory in the common .xcassets directory.
     # Assets are copied to the bundle in the build target setup.
@@ -201,11 +201,17 @@ elseif(WIN32)
     )
 endif()
 
+set( ktx_icon_sources ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE} )
+source_group( "Resources" FILES
+    ${ktx_icon_sources}
+)
+
 set( LOAD_TEST_COLLADA_MODELS
      "teapot.dae"
 )
 
-list(TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+list( TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND
+    "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
     OUTPUT_VARIABLE LOAD_TEST_COLLADA_MODEL_SOURCES
 )
 # An Xcode (or possibly CMake) update in late 2024 or early 2025 started
@@ -235,16 +241,6 @@ set( LOAD_TEST_COMMON_MODEL_SOURCES
      ${LOAD_TEST_OBJ_MODEL_SOURCES}
 )
 source_group("Resources/Models" FILES ${LOAD_TEST_COMMON_MODEL_SOURCES})
-
-set( LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES
-    ${KTX_APP_ICON_SOURCE}
-    ${KTX_DOC_ICON_SOURCE}
-    ${LOAD_TEST_COMMON_MODEL_SOURCES}
-)
-source_group("Resources" FILES
-    ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE}
-)
-source_group("Resources/Models" ${LOAD_TEST_COMMON_MODEL_SOURCES})
 
 set( load_test_common_ktx2_image_sources
     astc_8x8_unorm_array_7.ktx2
@@ -325,48 +321,64 @@ if(NOT APPLE)
     # application and are only for convenience during development. Therefore 
     # the above mentioned error does not occur.
 
-    set(load_test_common_resources_copied
-        ${KTX_APP_ICON}  # TODO: Is this needed on Windows?
-        ${KTX_DOC_ICON}
-        ${LOAD_TEST_COLLADA_MODELS}
-        ${LOAD_TEST_OBJ_MODELS}
-    )
     # The resources directory is created in the build tree next to the
     # executable's directory. This sibling relationship will be maintained
     # when the app and its resources are installed on a system.
     set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../resources)
-    list(TRANSFORM load_test_common_resources_copied PREPEND ${BUILDTIME_RESOURCES_DIR}/)
 
+    # Each of the following custom commands includes a COMMAND to make the
+    # directory as it is not possible to make a custom command to create an
+    # empty directory. If you try the projects created by some generators
+    # will issue a warning that the command completed successfully but
+    # no output was generated.
+
+    list(TRANSFORM ktx_icon_sources REPLACE
+        "^${PROJECT_SOURCE_DIR}/icons/[a-zA-Z]+/" ${BUILDTIME_RESOURCES_DIR}/
+        OUTPUT_VARIABLE ktx_icon_copies
+    )
     add_custom_command(
-        OUTPUT ${BUILDTIME_RESOURCES_DIR}
+        OUTPUT ${ktx_icon_copies}
+        # Make the directory
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMENT "Make resources directory"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_icon_sources} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Create buildtime resource destination and copy icons to it"
+        DEPENDS ${ktx_icon_sources}
         VERBATIM
     )
     add_custom_target(
-        buildtime_resources_dir
-        DEPENDS ${BUILDTIME_RESOURCES_DIR}
+        copied_ktx_icons
+        DEPENDS ${ktx_icon_copies}
     )
+    unset(ktx_icon_copies)
+    unset(ktx_icon_sources)
+
+    set(load_test_common_models_copied
+        ${LOAD_TEST_COLLADA_MODELS}
+        ${LOAD_TEST_OBJ_MODELS}
+    )
+    list(TRANSFORM load_test_common_models_copied PREPEND ${BUILDTIME_RESOURCES_DIR}/)
     add_custom_command(
-        OUTPUT ${load_test_common_resources_copied}
+        OUTPUT ${load_test_common_models_copied}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy common resources (icons and models to build destination"
-        DEPENDS ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_MODEL_SOURCES} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy common models to buildtime resource destination"
+        DEPENDS ${LOAD_TEST_COMMON_MODEL_SOURCES}
         VERBATIM
     )
     add_custom_target(
         copied_models
-        DEPENDS ${load_test_common_resources_copied}
+        DEPENDS ${load_test_common_models_copied}
     )
-    unset(load_test_common_resources_copied)
+    unset(load_test_common_models_copied)
+
     list(TRANSFORM LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
         OUTPUT_VARIABLE common_ktx_image_copies
     )
     add_custom_command(
         OUTPUT ${common_ktx_image_copies}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy common KTX and KTX2 images to build destination"
+        COMMENT "Copy common KTX and KTX2 images to buildtime resource destination"
         DEPENDS ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
         VERBATIM
     )
@@ -375,7 +387,7 @@ if(NOT APPLE)
         DEPENDS ${common_ktx_image_copies}  
     )
     # To ensure the resources directory is created before copying KTX images.
-    add_dependencies( copied_common_ktx_images copied_models )
+    #add_dependencies( copied_common_ktx_images copied_models )
     unset( common_ktx_image_copies )
 endif()
 

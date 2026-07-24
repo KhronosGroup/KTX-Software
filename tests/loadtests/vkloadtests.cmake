@@ -383,6 +383,7 @@ else()
     )
     add_custom_command(
         OUTPUT ${copied_shaders}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SPVS} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy shaders to build destination"
         VERBATIM
@@ -398,6 +399,7 @@ else()
 
     add_custom_command(
         OUTPUT ${copied_vkloadtests_ktx2_images}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${vkloadtests_ktx2_image_sources} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy vkloadtests ktx2 images to build destination"
         VERBATIM
@@ -407,15 +409,12 @@ else()
         DEPENDS ${copied_vkloadtests_ktx2_images}
     )
     add_dependencies(
-        copied_shaders
-        copied_models   # To ensure the output directory exists before copying
-    )
-    add_dependencies(
         copied_vkloadtests_ktx2_images
         copied_common_ktx_images
     )
     add_dependencies(   
         vkloadtests
+        copied_ktx_icons
         copied_models
         copied_shaders
         copied_vkloadtests_ktx2_images
