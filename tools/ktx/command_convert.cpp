@@ -595,14 +595,14 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
         fatal(rc::INVALID_FILE, "Handling of big endian DDS data is not yet supported");
 
     // Get some specs that will be passed to ktxTexture2 creation struct
-    uint32_t width, height, depth, layers;
-    if (!TinyDDS_Dimensions(dds_handle, &width, &height, &depth, &layers))
+    uint32_t base_width, base_height, base_depth, layers;
+    if (!TinyDDS_Dimensions(dds_handle, &base_width, &base_height, &base_depth, &layers))
         fatal(rc::INVALID_FILE, "Failed to retrieve texture dimensions from DDS input");
 
     // libktx expects dimensions to be >= 1 while TinyDDS can report, for instance, depth of 0
-    width = std::max(width, 1u);
-    height = std::max(height, 1u);
-    depth = std::max(depth, 1u);
+    base_width = std::max(base_width, 1u);
+    base_height = std::max(base_height, 1u);
+    base_depth = std::max(base_depth, 1u);
     layers = std::max(layers, 1u);
 
     uint32_t num_levels = TinyDDS_NumberOfMipmaps(dds_handle);
@@ -610,9 +610,9 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
         fatal(rc::INVALID_FILE, "Expected at least one mipmap level but retrieved 0");
 
     uint32_t num_dims = 2;
-    if (height > 1 && depth > 1)
+    if (base_height > 1 && base_depth > 1)
         num_dims = 3;
-    else if (height <= 1)
+    else if (base_height <= 1)
         num_dims = 1;
 
     // DDS doesn't support volume/cubemap texture arrays
@@ -639,9 +639,9 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     create_info.glInternalformat = 0;  // Ignored as this is not a KTX1 texture
     create_info.vkFormat = vkformat;
     create_info.pDfd = nullptr;
-    create_info.baseWidth = width;
-    create_info.baseHeight = height;
-    create_info.baseDepth = depth;
+    create_info.baseWidth = base_width;
+    create_info.baseHeight = base_height;
+    create_info.baseDepth = base_depth;
     create_info.numDimensions = num_dims;
     create_info.numLevels = num_levels;
     create_info.numLayers = layers;
@@ -729,7 +729,6 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
                           static_cast<uint32_t>(writer.size() + 1), writer.c_str());
     outputStream.writeKTX2(texture, *this);
 }
-
 
 void CommandConvert::tinydds_error(void* user, char const* msg) {
     ((TinyDDS_CustomData*)user)->parent->warning(msg);
