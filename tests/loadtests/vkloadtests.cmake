@@ -408,17 +408,16 @@ else()
     )
     add_dependencies(
         copied_shaders
-        buildtime_resources_dir
+        copied_models   # To ensure the output directory exists before copying
     )
     add_dependencies(
         copied_vkloadtests_ktx2_images
-        buildtime_resources_dir
+        copied_common_ktx_images
     )
     add_dependencies(   
         vkloadtests
         copied_models
         copied_shaders
-        copied_common_ktx_images
         copied_vkloadtests_ktx2_images
     )
 

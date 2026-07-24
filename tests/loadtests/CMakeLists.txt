@@ -325,9 +325,9 @@ if(NOT APPLE)
     # application and are only for convenience during development. Therefore 
     # the above mentioned error does not occur.
 
-    set(LOAD_TEST_COMMON_RESOURCES_COPIED
+    set(load_test_common_resources_copied
         ${KTX_APP_ICON}  # TODO: Is this needed on Windows?
-    #    ${KTX_DOC_ICON} # Only needed on Apple.
+        ${KTX_DOC_ICON}
         ${LOAD_TEST_COLLADA_MODELS}
         ${LOAD_TEST_OBJ_MODELS}
     )
@@ -335,9 +335,8 @@ if(NOT APPLE)
     # executable's directory. This sibling relationship will be maintained
     # when the app and its resources are installed on a system.
     set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../resources)
-    list(TRANSFORM LOAD_TEST_COMMON_RESOURCES_COPIED PREPEND ${BUILDTIME_RESOURCES_DIR}/)
+    list(TRANSFORM load_test_common_resources_copied PREPEND ${BUILDTIME_RESOURCES_DIR}/)
 
-    set_source_files_properties(buildtime_resources_dir PROPERTIES SYMBOLIC 1)
     add_custom_command(
         OUTPUT ${BUILDTIME_RESOURCES_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
@@ -349,17 +348,18 @@ if(NOT APPLE)
         DEPENDS ${BUILDTIME_RESOURCES_DIR}
     )
     add_custom_command(
-        OUTPUT ${LOAD_TEST_COMMON_RESOURCES_COPIED}
+        OUTPUT ${load_test_common_resources_copied}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy models to build destination"
+        COMMENT "Copy common resources (icons and models to build destination"
+        DEPENDS ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
         VERBATIM
     )
     add_custom_target(
         copied_models
-        DEPENDS ${LOAD_TEST_COMMON_RESOURCES_COPIED}
+        DEPENDS ${load_test_common_resources_copied}
     )
-    add_dependencies( copied_models buildtime_resources_dir )
-    unset(LOAD_TEST_COMMON_RESOURCES_COPIED)
+    unset(load_test_common_resources_copied)
     list(TRANSFORM LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
         OUTPUT_VARIABLE common_ktx_image_copies
     )
@@ -367,13 +367,15 @@ if(NOT APPLE)
         OUTPUT ${common_ktx_image_copies}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Copy common KTX and KTX2 images to build destination"
+        DEPENDS ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
         VERBATIM
     )
     add_custom_target(
         copied_common_ktx_images
         DEPENDS ${common_ktx_image_copies}  
     )
-    add_dependencies( copied_common_ktx_images buildtime_resources_dir )
+    # To ensure the resources directory is created before copying KTX images.
+    add_dependencies( copied_common_ktx_images copied_models )
     unset( common_ktx_image_copies )
 endif()
 
