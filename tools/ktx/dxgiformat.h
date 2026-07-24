@@ -1,3 +1,6 @@
+// Copyright (C) Microsoft Corporation.
+// Licensed under the MIT license
+
 #pragma once
 
 typedef enum DXGI_FORMAT {
