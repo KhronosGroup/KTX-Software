@@ -9,6 +9,7 @@
 #include "platform_utils.h"
 #include "sbufstream.h"
 #include "validate.h"
+#include "dxgiformat.h"
 
 // Implementation is already included in Basis Universal
 #include "basis_universal/encoder/3rdparty/tinydds.h"
@@ -365,152 +366,17 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
     outputStream.writeKTX2(texture, *this);
 }
 
-/// Get the corresponding VkFormat from the provided TinyDDS format. Not all
-/// formats have an equivalent in Vulkan. All BC1-BC7 formats are supported.
+/// Get the corresponding VkFormat from the provided TinyDDS DXGI format. Not
+/// all formats have an equivalent in Vulkan. All BC1-BC7 formats are supported.
 /// The usual LDR and HDR uncompressed formats are also supported. For any
 /// non-supported format, this returns VK_FORMAT_UNDEFINED.
 inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
-    // clang-format off
-  switch (dds_format) {
-        /* LDR uncompressed formats */
-    case TDDS_UNDEFINED: return VK_FORMAT_UNDEFINED;
-    case TDDS_B5G6R5_UNORM: return VK_FORMAT_B5G6R5_UNORM_PACK16;
-    case TDDS_B5G5R5A1_UNORM: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
-    case TDDS_R8_UNORM: return VK_FORMAT_R8_UNORM;
-    case TDDS_R8_SNORM: return VK_FORMAT_R8_SNORM;
-    case TDDS_A8_UNORM: return VK_FORMAT_A8_UNORM_KHR;
-//  case TDDS_R1_UNORM: return VK_FORMAT_UNDEFINED;
-    case TDDS_R8_UINT: return VK_FORMAT_R8_UINT;
-    case TDDS_R8_SINT: return VK_FORMAT_R8_SINT;
-    case TDDS_R8G8_UNORM: return VK_FORMAT_R8G8_UNORM;
-    case TDDS_R8G8_SNORM: return VK_FORMAT_R8G8_SNORM;
-    case TDDS_R8G8_UINT: return VK_FORMAT_R8G8_UINT;
-    case TDDS_R8G8_SINT: return VK_FORMAT_R8G8_SINT;
-    case TDDS_R8G8B8A8_UNORM: return VK_FORMAT_R8G8B8A8_UNORM;
-    case TDDS_R8G8B8A8_SNORM: return VK_FORMAT_R8G8B8A8_SNORM;
-    case TDDS_R8G8B8A8_UINT: return VK_FORMAT_R8G8B8A8_UINT;
-    case TDDS_R8G8B8A8_SINT: return VK_FORMAT_R8G8B8A8_SINT;
-    case TDDS_R8G8B8A8_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
-    case TDDS_B8G8R8A8_UNORM: return VK_FORMAT_B8G8R8A8_UNORM;
-    case TDDS_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_SRGB;
-//  case TDDS_R9G9B9E5_UFLOAT: return VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
-//  case TDDS_R10G10B10A2_UNORM: return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-//  case TDDS_R10G10B10A2_UINT: return VK_FORMAT_A2R10G10B10_UINT_PACK32;
-    case TDDS_R11G11B10_UFLOAT: return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-    case TDDS_R16_UNORM: return VK_FORMAT_R16_UNORM;
-    case TDDS_R16_SNORM: return VK_FORMAT_R16_SNORM;
-    case TDDS_R16_UINT: return VK_FORMAT_R16_UINT;
-    case TDDS_R16_SINT: return VK_FORMAT_R16_SINT;
-    case TDDS_R16_SFLOAT: return VK_FORMAT_R16_SFLOAT;
-    case TDDS_R16G16_UNORM: return VK_FORMAT_R16G16_UNORM;
-    case TDDS_R16G16_SNORM: return VK_FORMAT_R16G16_SNORM;
-    case TDDS_R16G16_UINT: return VK_FORMAT_R16G16_UINT;
-    case TDDS_R16G16_SINT: return VK_FORMAT_R16G16_SINT;
-    case TDDS_R16G16_SFLOAT: return VK_FORMAT_R16G16_SFLOAT;
-    case TDDS_R16G16B16A16_UNORM: return VK_FORMAT_R16G16B16A16_UNORM;
-    case TDDS_R16G16B16A16_SNORM: return VK_FORMAT_R16G16B16A16_SNORM;
-    case TDDS_R16G16B16A16_UINT: return VK_FORMAT_R16G16B16A16_UINT;
-    case TDDS_R16G16B16A16_SINT: return VK_FORMAT_R16G16B16A16_SINT;
-    case TDDS_R16G16B16A16_SFLOAT: return VK_FORMAT_R16G16B16A16_SFLOAT;
-        /* HDR uncompressed formats */
-    case TDDS_R32_UINT: return VK_FORMAT_R32_UINT;
-    case TDDS_R32_SINT: return VK_FORMAT_R32_SINT;
-    case TDDS_R32_SFLOAT: return VK_FORMAT_R32_SFLOAT;
-    case TDDS_R32G32_UINT: return VK_FORMAT_R32G32_UINT;
-    case TDDS_R32G32_SINT: return VK_FORMAT_R32G32_SINT;
-    case TDDS_R32G32_SFLOAT: return VK_FORMAT_R32G32_SFLOAT;
-    case TDDS_R32G32B32_UINT: return VK_FORMAT_R32G32B32_UINT;
-    case TDDS_R32G32B32_SINT: return VK_FORMAT_R32G32B32_SINT;
-    case TDDS_R32G32B32_SFLOAT: return VK_FORMAT_R32G32B32_SFLOAT;
-    case TDDS_R32G32B32A32_UINT: return VK_FORMAT_R32G32B32A32_UINT;
-    case TDDS_R32G32B32A32_SINT: return VK_FORMAT_R32G32B32A32_SINT;
-    case TDDS_R32G32B32A32_SFLOAT: return VK_FORMAT_R32G32B32A32_SFLOAT;
-        /* BC1-BC7 compressed formats */
-    case TDDS_BC1_RGBA_UNORM_BLOCK: return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
-    case TDDS_BC1_RGBA_SRGB_BLOCK: return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
-    case TDDS_BC2_UNORM_BLOCK: return VK_FORMAT_BC2_UNORM_BLOCK;
-    case TDDS_BC2_SRGB_BLOCK: return VK_FORMAT_BC2_SRGB_BLOCK;
-    case TDDS_BC3_UNORM_BLOCK: return VK_FORMAT_BC3_UNORM_BLOCK;
-    case TDDS_BC3_SRGB_BLOCK: return VK_FORMAT_BC3_SRGB_BLOCK;
-    case TDDS_BC4_UNORM_BLOCK: return VK_FORMAT_BC4_UNORM_BLOCK;
-    case TDDS_BC4_SNORM_BLOCK: return VK_FORMAT_BC4_SNORM_BLOCK;
-    case TDDS_BC5_UNORM_BLOCK: return VK_FORMAT_BC5_UNORM_BLOCK;
-    case TDDS_BC5_SNORM_BLOCK: return VK_FORMAT_BC5_SNORM_BLOCK;
-    case TDDS_BC6H_UFLOAT_BLOCK: return VK_FORMAT_BC6H_UFLOAT_BLOCK;
-    case TDDS_BC6H_SFLOAT_BLOCK: return VK_FORMAT_BC6H_SFLOAT_BLOCK;
-    case TDDS_BC7_UNORM_BLOCK: return VK_FORMAT_BC7_UNORM_BLOCK;
-    case TDDS_BC7_SRGB_BLOCK: return VK_FORMAT_BC7_SRGB_BLOCK;
-        /* I have no idea what other formats even mean let alone what they
-         * translate to in Vulkan. These are already unsupported by TinyDDS.
-         * Most are probably legacy formats */
-//  case TDDS_AYUV: return VK_FORMAT_UNDEFINED;
-//  case TDDS_Y410: return VK_FORMAT_UNDEFINED;
-//  case TDDS_Y416: return VK_FORMAT_UNDEFINED;
-//  case TDDS_NV12: return VK_FORMAT_UNDEFINED;
-//  case TDDS_P010: return VK_FORMAT_UNDEFINED;
-//  case TDDS_P016: return VK_FORMAT_UNDEFINED;
-//  case TDDS_420_OPAQUE: return VK_FORMAT_UNDEFINED;
-//  case TDDS_YUY2: return VK_FORMAT_UNDEFINED;
-//  case TDDS_Y210: return VK_FORMAT_UNDEFINED;
-//  case TDDS_Y216: return VK_FORMAT_UNDEFINED;
-//  case TDDS_NV11: return VK_FORMAT_UNDEFINED;
-//  case TDDS_AI44: return VK_FORMAT_UNDEFINED;
-//  case TDDS_IA44: return VK_FORMAT_UNDEFINED;
-//  case TDDS_P8: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A8P8: return VK_FORMAT_UNDEFINED;
-    case TDDS_B4G4R4A4_UNORM: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-//  case TDDS_R10G10B10_7E3_A2_FLOAT: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R10G10B10_6E4_A2_FLOAT: return VK_FORMAT_UNDEFINED;
-    case TDDS_D16_UNORM_S8_UINT: return VK_FORMAT_D16_UNORM_S8_UINT;
-//  case TDDS_R16_UNORM_X8_TYPELESS: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X16_TYPELESS_G8_UINT: return VK_FORMAT_UNDEFINED;
-//  case TDDS_P208: return VK_FORMAT_UNDEFINED;
-//  case TDDS_V208: return VK_FORMAT_UNDEFINED;
-//  case TDDS_V408: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R10G10B10_SNORM_A2_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R4G4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_G4R4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A4B4G4R4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X4B4G4R4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A4R4G4B4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X4R4G4B4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B4G4R4X4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R4G4B4A4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R4G4B4X4_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B5G5R5X1_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R5G5B5A1_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R5G5B5X1_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A1R5G5B5_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X1R5G5B5_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A1B5G5R5_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X1B5G5R5_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R5G6B5_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B2G3R3_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B2G3R3A8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_G8R8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_G8R8_SNORM: return VK_FORMAT_UNDEFINED;
-	  case TDDS_R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
-	  case TDDS_B8G8R8_UNORM: return VK_FORMAT_B8G8R8_UNORM;
-    case TDDS_A8B8G8R8_SNORM: return VK_FORMAT_A8B8G8R8_SNORM_PACK32;
-	  case TDDS_B8G8R8A8_SNORM: return VK_FORMAT_B8G8R8A8_SNORM;
-//  case TDDS_R8G8B8X8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B8G8R8X8_UNORM: return VK_FORMAT_UNDEFINED;
-    case TDDS_A8B8G8R8_UNORM: return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-//  case TDDS_X8B8G8R8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A8R8G8B8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_X8R8G8B8_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_R10G10B10A2_SNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B10G10R10A2_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_B10G10R10A2_SNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A2B10G10R10_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_A2B10G10R10_SNORM: return VK_FORMAT_UNDEFINED;
-	  case TDDS_A2R10G10B10_UNORM: return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
-    case TDDS_A2R10G10B10_SNORM: return VK_FORMAT_A2R10G10B10_SNORM_PACK32;
-//  case TDDS_G16R16_UNORM: return VK_FORMAT_UNDEFINED;
-//  case TDDS_G16R16_SNORM: return VK_FORMAT_UNDEFINED;
-    default: return VK_FORMAT_UNDEFINED;
-  }
-  // clang-format off
+    auto dxgi_format = static_cast<DXGI_FORMAT>(dds_format);
+    switch (dxgi_format) {
+#include "dxgiFormat2vkFormat.inl"
+    default:
+        return VK_FORMAT_UNDEFINED;
+    }
 }
 
 struct TinyDDS_CustomData {
@@ -627,6 +493,8 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     TinyDDS_Format dds_format = TinyDDS_GetFormat(dds_handle);
     if (dds_format == TDDS_UNDEFINED)
         fatal(rc::RUNTIME_ERROR, "Failed to retrieve DDS format (TDDS_UNDEFINED)");
+    if (dds_format >= TDDS_SYNTHESISED_DXGIFORMATS)
+        fatal(rc::RUNTIME_ERROR, "Unsupported synthesised DXGI format");
 
     VkFormat vkformat = dds_to_vkformat(dds_format);
     if (vkformat == VK_FORMAT_UNDEFINED)
