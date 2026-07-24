@@ -521,7 +521,7 @@ struct TinyDDS_CustomData {
 /// Deleter that wraps `TinyDDS_DestroyContext` to be passed to std::unique_ptr
 void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*handle); }
 
-#if 0
+#if 0  // This is just kept here in case we decide to use our own tinydds.h
 /// Mimics `ktxTexture2_GetImageSize` because TinyDDS' `TinyDDS_ImageSize`
 /// returns the size of an entire 3D texture, or entire array, or entire
 /// cubemap.
@@ -530,8 +530,6 @@ void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*ha
 /// an image at the specified mip level. For arrays, this is the size of a
 /// layer, for cubemaps, the size of a face and for 3D textures, the size of a
 /// depth slice.
-///
-/// TODO: The size reflects the padding of each row to KTX\_GL\_UNPACK\_ALIGNMENT.
 size_t TinyDDS_GetImageSize(TinyDDS_ContextHandle handle, int mipmaplevel) {
     const TinyDDS_Context* ctx = (TinyDDS_Context*)handle;
     if (ctx == NULL) return 0;
