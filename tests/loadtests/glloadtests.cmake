@@ -10,13 +10,13 @@ if(WIN32)
     find_package(GLEW REQUIRED)
 endif()
 
-function( create_gl_target target version sources common_resources ktx_image_sources
+function( create_gl_target target version sources common_resources ktx_file_sources
           KTX_GL_CONTEXT_PROFILE
           KTX_GL_CONTEXT_MAJOR_VERSION KTX_GL_CONTEXT_MINOR_VERSION
           EMULATE_GLES)
 
     set( resources
-       ${common_resources};${ktx_image_sources};
+       ${common_resources};${ktx_file_sources};
     )
 
     add_executable( ${target}
@@ -112,7 +112,7 @@ function( create_gl_target target version sources common_resources ktx_image_sou
         # Beware of de-duplication in list expansion for commands and options.
         # SHELL: prevents it but if they are separate items in the list they
         # be de-duplicated.
-        list( TRANSFORM ktx_image_sources REPLACE
+        list( TRANSFORM ktx_file_sources REPLACE
             "(${PROJECT_SOURCE_DIR}/tests/resources/(ktx|ktx2)/([a-zA-Z0-9_].*$))"
             "SHELL:--preload-file \\1@\\3"
             OUTPUT_VARIABLE preloads
@@ -251,35 +251,13 @@ function( create_gl_target target version sources common_resources ktx_image_sou
 
     else()
         if(WINDOWS OR LINUX)
-            # These custom targets, custom commands and dependencies copy
-            # the resources next to the executable for ease of use during
-            # debugging and testing. They have no effect on the install target.
-
-            # Copy the KTX images specific to the current target.
-            list(TRANSFORM ktx_image_sources
-                REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
-                OUTPUT_VARIABLE ktx_image_copies
-            )
-            add_custom_command(
-                OUTPUT ${ktx_image_copies}
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
-                COMMENT "Copy ${target}'s ktx images to build destination"
-                DEPENDS ${ktx_image_sources}
-                VERBATIM
-            )
-            add_custom_target(
-                copied_${target}_ktx_images
-                DEPENDS ${ktx_image_copies}
-            )
-            add_dependencies(
-                copied_${target}_ktx_images
-                copied_common_ktx_images
-            )
+            # These copy the resources to a shared resource directory next to
+            # the executables for ease of use during debugging and testing.
+            # They have no effect on the install targets.
             add_dependencies( ${target}
                 copied_ktx_icons
                 copied_models
-                copied_${target}_ktx_images
+                copied_ktx_files # Installs KTX files for configured targets.
             )
         endif()
 
@@ -337,15 +315,6 @@ function( create_gl_target target version sources common_resources ktx_image_sou
     endif()
 endfunction( create_gl_target target )
 
-set( es1_ktx_image_sources
-    no_npot.ktx
-    hi_mark.ktx
-    l8_unorm_metadata.ktx
-)
-list( TRANSFORM es1_ktx_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
-)
-
 set( es1_sources
     glloadtests/gles1/ES1LoadTests.cpp
     glloadtests/gles1/DrawTexture.cpp
@@ -353,30 +322,6 @@ set( es1_sources
     glloadtests/gles1/TexturedCube.cpp
     glloadtests/gles1/TexturedCube.h
 )
-
-set( gl3_ktx2_image_sources
-    FlightHelmet_baseColor_blze.ktx2
-    r8g8b8_srgb_mip.ktx2
-    r8g8b8a8_srgb.ktx2
-    r8g8b8a8_srgb_3d_7.ktx2
-)
-
-set( gl3_ktx_image_sources
-    conftestimage_R11_EAC.ktx
-    conftestimage_SIGNED_R11_EAC.ktx
-    conftestimage_RG11_EAC.ktx
-    conftestimage_SIGNED_RG11_EAC.ktx
-    hi_mark.ktx
-)
-list( TRANSFORM gl3_ktx2_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
-)
-list( TRANSFORM gl3_ktx_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
-)
-
-set( gl3_ktx12_image_sources ${gl3_ktx2_image_sources} ${gl3_ktx_image_sources} )
-source_group("Resources/KTX Images" FILES ${gl3_ktx12_image_sources})
 
 set( gl3_sources
     common/TranscodeTargetStrToFmt.cpp
@@ -421,7 +366,7 @@ if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
     create_gl_target( es1loadtests "ES1" "${es1_sources}"
         "${KTX_ICON_SOURCES}"                                   # common_resources
-        "${es1_ktx_image_sources}"                              # ktx_image_sources
+        "${ES1LOADTESTS_KTX_FILE_SOURCES}"                             # ktx_file_sources
         SDL_GL_CONTEXT_PROFILE_ES 1 0 ON
     )
 endif()
@@ -429,8 +374,8 @@ endif()
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
     create_gl_target( es3loadtests "ES3" "${gl3_sources}"
-        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}"             # common_resources
-        "${gl3_ktx12_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}" # ktx_image_sources
+        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}" # common_resources
+        "${GLLOADTESTS_KTX_FILE_SOURCES}"                              # ktx_file_sources
         SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES
     )
 endif()
@@ -438,15 +383,11 @@ endif()
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
     create_gl_target( gl3loadtests "GL3" "${gl3_sources}"
-        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}"              # common_resources
-        "${gl3_ktx12_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}" # ktx_image_sources
+        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}" # common_resources
+        "${GLLOADTESTS_KTX_FILE_SOURCES}"                              # ktx_file_sources
         SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES
     )
 endif()
 
 unset( es1_sources )
 unset( gl3_sources )
-unset( es1_ktx_image_sources )
-unset( gl3_ktx2_image_sources )
-unset( gl3_ktx_image_sources )
-unset( gl3_ktx12_image_sources )

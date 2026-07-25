@@ -72,24 +72,9 @@ add_custom_target(
     shader_texturemipmap
 )
 
-set( vkloadtests_ktx2_image_sources
-    alpha_complex_straight.ktx2
-    alpha_complex_premultiplied.ktx2
-    Desk_uastc_hdr4x4_zstd_15.ktx2
-    Desk_uastc_hdr6x6i.ktx2
-    ktx_document_blze.ktx2
-    ktx_document_uastc_rdo_4_zstd_5.ktx2
-    r8g8b8a8_srgb_array_7_mip.ktx2
-)
-list( TRANSFORM vkloadtests_ktx2_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
-)
-# All the ktx1 images used are shared with the other apps.
-
 set( KTX_RESOURCES
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
-    ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
-    ${vkloadtests_ktx2_image_sources}
+    ${VKLOADTESTS_KTX_FILE_SOURCES}
 )
 
 if(APPLE)
@@ -145,13 +130,11 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
     ${SHADER_SOURCES}
-    ${vkloadtests_ktx2_image_sources}
-    ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
+    ${VKLOADTESTS_KTX_FILE_SOURCES}
     ${Vulkan_SHARE_VULKAN}
 )
 
 source_group("Resources/Shaders" FILES ${SHADER_SOURCES})
-source_group("Resources/KTX Images" FILES ${vkloadtests_ktx2_image_sources})
 
 # Keep this in case something changes in the Vulkan implementation and we need to
 # explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
@@ -393,36 +376,16 @@ else()
         DEPENDS ${copied_shaders}
     )
     
-    list(TRANSFORM vkloadtests_ktx2_image_sources REPLACE ^[a-zA-Z0-9:/<>].*/ktx2 ${BUILDTIME_RESOURCES_DIR}
-        OUTPUT_VARIABLE copied_vkloadtests_ktx2_images
-    )
-
-    add_custom_command(
-        OUTPUT ${copied_vkloadtests_ktx2_images}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${vkloadtests_ktx2_image_sources} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy vkloadtests ktx2 images to build destination"
-        VERBATIM
-    )
-    add_custom_target(
-        copied_vkloadtests_ktx2_images
-        DEPENDS ${copied_vkloadtests_ktx2_images}
-    )
-    add_dependencies(
-        copied_vkloadtests_ktx2_images
-        copied_common_ktx_images
-    )
     add_dependencies(   
         vkloadtests
         copied_ktx_icons
         copied_models
         copied_shaders
-        copied_vkloadtests_ktx2_images
+        copied_ktx_files
     )
 
     unset( copied_shaders )
-    unset( copied_vkloadtests_ktx2_images )
-
+ 
     # To keep the resources (test images and models) close to the
     # executable and to be compliant with the Filesystem Hierarchy
     # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html

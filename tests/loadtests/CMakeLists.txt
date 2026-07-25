@@ -242,67 +242,160 @@ set( LOAD_TEST_COMMON_MODEL_SOURCES
 )
 source_group("Resources/Models" FILES ${LOAD_TEST_COMMON_MODEL_SOURCES})
 
-set( load_test_common_ktx2_image_sources
-    astc_8x8_unorm_array_7.ktx2
-    bc3_unorm_array_7.ktx2
-    color_grid_uastc_zstd_5.ktx2
-    color_grid_zstd_5.ktx2
-    color_grid_blze.ktx2
-    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
-    cubemap_yokohama_blze.ktx2
-    etc2_unorm_array_7.ktx2
-    Iron_Bars_001_normal_blze.ktx2
-    Iron_Bars_001_normal_uastc_zstd_10.ktx2
-    kodim17_blze.ktx2
-    orient_down_metadata.ktx2
-    orient_up_metadata.ktx2
-    pattern_02_bc2.ktx2
-    skybox_zstd_22.ktx2
-)
-list( TRANSFORM load_test_common_ktx2_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
-)
-
-set( load_test_common_ktx_image_sources
-    astc_8x8_unorm_array_7.ktx
-    bc3_unorm_array_7.ktx
-    etc1.ktx                     # For {es1,gl3,es3}loadtests
-    etc2_rgb.ktx
-    etc2_rgba1.ktx               # For {es1,gl3,es3}loadtests
-    etc2_rgba8.ktx
-    etc2_srgb.ktx
-    etc2_srgba1.ktx              # For {gl3,es3}loadtests
-    etc2_srgba8.ktx
-    etc2_unorm_array_7.ktx
-    hi_mark_sq.ktx               # For {es1,gl3,es3}loadtests
-    metalplate_amg.ktx
-    not4_r8g8b8_srgb.ktx
-    orient_down_metadata.ktx
-    orient_up_metadata.ktx
-    pattern_02_bc2.ktx
-    r8g8b8_srgb.ktx
-    r8g8b8_srgb_mip.ktx         # For {es1,gl3,es3}loadtests
-    r8g8b8_unorm_amg.ktx
-    r8g8b8a8_srgb.ktx
-)
-list( TRANSFORM load_test_common_ktx_image_sources
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
-)
-set( LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES
-    ${load_test_common_ktx2_image_sources}
-    ${load_test_common_ktx_image_sources}
-)
-source_group("Resources/KTX Images" FILES ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES})
-
-unset( load_test_common_ktx2_image_sources )
-unset( load_test_common_ktx_image_sources )
-
 # A custom loadtest_models target does not work as configure fails at
 # an install_target that uses this with an error "the target is not
 # an executable, library or module."
 #add_custom_target( loadtest_models
 #    SOURCES ${LOAD_TEST_COMMON_MODELS}
 #)
+
+set(test_resources_dir "${PROJECT_SOURCE_DIR}/tests/resources")
+# These KTX FILES lists are needed for installations such as on iOS and macOS
+# where each app has its own resource directory.
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
+    set( VKLOADTESTS_KTX2_FILE_SOURCES
+        alpha_complex_straight.ktx2
+        alpha_complex_premultiplied.ktx2
+        Desk_uastc_hdr4x4_zstd_15.ktx2
+        Desk_uastc_hdr6x6i.ktx2
+        ktx_document_blze.ktx2
+        ktx_document_uastc_rdo_4_zstd_5.ktx2
+        r8g8b8a8_srgb_array_7_mip.ktx2
+        astc_8x8_unorm_array_7.ktx2
+        bc3_unorm_array_7.ktx2
+        color_grid_uastc_zstd_5.ktx2
+        color_grid_zstd_5.ktx2
+        color_grid_blze.ktx2
+        cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+        cubemap_yokohama_blze.ktx2
+        etc2_unorm_array_7.ktx2
+        Iron_Bars_001_normal_blze.ktx2
+        Iron_Bars_001_normal_uastc_zstd_10.ktx2
+        kodim17_blze.ktx2
+        orient_down_metadata.ktx2
+        orient_up_metadata.ktx2
+        pattern_02_bc2.ktx2
+        skybox_zstd_22.ktx2
+    )
+    list( TRANSFORM VKLOADTESTS_KTX2_FILE_SOURCES
+        PREPEND "${test_resources_dir}/ktx2/"
+    )
+    set( VKLOADTESTS_KTX1_FILE_SOURCES
+        astc_8x8_unorm_array_7.ktx
+        bc3_unorm_array_7.ktx
+        etc1.ktx
+        etc2_rgb.ktx
+        etc2_rgba1.ktx
+        etc2_rgba8.ktx
+        etc2_srgb.ktx
+        etc2_srgba1.ktx
+        etc2_srgba8.ktx
+        etc2_unorm_array_7.ktx
+        hi_mark_sq.ktx
+        metalplate_amg.ktx
+        not4_r8g8b8_srgb.ktx
+        orient_down_metadata.ktx
+        orient_up_metadata.ktx
+        pattern_02_bc2.ktx
+        r8g8b8_srgb.ktx
+        r8g8b8_srgb_mip.ktx
+        r8g8b8_unorm_amg.ktx
+        r8g8b8a8_srgb.ktx
+    )
+    list( TRANSFORM VKLOADTESTS_KTX1_FILE_SOURCES
+        PREPEND "${test_resources_dir}/ktx/"
+    )
+    set( VKLOADTESTS_KTX_FILE_SOURCES
+        ${VKLOADTESTS_KTX2_FILE_SOURCES}
+        ${VKLOADTESTS_KTX1_FILE_SOURCES}
+    )
+endif()
+
+if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
+    set( GLLOADTESTS_KTX2_FILE_SOURCES
+        FlightHelmet_baseColor_blze.ktx2
+        r8g8b8_srgb_mip.ktx2
+        r8g8b8a8_srgb.ktx2
+        r8g8b8a8_srgb_3d_7.ktx2
+        astc_8x8_unorm_array_7.ktx2
+        bc3_unorm_array_7.ktx2
+        color_grid_uastc_zstd_5.ktx2
+        color_grid_zstd_5.ktx2
+        color_grid_blze.ktx2
+        cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+        cubemap_yokohama_blze.ktx2
+        etc2_unorm_array_7.ktx2
+        Iron_Bars_001_normal_blze.ktx2
+        Iron_Bars_001_normal_uastc_zstd_10.ktx2
+        kodim17_blze.ktx2
+        orient_down_metadata.ktx2
+        orient_up_metadata.ktx2
+        pattern_02_bc2.ktx2
+        skybox_zstd_22.ktx2
+    )
+    list( TRANSFORM GLLOADTESTS_KTX2_FILE_SOURCES
+        PREPEND "${test_resources_dir}/ktx2/"
+    )
+    set( GLLOADTESTS_KTX1_FILE_SOURCES
+        conftestimage_R11_EAC.ktx
+        conftestimage_SIGNED_R11_EAC.ktx
+        conftestimage_RG11_EAC.ktx
+        conftestimage_SIGNED_RG11_EAC.ktx
+        hi_mark.ktx
+        astc_8x8_unorm_array_7.ktx
+        bc3_unorm_array_7.ktx
+        etc1.ktx
+        etc2_rgb.ktx
+        etc2_rgba1.ktx
+        etc2_rgba8.ktx
+        etc2_srgb.ktx
+        etc2_srgba1.ktx
+        etc2_srgba8.ktx
+        etc2_unorm_array_7.ktx
+        hi_mark_sq.ktx
+        metalplate_amg.ktx
+        not4_r8g8b8_srgb.ktx
+        orient_down_metadata.ktx
+        orient_up_metadata.ktx
+        pattern_02_bc2.ktx
+        r8g8b8_srgb.ktx
+        r8g8b8_srgb_mip.ktx
+        r8g8b8_unorm_amg.ktx
+        r8g8b8a8_srgb.ktx
+    )
+    list( TRANSFORM GLLOADTESTS_KTX1_FILE_SOURCES
+        PREPEND "${test_resources_dir}/ktx/"
+    )
+    set( GLLOADTESTS_KTX_FILE_SOURCES
+        ${GLLOADTESTS_KTX2_FILE_SOURCES}
+        ${GLLOADTESTS_KTX1_FILE_SOURCES}
+    )
+
+    if(IOS OR OPENGL_ES_EMULATOR)
+        set( ES1LOADTESTS_KTX_FILE_SOURCES
+             no_npot.ktx
+             hi_mark.ktx
+             l8_unorm_metadata.ktx
+             orient_up_metadata.ktx
+             orient_down_metadata.ktx
+             etc1.ktx
+             etc2_rgb.ktx
+             etc2_rgba1.ktx
+             etc2_rgba8.ktx
+             r8g8b8a8_srgb.ktx
+             r8g8b8_srgb.ktx
+             r8g8b8_unorm_amg.ktx
+             r8g8b8_srgb_mip.ktx
+             hi_mark_sq.ktx
+        )
+        list( TRANSFORM ES1LOADTESTS_KTX_FILE_SOURCES
+            PREPEND "${test_resources_dir}/ktx/"
+        )
+    endif()
+    #cmake_print_variables(VKLOADTESTS_KTX_FILE_SOURCES GLLOADTESTS_KTX_FILE_SOURCES ES1LOADTESTS_KTX_FILE_SOURCES)
+endif()
+
+source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${test_resources_dir}/ktx(2?)/.*" )
 
 if(NOT APPLE AND NOT EMSCRIPTEN)
     # Arrange to copy resources next to the executable for ease of use
@@ -313,17 +406,17 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
     # being created, the models and some of the KTX files are shared by
     # both gl3loadtests and vkloadtests so when building in parallel the
     # instances of the rule may conflict giving rise to races. To avoid
-    # this use custom targets that become dependencies of the apps which
+    # this we use custom targets that become dependencies of the apps which
     # imposes a strict runtime order on the builds, avoiding races.
     #
     # IMPORTANT NOTE
     # These targets and copies play no part in eventual installation of the
-    # application and are only for convenience during development. Therefore 
-    # the above mentioned error does not occur.
+    # application and are only for convenience during development. How to
+    # install the resources on Windows and Linux has yet to be determined.
 
     # The resources directory is created in the build tree next to the
-    # executable's directory. This sibling relationship will be maintained
-    # when the app and its resources are installed on a system.
+    # executable's directory. The intention is to maintain this sibling
+    # relationship when the app and its resources are installed on a system.
     set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../resources)
 
     # Each of the following custom commands includes a COMMAND to make the
@@ -332,6 +425,7 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
     # will issue a warning that the command completed successfully but
     # no output was generated.
 
+    # Icons
     list(TRANSFORM KTX_ICON_SOURCES REPLACE
         "^${PROJECT_SOURCE_DIR}/icons/[a-zA-Z]+/" ${BUILDTIME_RESOURCES_DIR}/
         OUTPUT_VARIABLE ktx_icon_copies
@@ -351,6 +445,7 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
     )
     unset(ktx_icon_copies)
 
+    # Models
     set(load_test_common_models_copied
         ${LOAD_TEST_COLLADA_MODELS}
         ${LOAD_TEST_OBJ_MODELS}
@@ -370,24 +465,34 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
     )
     unset(load_test_common_models_copied)
 
-    list(TRANSFORM LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
-        OUTPUT_VARIABLE common_ktx_image_copies
+    # KTX files
+    set( ktx_file_sources
+        ${VKLOADTESTS_KTX_FILE_SOURCES}
+        ${GLLOADTESTS_KTX_FILE_SOURCES}
+        ${ES1LOADTESTS_KTX_FILE_SOURCES}
     )
+    list(REMOVE_DUPLICATES ktx_file_sources)
+    list(SORT ktx_file_sources)
+    # The last slash in the regex is VERY important because some of the
+    # files have names beginning with "ktx_" and we don't want to replace
+    # that part of the name.
+    list(TRANSFORM ktx_file_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)/" ${BUILDTIME_RESOURCES_DIR}/
+        OUTPUT_VARIABLE ktx_file_copies
+    )
+    cmake_print_variables(ktx_file_copies)
     add_custom_command(
-        OUTPUT ${common_ktx_image_copies}
+        OUTPUT ${ktx_file_copies}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy common KTX and KTX2 images to buildtime resource destination"
-        DEPENDS ${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_file_sources} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy KTX and KTX2 images to buildtime resource destination"
+        DEPENDS ${ktx_file_sources}
         VERBATIM
     )
     add_custom_target(
-        copied_common_ktx_images
-        DEPENDS ${common_ktx_image_copies}  
+        copied_ktx_files
+        DEPENDS ${ktx_file_copies}  
     )
-    # To ensure the resources directory is created before copying KTX images.
-    #add_dependencies( copied_common_ktx_images copied_models )
-    unset( common_ktx_image_copies )
+    unset( ktx_file_copies )
 endif()
 
 if(LINUX)
