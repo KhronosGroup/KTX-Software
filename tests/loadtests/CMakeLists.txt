@@ -201,9 +201,9 @@ elseif(WIN32)
     )
 endif()
 
-set( ktx_icon_sources ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE} )
+set( KTX_ICON_SOURCES ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE} )
 source_group( "Resources" FILES
-    ${ktx_icon_sources}
+    ${KTX_ICON_SOURCES}
 )
 
 set( LOAD_TEST_COLLADA_MODELS
@@ -304,7 +304,7 @@ unset( load_test_common_ktx_image_sources )
 #    SOURCES ${LOAD_TEST_COMMON_MODELS}
 #)
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT EMSCRIPTEN)
     # Arrange to copy resources next to the executable for ease of use
     # during debugging and testing. Not needed on Apple because resources
     # are copied into the built bundles.
@@ -332,7 +332,7 @@ if(NOT APPLE)
     # will issue a warning that the command completed successfully but
     # no output was generated.
 
-    list(TRANSFORM ktx_icon_sources REPLACE
+    list(TRANSFORM KTX_ICON_SOURCES REPLACE
         "^${PROJECT_SOURCE_DIR}/icons/[a-zA-Z]+/" ${BUILDTIME_RESOURCES_DIR}/
         OUTPUT_VARIABLE ktx_icon_copies
     )
@@ -340,9 +340,9 @@ if(NOT APPLE)
         OUTPUT ${ktx_icon_copies}
         # Make the directory
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_icon_sources} ${BUILDTIME_RESOURCES_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${KTX_ICON_SOURCES} ${BUILDTIME_RESOURCES_DIR}
         COMMENT "Create buildtime resource destination and copy icons to it"
-        DEPENDS ${ktx_icon_sources}
+        DEPENDS ${KTX_ICON_SOURCES}
         VERBATIM
     )
     add_custom_target(
@@ -350,7 +350,6 @@ if(NOT APPLE)
         DEPENDS ${ktx_icon_copies}
     )
     unset(ktx_icon_copies)
-    unset(ktx_icon_sources)
 
     set(load_test_common_models_copied
         ${LOAD_TEST_COLLADA_MODELS}

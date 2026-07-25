@@ -16,7 +16,7 @@ function( create_gl_target target version sources common_resources ktx_image_sou
           EMULATE_GLES)
 
     set( resources
-       ${common_resources};${ktx_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}
+       ${common_resources};${ktx_image_sources};
     )
 
     add_executable( ${target}
@@ -250,39 +250,42 @@ function( create_gl_target target version sources common_resources ktx_image_sou
         endif()
 
     else()
+        if(WINDOWS OR LINUX)
+            # These custom targets, custom commands and dependencies copy
+            # the resources next to the executable for ease of use during
+            # debugging and testing. They have no effect on the install target.
+
+            # Copy the KTX images specific to the current target.
+            list(TRANSFORM ktx_image_sources
+                REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
+                OUTPUT_VARIABLE ktx_image_copies
+            )
+            add_custom_command(
+                OUTPUT ${ktx_image_copies}
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
+                COMMENT "Copy ${target}'s ktx images to build destination"
+                DEPENDS ${ktx_image_sources}
+                VERBATIM
+            )
+            add_custom_target(
+                copied_${target}_ktx_images
+                DEPENDS ${ktx_image_copies}
+            )
+            add_dependencies(
+                copied_${target}_ktx_images
+                copied_common_ktx_images
+            )
+            add_dependencies( ${target}
+                copied_ktx_icons
+                copied_models
+                copied_${target}_ktx_images
+            )
+        endif()
+
         if(EMSCRIPTEN)
             set_target_properties(${target} PROPERTIES SUFFIX ".html")
         endif()
-
-        # These custom targets, custom commands and dependencies copy
-        # the resources next to the executable for ease of use during
-        # debugging and testing. They have no effect on the install target.
-
-        # Copy the KTX images specific to the current target.
-        list(TRANSFORM ktx_image_sources REPLACE "^[a-zA-Z0-9:/<>].*/ktx(2?)" ${BUILDTIME_RESOURCES_DIR}
-            OUTPUT_VARIABLE ktx_image_copies
-        )
-        add_custom_command(
-            OUTPUT ${ktx_image_copies}
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ktx_image_sources} ${BUILDTIME_RESOURCES_DIR}
-            COMMENT "Copy ${target}'s ktx images to build destination"
-            DEPENDS ${ktx_image_sources}
-            VERBATIM
-        )
-        add_custom_target(
-            copied_${target}_ktx_images
-            DEPENDS ${ktx_image_copies}
-        )
-        add_dependencies(
-            copied_${target}_ktx_images
-            copied_common_ktx_images
-        )
-        add_dependencies( ${target}
-            copied_ktx_icons
-            copied_models
-            copied_${target}_ktx_images
-        )
 
         # See important comment and TODO:s starting at line 365
         # in ./vkloadtests.cmake regarding installation of these
@@ -416,17 +419,29 @@ endif()
 
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${es1_sources}" "${KTX_APP_ICON_SOURCE}" "${es1_ktx_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 1 0 ON)
+    create_gl_target( es1loadtests "ES1" "${es1_sources}"
+        "${KTX_ICON_SOURCES}"                                   # common_resources
+        "${es1_ktx_image_sources}"                              # ktx_image_sources
+        SDL_GL_CONTEXT_PROFILE_ES 1 0 ON
+    )
 endif()
 
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
-    create_gl_target( es3loadtests "ES3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_ktx12_image_sources}" SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES)
+    create_gl_target( es3loadtests "ES3" "${gl3_sources}"
+        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}"             # common_resources
+        "${gl3_ktx12_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}" # ktx_image_sources
+        SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES
+    )
 endif()
 
 if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
-    create_gl_target( gl3loadtests "GL3" "${gl3_sources}" "${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}" "${gl3_ktx12_image_sources}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
+    create_gl_target( gl3loadtests "GL3" "${gl3_sources}"
+        "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}"              # common_resources
+        "${gl3_ktx12_image_sources};${LOAD_TEST_COMMON_KTX12_IMAGE_SOURCES}" # ktx_image_sources
+        SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES
+    )
 endif()
 
 unset( es1_sources )
