@@ -1,8 +1,9 @@
 // Copyright (C) Microsoft Corporation.
-// Licensed under the MIT license
+// SPDX-License-Identifier: MIT
 
 #pragma once
 
+// From: https://learn.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 typedef enum DXGI_FORMAT {
     DXGI_FORMAT_UNKNOWN = 0,
     DXGI_FORMAT_R32G32B32A32_TYPELESS = 1,
