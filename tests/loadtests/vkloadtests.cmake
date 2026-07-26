@@ -85,10 +85,10 @@ set( ktx2_file_sources
     Desk_uastc_hdr4x4_zstd_15.ktx2
     Desk_uastc_hdr6x6i.ktx2
     etc2_unorm_array_7.ktx2
-    ktx_document_blze.ktx2
-    ktx_document_uastc_rdo_4_zstd_5.ktx2
     Iron_Bars_001_normal_blze.ktx2
     Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    ktx_document_blze.ktx2
+    ktx_document_uastc_rdo_4_zstd_5.ktx2
     kodim17_blze.ktx2
     orient_down_metadata.ktx2
     orient_up_metadata.ktx2
@@ -110,7 +110,6 @@ set( ktx1_file_sources
     etc2_srgb.ktx
     etc2_srgba8.ktx
     etc2_unorm_array_7.ktx
-    hi_mark_sq.ktx
     metalplate_amg.ktx
     not4_r8g8b8_srgb.ktx
     orient_down_metadata.ktx

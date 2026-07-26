@@ -368,7 +368,6 @@ set( gl_ktx2_file_sources
     r8g8b8_srgb_mip.ktx2
     r8g8b8a8_srgb.ktx2
     r8g8b8a8_srgb_3d_7.ktx2
-    skybox_zstd_22.ktx2
 )
 list( TRANSFORM gl_ktx2_file_sources
     PREPEND "${TEST_RESOURCES_DIR}/ktx2/"
