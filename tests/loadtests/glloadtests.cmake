@@ -315,13 +315,110 @@ function( create_gl_target target version sources common_resources ktx_file_sour
     endif()
 endfunction( create_gl_target target )
 
-set( es1_sources
-    glloadtests/gles1/ES1LoadTests.cpp
-    glloadtests/gles1/DrawTexture.cpp
-    glloadtests/gles1/DrawTexture.h
-    glloadtests/gles1/TexturedCube.cpp
-    glloadtests/gles1/TexturedCube.h
+if(WIN32)
+    if(NOT OPENGL_ES_EMULATOR)
+        message("OPENGL_ES_EMULATOR not set. Will not build OpenGL ES load tests applications.")
+    else()
+        set(EMULATE_GLES ON)
+    endif()
+endif()
+
+if(IOS OR EMULATE_GLES)
+    # OpenGL ES 1.0
+    set( es1_ktx_file_sources
+            no_npot.ktx
+            hi_mark.ktx
+            l8_unorm_metadata.ktx
+            orient_up_metadata.ktx
+            orient_down_metadata.ktx
+            etc1.ktx
+            etc2_rgb.ktx
+            etc2_rgba1.ktx
+            etc2_rgba8.ktx
+            r8g8b8a8_srgb.ktx
+            r8g8b8_srgb.ktx
+            r8g8b8_unorm_amg.ktx
+            r8g8b8_srgb_mip.ktx
+            hi_mark_sq.ktx
+    )
+    list( TRANSFORM es1_ktx_file_sources
+        PREPEND "${TEST_RESOURCES_DIR}/ktx/"
+    )
+
+    set( es1_sources
+        glloadtests/gles1/ES1LoadTests.cpp
+        glloadtests/gles1/DrawTexture.cpp
+        glloadtests/gles1/DrawTexture.h
+        glloadtests/gles1/TexturedCube.cpp
+        glloadtests/gles1/TexturedCube.h
+    )
+
+    create_gl_target( es1loadtests "ES1" "${es1_sources}"
+        "${KTX_ICON_SOURCES}"                     # common_resources
+        "${es1_ktx_file_sources}"                 # ktx_file_sources
+        SDL_GL_CONTEXT_PROFILE_ES 1 0 ON
+    )
+endif()
+
+set( gl_ktx2_file_sources
+    FlightHelmet_baseColor_blze.ktx2
+    r8g8b8_srgb_mip.ktx2
+    r8g8b8a8_srgb.ktx2
+    r8g8b8a8_srgb_3d_7.ktx2
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
+    color_grid_uastc_zstd_5.ktx2
+    color_grid_zstd_5.ktx2
+    color_grid_blze.ktx2
+    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+    cubemap_yokohama_blze.ktx2
+    etc2_unorm_array_7.ktx2
+    Iron_Bars_001_normal_blze.ktx2
+    Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    kodim17_blze.ktx2
+    orient_down_metadata.ktx2
+    orient_up_metadata.ktx2
+    pattern_02_bc2.ktx2
+    skybox_zstd_22.ktx2
 )
+list( TRANSFORM gl_ktx2_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx2/"
+)
+set( gl_ktx1_file_sources
+    conftestimage_R11_EAC.ktx
+    conftestimage_SIGNED_R11_EAC.ktx
+    conftestimage_RG11_EAC.ktx
+    conftestimage_SIGNED_RG11_EAC.ktx
+    hi_mark.ktx
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
+    etc1.ktx
+    etc2_rgb.ktx
+    etc2_rgba1.ktx
+    etc2_rgba8.ktx
+    etc2_srgb.ktx
+    etc2_srgba1.ktx
+    etc2_srgba8.ktx
+    etc2_unorm_array_7.ktx
+    hi_mark_sq.ktx
+    metalplate_amg.ktx
+    not4_r8g8b8_srgb.ktx
+    orient_down_metadata.ktx
+    orient_up_metadata.ktx
+    pattern_02_bc2.ktx
+    r8g8b8_srgb.ktx
+    r8g8b8_srgb_mip.ktx
+    r8g8b8_unorm_amg.ktx
+    r8g8b8a8_srgb.ktx
+)
+list( TRANSFORM gl_ktx1_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx/"
+)
+set( gl_ktx_file_sources
+    ${gl_ktx2_file_sources}
+    ${gl_ktx1_file_sources}
+)
+source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
 
 set( gl3_sources
     common/TranscodeTargetStrToFmt.cpp
@@ -354,28 +451,11 @@ set( gl3_sources
     glloadtests/utils/GLTextureTranscoder.hpp
 )
 
-if(WIN32)
-    if(NOT OPENGL_ES_EMULATOR)
-        message("OPENGL_ES_EMULATOR not set. Will not build OpenGL ES load tests applications.")
-    else()
-        set(EMULATE_GLES ON)
-    endif()
-endif()
-
-if(IOS OR EMULATE_GLES)
-    # OpenGL ES 1.0
-    create_gl_target( es1loadtests "ES1" "${es1_sources}"
-        "${KTX_ICON_SOURCES}"                                   # common_resources
-        "${ES1LOADTESTS_KTX_FILE_SOURCES}"                             # ktx_file_sources
-        SDL_GL_CONTEXT_PROFILE_ES 1 0 ON
-    )
-endif()
-
 if(IOS OR EMSCRIPTEN OR EMULATE_GLES)
     # OpenGL ES 3.0
     create_gl_target( es3loadtests "ES3" "${gl3_sources}"
         "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}" # common_resources
-        "${GLLOADTESTS_KTX_FILE_SOURCES}"                              # ktx_file_sources
+        "${gl_ktx_file_sources}"                                # ktx_file_sources
         SDL_GL_CONTEXT_PROFILE_ES 3 0 ON YES
     )
 endif()
@@ -384,10 +464,14 @@ if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
     create_gl_target( gl3loadtests "GL3" "${gl3_sources}"
         "${KTX_ICON_SOURCES};${LOAD_TEST_COMMON_MODEL_SOURCES}" # common_resources
-        "${GLLOADTESTS_KTX_FILE_SOURCES}"                              # ktx_file_sources
+        "${gl_ktx_file_sources}"                                # ktx_file_sources
         SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES
     )
 endif()
 
 unset( es1_sources )
+unset( es1_ktx_file_sources )
 unset( gl3_sources )
+unset( gl_ktx_file_sources )
+unset( gl_ktx1_file_sources )
+unset( gl_ktx2_file_sources )

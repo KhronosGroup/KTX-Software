@@ -35,7 +35,7 @@ if(APPLE)
         set( Vulkan_SHARE_VULKAN appfwSDL/VulkanAppSDL/mac/vulkan )
     endif()
 else()
-    find_package(Vulkan REQUIRED)
+    find_package( Vulkan REQUIRED )
 endif()
 
 #cmake_print_variables(
@@ -47,8 +47,8 @@ endif()
 
 include(compile_shader.cmake)
 
-set(SHADER_SOURCES "")
-set(SHADER_SPVS "")
+set( SHADER_SOURCES "" )
+set( SHADER_SPVS "" )
 
 compile_shader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
 compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
@@ -72,9 +72,64 @@ add_custom_target(
     shader_texturemipmap
 )
 
+set( ktx2_file_sources
+    alpha_complex_straight.ktx2
+    alpha_complex_premultiplied.ktx2
+    Desk_uastc_hdr4x4_zstd_15.ktx2
+    Desk_uastc_hdr6x6i.ktx2
+    ktx_document_blze.ktx2
+    ktx_document_uastc_rdo_4_zstd_5.ktx2
+    r8g8b8a8_srgb_array_7_mip.ktx2
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
+    color_grid_uastc_zstd_5.ktx2
+    color_grid_zstd_5.ktx2
+    color_grid_blze.ktx2
+    cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
+    cubemap_yokohama_blze.ktx2
+    etc2_unorm_array_7.ktx2
+    Iron_Bars_001_normal_blze.ktx2
+    Iron_Bars_001_normal_uastc_zstd_10.ktx2
+    kodim17_blze.ktx2
+    orient_down_metadata.ktx2
+    orient_up_metadata.ktx2
+    pattern_02_bc2.ktx2
+    skybox_zstd_22.ktx2
+)
+list( TRANSFORM ktx2_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx2/"
+)
+set( ktx1_file_sources
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
+    etc1.ktx
+    etc2_rgb.ktx
+    etc2_rgba1.ktx
+    etc2_rgba8.ktx
+    etc2_srgb.ktx
+    etc2_srgba1.ktx
+    etc2_srgba8.ktx
+    etc2_unorm_array_7.ktx
+    hi_mark_sq.ktx
+    metalplate_amg.ktx
+    not4_r8g8b8_srgb.ktx
+    orient_down_metadata.ktx
+    orient_up_metadata.ktx
+    pattern_02_bc2.ktx
+    r8g8b8_srgb.ktx
+    r8g8b8_srgb_mip.ktx
+    r8g8b8_unorm_amg.ktx
+    r8g8b8a8_srgb.ktx
+)
+list( TRANSFORM ktx1_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx/"
+)
+
 set( KTX_RESOURCES
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
-    ${VKLOADTESTS_KTX_FILE_SOURCES}
+    ${ktx2_file_sources}
+    ${ktx1_file_sources}
+    ${SHADER_SPVS}
 )
 
 if(APPLE)
@@ -130,11 +185,13 @@ add_executable( vkloadtests
     ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
     ${SHADER_SOURCES}
-    ${VKLOADTESTS_KTX_FILE_SOURCES}
+    ${ktx2_file_sources}
+    ${ktx1_file_sources}
     ${Vulkan_SHARE_VULKAN}
 )
 
-source_group("Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group( "Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
 # explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
@@ -152,7 +209,6 @@ if(APPLE_LOCKED_OS)
         appfwSDL/uikitSetEDR.mm
     )
 endif()
-
 
 set_code_sign(vkloadtests)
 
@@ -246,7 +302,7 @@ PRIVATE
     $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
-set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SPVS}" )
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
 
 if(APPLE)
     set( product_name vkloadtests )
@@ -352,6 +408,10 @@ if(APPLE)
 else()
     # This is for other platforms.
 
+    # See parent CMakeLists.txt for custom target and command to copy
+    # resources next to the built executable for ease of use during
+    # debugging and testing. They have no effect on the install target.
+
     # These custom targets, custom commands and dependencies copy
     # the resources next to the executable for ease of use during
     # debugging and testing. They have no effect on the install target.
@@ -361,30 +421,30 @@ else()
     # consistency we handle these resources in the same way as the shared
     # resources.
 
-    list(TRANSFORM SHADER_SPVS REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
-        OUTPUT_VARIABLE copied_shaders
-    )
-    add_custom_command(
-        OUTPUT ${copied_shaders}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SPVS} ${BUILDTIME_RESOURCES_DIR}
-        COMMENT "Copy shaders to build destination"
-        VERBATIM
-    )
-    add_custom_target(
-        copied_shaders
-        DEPENDS ${copied_shaders}
-    )
+    #list(TRANSFORM SHADER_SPVS REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
+    #    OUTPUT_VARIABLE copied_shaders
+    #)
+    #add_custom_command(
+    #    OUTPUT ${copied_shaders}
+    #    COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
+    #    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SPVS} ${BUILDTIME_RESOURCES_DIR}
+    #    COMMENT "Copy shaders to build destination"
+    #    VERBATIM
+    #)
+    #add_custom_target(
+    #    copied_shaders
+    #    DEPENDS ${copied_shaders}
+    #)
     
-    add_dependencies(   
-        vkloadtests
-        copied_ktx_icons
-        copied_models
-        copied_shaders
-        copied_ktx_files
-    )
+    #add_dependencies(   
+    #    vkloadtests
+    #    copied_ktx_icons
+    #    copied_models
+    #    copied_shaders
+    #    copied_ktx_files
+    #)
 
-    unset( copied_shaders )
+    #unset( copied_shaders )
  
     # To keep the resources (test images and models) close to the
     # executable and to be compliant with the Filesystem Hierarchy
