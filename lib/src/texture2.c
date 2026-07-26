@@ -1264,19 +1264,26 @@ ktxTexture2_constructFromMemory(ktxTexture2* This,
 /**
  * @memberof ktxTexture2 @private
  * @~English
- * @brief Destruct a ktxTexture2, freeing and internal memory.
+ * @brief Free the memory associated with the ktxTexture2 contents
  *
- * @param[in] This pointer to a ktxTexture2-sized block of memory to
- *                 initialize.
+ * @param[in] This pointer to the ktxTexture2 whose texture contents are to be
+ *                 freed.
  */
 void
 ktxTexture2_destruct(ktxTexture2* This)
 {
-    if (This->pDfd) free(This->pDfd);
+    if (This->pDfd) {
+      free(This->pDfd);
+      This->pDfd = NULL;
+    }
     if (This->_private) {
       ktx_uint8_t* sgd = This->_private->_supercompressionGlobalData;
-      if (sgd) free(sgd);
+      if (sgd) {
+        free(sgd);
+        This->_private->_supercompressionGlobalData = NULL;
+      }
       free(This->_private);
+      This->_private = NULL;
     }
     ktxTexture_destruct(ktxTexture(This));
 }

@@ -16,6 +16,7 @@
  * @author Mark Callow, github.com/MarkCallow
  */
 
+#include <stdatomic.h>
 #if defined(_WIN32)
   #define _CRT_SECURE_NO_WARNINGS
   #ifndef __cplusplus
@@ -85,12 +86,15 @@ ktxTexture_construct(ktxTexture* This,
                      const ktxTextureCreateInfo* const createInfo,
                      ktxFormatSize* formatSize)
 {
+    KTX_error_code result;
     DECLARE_PROTECTED(ktxTexture);
 
     memset(This, 0, sizeof(*This));
     This->_protected = (struct ktxTexture_protected*)malloc(sizeof(*prtctd));
-    if (!This->_protected)
-        return KTX_OUT_OF_MEMORY;
+    if (!This->_protected) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     prtctd = This->_protected;
     memset(prtctd, 0, sizeof(*prtctd));
     memcpy(&prtctd->_formatSize, formatSize, sizeof(prtctd->_formatSize));
@@ -104,22 +108,30 @@ ktxTexture_construct(ktxTexture* This,
     /* Check texture dimensions. KTX files can store 8 types of textures:
      * 1D, 2D, 3D, cube, and array variants of these.
      */
-    if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3)
-        goto error_invalid_value;
+    if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
 
     if (createInfo->baseWidth == 0 || createInfo->baseHeight == 0
-        || createInfo->baseDepth == 0)
-        goto error_invalid_value;
+        || createInfo->baseDepth == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
 
     switch (createInfo->numDimensions) {
       case 1:
-        if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
-            goto error_invalid_operation;
+        if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
 
       case 2:
-        if (createInfo->baseDepth > 1)
-            goto error_invalid_operation;
+        if (createInfo->baseDepth > 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
 
       case 3:
@@ -127,8 +139,10 @@ ktxTexture_construct(ktxTexture* This,
          * OpenGL or Vulkan.
          */
         if (createInfo->isArray || createInfo->numFaces != 1
-            || createInfo->numLayers != 1)
-            goto error_invalid_operation;
+            || createInfo->numLayers != 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
     }
     This->numDimensions = createInfo->numDimensions;
@@ -136,30 +150,37 @@ ktxTexture_construct(ktxTexture* This,
     This->baseDepth = createInfo->baseDepth;
     This->baseHeight = createInfo->baseHeight;
 
-    if (createInfo->numLayers == 0)
-        goto error_invalid_value;
+    if (createInfo->numLayers == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
     This->numLayers = createInfo->numLayers;
     This->isArray = createInfo->isArray;
 
     if (createInfo->numFaces == 6) {
         if (This->numDimensions != 2) {
             /* cube map needs 2D faces */
-            goto error_invalid_operation;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
         if (createInfo->baseWidth != createInfo->baseHeight) {
             /* cube maps require square images */
-            goto error_invalid_operation;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
         This->isCubemap = KTX_TRUE;
     } else if (createInfo->numFaces != 1) {
         /* numFaces must be either 1 or 6 */
-        goto error_invalid_value;
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
     }
     This->numFaces = createInfo->numFaces;
 
     /* Check number of mipmap levels */
-    if (createInfo->numLevels == 0)
-        goto error_invalid_value;
+    if (createInfo->numLevels == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
     This->numLevels = createInfo->numLevels;
     This->generateMipmaps = createInfo->generateMipmaps;
 
@@ -169,22 +190,17 @@ ktxTexture_construct(ktxTexture* This,
         if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
-            goto error_invalid_operation;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
     }
 
     ktxHashList_Construct(&This->kvDataHead);
     return KTX_SUCCESS;
 
-error_invalid_value:
-    free(This->_protected);
-    This->_protected = NULL;
-    return KTX_INVALID_VALUE;
-
-error_invalid_operation:
-    free(This->_protected);
-    This->_protected = NULL;
-    return KTX_INVALID_OPERATION;
+cleanup:
+    ktxTexture_destruct(This);
+    return result;
 }
 
 /**
@@ -230,8 +246,8 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
  * @~English
  * @brief Free the memory associated with the texture contents
  *
- * @param[in] This pointer to the ktxTextureInt whose texture contents are
- *                 to be freed.
+ * @param[in] This pointer to the ktxTexture whose texture contents are to be
+ *                 freed.
  */
 void
 ktxTexture_destruct(ktxTexture* This)
@@ -242,16 +258,21 @@ ktxTexture_destruct(ktxTexture* This)
             stream.destruct(&stream);
             stream.data.file = NULL;
         }
-    }
-
-    if (This->kvDataHead != NULL)
-        ktxHashList_Destruct(&This->kvDataHead);
-    if (This->kvData != NULL)
-        free(This->kvData);
-    if (This->pData != NULL)
-        free(This->pData);
-    if (This->_protected != NULL)
         free(This->_protected);
+        This->_protected = NULL;
+    }
+    if (This->kvDataHead != NULL) {
+        ktxHashList_Destruct(&This->kvDataHead);
+        This->kvDataHead = NULL;
+    }
+    if (This->kvData != NULL) {
+        free(This->kvData);
+        This->kvData = NULL;
+    }
+    if (This->pData != NULL) {
+        free(This->pData);
+        This->pData = NULL;
+    }
 }
 
 
