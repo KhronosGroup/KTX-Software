@@ -315,20 +315,20 @@ endif()
 if(IOS OR EMULATE_GLES)
     # OpenGL ES 1.0
     set( es1_ktx_file_sources
-            no_npot.ktx
-            hi_mark.ktx
-            l8_unorm_metadata.ktx
-            orient_up_metadata.ktx
-            orient_down_metadata.ktx
             etc1.ktx
             etc2_rgb.ktx
             etc2_rgba1.ktx
             etc2_rgba8.ktx
+            hi_mark.ktx
+            hi_mark_sq.ktx
+            l8_unorm_metadata.ktx
+            no_npot.ktx
+            orient_up_metadata.ktx
+            orient_down_metadata.ktx
             r8g8b8a8_srgb.ktx
             r8g8b8_srgb.ktx
             r8g8b8_unorm_amg.ktx
             r8g8b8_srgb_mip.ktx
-            hi_mark_sq.ktx
     )
     list( TRANSFORM es1_ktx_file_sources
         PREPEND "${TEST_RESOURCES_DIR}/ktx/"
@@ -350,10 +350,6 @@ if(IOS OR EMULATE_GLES)
 endif()
 
 set( gl_ktx2_file_sources
-    FlightHelmet_baseColor_blze.ktx2
-    r8g8b8_srgb_mip.ktx2
-    r8g8b8a8_srgb.ktx2
-    r8g8b8a8_srgb_3d_7.ktx2
     astc_8x8_unorm_array_7.ktx2
     bc3_unorm_array_7.ktx2
     color_grid_uastc_zstd_5.ktx2
@@ -362,25 +358,28 @@ set( gl_ktx2_file_sources
     cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
     cubemap_yokohama_blze.ktx2
     etc2_unorm_array_7.ktx2
+    FlightHelmet_baseColor_blze.ktx2
     Iron_Bars_001_normal_blze.ktx2
     Iron_Bars_001_normal_uastc_zstd_10.ktx2
     kodim17_blze.ktx2
     orient_down_metadata.ktx2
     orient_up_metadata.ktx2
     pattern_02_bc2.ktx2
+    r8g8b8_srgb_mip.ktx2
+    r8g8b8a8_srgb.ktx2
+    r8g8b8a8_srgb_3d_7.ktx2
     skybox_zstd_22.ktx2
 )
 list( TRANSFORM gl_ktx2_file_sources
     PREPEND "${TEST_RESOURCES_DIR}/ktx2/"
 )
 set( gl_ktx1_file_sources
+    astc_8x8_unorm_array_7.ktx
+    bc3_unorm_array_7.ktx
     conftestimage_R11_EAC.ktx
     conftestimage_SIGNED_R11_EAC.ktx
     conftestimage_RG11_EAC.ktx
     conftestimage_SIGNED_RG11_EAC.ktx
-    hi_mark.ktx
-    astc_8x8_unorm_array_7.ktx
-    bc3_unorm_array_7.ktx
     etc1.ktx
     etc2_rgb.ktx
     etc2_rgba1.ktx
@@ -389,6 +388,7 @@ set( gl_ktx1_file_sources
     etc2_srgba1.ktx
     etc2_srgba8.ktx
     etc2_unorm_array_7.ktx
+    hi_mark.ktx
     hi_mark_sq.ktx
     metalplate_amg.ktx
     not4_r8g8b8_srgb.ktx

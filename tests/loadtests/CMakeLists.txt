@@ -305,11 +305,10 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
 
     list( REMOVE_DUPLICATES combined_resources )
     list( SORT combined_resources )
-
     list( TRANSFORM combined_resources REPLACE "^[-a-zA-Z0-9_:/<>].*/" ${BUILDTIME_RESOURCES_DIR}/
         OUTPUT_VARIABLE combined_resource_copies
     )
-    cmake_print_variables(combined_resource_copies)
+
     add_custom_command(
         OUTPUT ${combined_resource_copies}
         COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
@@ -338,7 +337,6 @@ if(NOT APPLE AND NOT EMSCRIPTEN)
 
     unset( combined_resource_copies )
     unset( combined_resources )
-
 endif()
 
 

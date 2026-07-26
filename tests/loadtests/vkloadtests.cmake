@@ -75,11 +75,6 @@ add_custom_target(
 set( ktx2_file_sources
     alpha_complex_straight.ktx2
     alpha_complex_premultiplied.ktx2
-    Desk_uastc_hdr4x4_zstd_15.ktx2
-    Desk_uastc_hdr6x6i.ktx2
-    ktx_document_blze.ktx2
-    ktx_document_uastc_rdo_4_zstd_5.ktx2
-    r8g8b8a8_srgb_array_7_mip.ktx2
     astc_8x8_unorm_array_7.ktx2
     bc3_unorm_array_7.ktx2
     color_grid_uastc_zstd_5.ktx2
@@ -87,13 +82,21 @@ set( ktx2_file_sources
     color_grid_blze.ktx2
     cubemap_goldengate_uastc_rdo_4_zstd_5.ktx2
     cubemap_yokohama_blze.ktx2
+    Desk_uastc_hdr4x4_zstd_15.ktx2
+    Desk_uastc_hdr6x6i.ktx2
     etc2_unorm_array_7.ktx2
+    ktx_document_blze.ktx2
+    ktx_document_uastc_rdo_4_zstd_5.ktx2
     Iron_Bars_001_normal_blze.ktx2
     Iron_Bars_001_normal_uastc_zstd_10.ktx2
     kodim17_blze.ktx2
     orient_down_metadata.ktx2
     orient_up_metadata.ktx2
     pattern_02_bc2.ktx2
+    r8g8b8a8_srgb.ktx2
+    r8g8b8a8_srgb_3d_7.ktx2
+    r8g8b8a8_srgb_array_7_mip.ktx2
+    r8g8b8a8_srgb_mip_blze.ktx2
     skybox_zstd_22.ktx2
 )
 list( TRANSFORM ktx2_file_sources
@@ -102,12 +105,9 @@ list( TRANSFORM ktx2_file_sources
 set( ktx1_file_sources
     astc_8x8_unorm_array_7.ktx
     bc3_unorm_array_7.ktx
-    etc1.ktx
     etc2_rgb.ktx
-    etc2_rgba1.ktx
     etc2_rgba8.ktx
     etc2_srgb.ktx
-    etc2_srgba1.ktx
     etc2_srgba8.ktx
     etc2_unorm_array_7.ktx
     hi_mark_sq.ktx
@@ -116,8 +116,6 @@ set( ktx1_file_sources
     orient_down_metadata.ktx
     orient_up_metadata.ktx
     pattern_02_bc2.ktx
-    r8g8b8_srgb.ktx
-    r8g8b8_srgb_mip.ktx
     r8g8b8_unorm_amg.ktx
     r8g8b8a8_srgb.ktx
 )
@@ -412,40 +410,8 @@ else()
     # resources next to the built executable for ease of use during
     # debugging and testing. They have no effect on the install target.
 
-    # These custom targets, custom commands and dependencies copy
-    # the resources next to the executable for ease of use during
-    # debugging and testing. They have no effect on the install target.
-
-    # As these custom commands and targets are only referenced by vkloadtests
-    # we could use just custom commands without fear of races but for
-    # consistency we handle these resources in the same way as the shared
-    # resources.
-
-    #list(TRANSFORM SHADER_SPVS REPLACE ^[a-zA-Z0-9:/<>].*/shaders ${BUILDTIME_RESOURCES_DIR}
-    #    OUTPUT_VARIABLE copied_shaders
-    #)
-    #add_custom_command(
-    #    OUTPUT ${copied_shaders}
-    #    COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
-    #    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_SPVS} ${BUILDTIME_RESOURCES_DIR}
-    #    COMMENT "Copy shaders to build destination"
-    #    VERBATIM
-    #)
-    #add_custom_target(
-    #    copied_shaders
-    #    DEPENDS ${copied_shaders}
-    #)
-    
-    #add_dependencies(   
-    #    vkloadtests
-    #    copied_ktx_icons
-    #    copied_models
-    #    copied_shaders
-    #    copied_ktx_files
-    #)
-
-    #unset( copied_shaders )
- 
+    # Installation
+    #
     # To keep the resources (test images and models) close to the
     # executable and to be compliant with the Filesystem Hierarchy
     # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
