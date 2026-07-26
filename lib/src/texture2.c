@@ -492,12 +492,11 @@ ktxTexture2_construct(ktxTexture2* This,
     }
 
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize);
-
     if (result != KTX_SUCCESS)
-        return result;
+        goto cleanup;
     result = ktxTexture2_constructCommon(This, createInfo->numLevels);
     if (result != KTX_SUCCESS)
-        goto cleanup;;
+        goto cleanup;
 
     This->vkFormat = createInfo->vkFormat;
 

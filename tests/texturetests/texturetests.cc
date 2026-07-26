@@ -1176,6 +1176,35 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
     }
 }
 
+/////////////////////////////////////////
+// ktxTexture2 invalid creation params tests.
+////////////////////////////////////////
+
+TEST(ktxTexture2_invalidCreateInfoParams, InvalidWidth) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture2* texture;
+    KTX_error_code result;
+    ktxTextureCreateInfo createInfo;
+    createInfo.glInternalformat = 0;
+    createInfo.vkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+    createInfo.pDfd = nullptr;
+    createInfo.baseWidth = 0;  //< Invalid width
+    createInfo.baseHeight = 1;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = KTX_FALSE;
+    // This will fail but should never leak resources when failing because it
+    // will return a nullptr and is expected to cleanup its resources upon
+    // failure.
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
+    texture_raii.reset(ktxTexture(texture));
+    EXPECT_EQ(result, KTX_INVALID_VALUE);
+}
+
 /////////////////////////////////////////////
 // ktxTexture2_CreateCopyTest
 ////////////////////////////////////////////

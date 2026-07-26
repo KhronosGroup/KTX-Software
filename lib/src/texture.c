@@ -178,10 +178,12 @@ ktxTexture_construct(ktxTexture* This,
 
 error_invalid_value:
     free(This->_protected);
+    This->_protected = NULL;
     return KTX_INVALID_VALUE;
 
 error_invalid_operation:
     free(This->_protected);
+    This->_protected = NULL;
     return KTX_INVALID_OPERATION;
 }
 
@@ -234,19 +236,22 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
 void
 ktxTexture_destruct(ktxTexture* This)
 {
-    ktxStream stream = *(ktxTexture_getStream(This));
-
-    if (stream.data.file != NULL) {
-        stream.destruct(&stream);
-        stream.data.file = NULL;
+    if (This->_protected != NULL) {
+        ktxStream stream = *(ktxTexture_getStream(This));
+        if (stream.data.file != NULL) {
+            stream.destruct(&stream);
+            stream.data.file = NULL;
+        }
     }
+
     if (This->kvDataHead != NULL)
         ktxHashList_Destruct(&This->kvDataHead);
     if (This->kvData != NULL)
         free(This->kvData);
     if (This->pData != NULL)
         free(This->pData);
-    free(This->_protected);
+    if (This->_protected != NULL)
+        free(This->_protected);
 }
 
 
