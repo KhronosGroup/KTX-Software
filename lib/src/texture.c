@@ -16,7 +16,6 @@
  * @author Mark Callow, github.com/MarkCallow
  */
 
-#include <stdatomic.h>
 #if defined(_WIN32)
   #define _CRT_SECURE_NO_WARNINGS
   #ifndef __cplusplus
