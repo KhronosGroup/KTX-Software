@@ -250,17 +250,6 @@ function( create_gl_target target version sources common_resources ktx_file_sour
         endif()
 
     else()
-        if(WINDOWS OR LINUX)
-            # These copy the resources to a shared resource directory next to
-            # the executables for ease of use during debugging and testing.
-            # They have no effect on the install targets.
-            add_dependencies( ${target}
-                copied_ktx_icons
-                copied_models
-                copied_ktx_files # Installs KTX files for configured targets.
-            )
-        endif()
-
         if(EMSCRIPTEN)
             set_target_properties(${target} PROPERTIES SUFFIX ".html")
         endif()
