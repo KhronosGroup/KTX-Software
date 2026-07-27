@@ -246,7 +246,7 @@ source_group("Resources/Models" FILES ${LOAD_TEST_COMMON_MODEL_SOURCES})
 # an install_target that uses this with an error "the target is not
 # an executable, library or module."
 #add_custom_target( loadtest_models
-#    SOURCES ${LOAD_TEST_COMMON_MODELS}
+#    SOURCES ${LOAD_TEST_COMMON_MODEL_SOURCES}
 #)
 
 set(TEST_RESOURCES_DIR "${PROJECT_SOURCE_DIR}/tests/resources")

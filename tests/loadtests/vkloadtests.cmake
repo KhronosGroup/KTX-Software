@@ -123,9 +123,10 @@ list( TRANSFORM ktx1_file_sources
 )
 
 set( KTX_RESOURCES
-    ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
     ${ktx2_file_sources}
     ${ktx1_file_sources}
+    ${KTX_ICON_SOURCES}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES} 
     ${SHADER_SPVS}
 )
 
@@ -179,11 +180,11 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
     vkloadtests.cmake
-    ${LOAD_TEST_COMMON_RESOURCE_FILE_SOURCES}
-    ${LOAD_TEST_COMMON_MODEL_SOURCES}
-    ${SHADER_SOURCES}
     ${ktx2_file_sources}
     ${ktx1_file_sources}
+    ${KTX_ICON_SOURCES}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES}
+    ${SHADER_SOURCES}
     ${Vulkan_SHARE_VULKAN}
 )
 
