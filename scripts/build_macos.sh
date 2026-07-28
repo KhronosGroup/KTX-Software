@@ -52,6 +52,16 @@ OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_NO_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
+if which -s xcpretty ; then
+  function handle_compiler_output() {
+    tee -a fullbuild.log | xcpretty
+  }
+else
+  function handle_compiler_output() {
+    cat
+  }
+fi
+
 cmake_args=("-G" "Xcode" "-B" "$BUILD_DIR")
 # Just setting the environment variable does not seem to work so pass to cmake.
 if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
