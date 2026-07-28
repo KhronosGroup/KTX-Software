@@ -387,42 +387,6 @@ struct TinyDDS_CustomData {
 /// Deleter that wraps `TinyDDS_DestroyContext` to be passed to std::unique_ptr
 void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*handle); }
 
-#if 0  // This is just kept here in case we decide to use our own tinydds.h
-/// Mimics `ktxTexture2_GetImageSize` because TinyDDS' `TinyDDS_ImageSize`
-/// returns the size of an entire 3D texture, or entire array, or entire
-/// cubemap.
-///
-/// Calculate & return the size in bytes of
-/// an image at the specified mip level. For arrays, this is the size of a
-/// layer, for cubemaps, the size of a face and for 3D textures, the size of a
-/// depth slice.
-size_t TinyDDS_GetImageSize(TinyDDS_ContextHandle handle, int mipmaplevel) {
-    const TinyDDS_Context* ctx = (TinyDDS_Context*)handle;
-    if (ctx == NULL) return 0;
-    if (!ctx->headerValid) {
-        ctx->callbacks.errorFn(ctx->user, "Header data hasn't been read yet or is invalid");
-        return 0;
-    }
-    size_t w = std::max(ctx->header.width >> mipmaplevel, 1u);
-    size_t h = std::max(ctx->header.height >> mipmaplevel, 1u);
-    size_t d = std::max(ctx->header.depth >> mipmaplevel, 1u);
-    const size_t s = ctx->headerDx10.arraySize ? ctx->headerDx10.arraySize : 1;
-    if (d > 1 && s > 1) {
-        ctx->callbacks.errorFn(ctx->user, "Volume texture arrays are not supoprted by DDS");
-        return 0;
-    }
-    if (TinyDDS_IsCompressed(ctx->format)) {
-        // padd to block boundaries
-        w = (w + 3) / 4;
-        h = (h + 3) / 4;
-    }
-    // 1 bit special case
-    if (ctx->format == TDDS_R1_UNORM) w = (w + 7) / 8;
-    const size_t formatSize = TinyDDS_FormatSize(ctx->format);
-    return w * h * formatSize;
-}
-#endif
-
 void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& outputStream) {
     std::unique_ptr<TinyDDS_ContextHandle, decltype(TinyDDS_Deleter)*> dds_raii{nullptr,
                                                                                 TinyDDS_Deleter};
@@ -514,20 +478,6 @@ void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& output
     create_info.numFaces = num_faces;
     create_info.isArray = layers > 1;
     create_info.generateMipmaps = KTX_FALSE;
-
-#if 1
-    std::cout << "calling ktxTexture2_Create with: "
-              << "vkFormat=" << create_info.vkFormat << "; "
-              << "baseWidth=" << create_info.baseWidth << "; "
-              << "baseHeight=" << create_info.baseHeight << "; "
-              << "baseDepth=" << create_info.baseDepth << "; "
-              << "numDimensions=" << create_info.numDimensions << "; "
-              << "numLevels=" << create_info.numLevels << "; "
-              << "numLayers=" << create_info.numLayers << "; "
-              << "numFaces=" << create_info.numFaces << "; "
-              << "isArray=" << create_info.isArray << "; "
-              << "generateMipmaps=" << create_info.generateMipmaps << std::endl;
-#endif
 
     ktxTexture2* texture = nullptr;
     auto result = ktxTexture2_Create(&create_info, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
