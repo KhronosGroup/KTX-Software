@@ -868,9 +868,9 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
  *
  * For uncompressed textures the pitch is the number of bytes between
  * rows of texels. For compressed textures it is the number of bytes
- * between rows of blocks. The value is padded to GL_UNPACK_ALIGNMENT,
- * if necessary. For all currently known compressed formats padding
- * will not be necessary.
+ * between rows of blocks. If @p This texture is KTXv1, the value is padded to
+ * GL_UNPACK_ALIGNMENT, if necessary. For all currently known compressed formats
+ * padding will not be necessary regardless of the KTX texture version.
  *
  * @param[in]     This     pointer to the ktxTexture object of interest.
  * @param[in]     level    level of interest.
@@ -888,7 +888,8 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
 
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
     pitch = blockCount.x * prtctd->_formatSize.blockSizeInBits / 8;
-    (void)padRow(&pitch);
+    if (This->classId == ktxTexture1_c)
+        (void)padRow(&pitch);
 
     return pitch;
  }
