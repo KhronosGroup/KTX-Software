@@ -48,6 +48,7 @@
 #include "texture1.h"
 #include "texture2.h"
 #include "platform_utils.h"
+#include <algorithm>  // so that Windows stops replacing std::max() with its macro
 #include "gtest/gtest.h"
 #include "wthelper.h"
 #include "vk_format.h"
