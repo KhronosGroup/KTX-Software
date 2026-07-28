@@ -191,7 +191,6 @@ elseif(LINUX)
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
     set( LOAD_TEST_COMMON_LIBS
         assimp::assimp
-        SDL3::SDL3
     )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
