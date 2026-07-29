@@ -28,6 +28,10 @@ if(NOT EMSCRIPTEN)
     # no time to experiment, so tests that use assimp are omitted from
     # loadtests when building for the web.
     find_package(assimp REQUIRED CONFIG REQUIRED)
+    #cmake_print_variables(assimp_LIBRARIES)
+    set( LOAD_TEST_COMMON_LIBS assimp::assimp)
+else()
+    set( LOAD_TEST_COMMON_LIBS )
 endif()
 
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
@@ -164,8 +168,6 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   )
 endif()
 
-set( LOAD_TEST_COMMON_LIBS )
-
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     set( KTX_APP_ICON_BASENAME ktx_app)
@@ -177,27 +179,11 @@ if(APPLE)
     # Assets are copied to the bundle in the build target setup.
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
     set( KTX_DOC_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
-    #cmake_print_variables(assimp_LIBRARIES)
-    if(IOS)
-        set( LOAD_TEST_COMMON_LIBS
-            assimp::assimp
-        )
-    else()
-        set( LOAD_TEST_COMMON_LIBS
-            assimp::assimp
-        )
-    endif()
 elseif(LINUX)
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
-    set( LOAD_TEST_COMMON_LIBS
-        assimp::assimp
-    )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
     set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
-    set( LOAD_TEST_COMMON_LIBS
-        assimp::assimp
-    )
 endif()
 
 set( KTX_ICON_SOURCES ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE} )

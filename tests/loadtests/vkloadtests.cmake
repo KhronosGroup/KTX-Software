@@ -382,8 +382,8 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMENT "Create symlink for Vulkan library (ld name to real name)"
         )
-        # Re. SDL3 & assimp: no copy required.: vcpkg libs are static or else
-        # vcpkg arranges copy. Brew libs cannot be bundled.
+        # Re. SDL3 & assimp: no copy required.: vcpkg libs are static. Brew libs
+        # cannot be bundled.
 
         # Specify destination for cmake --install.
         install(TARGETS vkloadtests
