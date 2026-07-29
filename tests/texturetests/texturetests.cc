@@ -3824,17 +3824,14 @@ TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) {
 }
 
 // BC2:
-//    - VK_FORMAT_R8G8B8A8_UNORM
-//    - VK_FORMAT_R8G8B8A8_SRGB
+//  - VK_FORMAT_R8G8B8A8_UNORM
+//  - VK_FORMAT_R8G8B8A8_SRGB - removed because GIMP can only export UNORM DDS ... go figure ...
 // Notes:
 //  - It is quite a headache to diff BC2-decoded output with original image because different BC2
 //    encoders produce widely different results (e.g., GIMP vs OpenImageIO).
 //  - RDO is not supported for BC2 because of the lack of an encoder
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) {
     runTest(u8"rgba8_unorm_bc2.ktx2", u8"rgba8_unorm_input_for_bc2.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc2) {
-    runTest(u8"rgba8_srgb_bc2.ktx2", u8"rgba8_srgb_input_for_bc2.ktx2");
 }
 
 // BC3:
