@@ -39,6 +39,16 @@ OSX_XCODE_OPTIONS=(-alltargets -destination "platform=OS X,arch=x86_64")
 IOS_XCODE_OPTIONS=(-alltargets -destination "generic/platform=iOS" -destination "platform=iOS Simulator,OS=latest")
 XCODE_CODESIGN_ENV='CODE_SIGN_IDENTITY= CODE_SIGN_ENTITLEMENTS= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO'
 
+if which -s xcpretty ; then
+  function handle_compiler_output() {
+    tee -a fullbuild.log | xcpretty
+  }
+else
+  function handle_compiler_output() {
+    cat
+  }
+fi
+
 # Cause the build pipes below to set the exit to the exit code of the
 # last program to exit non-zero.
 set -o pipefail
