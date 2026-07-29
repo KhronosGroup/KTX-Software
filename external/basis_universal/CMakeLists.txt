@@ -25,6 +25,10 @@
 #     a link-time warning about setting of an rpath, something done when BASISU_STATIC is FALSE.
 #   - The libraries added when `BASISU_STATIC` is TRUE are only needed for MinGW and are now added
 #     only for MinGW.
+#   - Setting of soon to be removed policy CMP0148 to OLD has been removed and the way of
+#     finding python11 has been updated. N.B I do not understand the reason for separate
+#     if(BASISU_BUILD_PYTHON) and find_package() for the encoder and transcoder builds so
+#     I have left them as is.
 #
 # * Known Issues (also in upstream)
 #   - BASISU_SSE is set `if (MSVC)` so it is incorrectly set on Windows ARM and not set when
@@ -46,11 +50,6 @@ if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
 endif()
 
 project(basisu C CXX)
-
-# pybind11: allow old Python finder modules without complaining
-if (POLICY CMP0148)
-    cmake_policy(SET CMP0148 OLD)
-endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "WASI")
     set(BASISU_BUILD_WASM TRUE)
@@ -521,6 +520,7 @@ endif()
 # Optional: Build native Python modules (pybind11)
 # ------------------------------------------------------------
 if (BASISU_BUILD_PYTHON AND NOT BASISU_BUILD_WASM)
+    find_package(Python COMPONENTS Interpreter Development)
     find_package(pybind11 CONFIG REQUIRED)
 
     message(STATUS "Building pybind11 Python extension: basisu_python")
@@ -548,6 +548,7 @@ if (BASISU_BUILD_PYTHON AND NOT BASISU_BUILD_WASM)
 endif()
 
 if (BASISU_BUILD_PYTHON AND NOT BASISU_BUILD_WASM)
+    find_package(Python COMPONENTS Interpreter Development)
     find_package(pybind11 CONFIG REQUIRED)
 
     message(STATUS "Building pybind11 Python extension: basisu_transcoder_python")
