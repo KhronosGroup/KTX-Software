@@ -6,6 +6,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @internal
+ * @file
+ * @~English
+ *
+ * @brief Utilities (structs, functions, macros, etc.) common to both; BCn
+ * encoder and decoder.
+ *
+ * @author Walid Chtioui, independent contributor (walid.chtioui.main@gmail.com)
+ */
+
 #ifndef _BCN_CODEC_H_
 #define _BCN_CODEC_H_
 

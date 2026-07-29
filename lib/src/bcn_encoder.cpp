@@ -24,7 +24,7 @@
  *        practice due to poor quality alpha encoding. BC3 is almost always used
  *        instead.
  *
- * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
+ * @author Walid Chtioui, independent contributor (walid.chtioui.main@gmail.com)
  */
 
 #include "ktx.h"

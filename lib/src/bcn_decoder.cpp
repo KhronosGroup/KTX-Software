@@ -11,10 +11,10 @@
  * @file
  * @~English
  *
- * @brief Functions for decoding a BCn-compressed texture. Currently supported
- * BCn formats are: BC1, BC3, BC4, BC5, BC6HU, BC6HS, and BC7.
+ * @brief Functions for decoding a BCn-compressed texture. All BCn formats are
+ * supported (BC1, BC2, BC3, BC4, BC5, BC6HU, BC6HS, and BC7).
  *
- * @author Walid Chtioui , individual contributor (walid.chtioui.main@gmail.com)
+ * @author Walid Chtioui, independent contributor (walid.chtioui.main@gmail.com)
  */
 
 #include "bcn_common.h"

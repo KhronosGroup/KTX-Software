@@ -3340,6 +3340,27 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
 // Template for base fixture for BCn encode and decode tests.
 //------------------------------------------------------------
 
+/// RAII'fied fs::path wrapper that deletes the file in destructor only if it
+/// exists.
+class FileRAII {
+  public:
+    FileRAII() = default;
+    FileRAII(fs::path fp) : _fp{fp} {}
+    ~FileRAII() {
+        if (fs::exists(_fp)) fs::remove(_fp);
+    }
+
+    FileRAII& operator=(fs::path other) {
+        _fp = other;
+        return *this;
+    }
+
+    const fs::path& path() { return _fp; }
+
+  private:
+    fs::path _fp;
+};
+
 template <typename component_type, ktx_uint32_t numComponents, GLenum internalformat>
 class ktxTexture2BCnEncodeDecodeTestBase
     : public ktxTexture2TestBase<component_type, numComponents, internalformat> {
@@ -3353,7 +3374,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
         KTX_error_code result;
 
-        ktxTexture2* texture;
+        ktxTexture2* texture = nullptr;
         auto tmpDir = fs::temp_directory_path();
 
         result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
@@ -3369,8 +3390,8 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
         const bool isSRGB = KHR_DFDVAL(texture->pDfd + 1, TRANSFER) == KHR_DF_TRANSFER_SRGB;
 
-        fs::path original;
-        fs::path decoded;
+        FileRAII original;
+        FileRAII decoded;
 
         std::string rdo_str = rdo ? "_rdo" : "";
 
@@ -3458,7 +3479,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         ASSERT_EQ(texture->vkFormat, expectedDecompressedFormat);
         ASSERT_NE(ktxMemFile, nullptr);
 
-        result = ktxTexture2_WriteToNamedFile(texture, original.string().c_str());
+        result = ktxTexture2_WriteToNamedFile(texture, original.path().string().c_str());
         ASSERT_TRUE(result == KTX_SUCCESS);
 
         auto depth = texture->baseDepth;
@@ -3503,37 +3524,37 @@ class ktxTexture2BCnEncodeDecodeTestBase
         model = static_cast<khr_df_model_e>(KHR_DFDVAL(texture->pDfd + 1, MODEL));
         EXPECT_EQ(model, KHR_DF_MODEL_RGBSDA);
         EXPECT_EQ(depth, texture->baseDepth);
-        result = ktxTexture2_WriteToNamedFile(texture, decoded.string().c_str());
+        result = ktxTexture2_WriteToNamedFile(texture, decoded.path().string().c_str());
 
-        fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", original.stem().string(),
-                                              decoded.stem().string());
+        FileRAII ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", original.path().stem().string(),
+                                              decoded.path().stem().string());
 
         // Compare orginal vs. decoded texture with 0.08 tolerance
         // Since BC6HU input might be cleaned (i.e., signed values are set to 0) running ktxdiff on them will fail
         if (bcn != KTX_BCN_COMPRESSION_BC6HU) {
             std::string command =
-                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), original.string(),
-                       decoded.string(), ktxdiffOut.string());
+                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), original.path().string(),
+                       decoded.path().string(), ktxdiffOut.path().string());
             int status = std::system(command.c_str());
             EXPECT_EQ(status, 0)
                 << format("std::system() with command \"{}\" returned error code: {}", command, status);
             // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
             if (status != 0) {
               // Print ktxdiff output
-              std::cout << std::ifstream(ktxdiffOut).rdbuf();
+              std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
               {  // Copy original KTX2 file
-                  std::ifstream src(original, std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / original.filename(), std::ios::binary);
+                  std::ifstream src(original.path(), std::ios::binary);
+                  std::ofstream dst(tmpGeneratedFilesOutputPath / original.path().filename(), std::ios::binary);
                   dst << src.rdbuf();
               }
               {  // Copy decoded KTX2 file
-                  std::ifstream src(decoded, std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / decoded.filename(), std::ios::binary);
+                  std::ifstream src(decoded.path(), std::ios::binary);
+                  std::ofstream dst(tmpGeneratedFilesOutputPath / decoded.path().filename(), std::ios::binary);
                   dst << src.rdbuf();
               }
               {  // Then copy ktxdiff output text file
-                  std::ifstream src(ktxdiffOut, std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.filename(), std::ios::binary);
+                  std::ifstream src(ktxdiffOut.path(), std::ios::binary);
+                  std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(), std::ios::binary);
                   dst << src.rdbuf();
               }
             }
@@ -3541,9 +3562,6 @@ class ktxTexture2BCnEncodeDecodeTestBase
 
         EXPECT_EQ(texture->baseHeight, height);
         EXPECT_EQ(texture->baseWidth, width);
-        if (fs::exists(original)) fs::remove(original);
-        if (fs::exists(decoded)) fs::remove(decoded);
-        if (fs::exists(ktxdiffOut)) fs::remove(ktxdiffOut);
     }
 };
 
@@ -3632,15 +3650,13 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc7_rdo_t
 
 class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
   public:
-    void runTest(const std::u8string& bcnOriginal, const std::u8string& bcnFileName) {
+    void runTest(const std::u8string& bcnFileName, const std::u8string bcnOriginal = u8"") {
         ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
         KTX_error_code result;
-        ktxTexture2* texture;
+        ktxTexture2* texture = nullptr;
         ktx_uint32_t expectedDecompressedFormat;
         fs::path bcnPath = ktx2Path;
-        fs::path bcnOriginalPath = ktx2Path;
         bcnPath.replace_filename(bcnFileName);
-        bcnOriginalPath.replace_filename(bcnOriginal);
         auto tmpDir = fs::temp_directory_path();
 
         result = ktxTexture2_CreateFromNamedFile(
@@ -3649,7 +3665,7 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         texture_raii.reset((ktxTexture*)texture);
 
         EXPECT_EQ(result, KTX_SUCCESS);
-        ASSERT_NE(texture, nullptr) 
+        ASSERT_NE(texture, nullptr)
             << format("ktxTexture2_CreateFromNamedFile \"{}\" failed: {}",
                       from_u8string(bcnPath.u8string()), ktxErrorString(result));
 
@@ -3658,54 +3674,56 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
                     colormodel == KHR_DF_MODEL_BC3 || colormodel == KHR_DF_MODEL_BC4 ||
                     colormodel == KHR_DF_MODEL_BC5 || colormodel == KHR_DF_MODEL_BC6H ||
                     colormodel == KHR_DF_MODEL_BC7)
-            << format(
-                   "Color model of \"{}\" {} is not a BCn encoded ktx test file",
-                   from_u8string(bcnPath.u8string()), dfdToStringColorModel(colormodel));
+            << format("Color model of \"{}\" {} is not a BCn encoded ktx test file",
+                      from_u8string(bcnPath.u8string()), dfdToStringColorModel(colormodel));
 
         switch (texture->vkFormat) {
-          case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8B8_UNORM;
-              break;
-
-          case VK_FORMAT_BC3_UNORM_BLOCK:
-          case VK_FORMAT_BC7_UNORM_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
-              break;
-
-          case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8B8_SRGB;
-              break;
-
-          case VK_FORMAT_BC3_SRGB_BLOCK:
-          case VK_FORMAT_BC7_SRGB_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
-              break;
-
-          case VK_FORMAT_BC4_UNORM_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
+        case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8B8_UNORM;
             break;
 
-          case VK_FORMAT_BC4_SNORM_BLOCK:
+        case VK_FORMAT_BC3_UNORM_BLOCK:
+        case VK_FORMAT_BC2_UNORM_BLOCK:
+        case VK_FORMAT_BC7_UNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            break;
+
+        case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8B8_SRGB;
+            break;
+
+        case VK_FORMAT_BC3_SRGB_BLOCK:
+        case VK_FORMAT_BC2_SRGB_BLOCK:
+        case VK_FORMAT_BC7_SRGB_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            break;
+
+        case VK_FORMAT_BC4_UNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8_UNORM;
+            break;
+
+        case VK_FORMAT_BC4_SNORM_BLOCK:
             expectedDecompressedFormat = VK_FORMAT_R8_SNORM;
             break;
 
-          case VK_FORMAT_BC5_UNORM_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
-              break;
+        case VK_FORMAT_BC5_UNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8_UNORM;
+            break;
 
-          case VK_FORMAT_BC5_SNORM_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
-              break;
+        case VK_FORMAT_BC5_SNORM_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R8G8_SNORM;
+            break;
 
-          case VK_FORMAT_BC6H_UFLOAT_BLOCK:
-          case VK_FORMAT_BC6H_SFLOAT_BLOCK:
-              expectedDecompressedFormat = VK_FORMAT_R16G16B16_SFLOAT;
-              break;
+        case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+        case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+            expectedDecompressedFormat = VK_FORMAT_R16G16B16_SFLOAT;
+            break;
 
-          default:
-            ASSERT_TRUE(false) <<
-              format("VkFormat {} is not of a supported BCn block compression format.", texture->vkFormat);
-            break; // should never occur because of colormodel check above
+        default:
+            ASSERT_TRUE(false) << format(
+                "VkFormat {} is not of a supported BCn block compression format.",
+                texture->vkFormat);
+            break;  // should never occur because of colormodel check above
         }
 
         ASSERT_TRUE(texture->isCompressed);
@@ -3741,40 +3759,45 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
         EXPECT_EQ(isHdr, ktxTexture2_IsHDR(texture));
         EXPECT_EQ(isPremultipliedAlpha, ktxTexture2_GetPremultipliedAlpha(texture));
 
-        fs::path decodedPath = tmpDir / ("decoded_" + from_u8string(bcnFileName));
-        result = ktxTexture2_WriteToNamedFile(texture, decodedPath.string().c_str());
+        FileRAII decodedPath = tmpDir / ("decoded_" + from_u8string(bcnFileName));
+        result = ktxTexture2_WriteToNamedFile(texture, decodedPath.path().string().c_str());
         ASSERT_EQ(result, KTX_SUCCESS)
             << format("ktxTexture2_WriteToNamedFile failed: {}", ktxErrorString(result));
 
-        fs::path ktxdiffOut = tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
-                                              decodedPath.stem().string());
         // Compare orginal vs. decoded texture with 0.08 tolerance
-        // Running ktxdiff on 16bit SFLOAT inputs simply fails (regardless of the provided tolerance)
+        // Running ktxdiff on 16bit SFLOAT inputs simply fails (regardless of the provided
+        // tolerance)
         if (texture->vkFormat != VK_FORMAT_R16G16B16_SFLOAT) {
+            fs::path bcnOriginalPath = ktx2Path;
+            bcnOriginalPath.replace_filename(bcnOriginal);
+            FileRAII ktxdiffOut =
+                tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
+                                decodedPath.path().stem().string());
             std::string command =
-                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), bcnOriginalPath.string(),
-                       decodedPath.string(), ktxdiffOut.string());
+                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(),
+                       bcnOriginalPath.string(), decodedPath.path().string(), ktxdiffOut.path().string());
             int status = std::system(command.c_str());
-            EXPECT_EQ(status, 0)
-                << format("std::system() with command \"{}\" returned error code: {}", command, status);
-            // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
+            EXPECT_EQ(status, 0) << format(
+                "std::system() with command \"{}\" returned error code: {}", command, status);
+            // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can
+            // inspect it
             if (status != 0) {
-              // Print ktxdiff output
-              std::cout << std::ifstream(ktxdiffOut).rdbuf();
-              {  // Copy decoded KTX2 file
-                  std::ifstream src(decodedPath, std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / decodedPath.filename(), std::ios::binary);
-                  dst << src.rdbuf();
-              }
-              {  // Then copy ktxdiff output text file if it exists
-                  std::ifstream src(ktxdiffOut, std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.filename(), std::ios::binary);
-                  dst << src.rdbuf();
-              }
+                // Print ktxdiff output
+                std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
+                {  // Copy decoded KTX2 file
+                    std::ifstream src(decodedPath.path(), std::ios::binary);
+                    std::ofstream dst(tmpGeneratedFilesOutputPath / decodedPath.path().filename(),
+                                      std::ios::binary);
+                    dst << src.rdbuf();
+                }
+                {  // Then copy ktxdiff output text file if it exists
+                    std::ifstream src(ktxdiffOut.path(), std::ios::binary);
+                    std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(),
+                                      std::ios::binary);
+                    dst << src.rdbuf();
+                }
             }
         }
-        if (fs::exists(decodedPath)) fs::remove(decodedPath);
-        if (fs::exists(ktxdiffOut)) fs::remove(ktxdiffOut);
     }
 };
 
@@ -3787,57 +3810,99 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 // BC1:
 //    - VK_FORMAT_R8G8B8_UNORM
 //    - VK_FORMAT_R8G8B8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) { runTest(u8"rgb8_unorm_input_for_bc1.ktx2", u8"rgb8_unorm_bc1.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1_rdo_zlib.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) { runTest(u8"rgb8_srgb_input_for_bc1.ktx2", u8"rgb8_srgb_bc1_rdo_zstd.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) {
+    runTest(u8"rgb8_unorm_bc1.ktx2", u8"rgb8_unorm_input_for_bc1.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) {
+    runTest(u8"rgb8_srgb_bc1.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) {
+    runTest(u8"rgb8_srgb_bc1_rdo_zlib.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) {
+    runTest(u8"rgb8_srgb_bc1_rdo_zstd.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
+}
 
-// TODO:
 // BC2:
 //    - VK_FORMAT_R8G8B8A8_UNORM
 //    - VK_FORMAT_R8G8B8A8_SRGB
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) { runTest(u8"rgba8_unorm_bc2.ktx2"); }
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc2) { runTest(u8"rgba8_srgb_bc2.ktx2"); }
+// Notes:
+//  - It is quite a headache to diff BC2-decoded output with original image because different BC2
+//    encoders produce widely different results (e.g., GIMP vs OpenImageIO).
+//  - RDO is not supported for BC2 because of the lack of an encoder
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) {
+    runTest(u8"rgba8_unorm_bc2.ktx2", u8"rgba8_unorm_input_for_bc2.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc2) {
+    runTest(u8"rgba8_srgb_bc2.ktx2", u8"rgba8_srgb_input_for_bc2.ktx2");
+}
 
 // BC3:
 //    - VK_FORMAT_R8G8B8_UNORM
 //    - VK_FORMAT_R8G8B8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc3) { runTest(u8"rgba8_unorm_input_for_bc3.ktx2", u8"rgba8_unorm_bc3.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3) { runTest(u8"rgba8_srgb_input_for_bc3.ktx2", u8"rgba8_srgb_bc3.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zlib) { runTest(u8"rgba8_srgb_input_for_bc3.ktx2", u8"rgba8_srgb_bc3_rdo_zlib.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zstd) { runTest(u8"rgba8_srgb_input_for_bc3.ktx2", u8"rgba8_srgb_bc3_rdo_zstd.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc3) {
+    runTest(u8"rgba8_unorm_bc3.ktx2", u8"rgba8_unorm_input_for_bc3.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3) {
+    runTest(u8"rgba8_srgb_bc3.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zlib) {
+    runTest(u8"rgba8_srgb_bc3_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zstd) {
+    runTest(u8"rgba8_srgb_bc3_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
+}
 
 // BC4:
 //    - VK_FORMAT_R8_UNORM
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) { runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) {
+    runTest(u8"r8_unorm_bc4.ktx2", u8"r8_unorm_input_for_bc4.ktx2");
+}
 // RDO with non-SRGB input produces erroneous results (it assumes input is SRGB)
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zlib) { runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zlib.ktx2"); }
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zstd) { runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zstd.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zlib) {
+// runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zlib.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zstd) {
+// runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zstd.ktx2"); }
 
 // BC5:
 //    - VK_FORMAT_R8G8_UNORM
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) { runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) {
+    runTest(u8"rg8_unorm_bc5.ktx2", u8"rg8_unorm_input_for_bc5.ktx2");
+}
 // RDO with non-SRGB input produces erroneous results (it assumes input is SRGB)
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zlib) { runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zlib.ktx2"); }
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zstd) { runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zstd.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zlib) {
+// runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zlib.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zstd) {
+// runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zstd.ktx2"); }
 
 // BC6HU:
 //    - VK_FORMAT_R16G16B16_SFLOAT
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) { runTest(u8"rgb16_sfloat_input_for_bc6hu.ktx2", u8"rgb16_sfloat_bc6hu.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) {
+    runTest(u8"rgb16_sfloat_bc6hu.ktx2");
+}
 // RDO is not supported for HDR formats
 
 // TODO:
 // BC6HS:
 //    - VK_FORMAT_R16G16B16A16_SFLOAT
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hs) { runTest(u8"rgba16_sfloat_bc6hs.ktx2"); }
+// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hs) {
+// runTest(u8"rgba16_sfloat_bc6hs.ktx2"); }
 
 // BC7:
 //    - VK_FORMAT_R8G8B8A8_UNORM
 //    - VK_FORMAT_R8G8B8A8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc7) { runTest(u8"rgba8_unorm_input_for_bc7.ktx2", u8"rgba8_unorm_bc7.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7) { runTest(u8"rgba8_srgb_input_for_bc7.ktx2", u8"rgba8_srgb_bc7.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zlib) { runTest(u8"rgba8_srgb_input_for_bc7.ktx2", u8"rgba8_srgb_bc7_rdo_zlib.ktx2"); }
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zstd) { runTest(u8"rgba8_srgb_input_for_bc7.ktx2", u8"rgba8_srgb_bc7_rdo_zstd.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc7) {
+    runTest(u8"rgba8_unorm_bc7.ktx2", u8"rgba8_unorm_input_for_bc7.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7) {
+    runTest(u8"rgba8_srgb_bc7.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zlib) {
+    runTest(u8"rgba8_srgb_bc7_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
+}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zstd) {
+    runTest(u8"rgba8_srgb_bc7_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
+}
 
 }  // namespace
 
