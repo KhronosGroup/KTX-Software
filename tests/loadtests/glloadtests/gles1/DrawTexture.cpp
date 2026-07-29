@@ -113,7 +113,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
 
     if (npotTexture  && !bNpotSupported) {
         /* Load error texture. */
-        filename = "no-npot.ktx";
+        filename = "no_npot.ktx";
     }
     
     pathname = getAssetPath() + filename;

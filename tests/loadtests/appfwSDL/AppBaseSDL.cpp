@@ -31,13 +31,9 @@ AppBaseSDL::initialize(Args& /*args*/)
     if (basePath == NULL)
         basePath = SDL_strdup("./");
     sBasePath = basePath;
-#if SDL_PLATFORM_LINUX
-    // TODO figure out best way to handle these resources
+#if SDL_PLATFORM_LINUX || SDL_PLATFORM_WINDOWS
+    // We put the resources in a sibling directory to the executable.
     sBasePath += "../resources/";
-#endif
-#if SDL_PLATFORM_WINDOWS
-    // Ditto
-    sBasePath += "resources/";
 #endif
     return true;
 }

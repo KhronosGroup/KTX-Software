@@ -25,13 +25,6 @@ Supported platforms (please see their specific requirements first)
 
 The minimal way to a build is to clone this repository and follow the instructions for your desired build below.
 
-> **Note:**
->
-> Multi-core builds (i.e., running CMake build command with `-j[N]` N > 1) is
-> not supported. Multi-core builds may, occasionally, fail due to
-> filesystem race condition caused by calls to `add_custom_command` in CMake.
-> Running CTest in parallel is, on the other hand, well supported.
-
 _libktx_ only
 -------------
 To build only _libktx_ and nothing else, run the following in a terminal
@@ -103,8 +96,10 @@ add_subdirectory(/path/to/ktx/software/KTX-Software/lib ktx)
 
 You can set any of the aforementioned configuration options by adding a set command, e.g, `set(BUILD_SHARED_LIBS OFF)`, before `add_subdirectory`.
 
-The complete project
---------------------
+_libktx_ and the Command Line Tools
+-------------
+
+This will create the `libktx` library and the command line tools. 
 
 ```bash
 # Navigate to the root of your KTX-Software clone (replace with
@@ -118,18 +113,25 @@ cmake . -B build
 cmake --build build
 ```
 
-This creates the `libktx` library and the command line tools. To create the complete project generate the project like this:
+The library build notes and the note about `KTX_GIT_VERSION_FULL` above apply here too.
+
+The complete project
+--------------------
+
+The complete project includes tests of Open GL and Vulkan uploaders, a conformance test suite and documentation  This will include the load tests and documentation in the generated project:
 
 ```bash
-cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
+cmake . -B build -D KTX_FEATURE_LOADTEST_APPS=<which> -D KTX_FEATURE_DOC=ON
 ```
 
-The library build notes and the note about `KTX_GIT_VERSION_FULL` above apply
-here too.
+`which` can be None, OpenGL, Vulkan or OpenGL+Vulkan. When configuring the load test apps you need to first install [vcpkg](#vcpkg).
 
 If you want to run the CTS tests (recommended only during KTX development)
 add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
 the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
+
+The library build notes and the note about `KTX_GIT_VERSION_FULL` above apply
+to these builds too.
 
 Detailed Build and Dependency Notes
 -----------------------------------
@@ -203,11 +205,12 @@ You should be able then to build like this
 # First either configure a debug build of libktx and the tools
 cmake . -G Ninja -B build
 # ...or alternatively a release build including all targets
-cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=ON -D KTX_FEATURE_DOC=ON
+cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=<which> -D KTX_FEATURE_DOC=ON
 
 # Compile the project
 cmake --build build
 ```
+`which` can be None, OpenGL, Vulkan or OpenGL+Vulkan.
 
 ### Apple macOS/iOS
 
@@ -256,11 +259,14 @@ cmake -G Xcode -B build/mac
 # If you want to build the load test apps as well, set the
 # `KTX_FEATURE_LOADTEST_APPS` and `CMAKE_TOOLCHAIN_FILE`
 # parameters. vcpkg will automatically install the dependencies.
-cmake -GXcode -Bbuild/mac -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake -GXcode -Bbuild/mac -D KTX_FEATURE_LOADTEST_APPS=<which> -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 # Compile the project
 cmake --build build/mac
 ```
+
+`which` can be None, OpenGL, Vulkan or OpenGL+Vulkan.
+
 ##### Apple Silicon and Universal Binaries
 
 Macs are either based on Intel or the newer Apple Silicon architecture. By default CMake configures to build for your host's platform, whichever it is. If you want to cross compile universal binaries (that support both platforms), add the parameter `-DCMAKE_OSX_ARCHITECTURES="\$(ARCHS_STANDARD)"` to cmake.
@@ -321,11 +327,13 @@ mkdir build # if it does not exist
 cmake -G Xcode -B build/ios -D CMAKE_SYSTEM_NAME=iOS
 
 # This creates a project to build the load test apps as well.
-cmake -G Xcode -B build/ios -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake -G Xcode -B build/ios -D KTX_FEATURE_LOADTEST_APPS=<which> -D CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 # Compile the project
 cmake --build build -- -sdk iphoneos
 ```
+
+`which` can be None, OpenGL, Vulkan or OpenGL+Vulkan.
 
 If using the CMake GUI, when it asks you to specify the generator for the project, you need to check _Specify options for cross-compiling_ and on the next screen make sure _Operating System_ is set to `iOS`.
 
@@ -386,7 +394,7 @@ emcmake cmake -B build-web .
 cmake --build build-web
 ```
 
-To include the load test application into the build add `-DKTX_FEATURE_LOADTEST_APPS=ON` to either of the above configuration steps.
+To include the load test application into the build add `-DKTX_FEATURE_LOADTEST_APPS=<which>` to either of the above configuration steps. `which` can be None, OpenGL, Vulkan or OpenGL+Vulkan.
 
 Web builds create three additional targets:
 
@@ -432,11 +440,13 @@ cmake -B build .
 # If you want to build the load test apps as well, set the
 # `KTX_FEATURE_LOADTEST_APPS` and `CMAKE_TOOLCHAIN_FILE`
 # parameters. vcpkg will automatically install the dependencies.
-cmake -B build . -D KTX_FEATURE_LOADTEST_APPS=ON -D CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake -B build . -D KTX_FEATURE_LOADTEST_APPS=<which> -D CMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 # Compile the project
 cmake --build build
 ```
+
+`which` can be None, OpenGL, Vulkan or OpenGL+Vulkan.
 
 To configure for Universal Windows Platform (Windows Store) you have to
 
@@ -592,6 +602,7 @@ see the [CTS documentation](https://github.com/KhronosGroup/KTX-Software-CTS/blo
 
 Generated Source Files (project developers only)
 ------------
+
 All but a few project developers can ignore this section. The files discussed here only need to be re-generated when formats are added to Vulkan or errors are discovered. These will be rare occurrences. 
 
 The following files related to the the VkFormat enum are generated from `vulkan_core.h`:
@@ -636,18 +647,13 @@ the *awk* script is invoked via *bash*.
 
 Needed for the script that creates the version numbers from `git describe` output. Also needed if you are [regenerating source files](#generatedsourcefiles(projectdevelopersonly)).
 
-Standard on GNU/Linux and macOS. Available on Windows as part of Git for
-Windows, WSL (Windows Subsystem for Linux) or Cygwin.
+Standard on GNU/Linux and macOS. Available on Windows as part of Git for Windows, WSL (Windows Subsystem for Linux) or Cygwin.
 
 #### vcpkg
 
-This package manager is needed to install the [SDL3](#sdl3) and [assimp](assimp)
-dependencies of the KTX load test applications on macOS and Windows. Since
-KTX-Software uses vcpkg's manifest mode, installation of the dependencies is
-automatic.
+This package manager is needed to install the dependencies of the KTX load test applications for iOS, Linux, macOS and Windows. Since KTX-Software uses vcpkg's manifest mode, installation of the dependencies is automatic. The dependencies are [SDL3](#sdl3) and [assimp](#assimp) on all supported platforms plus GLEW on Windows. 
 
-Clone the [vcpkg](https://github.com/microsoft/vcpkg) repo and run its
-bootstrap:
+Clone the [vcpkg](https://github.com/microsoft/vcpkg) repo and run its bootstrap:
 
 ```bash
     cd /place/to/clone/vcpkg
