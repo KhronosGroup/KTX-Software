@@ -183,11 +183,10 @@ $ktx create --testrun --format BC1_RGB_SRGB_BLOCK --bcn-rdo --zlib 9  input/png/
 $ktx create --testrun --format BC1_RGB_SRGB_BLOCK --bcn-rdo --zstd 22 input/png/rgb8_srgb_bc1.png   ktx2/rgb8_srgb_bc1_rdo_zstd.ktx2
 $ktx create --testrun --format BC3_SRGB_BLOCK     --bcn-rdo --zlib 9  input/png/rgba8_srgb_bc3.png  ktx2/rgba8_srgb_bc3_rdo_zlib.ktx2
 $ktx create --testrun --format BC3_SRGB_BLOCK     --bcn-rdo --zstd 22 input/png/rgba8_srgb_bc3.png  ktx2/rgba8_srgb_bc3_rdo_zstd.ktx2
-# RDO with SRGB produces erroneous results
-#$ktx create --testrun --format BC4_UNORM_BLOCK    --bcn-rdo --zlib 9  input/png/r8_unorm_bc4.png    ktx2/r8_unorm_bc4_rdo_zlib.ktx2
-#$ktx create --testrun --format BC4_UNORM_BLOCK    --bcn-rdo --zstd 22 input/png/r8_unorm_bc4.png    ktx2/r8_unorm_bc4_rdo_zstd.ktx2
-#$ktx create --testrun --format BC5_UNORM_BLOCK    --bcn-rdo --zstd 22 input/png/rg8_unorm_bc5.png   ktx2/rg8_unorm_bc5_rdo_zstd.ktx2
-#$ktx create --testrun --format BC5_UNORM_BLOCK    --bcn-rdo --zlib 9  input/png/rg8_unorm_bc5.png   ktx2/rg8_unorm_bc5_rdo_zlib.ktx2
+$ktx create --testrun --format BC4_UNORM_BLOCK    --bcn-rdo --zlib 9  input/png/r8_unorm_bc4.png    ktx2/r8_unorm_bc4_rdo_zlib.ktx2
+$ktx create --testrun --format BC4_UNORM_BLOCK    --bcn-rdo --zstd 22 input/png/r8_unorm_bc4.png    ktx2/r8_unorm_bc4_rdo_zstd.ktx2
+$ktx create --testrun --format BC5_UNORM_BLOCK    --bcn-rdo --zstd 22 input/png/rg8_unorm_bc5.png   ktx2/rg8_unorm_bc5_rdo_zstd.ktx2
+$ktx create --testrun --format BC5_UNORM_BLOCK    --bcn-rdo --zlib 9  input/png/rg8_unorm_bc5.png   ktx2/rg8_unorm_bc5_rdo_zlib.ktx2
 $ktx create --testrun --format BC7_SRGB_BLOCK     --bcn-rdo --zlib 9  input/png/rgba8_srgb_bc7.png  ktx2/rgba8_srgb_bc7_rdo_zlib.ktx2
 $ktx create --testrun --format BC7_SRGB_BLOCK     --bcn-rdo --zstd 22 input/png/rgba8_srgb_bc7.png  ktx2/rgba8_srgb_bc7_rdo_zstd.ktx2
 

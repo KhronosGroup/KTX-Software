@@ -3602,7 +3602,7 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB8_UNORM, encode_rgb8_unorm_to_bc1_rdo_t
 TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB8_SRGB, encode_rgb8_srgb_to_bc1_then_decode) { runTest(KTX_BCN_COMPRESSION_BC1, false); }
 TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB8_SRGB, encode_rgb8_srgb_to_bc1_rdo_then_decode) { runTest(KTX_BCN_COMPRESSION_BC1, true); }
 
-// TODO:
+// TODO: add encode-then-decode test for BC2 once BC2 encoder is implemented
 // BC2:
 //    - VK_FORMAT_R8G8B8A8_UNORM
 //    - VK_FORMAT_R8G8B8A8_SRGB
@@ -3631,7 +3631,7 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestRG8_UNORM, encode_rg8_unorm_to_bc5_rdo_the
 //    - VK_FORMAT_R16G16B16A16_SFLOAT
 TEST_F(ktxTexture2_BCnEncodeDecodeTestRGB16_SFLOAT, encode_rgb16_sfloat_to_bc6hu_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HU, false); }
 
-// TODO:
+// TODO: add BC6HS encode-then-decode test once a BC6HS encoder is implemented (if it is at all planned)
 // BC6HS:
 //    - VK_FORMAT_R16G16B16A16_SFLOAT
 // TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT, encode_rgba16_sfloat_to_bc6hs_then_decode) { runTest(KTX_BCN_COMPRESSION_BC6HS); }
@@ -3810,76 +3810,45 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
 // BC1:
 //    - VK_FORMAT_R8G8B8_UNORM
 //    - VK_FORMAT_R8G8B8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) {
-    runTest(u8"rgb8_unorm_bc1.ktx2", u8"rgb8_unorm_input_for_bc1.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) {
-    runTest(u8"rgb8_srgb_bc1.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) {
-    runTest(u8"rgb8_srgb_bc1_rdo_zlib.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) {
-    runTest(u8"rgb8_srgb_bc1_rdo_zstd.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2");
-}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_unorm_bc1) { runTest(u8"rgb8_unorm_bc1.ktx2", u8"rgb8_unorm_input_for_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1) { runTest(u8"rgb8_srgb_bc1.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zlib) { runTest(u8"rgb8_srgb_bc1_rdo_zlib.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) { runTest(u8"rgb8_srgb_bc1_rdo_zstd.ktx2", u8"rgb8_srgb_input_for_bc1.ktx2"); }
 
 // BC2:
 //  - VK_FORMAT_R8G8B8A8_UNORM
-//  - VK_FORMAT_R8G8B8A8_SRGB - removed because GIMP can only export UNORM DDS ... go figure ...
+//  - VK_FORMAT_R8G8B8A8_SRGB (TODO)
 // Notes:
-//  - It is quite a headache to diff BC2-decoded output with original image because different BC2
-//    encoders produce widely different results (e.g., GIMP vs OpenImageIO).
+//  - different BC2 encoder tools produce widely different results (e.g., GIMP vs OpenImageIO).
 //  - RDO is not supported for BC2 because of the lack of an encoder
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) {
-    runTest(u8"rgba8_unorm_bc2.ktx2", u8"rgba8_unorm_input_for_bc2.ktx2");
-}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) { runTest(u8"rgba8_unorm_bc2.ktx2", u8"rgba8_unorm_input_for_bc2.ktx2"); }
 
 // BC3:
 //    - VK_FORMAT_R8G8B8_UNORM
 //    - VK_FORMAT_R8G8B8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc3) {
-    runTest(u8"rgba8_unorm_bc3.ktx2", u8"rgba8_unorm_input_for_bc3.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3) {
-    runTest(u8"rgba8_srgb_bc3.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zlib) {
-    runTest(u8"rgba8_srgb_bc3_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zstd) {
-    runTest(u8"rgba8_srgb_bc3_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2");
-}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc3) { runTest(u8"rgba8_unorm_bc3.ktx2", u8"rgba8_unorm_input_for_bc3.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3) { runTest(u8"rgba8_srgb_bc3.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zlib) { runTest(u8"rgba8_srgb_bc3_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc3_rdo_zstd) { runTest(u8"rgba8_srgb_bc3_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc3.ktx2"); }
 
 // BC4:
 //    - VK_FORMAT_R8_UNORM
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) {
-    runTest(u8"r8_unorm_bc4.ktx2", u8"r8_unorm_input_for_bc4.ktx2");
-}
-// RDO with non-SRGB input produces erroneous results (it assumes input is SRGB)
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zlib) {
-// runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zlib.ktx2"); }
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zstd) {
-// runTest(u8"r8_unorm_input_for_bc4.ktx2", u8"r8_unorm_bc4_rdo_zstd.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4) { runTest(u8"r8_unorm_bc4.ktx2", u8"r8_unorm_input_for_bc4.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zlib) { runTest(u8"r8_unorm_bc4_rdo_zlib.ktx2", u8"r8_unorm_input_for_bc4.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_r8_unorm_bc4_rdo_zstd) { runTest(u8"r8_unorm_bc4_rdo_zstd.ktx2", u8"r8_unorm_input_for_bc4.ktx2"); }
 
 // BC5:
 //    - VK_FORMAT_R8G8_UNORM
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) {
-    runTest(u8"rg8_unorm_bc5.ktx2", u8"rg8_unorm_input_for_bc5.ktx2");
-}
-// RDO with non-SRGB input produces erroneous results (it assumes input is SRGB)
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zlib) {
-// runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zlib.ktx2"); }
-// TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zstd) {
-// runTest(u8"rg8_unorm_input_for_bc5.ktx2", u8"rg8_unorm_bc5_rdo_zstd.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5) { runTest(u8"rg8_unorm_bc5.ktx2", u8"rg8_unorm_input_for_bc5.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zlib) { runTest(u8"rg8_unorm_bc5_rdo_zlib.ktx2", u8"rg8_unorm_input_for_bc5.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zstd) { runTest(u8"rg8_unorm_bc5_rdo_zstd.ktx2", u8"rg8_unorm_input_for_bc5.ktx2"); }
 
 // BC6HU:
 //    - VK_FORMAT_R16G16B16_SFLOAT
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) {
-    runTest(u8"rgb16_sfloat_bc6hu.ktx2");
-}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) { runTest(u8"rgb16_sfloat_bc6hu.ktx2"); }
 // RDO is not supported for HDR formats
 
-// TODO:
+// TODO: add BC6HS decode test once a BC6HS encoder is implemented (if it is at all planned)
 // BC6HS:
 //    - VK_FORMAT_R16G16B16A16_SFLOAT
 // TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba16_sfloat_bc6hs) {
@@ -3888,18 +3857,10 @@ TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) {
 // BC7:
 //    - VK_FORMAT_R8G8B8A8_UNORM
 //    - VK_FORMAT_R8G8B8A8_SRGB
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc7) {
-    runTest(u8"rgba8_unorm_bc7.ktx2", u8"rgba8_unorm_input_for_bc7.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7) {
-    runTest(u8"rgba8_srgb_bc7.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zlib) {
-    runTest(u8"rgba8_srgb_bc7_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
-}
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zstd) {
-    runTest(u8"rgba8_srgb_bc7_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2");
-}
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc7) { runTest(u8"rgba8_unorm_bc7.ktx2", u8"rgba8_unorm_input_for_bc7.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7) { runTest(u8"rgba8_srgb_bc7.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zlib) { runTest(u8"rgba8_srgb_bc7_rdo_zlib.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_srgb_bc7_rdo_zstd) { runTest(u8"rgba8_srgb_bc7_rdo_zstd.ktx2", u8"rgba8_srgb_input_for_bc7.ktx2"); }
 
 }  // namespace
 
