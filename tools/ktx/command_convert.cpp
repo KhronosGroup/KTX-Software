@@ -2,12 +2,17 @@
 // Copyright 2022-2023 RasterGrid Kft.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "formats.h"
 #include "ktx.h"
 #include "ktxint.h"
 #include "command.h"
 #include "platform_utils.h"
 #include "sbufstream.h"
 #include "validate.h"
+#include "dxgiformat.h"
+
+// Implementation is already included in Basis Universal
+#include "basis_universal/encoder/3rdparty/tinydds.h"
 
 #include <exception>
 #include <filesystem>
@@ -43,7 +48,8 @@ Convert another texture file type to a KTX2 file
     the value given in  @e input-file with the extension @c ktx2.
 
     The input file must be of a supported file type. Currently the only supported
-    type is KTX v1. Generates an error if the input file type is unrecognized.
+    file types are KTX v1 and DDS. Generates an error if the input file type is
+    unrecognized.
 
     To encode or supercompress the converted file, pipe it to @b ktx @b encode or
     @b ktx @b deflate via stdout.
@@ -61,11 +67,17 @@ Convert another texture file type to a KTX2 file
     the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK they will render
     HDR blocks in the error color.
 
+    @note When converting a DDS file, the conversion is lossless (no
+    decoding-encoding cycle is performed and bits are just copied as they are).
+    Not all formats supported by DDS are currently supported. Currently
+    supported formats include all BC1-BC7 GPU block compressed formats, all LDR
+    uncompressed formats, and all HDR uncompressed formats.
+
 @section ktx\_convert\_options OPTIONS
     The following options are available:
     <dl>
         <dt>-t, \--input-type &lt;type&gt;</dt>
-        <dd>Type of input file. Currently @b type must be @c ktx. Case insensitive.</dd>
+        <dd>Type of input file. Currently @b type must be either @c ktx or @c dds. Case insensitive.</dd>
         <dt>-d, \--drop-bad-orientation</dt>
         <dd>Some in-the-wild KTX v1 files have orientation metadata with the key
             "KTXOrientation" instead of KTXorientaion. By default such metadata is
@@ -96,6 +108,7 @@ public:
         : OutputStream(filepath, report) { }
 #endif
 
+    /// Writes input KTX1 texture as KTX2 texture. Calls `ktxTexture1_WriteKTX2ToStream` on the input KTX1 texture
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
         StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
         const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
@@ -103,6 +116,18 @@ public:
             if (!isStdout())
                 std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
             report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.",
+                         filepath, ktxErrorString(ret));
+        }
+    }
+
+    /// Writes input KTX2 texture. Simply calls `ktxTexture2_WriteToStream` on the input KTX2 texture
+    void writeKTX2(ktxTexture2* texture, Reporter& report) {
+        StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+        const auto ret = ktxTexture2_WriteToStream(texture, stream.stream());
+        if (KTX_SUCCESS != ret) {
+            if (!isStdout())
+                std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+            report.fatal(rc::IO_FAILURE, "Failed to write KTX2 file \"{}\": KTX error: {}.",
                          filepath, ktxErrorString(ret));
         }
     }
@@ -122,15 +147,16 @@ class CommandConvert : public Command {
             const std::string kDropBadOrientationFlags = std::string("d,") + kDropBadOrientation;
             const std::string kInputTypeFlags = std::string("t,") + kInputType;
             opts.add_options()
-                (kInputTypeFlags, "Specify the type of input file. Currently must be ktx.",
+                (kInputTypeFlags, "Specify the type of input file. Currently must be ktx or dds.",
                   cxxopts::value<std::string>(), "<type>")
                 (kDropBadOrientationFlags, "Drop bad orientation metadata, such as \"KTXOrientation\","
                     " instead of fixing it.");
         }
 
         std::optional<input_type_e> parseInputType(cxxopts::ParseResult& args, const char* argName, Reporter& report) const {
-            static const std::unordered_map<std::string, input_type_e> values {
-                { "KTX", input_type_e::ktx}
+            static const std::unordered_map<std::string, input_type_e> values{
+                {"KTX", input_type_e::ktx},
+                {"DDS", input_type_e::dds},
             };
             std::optional<input_type_e> result = {};
             if (args[argName].count()) {
@@ -164,7 +190,16 @@ public:
 
 private:
     void convertKtx(InputStream&, OutputStreamEx&);
+    void convertDDS(InputStream&, OutputStreamEx&);
     void executeConvert();
+
+    // Callbacks for TinyDDS
+    static void tinydds_error(void* user, char const* msg);
+    static void* tinydds_alloc(void* user, size_t size);
+    static void tinydds_free(void* user, void* memory);
+    static size_t tinydds_read(void* user, void* buffer, size_t byteCount);
+    static bool tinydds_seek(void* user, int64_t offset);
+    static int64_t tinydds_tell(void* user);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -233,6 +268,8 @@ void CommandConvert::executeConvert() {
     try {
         if (options.inputType == input_type_e::ktx)
             convertKtx(inputStream, outputStream);
+        else if (options.inputType == input_type_e::dds)
+            convertDDS(inputStream, outputStream);
     } catch (const FatalError& error) {
         outputStream.removeOnDestruct();
         throw error;
@@ -327,6 +364,217 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                          writer.c_str());
 
     outputStream.writeKTX2(texture, *this);
+}
+
+/// Get the corresponding VkFormat from the provided TinyDDS DXGI format. Not
+/// all formats have an equivalent in Vulkan. All BC1-BC7 formats are supported.
+/// The usual LDR and HDR uncompressed formats are also supported. For any
+/// non-supported format, this returns VK_FORMAT_UNDEFINED.
+inline VkFormat dds_to_vkformat(TinyDDS_Format dds_format) {
+    auto dxgi_format = static_cast<DXGI_FORMAT>(dds_format);
+    switch (dxgi_format) {
+#include "dxgiFormat2vkFormat.inl"
+    default:
+        return VK_FORMAT_UNDEFINED;
+    }
+}
+
+struct TinyDDS_CustomData {
+    CommandConvert* parent;
+    ktxStream* str;
+};
+
+/// Deleter that wraps `TinyDDS_DestroyContext` to be passed to std::unique_ptr
+void TinyDDS_Deleter(TinyDDS_ContextHandle* handle) { TinyDDS_DestroyContext(*handle); }
+
+void CommandConvert::convertDDS(InputStream& inputStream, OutputStreamEx& outputStream) {
+    std::unique_ptr<TinyDDS_ContextHandle, decltype(TinyDDS_Deleter)*> dds_raii{nullptr,
+                                                                                TinyDDS_Deleter};
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> texture_raii{nullptr,
+                                                                              ktxTexture2_Destroy};
+    StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(),
+                                               std::ios::in | std::ios::binary};
+
+    TinyDDS_Callbacks clbks;
+    clbks.errorFn = tinydds_error;
+    clbks.allocFn = tinydds_alloc;
+    clbks.freeFn = tinydds_free;
+    clbks.readFn = tinydds_read;
+    clbks.seekFn = tinydds_seek;
+    clbks.tellFn = tinydds_tell;
+
+    // Set custom user data to be passed as pointer to TinyDDS clbks (see above)
+    TinyDDS_CustomData user_data;
+    user_data.parent = this;
+    user_data.str = ktxStream.stream();
+
+    // Create a TinyDDS context
+    TinyDDS_ContextHandle dds_handle = TinyDDS_CreateContext(&clbks, &user_data);
+    if (dds_handle == NULL)
+        fatal(rc::RUNTIME_ERROR, "Failed to create TinyDDS context from input DDS stream");
+    dds_raii.reset(&dds_handle);
+
+    // Then read the header
+    if (!TinyDDS_ReadHeader(dds_handle)) fatal(rc::INVALID_FILE, "Failed to read DDS header");
+
+    // Check endianess (this will always return false but there is a TODO pending in its
+    // implementation)
+    if (TinyDDS_NeedsEndianCorrecting(dds_handle))
+        fatal(rc::INVALID_FILE, "Handling of big endian DDS data is not yet supported");
+
+    // Get some specs that will be passed to ktxTexture2 creation struct
+    uint32_t base_width, base_height, base_depth, layers;
+    if (!TinyDDS_Dimensions(dds_handle, &base_width, &base_height, &base_depth, &layers))
+        fatal(rc::INVALID_FILE, "Failed to retrieve texture dimensions from DDS input");
+
+    // libktx expects dimensions to be >= 1 while TinyDDS can report, for instance, depth of 0
+    base_width = std::max(base_width, 1u);
+    base_height = std::max(base_height, 1u);
+    base_depth = std::max(base_depth, 1u);
+    layers = std::max(layers, 1u);
+
+    uint32_t num_levels = TinyDDS_NumberOfMipmaps(dds_handle);
+    if (num_levels == 0)
+        fatal(rc::INVALID_FILE, "Expected at least one mipmap level but retrieved 0");
+
+    uint32_t num_dims = 2;
+    if (base_height > 1 && base_depth > 1)
+        num_dims = 3;
+    else if (base_height <= 1)
+        num_dims = 1;
+
+    // DDS doesn't support volume/cubemap texture arrays
+    if (layers > 1 && (num_dims == 3 || TinyDDS_IsCubemap(dds_handle)))
+        fatal(rc::INVALID_FILE, "DDS does not support Volume/Cubemap texture arrays");
+
+    uint32_t num_faces = 1u;
+    if (TinyDDS_IsCubemap(dds_handle))
+        num_faces = 6;  // from the source code of tinydds.h it seems that DDS
+                        // cubemap textures can only be of exactly 6 faces.
+
+    // TODO: is TinyDDS up-to-date with latest DDS spec?
+    //       see: https://github.com/microsoft/DirectXTex
+    TinyDDS_Format dds_format = TinyDDS_GetFormat(dds_handle);
+    if (dds_format == TDDS_UNDEFINED)
+        fatal(rc::RUNTIME_ERROR, "Failed to retrieve DDS format (TDDS_UNDEFINED)");
+    if (dds_format >= TDDS_SYNTHESISED_DXGIFORMATS)
+        fatal(rc::RUNTIME_ERROR, "Unsupported synthesised DXGI format");
+
+    VkFormat vkformat = dds_to_vkformat(dds_format);
+    if (vkformat == VK_FORMAT_UNDEFINED)
+        fatal(rc::RUNTIME_ERROR, "Failed to retrieve Vulkan format from DDS format {}",
+              static_cast<uint32_t>(dds_format));
+
+    ktxTextureCreateInfo create_info;
+    create_info.glInternalformat = 0;  // Ignored as this is not a KTX1 texture
+    create_info.vkFormat = vkformat;
+    create_info.pDfd = nullptr;
+    create_info.baseWidth = base_width;
+    create_info.baseHeight = base_height;
+    create_info.baseDepth = base_depth;
+    create_info.numDimensions = num_dims;
+    create_info.numLevels = num_levels;
+    create_info.numLayers = layers;
+    create_info.numFaces = num_faces;
+    create_info.isArray = layers > 1;
+    create_info.generateMipmaps = KTX_FALSE;
+
+    ktxTexture2* texture = nullptr;
+    auto result = ktxTexture2_Create(&create_info, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
+    texture_raii.reset(texture);
+
+    if (result != KTX_SUCCESS)
+        fatal(rc::RUNTIME_ERROR, "ktxTexture2_Create returned ktx_error_code: {}",
+              static_cast<uint32_t>(result));
+
+    // Loop over all images and set them
+    for (uint32_t level_idx = 0; level_idx < texture->numLevels; ++level_idx) {
+        const uint32_t depth = std::max(texture->baseDepth >> level_idx, 1u);
+        // Get raw data (whether compressed, uncompressed, we don't care). The data should just
+        // match the set vkFormat, that's all. Remember that this is a lossless conversion so we do
+        // not decode/encode anything at all.
+        //
+        // For cubemaps, this points to first face
+        // For 3d textures, this points to first depth slice
+        // For 2d texture arrays, this points to first array layer
+        //   => in all of these cases, an offset needs to be added
+        //
+        auto data_ptr = (const ktx_uint8_t*)TinyDDS_ImageRawData(dds_handle, level_idx);
+        if (data_ptr == NULL)
+            fatal(rc::RUNTIME_ERROR,
+                  "Failed to retrieve raw image data from DDS file at mipmap level {}", level_idx);
+        // Before anything, be absolutely certain that what we are about to write is of
+        // the exact same size (in bytes) of what libktx expects us to write for this
+        // mip level.
+        //
+        // This doesn't return the image size in the same manner that libktx does.
+        // For cubemaps, this returns size of all faces (i.e., size of a face multiplied 6)
+        // For volumes, this returns size of all volume image
+        // For arrays, this returns size of all array layers
+        //    => hence why a division is needed (you can safely multiply these because
+        //       DDS does not support volume/cubemap arrays.
+        const size_t data_size = TinyDDS_ImageSize(dds_handle, level_idx) /
+                                 (texture->numLayers * texture->numFaces * depth);
+        const size_t expected_size = ktxTexture2_GetImageSize(texture, level_idx);
+        if (data_size != expected_size)
+            fatal(rc::RUNTIME_ERROR,
+                  "libktx expects {} bytes to be written for this mip level {} but {} "
+                  "bytes are instead attempted to be written",
+                  expected_size, level_idx, data_size);
+        for (ktx_uint32_t layer_idx = 0; layer_idx < texture->numLayers; ++layer_idx) {
+            for (uint32_t face_idx = 0; face_idx < texture->numFaces; ++face_idx) {
+                for (uint32_t slice_idx = 0; slice_idx < depth; ++slice_idx) {
+                    // DDS doesn't support volume/cubemap texture arrays, so the following addition
+                    // is an addition on mutually exclusive indices
+                    size_t offset = data_size * (layer_idx + face_idx + slice_idx);
+                    auto status = ktxTexture_SetImageFromMemory(ktxTexture(texture), level_idx,
+                                                                layer_idx, face_idx + slice_idx,
+                                                                data_ptr + offset, data_size);
+                    if (status != KTX_SUCCESS)
+                        fatal(rc::RUNTIME_ERROR,
+                              "ktxTexture_SetImageFromMemory returned KTX exit error code: {}",
+                              static_cast<uint32_t>(status));
+                }  // slices
+            }  // faces
+        }  // layers
+    }  // mip levels
+
+    // Add required writer metadata.
+    const auto writer = fmt::format("{} {}", commandName, version(options.testrun));
+    ktxHashList_AddKVPair(&texture->kvDataHead, KTX_WRITER_KEY,
+                          static_cast<uint32_t>(writer.size() + 1), writer.c_str());
+    outputStream.writeKTX2(texture, *this);
+}
+
+void CommandConvert::tinydds_error(void* user, char const* msg) {
+    ((TinyDDS_CustomData*)user)->parent->warning(msg);
+}
+
+void* CommandConvert::tinydds_alloc(void*, size_t size) { return new unsigned char[size]; }
+
+void CommandConvert::tinydds_free(void*, void* memory) { delete[] (unsigned char*)memory; }
+
+size_t CommandConvert::tinydds_read(void* user, void* buffer, size_t byteCount) {
+    const auto str = ((TinyDDS_CustomData*)user)->str;
+    if (auto result = str->read(str, buffer, byteCount); result != KTX_SUCCESS) return 0;
+    return byteCount;
+}
+
+bool CommandConvert::tinydds_seek(void* user, int64_t offset) {
+    const auto str = ((TinyDDS_CustomData*)user)->str;
+    if (auto result = str->setpos(str, offset); result != KTX_SUCCESS) return false;
+    return true;
+}
+
+int64_t CommandConvert::tinydds_tell(void* user) {
+    const auto str = ((TinyDDS_CustomData*)user)->str;
+    ktx_off_t curr_pos;
+    // This callback is only called initially, or after successful call to read()
+    // To be absolutely safe, do a `fatal` on failure
+    if (auto result = str->getpos(str, &curr_pos); result != KTX_SUCCESS)
+        ((TinyDDS_CustomData*)user)
+            ->parent->fatal(rc::RUNTIME_ERROR, "Call to streambuf->getpos() failed");
+    return curr_pos;
 }
 
 } // namespace ktx
