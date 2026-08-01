@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Khronos Group Inc.
+# Copyright 2017-2026 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 #if(WIN32)
@@ -28,6 +28,10 @@ if(NOT EMSCRIPTEN)
     # no time to experiment, so tests that use assimp are omitted from
     # loadtests when building for the web.
     find_package(assimp REQUIRED CONFIG REQUIRED)
+    #cmake_print_variables(assimp_LIBRARIES)
+    set( LOAD_TEST_COMMON_LIBS assimp::assimp)
+else()
+    set( LOAD_TEST_COMMON_LIBS )
 endif()
 
 # We use our own local copy of GL headers to ensure we have glcorearb.h.
@@ -63,30 +67,6 @@ if(APPLE AND IOS)
     find_library(QuartzCore_LIBRARY QuartzCore)
     find_library(UIKit_LIBRARY UIKit)
 endif()
-
-function( ensure_runtime_dependencies_windows target test_images )
-    # Custom copy commands to ensure all dependencies (test images,
-    # shaders, models) are in correct location relative to executable.
-
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Make resources directory"
-    )
-    if(${target} MATCHES "vkloadtests")
-        add_custom_command( TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory  "${CMAKE_CURRENT_BINARY_DIR}/shaders" "$<TARGET_FILE_DIR:${target}>/resources"
-            COMMENT "Copy shaders to build destination"
-        )
-    endif()
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${test_images} "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Copy testimages to build destination"
-    )
-    add_custom_command( TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory  "${PROJECT_SOURCE_DIR}/tests/loadtests/common/models" "$<TARGET_FILE_DIR:${target}>/resources"
-        COMMENT "Copy models to build destination"
-    )
-endfunction()
 
 add_library( appfwSDL STATIC
     appfwSDL/AppBaseSDL.cpp
@@ -188,8 +168,6 @@ if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "OpenGL")
   )
 endif()
 
-set( LOAD_TEST_COMMON_LIBS )
-
 if(APPLE)
     set( EXE_FLAG MACOSX_BUNDLE )
     set( KTX_APP_ICON_BASENAME ktx_app)
@@ -199,43 +177,34 @@ if(APPLE)
     # On iOS an icon is a directory of images not a single file.
     # BASENAME is the name of the directory in the common .xcassets directory.
     # Assets are copied to the bundle in the build target setup.
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
-    set( KTX_DOC_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
-    cmake_print_variables(assimp_LIBRARIES)
-    if(IOS)
-        set( LOAD_TEST_COMMON_LIBS
-            assimp::assimp
-        )
-    else()
-        set( LOAD_TEST_COMMON_LIBS
-            assimp::assimp
-        )
-    endif()
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_APP_ICON} )
+    set( KTX_DOC_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/mac/${KTX_DOC_ICON} )
 elseif(LINUX)
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
-    set( LOAD_TEST_COMMON_LIBS
-        assimp::assimp
-        #${SDL3_LIBRARIES}
-        SDL3::SDL3
-    )
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/linux/ktx_app.svg )
 elseif(WIN32)
     set( EXE_FLAG WIN32 )
-    set( KTX_APP_ICON_PATH ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
-    set( LOAD_TEST_COMMON_LIBS
-        assimp::assimp
-    )
+    set( KTX_APP_ICON_SOURCE ${PROJECT_SOURCE_DIR}/icons/win/ktx_app.ico )
 endif()
+
+set( KTX_ICON_SOURCES ${KTX_APP_ICON_SOURCE} ${KTX_DOC_ICON_SOURCE} )
+source_group( "Resources" FILES
+    ${KTX_ICON_SOURCES}
+)
 
 set( LOAD_TEST_COLLADA_MODELS
      "teapot.dae"
 )
-list(TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+
+list( TRANSFORM LOAD_TEST_COLLADA_MODELS PREPEND
+    "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+    OUTPUT_VARIABLE LOAD_TEST_COLLADA_MODEL_SOURCES
+)
 # An Xcode (or possibly CMake) update in late 2024 or early 2025 started
 # compressing .dae files when copying them to bundle resources. This piece
 # of undocumented magic makes it just copy. The Xcode GUI presents an option
 # menu on the file with "Copy" and "Compress" in the project settings browser.
 # This attribute sets it to "Copy."
-set_source_files_properties( ${LOAD_TEST_COLLADA_MODELS}
+set_source_files_properties( ${LOAD_TEST_COLLADA_MODEL_SOURCES}
     PROPERTIES
         XCODE_FILE_ATTRIBUTES "--decompress"
 )
@@ -245,28 +214,27 @@ set( LOAD_TEST_OBJ_MODELS
      "sphere.obj"
      "torusknot.obj"
 )
-list(TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/")
+list( TRANSFORM LOAD_TEST_OBJ_MODELS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/common/models/"
+    OUTPUT_VARIABLE LOAD_TEST_OBJ_MODEL_SOURCES
+)
 # Hack to prevent *.obj 3D files being mistaken as linkable obj files
-set_source_files_properties( ${LOAD_TEST_OBJ_MODELS}
+set_source_files_properties( ${LOAD_TEST_OBJ_MODEL_SOURCES}
     PROPERTIES HEADER_FILE_ONLY TRUE
 )
-set( LOAD_TEST_COMMON_MODELS
-     ${LOAD_TEST_COLLADA_MODELS}
-     ${LOAD_TEST_OBJ_MODELS}
+set( LOAD_TEST_COMMON_MODEL_SOURCES
+     ${LOAD_TEST_COLLADA_MODEL_SOURCES}
+     ${LOAD_TEST_OBJ_MODEL_SOURCES}
 )
+source_group("Resources/Models" FILES ${LOAD_TEST_COMMON_MODEL_SOURCES})
 
 # A custom loadtest_models target does not work as configure fails at
 # an install_target that uses this with an error "the target is not
 # an executable, library or module."
 #add_custom_target( loadtest_models
-#    SOURCES ${LOAD_TEST_COMMON_MODELS}
+#    SOURCES ${LOAD_TEST_COMMON_MODEL_SOURCES}
 #)
 
-set( LOAD_TEST_COMMON_RESOURCE_FILES
-    ${KTX_APP_ICON_PATH}
-    ${KTX_DOC_ICON_PATH}
-    ${LOAD_TEST_COMMON_MODELS}
-)
+set(TEST_RESOURCES_DIR "${PROJECT_SOURCE_DIR}/tests/resources")
 
 if(LINUX)
     set( LOAD_TEST_DESTROOT "/opt" )
@@ -279,3 +247,81 @@ endif()
 if(${KTX_FEATURE_LOADTEST_APPS} MATCHES "Vulkan")
     include(vkloadtests.cmake)
 endif()
+
+if(NOT APPLE AND NOT EMSCRIPTEN)
+    # Arrange to copy resources next to the executable for ease of use
+    # during debugging and testing. Not needed on Apple because resources
+    # are copied into the built bundles.
+    #
+    # We cannot use just custom commands because this copy of the resources
+    # is shared by multiple targets so when building in parallel the
+    # instances of the rule may conflict giving rise to races. To avoid
+    # this we use a custom target whichh we make a dependency of the targets
+    # which imposes a strict runtime order on the builds, avoiding races.
+    #
+    # IMPORTANT NOTE
+    # This target and copy of the resources play no part in eventual
+    # installation of the application and are only for convenience during
+    # development. How to install the resources on Windows and Linux has
+    # yet to be determined.
+
+    # The resources directory is created in the build tree next to the
+    # executable's directory. The intention is to maintain this sibling
+    # relationship when the app and its resources are installed on a system.
+    set(BUILDTIME_RESOURCES_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../resources)
+
+    set( combined_resources "" )
+    if(TARGET vkloadtests)
+        get_target_property( vk_resources vkloadtests RESOURCE )
+        list(APPEND combined_resources ${vk_resources})
+    endif()
+    if(TARGET gl3loadtests)
+        get_target_property( gl3_resources gl3loadtests RESOURCE )
+        list( APPEND combined_resources ${gl3_resources} )
+    endif()
+    if(TARGET es3loadtests)
+        get_target_property( es3_resources es3loadtests RESOURCE )
+        list( APPEND combined_resources ${es3_resources} )
+    endif()
+    if(TARGET es1loadtests)
+        get_target_property( es1_resources es1loadtests RESOURCE )
+        list( APPEND combined_resources ${es1_resources} )
+    endif()
+
+    list( REMOVE_DUPLICATES combined_resources )
+    list( SORT combined_resources )
+    list( TRANSFORM combined_resources REPLACE "^[-a-zA-Z0-9_:/<>].*/" ${BUILDTIME_RESOURCES_DIR}/
+        OUTPUT_VARIABLE combined_resource_copies
+    )
+
+    add_custom_command(
+        OUTPUT ${combined_resource_copies}
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILDTIME_RESOURCES_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${combined_resources} ${BUILDTIME_RESOURCES_DIR}
+        COMMENT "Copy KTX and KTX2 images to buildtime resource destination"
+        DEPENDS ${combined_resources}
+        VERBATIM
+    )
+    add_custom_target(
+        copied_resources
+        DEPENDS ${combined_resource_copies}  
+    )
+
+    if(TARGET vkloadtests)
+        add_dependencies( vkloadtests copied_resources )
+    endif()
+    if(TARGET gl3loadtests)
+        add_dependencies( gl3loadtests copied_resources )
+    endif()
+    if(TARGET es3loadtests)
+        add_dependencies( es3loadtests copied_resources )
+    endif()
+    if(TARGET es1loadtests)
+        add_dependencies( es1loadtests copied_resources )
+    endif()
+
+    unset( combined_resource_copies )
+    unset( combined_resources )
+endif()
+
+

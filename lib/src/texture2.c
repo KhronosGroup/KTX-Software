@@ -248,18 +248,29 @@ ktx_uint32_t e5b9g9r9_ufloat_comparator[e5b9g9r9_bdbwordcount] = {
  * @param[in] This   pointer the ktxFormatSize to initialize.
  * @param[in] pDFD   pointer to the DFD whose data to use.
  *
- * @return    KTX_TRUE on success, otherwise KTX_FALSE.
+ * @return           KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                   Provided DFD is inconsistent with the KTX specification.
+ * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
+ *                   DFD not successfully interpreted by @c interpretDFD.
  */
-bool
+KTX_error_code
 ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 {
+    const uint32_t sizeof_dfdTotalSize = sizeof(uint32_t);
+    const uint32_t sizeof_BDFDHeader = KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE;
+    const uint32_t sizeof_BDFD = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const uint32_t sizeof_BDFDSample = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
+
     uint32_t* pBdb = pDfd + 1;
     // pDfd[0] contains totalSize in bytes, check if it has at least
-    // KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE bytes
-    if (pDfd[0] < KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE || *pBdb != 0) {
+    // sizeof(BDFD header) + sizeof(pDfd[0]) bytes
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFDHeader) || *pBdb != 0) {
         // Either decriptorType or vendorId is not 0
-        return false;
+        return KTX_FILE_DATA_ERROR;
     }
+
     // Iterate through all block descriptors and check if sum of their sizes
     // is equal to the totalSize in pDfd[0]
     uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
@@ -273,7 +284,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         }
     }
     if (descriptorSize != 0) {
-        return false;
+        return KTX_FILE_DATA_ERROR;
     }
 
     // reset pBdb pointer to the first block descriptor
@@ -281,7 +292,18 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
 
     // Check the DFD is of the expected version.
     if (KHR_DFDVAL(pBdb, VERSIONNUMBER) != KHR_DF_VERSIONNUMBER_1_3) {
-        return false;
+        return KTX_FILE_DATA_ERROR;
+    }
+
+    // This is essential to avoid heap-buffer-overflow accesses which are UB!
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD)) {
+        return KTX_FILE_DATA_ERROR;  // Invalid DFD: Missing or partial basic DFD block
+    }
+
+    // Equivalent to:
+    // pDfd[0] < (KHR_DF_WORD_SAMPLESTART + 1 + KHR_DF_WORD_SAMPLEWORDS) * sizeof(ktx_uint32_t)
+    if (pDfd[0] < (sizeof_dfdTotalSize + sizeof_BDFD + sizeof_BDFDSample)) {
+        return KTX_FILE_DATA_ERROR;  // Invalid DFD: Missing or partial basic DFD sample
     }
 
     // DFD has supported type and version. Process it.
@@ -309,9 +331,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
         if (KHR_DFDVAL(pBdb, MODEL) == KHR_DF_MODEL_PVRTC) {
             This->minBlocksX = This->minBlocksY = 2;
         }
-    } else {
-        // An uncompressed format.
-
+    } else { // non-supercompressed format.
         // Special case depth & depth stencil formats
         if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_DEPTH) {
             if (KHR_DFDSAMPLECOUNT(pBdb) == 1) {
@@ -321,7 +341,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
                 This->flags |= KTX_FORMAT_SIZE_DEPTH_BIT;
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
             } else {
-                return false;
+                return KTX_FILE_DATA_ERROR;
             }
         } else if (KHR_DFDSVAL(pBdb, 0, CHANNELID) == KHR_DF_CHANNEL_RGBSDA_STENCIL) {
             This->flags |= KTX_FORMAT_SIZE_STENCIL_BIT;
@@ -343,7 +363,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
             result = interpretDFD(pDfd, &rgba[0], &rgba[1], &rgba[2], &rgba[3],
                                   &wordBytes);
             if (result >= i_UNSUPPORTED_ERROR_BIT)
-                return false;
+                return KTX_UNSUPPORTED_TEXTURE_TYPE;
             if (result & i_PACKED_FORMAT_BIT)
                 This->flags |= KTX_FORMAT_SIZE_PACKED_BIT;
             if (result & i_COMPRESSED_FORMAT_BIT)
@@ -352,7 +372,7 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
                 This->flags |= KTX_FORMAT_SIZE_YUVSDA_BIT;
         }
     }
-    return true;
+    return KTX_SUCCESS;
 }
 
 /**
@@ -449,9 +469,13 @@ ktxTexture2_construct(ktxTexture2* This,
 #ifdef _DEBUG
         // If this fires, an unsupported format or incorrect DFD
         // has crept into vk2dfd.
-        assert(ktxFormatSize_initFromDfd(&formatSize, This->pDfd));
+        assert(ktxFormatSize_initFromDfd(&formatSize, This->pDfd) == KTX_SUCCESS);
 #else
-        (void)ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) {
+          result = KTX_UNSUPPORTED_TEXTURE_TYPE;
+          goto cleanup;
+        }
 #endif
 
     } else {
@@ -460,19 +484,19 @@ ktxTexture2_construct(ktxTexture2* This,
         if (!This->pDfd)
             return KTX_OUT_OF_MEMORY;
         memcpy(This->pDfd, createInfo->pDfd, *createInfo->pDfd);
-        if (!ktxFormatSize_initFromDfd(&formatSize, This->pDfd)) {
+        result = ktxFormatSize_initFromDfd(&formatSize, This->pDfd);
+        if (result != KTX_SUCCESS) {
             result = KTX_UNSUPPORTED_TEXTURE_TYPE;
             goto cleanup;
         }
     }
 
     result =  ktxTexture_construct(ktxTexture(This), createInfo, &formatSize);
-
     if (result != KTX_SUCCESS)
-        return result;
+        goto cleanup;
     result = ktxTexture2_constructCommon(This, createInfo->numLevels);
     if (result != KTX_SUCCESS)
-        goto cleanup;;
+        goto cleanup;
 
     This->vkFormat = createInfo->vkFormat;
 
@@ -785,6 +809,13 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
+
+    // Before doing any access on pDfd, make use of the extensive checks in ktxFormatSize_initFromDfd
+    result = ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd);
+    if (result != KTX_SUCCESS) {
+        goto cleanup;
+    }
+
     pBDFD = (struct BDFD*)(This->pDfd + 1);
     if (pBDFD->descriptorBlockSize < 24 || (pBDFD->descriptorBlockSize - 24) % 16 != 0) {
         // BDFD has invalid size
@@ -812,10 +843,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
           goto cleanup;
     }
 
-    if (!ktxFormatSize_initFromDfd(&This->_protected->_formatSize, This->pDfd)) {
-        result = KTX_UNSUPPORTED_TEXTURE_TYPE;
-        goto cleanup;
-    }
     This->isCompressed = (This->_protected->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
 
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ && pBDFD->model != KHR_DF_MODEL_ETC1S) {
@@ -1237,19 +1264,26 @@ ktxTexture2_constructFromMemory(ktxTexture2* This,
 /**
  * @memberof ktxTexture2 @private
  * @~English
- * @brief Destruct a ktxTexture2, freeing and internal memory.
+ * @brief Free the memory associated with the ktxTexture2 contents
  *
- * @param[in] This pointer to a ktxTexture2-sized block of memory to
- *                 initialize.
+ * @param[in] This pointer to the ktxTexture2 whose texture contents are to be
+ *                 freed.
  */
 void
 ktxTexture2_destruct(ktxTexture2* This)
 {
-    if (This->pDfd) free(This->pDfd);
+    if (This->pDfd) {
+      free(This->pDfd);
+      This->pDfd = NULL;
+    }
     if (This->_private) {
       ktx_uint8_t* sgd = This->_private->_supercompressionGlobalData;
-      if (sgd) free(sgd);
+      if (sgd) {
+        free(sgd);
+        This->_private->_supercompressionGlobalData = NULL;
+      }
       free(This->_private);
+      This->_private = NULL;
     }
     ktxTexture_destruct(ktxTexture(This));
 }
@@ -2550,6 +2584,7 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
 
     // No further need for this.
     stream->destruct(stream);
+    stream->data.file = NULL;  // So that destruct is not invoked again
     This->_private->_firstLevelFileOffset = 0;
 cleanup:
     free(dataBuf);
@@ -2716,6 +2751,7 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
 
     // No further need for stream or file offset.
     prtctd->_stream.destruct(&prtctd->_stream);
+    prtctd->_stream.data.file = NULL;
     private->_firstLevelFileOffset = 0;
 
 cleanup:

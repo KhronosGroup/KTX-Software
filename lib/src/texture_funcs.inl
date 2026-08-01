@@ -28,7 +28,6 @@
 */
 
 
-ktx_size_t CLASS_FUNC(GetImageSize)(CLASS* This, ktx_uint32_t level);
 KTX_error_code CLASS_FUNC(GLUpload)(CLASS* This, GLuint* pTexture,
                                     GLenum* pTarget, GLenum* pGlerror);
 KTX_error_code CLASS_FUNC(IterateLevels)(CLASS* This,

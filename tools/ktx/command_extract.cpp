@@ -25,7 +25,9 @@
 #include <fmt/printf.h>
 
 #include "lodepng/lodepng.h"
-#include "astc-encoder/Source/ThirdParty/tinyexr.h"
+// Use same tinyexr.h version as the implementation created in imageio.
+// See imageio/exr.imageio/exrinput.cc for details.
+#include "basis_universal/encoder/3rdparty/tinyexr.h"
 #include "astc-encoder/Source/astcenc.h"
 
 // -------------------------------------------------------------------------------------------------
@@ -536,7 +538,7 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
     } astcenc;
     astcenc_context*& context = astcenc.context;
 
-    ec = astcenc_context_alloc(&config, threadCount, &context);
+    ec = astcenc_context_alloc(&config, threadCount, &context, nullptr);
     if (ec != ASTCENC_SUCCESS)
         fatal(rc::RUNTIME_ERROR, "ASTC Codec context alloc failed: {}", astcenc_get_error_string(ec));
 
@@ -881,6 +883,12 @@ void CommandExtract::savePNG(std::string filepath, bool appendExtension,
     if (format.transfer() == KHR_DF_TRANSFER_SRGB) {
         state.info_png.srgb_defined = 1;
         state.info_png.srgb_intent = 0;
+    } else if (format.transfer() == KHR_DF_TRANSFER_LINEAR
+               || format.transfer() == KHR_DF_TRANSFER_UNSPECIFIED) {
+        // Virtually every tool takes absence of colorspace info to mean sRGB so write gamma 1.
+        state.info_png.srgb_defined = 0;
+        state.info_png.gama_defined = 1;
+        state.info_png.gama_gamma = 100000;
     }
 
     // Output primaries as cHRM chunk

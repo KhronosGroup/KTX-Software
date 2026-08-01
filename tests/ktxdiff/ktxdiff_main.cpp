@@ -70,7 +70,7 @@ struct Texture {
     const std::byte* sgdData = nullptr;
     size_t sgdSize = 0;
 
-    ktxTexture2* handle = nullptr;
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> handle{nullptr, ktxTexture2_Destroy};
     bool transcoded = false;
 
 public:
@@ -82,14 +82,11 @@ public:
         loadKTX();
         loadMetadata();
     }
-    ~Texture() {
-        std::free(handle);
-    }
     void loadFile();
     void loadKTX();
     void loadMetadata();
     inline ktxTexture2* operator->() const {
-        return handle;
+        return handle.get();
     }
 };
 
@@ -111,18 +108,20 @@ void Texture::loadFile() {
 
 void Texture::loadKTX() {
     KTX_error_code ec = KTX_SUCCESS;
+    ktxTexture2* pTexture = nullptr;
     ec = ktxTexture2_CreateFromMemory(
             reinterpret_cast<const ktx_uint8_t*>(rawData.data()),
             rawData.size(),
             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-            &handle);
+            &pTexture);
+    handle.reset(pTexture);
     if (ec != KTX_SUCCESS)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_CreateFromNamedFile: {}\n", filepath, ktxErrorString(ec));
 
-    if (ktxTexture2_IsTranscodable(handle)) {
-        ktx_transcode_fmt_e outputFmt = ktxTexture_IsHDR(ktxTexture(handle)) ?
+    if (ktxTexture2_IsTranscodable(handle.get())) {
+        ktx_transcode_fmt_e outputFmt = ktxTexture_IsHDR(ktxTexture(handle.get())) ?
                                         KTX_TTF_RGBA_HALF : KTX_TTF_RGBA32;
-        ec = ktxTexture2_TranscodeBasis(handle, outputFmt, 0);
+        ec = ktxTexture2_TranscodeBasis(handle.get(), outputFmt, 0);
         if (ec != KTX_SUCCESS)
             error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": ktxTexture2_TranscodeBasis: {}\n", filepath, ktxErrorString(ec));
         transcoded = true;
@@ -253,7 +252,7 @@ auto decodeASTC(const char* compressedData, std::size_t compressedSize, uint32_t
     } astcenc;
     astcenc_context*& context = astcenc.context;
 
-    ec = astcenc_context_alloc(&config, threadCount, &context);
+    ec = astcenc_context_alloc(&config, threadCount, &context, nullptr);
     if (ec != ASTCENC_SUCCESS)
         error(EXIT_CODE_ERROR, "ktxdiff error \"{}\": astcenc_context_alloc: {}\n", filepath, astcenc_get_error_string(ec));
 
@@ -366,7 +365,7 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
         return true;
 
     for (uint32_t levelIndex = 0; levelIndex < lhs->numLevels; ++levelIndex) {
-        const auto imageSize = ktxTexture_GetImageSize(ktxTexture(lhs.handle), levelIndex);
+        const auto imageSize = ktxTexture_GetImageSize(ktxTexture(lhs.handle.get()), levelIndex);
         const auto imageWidth = std::max(1u, lhs->baseWidth >> levelIndex);
         const auto imageHeight = std::max(1u, lhs->baseHeight >> levelIndex);
         const auto imageDepth = std::max(1u, lhs->baseDepth >> levelIndex);
@@ -376,7 +375,7 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance) {
                 for (uint32_t depthIndex = 0; depthIndex < ceil_div(imageDepth, blockSizeZ); ++depthIndex) {
 
                     ktx_size_t imageOffset;
-                    ktxTexture2_GetImageOffset(lhs.handle, levelIndex, layerIndex, faceIndex + depthIndex, &imageOffset);
+                    ktxTexture2_GetImageOffset(lhs.handle.get(), levelIndex, layerIndex, faceIndex + depthIndex, &imageOffset);
                     const char* imageDataLhs = reinterpret_cast<const char*>(lhs->pData) + imageOffset;
                     const char* imageDataRhs = reinterpret_cast<const char*>(rhs->pData) + imageOffset;
 

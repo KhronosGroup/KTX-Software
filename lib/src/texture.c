@@ -85,12 +85,15 @@ ktxTexture_construct(ktxTexture* This,
                      const ktxTextureCreateInfo* const createInfo,
                      ktxFormatSize* formatSize)
 {
+    KTX_error_code result;
     DECLARE_PROTECTED(ktxTexture);
 
     memset(This, 0, sizeof(*This));
     This->_protected = (struct ktxTexture_protected*)malloc(sizeof(*prtctd));
-    if (!This->_protected)
-        return KTX_OUT_OF_MEMORY;
+    if (!This->_protected) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     prtctd = This->_protected;
     memset(prtctd, 0, sizeof(*prtctd));
     memcpy(&prtctd->_formatSize, formatSize, sizeof(prtctd->_formatSize));
@@ -104,22 +107,30 @@ ktxTexture_construct(ktxTexture* This,
     /* Check texture dimensions. KTX files can store 8 types of textures:
      * 1D, 2D, 3D, cube, and array variants of these.
      */
-    if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3)
-        return KTX_INVALID_VALUE;
+    if (createInfo->numDimensions < 1 || createInfo->numDimensions > 3) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
 
     if (createInfo->baseWidth == 0 || createInfo->baseHeight == 0
-        || createInfo->baseDepth == 0)
-        return KTX_INVALID_VALUE;
+        || createInfo->baseDepth == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
 
     switch (createInfo->numDimensions) {
       case 1:
-        if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1)
-            return KTX_INVALID_OPERATION;
+        if (createInfo->baseHeight > 1 || createInfo->baseDepth > 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
 
       case 2:
-        if (createInfo->baseDepth > 1)
-            return KTX_INVALID_OPERATION;
+        if (createInfo->baseDepth > 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
 
       case 3:
@@ -127,8 +138,10 @@ ktxTexture_construct(ktxTexture* This,
          * OpenGL or Vulkan.
          */
         if (createInfo->isArray || createInfo->numFaces != 1
-            || createInfo->numLayers != 1)
-            return KTX_INVALID_OPERATION;
+            || createInfo->numLayers != 1) {
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
+        }
         break;
     }
     This->numDimensions = createInfo->numDimensions;
@@ -136,30 +149,37 @@ ktxTexture_construct(ktxTexture* This,
     This->baseDepth = createInfo->baseDepth;
     This->baseHeight = createInfo->baseHeight;
 
-    if (createInfo->numLayers == 0)
-        return KTX_INVALID_VALUE;
+    if (createInfo->numLayers == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
     This->numLayers = createInfo->numLayers;
     This->isArray = createInfo->isArray;
 
     if (createInfo->numFaces == 6) {
         if (This->numDimensions != 2) {
             /* cube map needs 2D faces */
-            return KTX_INVALID_OPERATION;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
         if (createInfo->baseWidth != createInfo->baseHeight) {
             /* cube maps require square images */
-            return KTX_INVALID_OPERATION;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
         This->isCubemap = KTX_TRUE;
     } else if (createInfo->numFaces != 1) {
         /* numFaces must be either 1 or 6 */
-        return KTX_INVALID_VALUE;
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
     }
     This->numFaces = createInfo->numFaces;
 
     /* Check number of mipmap levels */
-    if (createInfo->numLevels == 0)
-        return KTX_INVALID_VALUE;
+    if (createInfo->numLevels == 0) {
+        result = KTX_INVALID_VALUE;
+        goto cleanup;
+    }
     This->numLevels = createInfo->numLevels;
     This->generateMipmaps = createInfo->generateMipmaps;
 
@@ -169,12 +189,17 @@ ktxTexture_construct(ktxTexture* This,
         if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
-            return KTX_INVALID_OPERATION;
+            result = KTX_INVALID_OPERATION;
+            goto cleanup;
         }
     }
 
     ktxHashList_Construct(&This->kvDataHead);
     return KTX_SUCCESS;
+
+cleanup:
+    ktxTexture_destruct(This);
+    return result;
 }
 
 /**
@@ -220,23 +245,33 @@ ktxTexture_constructFromStream(ktxTexture* This, ktxStream* pStream,
  * @~English
  * @brief Free the memory associated with the texture contents
  *
- * @param[in] This pointer to the ktxTextureInt whose texture contents are
- *                 to be freed.
+ * @param[in] This pointer to the ktxTexture whose texture contents are to be
+ *                 freed.
  */
 void
 ktxTexture_destruct(ktxTexture* This)
 {
-    ktxStream stream = *(ktxTexture_getStream(This));
-
-    if (stream.data.file != NULL)
-        stream.destruct(&stream);
-    if (This->kvDataHead != NULL)
+    if (This->_protected != NULL) {
+        ktxStream stream = *(ktxTexture_getStream(This));
+        if (stream.data.file != NULL) {
+            stream.destruct(&stream);
+            stream.data.file = NULL;
+        }
+        free(This->_protected);
+        This->_protected = NULL;
+    }
+    if (This->kvDataHead != NULL) {
         ktxHashList_Destruct(&This->kvDataHead);
-    if (This->kvData != NULL)
+        This->kvDataHead = NULL;
+    }
+    if (This->kvData != NULL) {
         free(This->kvData);
-    if (This->pData != NULL)
+        This->kvData = NULL;
+    }
+    if (This->pData != NULL) {
         free(This->pData);
-    free(This->_protected);
+        This->pData = NULL;
+    }
 }
 
 
@@ -833,9 +868,9 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
  *
  * For uncompressed textures the pitch is the number of bytes between
  * rows of texels. For compressed textures it is the number of bytes
- * between rows of blocks. The value is padded to GL_UNPACK_ALIGNMENT,
- * if necessary. For all currently known compressed formats padding
- * will not be necessary.
+ * between rows of blocks. If @p This texture is KTXv1, the value is padded to
+ * GL_UNPACK_ALIGNMENT, if necessary. For all currently known compressed formats
+ * padding will not be necessary regardless of the KTX texture version.
  *
  * @param[in]     This     pointer to the ktxTexture object of interest.
  * @param[in]     level    level of interest.
@@ -853,7 +888,8 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
 
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
     pitch = blockCount.x * prtctd->_formatSize.blockSizeInBits / 8;
-    (void)padRow(&pitch);
+    if (This->classId == ktxTexture1_c)
+        (void)padRow(&pitch);
 
     return pitch;
  }

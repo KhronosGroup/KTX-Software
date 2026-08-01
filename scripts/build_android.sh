@@ -46,14 +46,20 @@ for arg in "${cmake_args[@]}"; do
 done
 
 echo ${config_display%??}
+
+# To be supplied as `-j $njobs`. On GH CIs, this is most likely to be 4.
+njobs=$(nproc)
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd "$BUILD_DIR"
 
 echo "Build KTX-Software (Android $ANDROID_ABI $CONFIGURATION)"
-cmake --build . --config $CONFIGURATION -j
+cmake --build . --config $CONFIGURATION -j $njobs
 # echo "Test KTX-Software (Android $ANDROID_ABI Release)"
-# ctest --output-on-failure -C $CONFIGURATION # --verbose
+# ctest --output-on-failure -C $CONFIGURATION -j $njobs # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI $CONFIGURATION)"
 cmake --install . --config $CONFIGURATION --prefix ../$INSTALL_DIR
 

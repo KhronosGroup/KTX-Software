@@ -30,21 +30,24 @@ class TextureTranscoder {
     TextureTranscoder() {
         determineCompressedTexFeatures(deviceFeatures);
         if (deviceFeatures.astc_ldr)
-            defaultTf = KTX_TTF_ASTC_4x4_RGBA;
+            defaultLDRTf = KTX_TTF_ASTC_4x4_RGBA;
         else if (deviceFeatures.bc3)
-            defaultTf = KTX_TTF_BC1_OR_3;
+            defaultLDRTf = KTX_TTF_BC1_OR_3;
         else if (deviceFeatures.etc2)
-            defaultTf = KTX_TTF_ETC; // Let transcoder decide RGB or RGBA
+            defaultLDRTf = KTX_TTF_ETC; // Let transcoder decide RGB or RGBA
         else if (deviceFeatures.pvrtc1)
-            defaultTf = KTX_TTF_PVRTC1_4_RGBA;
+            defaultLDRTf = KTX_TTF_PVRTC1_4_RGBA;
         else if (deviceFeatures.etc1)
-            defaultTf = KTX_TTF_ETC1_RGB;
-        else {
-            std::stringstream message;
+            defaultLDRTf = KTX_TTF_ETC1_RGB;
+        else
+            defaultLDRTf = KTX_TTF_NOSELECTION;
 
-            message << "OpenGL implementation does not support any available transcode target.";
-            throw std::runtime_error(message.str());
-        }
+        if (deviceFeatures.astc_hdr)
+            defaultHDRTf = KTX_TTF_ASTC_HDR_4x4_RGBA;
+        else if (deviceFeatures.bc6h)
+            defaultHDRTf = KTX_TTF_BC6HU;
+        else
+            defaultHDRTf = KTX_TTF_NOSELECTION;
     }
 
     void transcode(ktxTexture2* kTexture,
@@ -55,12 +58,31 @@ class TextureTranscoder {
             tf = otf;
         } else {
             khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(kTexture);
+            bool hdr = true;
             if (colorModel == KHR_DF_MODEL_UASTC && deviceFeatures.astc_ldr) {
                 tf = KTX_TTF_ASTC_4x4_RGBA;
+                hdr = false;
             } else if (colorModel == KHR_DF_MODEL_ETC1S && deviceFeatures.etc2) {
                 tf = KTX_TTF_ETC;
+                hdr = false;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
+                       && deviceFeatures.astc_hdr) {
+                tf = KTX_TTF_ASTC_HDR_4x4_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6
+                       && deviceFeatures.astc_hdr) {
+                tf = KTX_TTF_ASTC_HDR_6x6_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
+                    || colorModel == KHR_DF_MODEL_UASTC_HDR_6x6) {
+                    tf = defaultHDRTf;
             } else {
-                tf = defaultTf;
+                    tf = defaultLDRTf;
+            }
+            if (tf == KTX_TTF_NOSELECTION) {
+                std::stringstream message;
+
+                message << "This OpenGL implementation does not support any available"
+                        << (hdr ? " HDR " : " LDR ") << "transcode target.";
+                throw std::runtime_error(message.str());
             }
         }
         ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);
@@ -75,7 +97,8 @@ class TextureTranscoder {
     }
 
   protected:
-    ktx_transcode_fmt_e defaultTf;
+    ktx_transcode_fmt_e defaultLDRTf;
+    ktx_transcode_fmt_e defaultHDRTf;
 
     struct compressedTexFeatures {
         bool astc_ldr;

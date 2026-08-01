@@ -40,7 +40,7 @@ static std::ostream& logstream = cnull;
 /// @code
 ///     // Can use stringbuf or any class derived from it.
 ///     auto filebuf = std::make_unique<std::filebuf>();
-///     StreambufStream<std::unique_ptr<std::streambuf>>ktxStream(
+///     StreambufStream<std::unique_ptr<std::streambuf>> ktxStream(
 ///                                                        std::move(filebuf),
 ///                                                        ios::in);
 /// @endcode
@@ -59,7 +59,6 @@ public:
         : _streambuf{std::move(streambuf)}
         , _seek_mode{seek_mode}
         , _stream{std::make_unique<ktxStream>()}
-        , _destructed{false}
     {
         initialize_stream();
     }
@@ -70,18 +69,19 @@ public:
     StreambufStream(StreambufStream&&) = delete;
     StreambufStream &operator=(StreambufStream&&) = delete;
 
-    virtual ~StreambufStream()
-    {
-        if (!_destructed)
-            stream()->destruct(stream());
-    }
-
     inline ktxStream* stream() const
     {
         return _stream.get();
     }
 
-    std::streambuf* streambuf() const;
+    // Implementation depends on whether a std::unique_ptr or a raw pointer is
+    // passed.
+    std::streambuf* streambuf() const {
+        if constexpr (std::is_pointer<T>::value)
+            return _streambuf;
+        else
+            return _streambuf.get();
+    }
 
     inline std::ios::openmode seek_mode() const
     {
@@ -91,11 +91,6 @@ public:
     inline void seek_mode(std::ios::openmode newmode)
     {
         _seek_mode = newmode;
-    }
-
-    inline bool destructed() const
-    {
-        return _destructed;
     }
 
 protected:
@@ -114,7 +109,7 @@ protected:
         _stream->getpos = getpos;
         _stream->setpos = setpos;
         _stream->getsize = getsize;
-        _stream->destruct = destruct;
+        _stream->destruct = destruct_noop;
     }
 
     // C++ streambuf overrides
@@ -123,6 +118,7 @@ protected:
 
     inline static StreambufStream* parent(ktxStream *str)
     {
+        assert(str->type == eStreamTypeCustom);
         return reinterpret_cast<StreambufStream*>(str->data.custom_ptr.address);
     }
 
@@ -151,7 +147,23 @@ protected:
 
         const std::streampos curpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
         const std::streampos newpos = self->_streambuf->pubseekoff(std::streamoff(count), std::ios::cur, self->_seek_mode);
-        return (curpos > newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
+
+        if (curpos == -1) {
+            if (self->streambuf() == std::cin.rdbuf()) {
+                for (ktx_uint32_t i = 0; i < count; i++) {
+                    int ret = self->_streambuf->sbumpc();
+                    if (ret == EOF) {
+                        return KTX_FILE_UNEXPECTED_EOF;
+                    }
+                }
+                str->readpos += count;
+                return KTX_SUCCESS;
+            } else {
+                return KTX_FILE_ISPIPE;
+            }
+        }
+        str->readpos += count;
+        return (newpos > curpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
     static KTX_error_code write(ktxStream* str, const void* src, ktx_size_t size, ktx_size_t count)
@@ -168,20 +180,38 @@ protected:
         return (nput == ntotal) ? KTX_SUCCESS : KTX_FILE_WRITE_ERROR;
     }
 
-    static KTX_error_code getpos(ktxStream* str, ktx_off_t *offset)
+    static KTX_error_code getpos(ktxStream* str, ktx_off_t *pos)
     {
         auto self = parent(str);
-        *offset = ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
-        logstream << "\tgetpos: " << *offset << std::endl;
+        const auto seekoffval =
+                  ktx_off_t(self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode));
+        logstream << "\tgetpos: " << *pos << std::endl;
+
+        if (seekoffval == -1) {
+            if (self->streambuf() == std::cin.rdbuf())
+                *pos = str->readpos;
+            else
+                return KTX_FILE_ISPIPE;
+        }
+        *pos = seekoffval;
         return KTX_SUCCESS;
     }
 
-    static KTX_error_code setpos(ktxStream* str, ktx_off_t offset)
+    static KTX_error_code setpos(ktxStream* str, ktx_off_t pos)
     {
         auto self = parent(str);
-        const auto newpos = std::streamoff(offset);
-        const std::streampos setpos = self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
-        logstream << "\tsetpos: " << offset << std::endl;
+        const auto newpos = std::streamoff(pos);
+
+        const std::streampos setpos =
+                self->_streambuf->pubseekoff(newpos, std::ios::beg, self->_seek_mode);
+        logstream << "\tsetpos: " << setpos << std::endl;
+
+        if (setpos == -1) {
+            if (self->streambuf() == std::cin.rdbuf() && pos > str->readpos)
+                return str->skip(str, pos - str->readpos);
+            else
+                return KTX_FILE_ISPIPE;
+        }
         return (setpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
@@ -189,37 +219,23 @@ protected:
     {
         auto self = parent(str);
         const std::streampos oldpos = self->_streambuf->pubseekoff(0, std::ios::cur, self->_seek_mode);
+        if (oldpos == -1)
+            return KTX_FILE_ISPIPE;
+
         *size = ktx_size_t(self->_streambuf->pubseekoff(0, std::ios::end));
         const std::streampos newpos = self->_streambuf->pubseekoff(oldpos, std::ios::beg, self->_seek_mode);
         logstream << "\t  size: " << *size << 'B' << std::endl;
         return (oldpos == newpos) ? KTX_SUCCESS : KTX_FILE_SEEK_ERROR;
     }
 
-    static void destruct(ktxStream* str)
-    {
-        auto self = parent(str);
-        self->_destructed = true;
-    }
+    // NOOP function to be passed to ktxStream's destruct
+    static void destruct_noop(ktxStream*) {}
 
     T _streambuf;
     std::ios::openmode _seek_mode;
+
+    // Note that ktxTexture?_CreateFromStream makes a copy of _stream, the
+    // stream structure passed as its pStream parameter. The static stream
+    // functions above will receive a pointer to that copy not to this _stream.
     std::unique_ptr<ktxStream> _stream;
-    // ktxTexture?_CreateFromStream destructs the ktxStream when finished, if
-    // KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT was passed. This variable tracks
-    // if the ktxStream's destructor has been called.
-    bool _destructed;
 };
-
-// I have not yet found a way to do this inside the template definition.
-// However `inline` should prevent any multiple definition errors.
-template<>
-inline std::streambuf* StreambufStream<std::streambuf*>::streambuf() const
-{
-    return _streambuf;
-}
-
-template<>
-inline std::streambuf* StreambufStream<std::unique_ptr<std::streambuf>>::streambuf() const
-{
-    return _streambuf.get();
-}

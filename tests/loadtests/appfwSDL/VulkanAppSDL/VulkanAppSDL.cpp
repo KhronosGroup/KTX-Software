@@ -79,21 +79,28 @@ bool
 VulkanAppSDL::initialize(Args& args)
 {
     static const std::unordered_map<std::string, VkColorSpaceKHR> csValues {
-        {"adobergb", VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT},
+        {"adobergb", VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT}, // Not supported on Apple devices.
         {"bt2020", VK_COLOR_SPACE_BT2020_LINEAR_EXT},
-        {"bt709", VK_COLOR_SPACE_BT709_LINEAR_EXT},
+        {"bt709", VK_COLOR_SPACE_BT709_LINEAR_EXT}, // Not supported on Apple devces.
         {"display-p3", VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT},
         {"extended-srgb", VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT},
     };
     std::string colorSpaceStr;
+#if !SDL_PLATFORM_APPLE || SDL_PLATFORM_MACOS
+    // Apple locked systems have no way to pass environment variables to bundled apps.
     const char* use_hdr_surface = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
-                                                         "VK_USE_HDR_SURFACE");
+                                                         "KTX_VK_LT_USE_HDR_SURFACE");
     if (use_hdr_surface != nullptr && !SDL_strncasecmp(use_hdr_surface, "YES", 3))
         hdr = true;
     const char* css = SDL_GetEnvironmentVariable(SDL_GetEnvironment(),
-                                                 "VK_SURFACE_COLOR_SPACE");
+                                                 "KTX_VK_LT_SURFACE_COLOR_SPACE");
     if (css != nullptr) colorSpaceStr = css;
+#else
+    hdr = true;
+#endif
 
+    // Apple locked systems also have no way to pass command-line options to bundled apps.
+    // These are not disabled so that they can be changed when debugging.
     for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--validate") == 0) {
             validate = true;
@@ -105,6 +112,14 @@ VulkanAppSDL::initialize(Args& args)
             args.erase(args.begin() + i--);
             continue;
         }
+#if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
+        // So hdr can be disabled when debugging, if necessary.
+        if (args[i].compare("++hdr") == 0) {
+            hdr = false;
+            args.erase(args.begin() + i--);
+            continue;
+        }
+#endif
         if (args[i].compare("--cs") == 0) {
             if (args.size() < i + 2) {
                 (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
@@ -124,7 +139,7 @@ VulkanAppSDL::initialize(Args& args)
         } else {
             std::stringstream msg;
             msg << "Invalid color space, " << colorSpaceStr
-                << ", given for --cs or VK_SURFACE_COLOR_SPACE";
+                << ", given for --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
             (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
                                            msg.str().c_str(), NULL);
             return false;
@@ -739,7 +754,6 @@ VulkanAppSDL::createSurface()
                                 VK_FORMAT_R16G16B16A16_SFLOAT,
                                 VulkanSwapchain::colorSpaceSelector::eSpecific,
                                 colorSpace);
-        // VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT, VK_COLOR_SPACE_BT2020_LINEAR_EXT
     } catch(unsupported_surface_format&) {
         std::string msg = "VulkanSwapchain::initSurface: ";
         msg += "No matching HDR surface format found. Reverting to SDR.";
@@ -990,6 +1004,12 @@ bool
 VulkanAppSDL::createSwapchain()
 {
     vkctx.swapchain.create(&w_width, &w_height, enableVSync);
+#if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
+    extern void setWantsExtendedDynamicRangeContent(SDL_Window* window, bool enable);
+    if (hdr)
+        setWantsExtendedDynamicRangeContent(pswMainWindow, hdr);
+#endif
+
     return true;
 } // createSwapchain
 

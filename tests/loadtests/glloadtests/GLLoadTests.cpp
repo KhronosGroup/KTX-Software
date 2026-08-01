@@ -42,16 +42,24 @@ bool
 GLLoadTests::initialize(Args& args)
 {
     bool explicitlyLoadOpenGL = false;
+
+    if (!GLAppSDL::initialize(args))
+        return false;
+
     for (uint32_t i = 1; i < args.size(); i++) {
         if (args[i].compare("--load-gl") == 0) {
             explicitlyLoadOpenGL = true;
             args.erase(args.begin() + i);
             break;
         }
+        if (args[i].substr(0, 2).compare("--") == 0) {
+            std::stringstream message;
+            message << "Unknown option, " << args[i] << ", specified";
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                szName, message.str().c_str(), NULL);
+            return false;
+        }
     }
-
-    if (!GLAppSDL::initialize(args))
-        return false;
 
     // --load-gl allows testing of explicitly loading the OpenGL pointers.
     // Default is for ktxTexture_GLUpload to implicitly load them.

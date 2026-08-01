@@ -1,4 +1,4 @@
-# Copyright 2020 Andreas Atteneder
+# Copyright 2020-2026 Andreas Atteneder, Mark Callow
 # SPDX-License-Identifier: Apache-2.0
 
 # Find Vulkan package
@@ -35,7 +35,7 @@ if(APPLE)
         set( Vulkan_SHARE_VULKAN appfwSDL/VulkanAppSDL/mac/vulkan )
     endif()
 else()
-    find_package(Vulkan REQUIRED)
+    find_package( Vulkan REQUIRED )
 endif()
 
 #cmake_print_variables(
@@ -47,7 +47,8 @@ endif()
 
 include(compile_shader.cmake)
 
-set(SHADER_SOURCES "")
+set( SHADER_SOURCES "" )
+set( SHADER_SPVS "" )
 
 compile_shader(shader_textoverlay textoverlay appfwSDL/VulkanAppSDL/shaders shaders )
 compile_shader(shader_cube cube vkloadtests/shaders/cube shaders )
@@ -71,11 +72,11 @@ add_custom_target(
     shader_texturemipmap
 )
 
-set( vk_ktx2_test_images
-    astc_8x8_unorm_array_7.ktx2
-    bc3_unorm_array_7.ktx2
+set( ktx2_file_sources
     alpha_complex_straight.ktx2
     alpha_complex_premultiplied.ktx2
+    astc_8x8_unorm_array_7.ktx2
+    bc3_unorm_array_7.ktx2
     color_grid_uastc_zstd_5.ktx2
     color_grid_zstd_5.ktx2
     color_grid_blze.ktx2
@@ -93,18 +94,20 @@ set( vk_ktx2_test_images
     orient_up_metadata.ktx2
     pattern_02_bc2.ktx2
     r8g8b8a8_srgb.ktx2
-    r8g8b8a8_srgb_mip_blze.ktx2
     r8g8b8a8_srgb_3d_7.ktx2
     r8g8b8a8_srgb_array_7_mip.ktx2
+    r8g8b8a8_srgb_mip_blze.ktx2
     skybox_zstd_22.ktx2
 )
-set( vk_ktx_test_images
+list( TRANSFORM ktx2_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx2/"
+)
+set( ktx1_file_sources
     astc_8x8_unorm_array_7.ktx
     bc3_unorm_array_7.ktx
     etc2_rgb.ktx
     etc2_rgba8.ktx
     etc2_srgb.ktx
-    #etc2_srgba1.ktx
     etc2_srgba8.ktx
     etc2_unorm_array_7.ktx
     metalplate_amg.ktx
@@ -115,16 +118,17 @@ set( vk_ktx_test_images
     r8g8b8_unorm_amg.ktx
     r8g8b8a8_srgb.ktx
 )
-list( TRANSFORM vk_ktx2_test_images
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx2/"
+list( TRANSFORM ktx1_file_sources
+    PREPEND "${TEST_RESOURCES_DIR}/ktx/"
 )
-list( TRANSFORM vk_ktx_test_images
-    PREPEND "${PROJECT_SOURCE_DIR}/tests/resources/ktx/"
+
+set( KTX_RESOURCES
+    ${ktx2_file_sources}
+    ${ktx1_file_sources}
+    ${KTX_ICON_SOURCES}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES} 
+    ${SHADER_SPVS}
 )
-set( VK_TEST_IMAGES ${vk_ktx2_test_images} ${vk_ktx_test_images} )
-set( KTX_RESOURCES ${LOAD_TEST_COMMON_RESOURCE_FILES} ${VK_TEST_IMAGES} )
-unset( vk_ktx2_test_images )
-unset( vk_ktx_test_images )
 
 if(APPLE)
     # Adding this directory to KTX_RESOURCES and ultimately vkloadtests's
@@ -154,6 +158,7 @@ add_executable( vkloadtests
     common/disable_glm_warnings.h
     common/ltexceptions.h
     common/reenable_warnings.h
+    compile_shader.cmake
     vkloadtests/InstancedSampleBase.cpp
     vkloadtests/InstancedSampleBase.h
     vkloadtests/Texture.cpp
@@ -174,12 +179,34 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTests.h
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
-    ${LOAD_TEST_COMMON_RESOURCE_FILES}
-    ${Vulkan_SHARE_VULKAN}
-    ${SHADER_SOURCES}
-    ${VK_TEST_IMAGES}
     vkloadtests.cmake
+    ${ktx2_file_sources}
+    ${ktx1_file_sources}
+    ${KTX_ICON_SOURCES}
+    ${LOAD_TEST_COMMON_MODEL_SOURCES}
+    ${SHADER_SOURCES}
+    ${Vulkan_SHARE_VULKAN}
 )
+
+source_group( "Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
+
+# Keep this in case something changes in the Vulkan implementation and we need to
+# explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
+#if(APPLE_MAC_OS)
+#    target_sources(
+#        vkloadtests
+#    PUBLIC
+#        appfwSDL/cocoaSetEDR.mm
+#    )
+#endif()
+if(APPLE_LOCKED_OS)
+    target_sources(
+        vkloadtests
+    PUBLIC
+        appfwSDL/uikitSetEDR.mm
+    )
+endif()
 
 set_code_sign(vkloadtests)
 
@@ -255,8 +282,6 @@ if(APPLE)
     else()
         set( INFO_PLIST_IN "${PROJECT_SOURCE_DIR}/tests/loadtests/vkloadtests/resources/mac/Info.plist.in" )
     endif()
-elseif(WIN32)
-    ensure_runtime_dependencies_windows(vkloadtests ${VK_TEST_IMAGES})
 elseif(LINUX)
         target_sources(
             vkloadtests
@@ -275,7 +300,7 @@ PRIVATE
     $<$<PLATFORM_ID:Windows>:NOMINMAX>
 )
 
-set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES};${SHADER_SOURCES}" )
+set_target_properties( vkloadtests PROPERTIES RESOURCE "${KTX_RESOURCES}" )
 
 if(APPLE)
     set( product_name vkloadtests )
@@ -357,8 +382,8 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E create_symlink "${Vulkan_LIBRARY_REAL_FILE_NAME}" "$<TARGET_BUNDLE_CONTENT_DIR:vkloadtests>/Frameworks/${Vulkan_LIBRARY_SONAME_FILE_NAME}"
             COMMENT "Create symlink for Vulkan library (ld name to real name)"
         )
-        # Re. SDL3 & assimp: no copy required.: vcpkg libs are static or else
-        # vcpkg arranges copy. Brew libs cannot be bundled.
+        # Re. SDL3 & assimp: no copy required.: vcpkg libs are static. Brew libs
+        # cannot be bundled.
 
         # Specify destination for cmake --install.
         install(TARGETS vkloadtests
@@ -374,18 +399,19 @@ if(APPLE)
         #     #fixup_bundle($<TARGET_BUNDLE_DIR:vkloadtests> \"\" \"\")"
         # )
     endif()
+    add_dependencies(
+        vkloadtests
+        spirv_shaders
+    )
 else()
     # This is for other platforms.
-    # This copies the resources next to the executable for ease
-    # of use during debugging and testing.
-    add_custom_command( TARGET vkloadtests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-          $<TARGET_FILE_DIR:vkloadtests>/../resources
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          ${KTX_RESOURCES} ${SHADER_SOURCES}
-          $<TARGET_FILE_DIR:vkloadtests>/../resources
-    )
 
+    # See parent CMakeLists.txt for custom target and command to copy
+    # resources next to the built executable for ease of use during
+    # debugging and testing. They have no effect on the install target.
+
+    # Installation
+    #
     # To keep the resources (test images and models) close to the
     # executable and to be compliant with the Filesystem Hierarchy
     # Standard https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
@@ -440,8 +466,4 @@ else()
 #    endif()
 endif()
 
-add_dependencies(
-    vkloadtests
-    spirv_shaders
-)
 

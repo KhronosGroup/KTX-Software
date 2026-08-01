@@ -87,6 +87,14 @@ for arg in "${cmake_args[@]}"; do
 done
 
 echo ${config_display%??}
+
+# To be supplied as `-j $njobs`. We might add `+ 1` if the particular cmd is IO
+# bound (this is done in a lot of CIs). On GH CIs, this is most likely to be 4.
+# Equivalent of `nproc` on MacOS is `sysctl -n hw.logicalcpu`
+njobs=$(sysctl -n hw.logicalcpu)
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd $BUILD_DIR
@@ -97,7 +105,7 @@ IFS=, ; for config in $CONFIGURATION
 do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   echo "Build KTX-Software (iOS $config)"
-  cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
+  cmake --build . --config $config -j $njobs -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
   # A simulator build would look like this but note that due to the way vcpkg
   # manifest mode works, different CMake configurations are needed for
   # device and simulator. Hence a different BUILD_DIR and separate run

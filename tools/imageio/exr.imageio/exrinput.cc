@@ -11,11 +11,15 @@
 #include <optional>
 #include <string_view>
 #include <vector>
-// TEXR is not defined in tinyexr.h. Current GitHub tinyexr master uses
-// assert. The version in astc-encoder must be old.
-#define TEXR_ASSERT(x) assert(x)
 #define TINYEXR_IMPLEMENTATION
-#include "tinyexr.h"
+#define TEXR_ASSERT(x) assert(x)
+// Use tinyexr.h from basis_universal because it is self-contained. By default
+// tinyexr.h uses miniz but the astc-encoder has decided to use the stb_zlib
+// so have omitted miniz.h from their source. It is easier to use the one from
+// basis_universal than figure out how to make stb_zlib or standard zlib
+// available. The tinyexr versions appear broadly similar but I have not found
+// a way to determine the version from the .h file.
+#include "basis_universal/encoder/3rdparty/tinyexr.h"
 #include <KHR/khr_df.h>
 #include "dfd.h"
 
@@ -136,8 +140,8 @@ void ExrInput::open(ImageSpec& newspec) {
         }
     }
 
-    const uint32_t width = header.data_window[2] - header.data_window[0] + 1;
-    const uint32_t height = header.data_window[3] - header.data_window[1] + 1;
+    const uint32_t width = header.data_window.max_x - header.data_window.min_x + 1;
+    const uint32_t height = header.data_window.max_y - header.data_window.min_y + 1;
 
     // Use "chromaticities" attribute, if present, to determine color primaries.
     // Per the EXR spec. in the absence of chromaticities, use bt.709.
@@ -258,6 +262,8 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
                                   " images for each face and use those to create your KTX file.");
          }
     }
+    if (header.tiled && header.tile_level_mode != TINYEXR_TILE_ONE_LEVEL)
+        throw std::runtime_error(fmt::format("Multi-level tiled EXR images are not supported."));
     if ((header.tiled && image.tiles == nullptr) || (!header.tiled && image.images == nullptr))
         throw std::runtime_error(fmt::format("Invalid EXR file. {}",
             header.tiled ? "Tiled with no tiles" : "scanline with no images."));
@@ -297,11 +303,12 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         };
 
         for(int32_t tile = 0; tile < image.num_tiles; ++tile) {
-            for (int32_t ty = 0; ty < header.tile_size_y; ++ty) {
-                for (int32_t tx = 0; tx < header.tile_size_x; ++tx) {
+            for (int32_t ty = 0; ty < image.tiles[tile].height; ++ty) {
+                for (int32_t tx = 0; tx < image.tiles[tile].width; ++tx) {
                     auto x = image.tiles[tile].offset_x * header.tile_size_x + tx;
                     auto y = image.tiles[tile].offset_y * header.tile_size_y + ty;
                     auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
+                    assert(targetPixel < ptr + bufferByteCount && "outputBuffer overrun loading tiled .exr");
                     for (uint32_t c = 0; c < numTargetChannels; ++c) {
                         if (channels[c].has_value()) {
                             std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], tile, tx, ty), dataSize);
@@ -323,6 +330,7 @@ void ExrInput::readImage(void* outputBuffer, size_t bufferByteCount,
         for (uint32_t y = 0; y < height; ++y) {
             for (uint32_t x = 0; x < width; ++x) {
                 auto* targetPixel = ptr + (y * width * numTargetChannels + x * numTargetChannels) * dataSize;
+                assert(targetPixel < ptr + bufferByteCount && "outputBuffer overrun loading scanline .exr");
                 for (uint32_t c = 0; c < numTargetChannels; ++c) {
                     if (channels[c].has_value()) {
                         std::memcpy(targetPixel + c * dataSize, sourcePtr(*channels[c], x, y), dataSize);

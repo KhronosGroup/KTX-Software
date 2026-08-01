@@ -27,7 +27,7 @@ class TextureTranscoder {
         } else {
             std::stringstream message;
 
-            message << "Vulkan implementation does not support any available SDR transcode target.";
+            message << "Vulkan implementation does not support any available LDR transcode target.";
             throw std::runtime_error(message.str());
         }
         if (vkctx.gpuFeatureAstcHdr)
@@ -36,28 +36,32 @@ class TextureTranscoder {
             defaultHDRTf = KTX_TTF_BC6HU;
     }
 
-    void transcode(ktxTexture2* kTexture) {
+    void transcode(ktxTexture2* kTexture,
+                   ktx_transcode_fmt_e otf = KTX_TTF_NOSELECTION) {
         KTX_error_code ktxresult;
         ktx_transcode_fmt_e tf;
-        khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(kTexture);
-
-        if (colorModel == KHR_DF_MODEL_UASTC
-            && vkctx.gpuFeatures.textureCompressionASTC_LDR) {
-            tf = KTX_TTF_ASTC_4x4_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_ETC1S
-                   && vkctx.gpuFeatures.textureCompressionETC2) {
-            tf = KTX_TTF_ETC;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
-                   && vkctx.gpuFeatureAstcHdr) {
-            tf = KTX_TTF_ASTC_HDR_4x4_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6
-                   && vkctx.gpuFeatureAstcHdr) {
-            tf = KTX_TTF_ASTC_HDR_6x6_RGBA;
-        } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
-                || colorModel == KHR_DF_MODEL_UASTC_HDR_6x6) {
-                tf = defaultHDRTf;
+        if (otf != KTX_TTF_NOSELECTION) {
+            tf = otf;
         } else {
-                tf = defaultLDRTf;
+            khr_df_model_e colorModel = ktxTexture2_GetColorModel_e(kTexture);
+            if (colorModel == KHR_DF_MODEL_UASTC
+                && vkctx.gpuFeatures.textureCompressionASTC_LDR) {
+                tf = KTX_TTF_ASTC_4x4_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_ETC1S
+                       && vkctx.gpuFeatures.textureCompressionETC2) {
+                tf = KTX_TTF_ETC;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
+                       && vkctx.gpuFeatureAstcHdr) {
+                tf = KTX_TTF_ASTC_HDR_4x4_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6
+                       && vkctx.gpuFeatureAstcHdr) {
+                tf = KTX_TTF_ASTC_HDR_6x6_RGBA;
+            } else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4
+                    || colorModel == KHR_DF_MODEL_UASTC_HDR_6x6) {
+                    tf = defaultHDRTf;
+            } else {
+                    tf = defaultLDRTf;
+            }
         }
 
         ktxresult = ktxTexture2_TranscodeBasis(kTexture, tf, 0);

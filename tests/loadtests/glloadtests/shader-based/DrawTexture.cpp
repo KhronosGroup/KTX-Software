@@ -92,10 +92,7 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        TextureTranscoder tc;
-        tc.transcode((ktxTexture2*)kTexture, transcodeTarget);
-    }
+    (void)transcodeIfNeeded(kTexture);
 
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &target, &glerror);
 
@@ -269,12 +266,12 @@ DrawTexture::DrawTexture(uint32_t width, uint32_t height,
     glBindVertexArray(0);
 
     const GLchar *actualColorFs, *actualDecalFs;
-    if (framebufferColorEncoding() == GL_LINEAR) {
-        actualColorFs = pszColorSrgbEncodeFs;
-        actualDecalFs = pszDecalSrgbEncodeFs;
-    } else {
+    if (colorEncodingSRGBOrTrueLinear()) {
         actualColorFs = pszColorFs;
         actualDecalFs = pszDecalFs;
+    } else {
+        actualColorFs = pszColorSrgbEncodeFs;
+        actualDecalFs = pszDecalSrgbEncodeFs;
     }
     try {
         makeShader(GL_VERTEX_SHADER, pszVs, &gnVs);

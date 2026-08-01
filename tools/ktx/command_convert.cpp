@@ -97,9 +97,10 @@ public:
 #endif
 
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
-        const auto ret = ktxTexture1_WriteKTX2ToStdioStream(texture, file);
+        StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+        const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
         if (KTX_SUCCESS != ret) {
-            if (file != stdout)
+            if (!isStdout())
                 std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
             report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.",
                          filepath, ktxErrorString(ret));
@@ -261,10 +262,13 @@ void CommandConvert::executeConvert() {
 }
 
 void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& outputStream) {
+    std::unique_ptr<ktxTexture1, decltype(ktxTexture1_Destroy)*> texture_raii{nullptr,
+                                                                          ktxTexture1_Destroy};
     ktxTexture1* texture = nullptr;
     StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
     auto ret = ktxTexture1_CreateFromStream(ktxStream.stream(),
                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+    texture_raii.reset(texture);
     if (ret != KTX_SUCCESS) {
         if (ret == KTX_UNSUPPORTED_TEXTURE_TYPE) {
             inputStream->seekg(0);
@@ -308,8 +312,10 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                } else {
                    warning("Dropping unrecognized KTX metadata \"{}\"", key);
                }
+               auto next_entry = ktxHashList_Next(pEntry);
                ktxHashList_DeleteEntry(&texture->kvDataHead,
                                        pEntry);
+               pEntry = next_entry;
             }
         }
     }
@@ -321,7 +327,6 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                          writer.c_str());
 
     outputStream.writeKTX2(texture, *this);
-    ktxTexture_Destroy(ktxTexture(texture));
 }
 
 } // namespace ktx

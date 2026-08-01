@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # -----------------------------------------------------------------------------
-# Copyright 2020-2022 Arm Limited
+# Copyright 2020-2026 Arm Limited
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy
@@ -14,341 +14,398 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 # -----------------------------------------------------------------------------
-"""
+'''
 A ResultSet stores a set of results about the performance of a TestSet. Each
-set keeps result Records for each image and block size tested, that store the
+set keeps result Records for each image and block size tested, storing the
 PSNR and coding time.
 
 ResultSets are often backed by a CSV file on disk, and a ResultSet can be
 compared against a set of reference results created by an earlier test run.
-"""
+'''
 
+from __future__ import annotations
 
 import csv
 import enum
-import numpy as np
-import os
+from pathlib import Path
+from typing import Optional
+
+import numpy
 
 
 @enum.unique
-class Result(enum.IntEnum):
-    """
-    An enumeration of test result status values.
+class ResultStatus(enum.IntEnum):
+    '''
+    An enumeration of test result status.
 
     Attributes:
-        NOTRUN: The test has not been run.
+        NOT_RUN: The test has not been run.
         PASS: The test passed.
-        WARN: The test image quality was below the pass threshold but above
-            the fail threshold.
-        FAIL: The test image quality was below the fail threshold.
-    """
-    NOTRUN = 0
+        WARN: The quality was below pass threshold but above fail threshold.
+        FAIL: The quality was below the fail threshold.
+    '''
+    NOT_RUN = 0
     PASS = 1
     WARN = 2
     FAIL = 3
 
 
-class ResultSummary():
-    """
-    An result summary data container, storing number of results of each type.
+class Record:
+    '''
+    A single result record, holding results for a single image and block size.
 
     Attributes:
-        notruns: The number of tests that did not run.
-        passes: The number of tests that passed.
-        warnings: The number of tests that produced a warning.
-        fails: The number of tests that failed.
-        tTimes: Total time speedup vs reference (<1 is slower, >1 is faster).
-        cTimes: Coding time speedup vs reference (<1 is slower, >1 is faster).
-        psnrs: Coding time quality vs reference (<0 is worse, >0 is better).
-    """
-
-    def __init__(self):
-        """
-        Create a new result summary.
-        """
-        # Pass fail metrics
-        self.notruns = 0
-        self.passes = 0
-        self.warnings = 0
-        self.fails = 0
-
-        # Relative results
-        self.tTimesRel = []
-        self.cTimesRel = []
-        self.psnrRel = []
-
-        # Absolute results
-        self.cTime = []
-        self.psnr = []
-
-    def add_record(self, record):
-        """
-        Add a record to this summary.
-
-        Args:
-            record (Record): The Record to add.
-        """
-        if record.status == Result.PASS:
-            self.passes += 1
-        elif record.status == Result.WARN:
-            self.warnings += 1
-        elif record.status == Result.FAIL:
-            self.fails += 1
-        else:
-            self.notruns += 1
-
-        if record.tTimeRel is not None:
-            self.tTimesRel.append(record.tTimeRel)
-            self.cTimesRel.append(record.cTimeRel)
-            self.psnrRel.append(record.psnrRel)
-
-            self.cTime.append(record.cTime)
-            self.psnr.append(record.psnr)
-
-    def get_worst_result(self):
-        """
-        Get the worst result in this set.
-
-        Returns:
-            Result: The worst test result.
-        """
-        if self.fails:
-            return Result.FAIL
-
-        if self.warnings:
-            return Result.WARN
-
-        if self.passes:
-            return Result.PASS
-
-        return Result.NOTRUN
-
-    def __str__(self):
-        # Overall pass/fail results
-        overall = self.get_worst_result().name
-        dat = (overall, self.passes, self.warnings, self.fails)
-        result = ["\nSet Status: %s (Pass: %u | Warn: %u | Fail: %u)" % dat]
-
-        if (self.tTimesRel):
-            # Performance summaries
-            dat = (np.mean(self.tTimesRel), np.std(self.tTimesRel))
-            result.append("\nTotal speed:   Mean:  %+0.3f x   Std: %0.2f x" % dat)
-
-            dat = (np.mean(self.cTimesRel), np.std(self.cTimesRel))
-            result.append("Coding speed:  Mean:  %+0.3f x   Std: %0.2f x" % dat)
-
-            dat = (np.mean(self.psnrRel), np.std(self.psnrRel))
-            result.append("Quality diff:  Mean:  %+0.3f dB  Std: %0.2f dB" % dat)
-
-            dat = (np.mean(self.cTime), np.std(self.cTime))
-            result.append("Coding time:   Mean:  %+0.3f s   Std: %0.2f s" % dat)
-
-            dat = (np.mean(self.psnr), np.std(self.psnr))
-            result.append("Quality:       Mean: %+0.3f dB  Std: %0.2f dB" % dat)
-
-        return "\n".join(result)
-
-
-class Record():
-    """
-    A single result record, sotring results for a singel image and block size.
-
-    Attributes:
-        blkSz: The block size.
-        name: The test image name.
+        block_size: The block size.
+        name: The image name.
         psnr: The image quality (PSNR dB)
-        tTime: The total compression time.
-        cTime: The coding compression time.
-        cRate: The coding compression rate.
-        status: The test Result.
-    """
+        total_time: The total time.
+        coding_time: The coding time.
+        coding_rate: The coding rate.
+        status: The test result status.
+        psnr_rel: The relative image quality (diff PSNR dB, >= 0 good)
+        total_time_rel: The relative total time vs ref (scale, <1 fast).
+        coding_time_rel: The relative coding time vs ref (scale, <1 fast).
+        coding_rate_rel: The relative coding rate vs ref (scale, <1 fast).
+    '''
 
-    def __init__(self, blkSz, name, psnr, tTime, cTime, cRate):
-        """
-        Create a result record, initially in the NOTRUN status.
+    def __init__(self, block_size: str, name: str, psnr: float,
+                 total_time: float, coding_time: float, coding_rate: float):
+        '''
+        Create a result record, initially in the NOT_RUN status.
 
         Args:
-            blkSz (str): The block size.
+            block_size (str): The block size.
             name (str): The test image name.
             psnr (float): The image quality PSNR, in dB.
-            tTime (float): The total compression time, in seconds.
-            cTime (float): The coding compression time, in seconds.
-            cRate (float): The coding compression rate, in MPix/s.
-            tTimeRel (float): The relative total time speedup vs reference.
-            cTimeRel (float): The relative coding time speedup vs reference.
-            cRateRel (float): The relative rate speedup vs reference.
-            psnrRel (float): The relative PSNR dB vs reference.
-        """
-        self.blkSz = blkSz
+            total_time (float): The total compression time, in seconds.
+            coding_time (float): The coding compression time, in seconds.
+            coding_rate (float): The coding compression rate, in MPix/s.
+        '''
+        self.block_size = block_size
         self.name = name
         self.psnr = psnr
-        self.tTime = tTime
-        self.cTime = cTime
-        self.cRate = cRate
-        self.status = Result.NOTRUN
+        self.total_time = total_time
+        self.coding_time = coding_time
+        self.coding_rate = coding_rate
+        self.status = ResultStatus.NOT_RUN
 
-        self.tTimeRel = None
-        self.cTimeRel = None
-        self.cRateRel = None
-        self.psnrRel = None
+        self.psnr_rel: Optional[float] = None
+        self.total_time_rel: Optional[float] = None
+        self.coding_time_rel: Optional[float] = None
+        self.coding_rate_rel: Optional[float] = None
 
-    def set_status(self, result):
-        """
+    def set_status(self, result: ResultStatus) -> None:
+        '''
         Set the result status.
 
         Args:
-            result (Result): The test result.
-        """
+            result: The test result status to set.
+        '''
         self.status = result
 
-    def __str__(self):
-        return "'%s' / '%s'" % (self.blkSz, self.name)
+    def set_relative_to_reference(self, reference: Record) -> None:
+        '''
+        Set relative results compared to an existing reference score.
+
+        Args:
+            reference: The reference result to compare against.
+        '''
+        self.psnr_rel = self.psnr - reference.psnr
+
+        try:
+            self.total_time_rel = reference.total_time / self.total_time
+        except ZeroDivisionError:
+            self.total_time_rel = float('NaN')
+
+        try:
+            self.coding_time_rel = reference.coding_time / self.coding_time
+        except ZeroDivisionError:
+            self.coding_time_rel = float('NaN')
 
 
-class ResultSet():
-    """
+class ResultSet:
+    '''
     A set of results for a TestSet, across one or more block sizes.
 
     Attributes:
-        testSet: The test set these results are linked to.
-        records: The list of test results.
-    """
+        test_set_name: The name of the test set that generated these results.
+        records: The list of test result records.
+    '''
 
-    def __init__(self, testSet):
-        """
+    def __init__(self, test_set_name: str):
+        '''
         Create a new empty ResultSet.
 
         Args:
-            testSet (TestSet): The test set these results are linked to.
-        """
-        self.testSet = testSet
-        self.records = []
+            test_set_name: The test set these results were generated by.
+        '''
+        self.test_set_name = test_set_name
+        self.records: list[Record] = []
 
-    def add_record(self, record):
-        """
-        Add a new test record to this result set.
+    def add_record(self, record: Record) -> None:
+        '''
+        Add a new test result record to this result set.
 
         Args:
-            record (Record): The test record to add.
-        """
+            record: The test record to add.
+        '''
         self.records.append(record)
 
-    def get_record(self, testSet, blkSz, name):
-        """
-        Get a record matching the arguments.
-
-        Args:
-            testSet (TestSet): The test set to get results from.
-            blkSz (str): The block size.
-            name (str): The test name.
-
-        Returns:
-            Record: The test result, if present.
-
-        Raises:
-            KeyError: No match could be found.
-        """
-        if testSet != self.testSet:
-            raise KeyError()
-
-        for record in self.records:
-            if record.blkSz == blkSz and record.name == name:
-                return record
-
-        raise KeyError()
-
-    def get_matching_record(self, other):
-        """
+    def get_matching_record(self, other: Record) -> Record:
+        '''
         Get a record matching the config of another record.
 
         Args:
-            other (Record): The pattern result record to match.
+            other: The pattern record to match.
 
-        Returns:
-            Record: The result, if present.
+        Return:
+            The result, if present.
 
-        Raises:
+        Raise:
             KeyError: No match could be found.
-        """
+        '''
         for record in self.records:
-            if record.blkSz == other.blkSz and record.name == other.name:
+            if record.block_size == other.block_size and \
+               record.name == other.name:
                 return record
 
         raise KeyError()
 
-    def get_results_summary(self):
-        """
+    def get_results_summary(self) -> ResultSummary:
+        '''
         Get a results summary of all the records in this result set.
 
-        Returns:
+        Return:
             ResultSummary: The result summary.
-        """
+        '''
         summary = ResultSummary()
+
         for record in self.records:
             summary.add_record(record)
 
         return summary
 
-    def save_to_file(self, filePath):
-        """
+    def save_to_file(self, file_path: Path):
+        '''
         Save this result set to a CSV file.
 
         Args:
-            filePath (str): The output file path.
-        """
-        dirName = os.path.dirname(filePath)
-        if not os.path.exists(dirName):
-            os.makedirs(dirName)
+            file_path: The output file path.
+        '''
+        dir_path = file_path.parent
+        dir_path.mkdir(parents=True, exist_ok=True)
 
-        with open(filePath, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
+        with open(file_path, 'w', encoding='utf=8', newline='') as handle:
+            writer = csv.writer(handle)
             self._save_header(writer)
             for record in self.records:
                 self._save_record(writer, record)
 
     @staticmethod
-    def _save_header(writer):
-        """
-        Write the header to the CSV file.
+    def _save_header(writer) -> None:
+        '''
+        Write the header to a result CSV file.
 
         Args:
-            writer (csv.writer): The CSV writer.
-        """
-        row = ["Image Set", "Block Size", "Name",
-               "PSNR", "Total Time", "Coding Time", "Coding Rate"]
+            writer: The CSV writer.
+        '''
+        row = [
+            'Image Set',
+            'Block Size',
+            'Name',
+            'PSNR',
+            'Total Time',
+            'Coding Time',
+            'Coding Rate'
+        ]
+
         writer.writerow(row)
 
-    def _save_record(self, writer, record):
-        """
+    def _save_record(self, writer, record: Record) -> None:
+        '''
         Write a record to the CSV file.
 
         Args:
             writer (csv.writer): The CSV writer.
             record (Record): The record to write.
-        """
-        row = [self.testSet,
-               record.blkSz,
-               record.name,
-               "%0.4f" % record.psnr,
-               "%0.4f" % record.tTime,
-               "%0.4f" % record.cTime,
-               "%0.4f" % record.cRate]
+        '''
+        row = [
+            self.test_set_name,
+            record.block_size,
+            record.name,
+            f'{record.psnr:0.4f}',
+            f'{record.total_time:0.4f}',
+            f'{record.coding_time:0.4f}',
+            f'{record.coding_rate:0.4f}'
+        ]
+
         writer.writerow(row)
 
-    def load_from_file(self, filePath):
-        """
+    def load_from_file(self, file_path: Path) -> None:
+        '''
         Load a reference result set from a CSV file on disk.
 
         Args:
-            filePath (str): The input file path.
-        """
-        with open(filePath, "r") as csvfile:
-            reader = csv.reader(csvfile)
+            file_path: The input file path.
+        '''
+        with open(file_path, 'r', encoding='utf-8') as handle:
+            reader = csv.reader(handle)
+
             # Skip the header
             next(reader)
+
+            # Read the data rows
             for row in reader:
-                assert row[0] == self.testSet
-                record = Record(row[1], row[2],
-                                float(row[3]), float(row[4]),
-                                float(row[5]), float(row[6]))
+                assert row[0] == self.test_set_name
+
+                record = Record(
+                    row[1],
+                    row[2],
+                    float(row[3]),
+                    float(row[4]),
+                    float(row[5]),
+                    float(row[6])
+                )
+
                 self.add_record(record)
+
+
+class ResultSummary:
+    '''
+    A summary of a set of results.
+
+    Attributes:
+        not_runs: The number of tests that did not run.
+        passes: The number of tests that passed.
+        warnings: The number of tests that produced a warning.
+        fails: The number of tests that failed.
+
+        psnr: The image quality (PSNR dB)
+        total_time: The total time.
+        coding_time: The coding time.
+
+        status: The test result status.
+        psnr_rel: The relative image quality (diff PSNR dB, >= 0 good)
+        total_time_rel: The relative total time vs ref (scale, <1 fast).
+        coding_time_rel: The relative coding time vs ref (scale, <1 fast)..
+    '''
+
+    def __init__(self):
+        '''
+        Create a new result summary.
+        '''
+        # Pass fail metrics
+        self.not_runs = 0
+        self.passes = 0
+        self.warnings = 0
+        self.fails = 0
+
+        # Absolute results
+        self.psnr: list[float] = []
+        self.total_time: list[float] = []
+        self.coding_time: list[float] = []
+
+        # Relative results
+        self.psnr_rel: list[float] = []
+        self.total_time_rel: list[float] = []
+        self.coding_time_rel: list[float] = []
+
+    def add_record(self, record: Record) -> None:
+        '''
+        Add a record to this summary.
+
+        Args:
+            record (Record): The Record to add.
+        '''
+        # Record pass/fail status
+        if record.status == ResultStatus.PASS:
+            self.passes += 1
+
+        elif record.status == ResultStatus.WARN:
+            self.warnings += 1
+
+        elif record.status == ResultStatus.FAIL:
+            self.fails += 1
+
+        else:
+            self.not_runs += 1
+
+        # Store absolute results
+        self.total_time.append(record.total_time)
+        self.coding_time.append(record.coding_time)
+        self.psnr.append(record.psnr)
+
+        # Store relative results, if we have them
+        if record.total_time_rel is not None:
+            assert record.coding_time_rel is not None
+            assert record.psnr_rel is not None
+
+            self.total_time_rel.append(record.total_time_rel)
+            self.coding_time_rel.append(record.coding_time_rel)
+            self.psnr_rel.append(record.psnr_rel)
+
+    def get_worst_result(self) -> ResultStatus:
+        '''
+        Get the worst result in this set.
+
+        Return:
+            The worst test result.
+        '''
+        if self.fails:
+            return ResultStatus.FAIL
+
+        if self.warnings:
+            return ResultStatus.WARN
+
+        if self.passes:
+            return ResultStatus.PASS
+
+        return ResultStatus.NOT_RUN
+
+    def __str__(self) -> str:
+        lines = ['']
+
+        # Emit overall summary of the run
+        overall = self.get_worst_result().name
+
+        line = [
+            f'Set Status: {overall}',
+            f' (Pass: {self.passes}',
+            f' | Warn: {self.warnings}',
+            f' | Fail: {self.fails}',
+        ]
+
+        lines.append(''.join(line))
+
+        # If no relative scores just return the summary
+        if not self.total_time_rel:
+            return '\n'.join(lines)
+
+        lines.append('')
+
+        def format_line(name, value, units) -> str:
+            mean_value = numpy.mean(value)
+            std_value = numpy.std(value)
+
+            line = [
+                f'{name:<15}',
+                f'Mean: {mean_value:>+7.3f} {units:<3}',
+                f' Std: {std_value:>+6.3f} {units:<3}'
+            ]
+
+            return ''.join(line)
+
+        # Performance summaries
+        lines.append(format_line('Total speed:', self.total_time_rel, 'x'))
+
+        lines.append(format_line('Coding speed:', self.coding_time_rel, 'x'))
+
+        lines.append(format_line('Quality diff:', self.psnr_rel, 'dB'))
+
+        lines.append(format_line('Coding time:', self.coding_time, 's'))
+
+        # Filter out 999 dB images from the results ...
+        mod_psnr = [x for x in self.psnr if x < 999.0]
+        lines.append(format_line('Quality:', mod_psnr, 'dB'))
+
+        return '\n'.join(lines)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2011-2022 Arm Limited
+// Copyright 2011-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -68,13 +68,13 @@ static float mpsnr_operator(
 	float val,
 	int fstop
 ) {
-	if32 p;
-	p.u = 0x3f800000 + (fstop << 23);  // 0x3f800000 is 1.0f
-	val *= p.f;
-	val = powf(val, (1.0f / 2.2f));
-	val *= 255.0f;
+	// Fast implementation of pow(2.0, fstop), assuming IEEE float layout
+	// Memcpy to uint avoids ubsan complaints shift of negative int
+	unsigned int uscale = 0x3f800000u + (astc::int_as_uint(fstop) << 23);
+	float scale = astc::uint_as_float(uscale);
 
-	return astc::clamp(val, 0.0f, 255.0f);
+	val = powf(val * scale, (1.0f / 2.2f));
+	return astc::clamp(val * 255.0f, 0.0f, 255.0f);
 }
 
 /**
@@ -135,8 +135,8 @@ void compute_error_metrics(
 	    img1->dim_z != img2->dim_z)
 	{
 		printf("WARNING: Only intersection of images will be compared:\n"
-		       "  Image 1: %dx%dx%d\n"
-		       "  Image 2: %dx%dx%d\n",
+		       "  Image 1: %ux%ux%u\n"
+		       "  Image 2: %ux%ux%u\n",
 		       img1->dim_x, img1->dim_y, img1->dim_z,
 		       img2->dim_x, img2->dim_y, img2->dim_z);
 	}

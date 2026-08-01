@@ -58,6 +58,13 @@ VulkanLoadTests::initialize(Args& args)
         return false;
 
     for (auto it = args.begin() + 1; it != args.end(); it++) {
+        if (it->substr(0, 2).compare("--") == 0) {
+            std::stringstream message;
+            message << "Unknown option, " << *it << ", specified";
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                szName, message.str().c_str(), NULL);
+            return false;
+        }
         infiles.push_back(*it);
     }
     if (infiles.size() > 0) {

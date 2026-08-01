@@ -271,11 +271,7 @@ TextureCubemap::TextureCubemap(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        TextureTranscoder tc;
-        tc.transcode((ktxTexture2*)kTexture);
-        //transcoded = true;
-    }
+    (void)transcodeIfNeeded(kTexture);
 
     ktxresult = ktxTexture_GLUpload(kTexture,
                                     &gnCubemapTexture, &cubemapTexTarget,
@@ -612,12 +608,12 @@ TextureCubemap::preparePrograms()
     const GLchar* actualReflectFs;
     const GLchar* actualSkyboxFs;
 
-    if (framebufferColorEncoding() == GL_LINEAR) {
-        actualReflectFs = pszReflectSrgbEncodeFs;
-        actualSkyboxFs = pszSkyboxSrgbEncodeFs;
-    } else {
+    if (colorEncodingSRGBOrTrueLinear()) {
         actualReflectFs = pszReflectFs;
         actualSkyboxFs = pszSkyboxFs;
+    } else {
+        actualReflectFs = pszReflectSrgbEncodeFs;
+        actualSkyboxFs = pszSkyboxSrgbEncodeFs;
     }
     try {
         makeShader(GL_VERTEX_SHADER, pszReflectVs, &gnReflectVs);

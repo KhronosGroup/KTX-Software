@@ -12,13 +12,13 @@ ASTC offers a number of advantages over earlier texture compression formats:
   (correlated RGB, non-correlated alpha).
 * **Bit rate flexibility:** ASTC supports compressing images with a fine
   grained choice of bit rates between 0.89 and 8 bits per texel (bpt). The bit
-  rate choice is independent to the color format choice.
+  rate choice is independent of the color format choice.
 * **Advanced format support:** ASTC supports compressing images in either low
   dynamic range (LDR), LDR sRGB, or high dynamic range (HDR) color spaces, as
   well as support for compressing 3D volumetric textures.
 * **Improved image quality:** Despite the high degree of format flexibility,
   ASTC manages to beat nearly all legacy texture compression formats -- such as
-  ETC2, PVRCT, and the BC formats -- on image quality at equivalent bit
+  ETC2, PVRTC, and the BC formats -- on image quality at equivalent bit
   rates.
 
 This article explores the ASTC format, and how it manages to generate the
@@ -136,7 +136,7 @@ example, if we have a floating-point weight for each texel in the range 0.0 to
 1.0 - which we can then represent in storage using the integer values 0 to 4.
 
 In the general case we need to be able to efficiently store characters of an
-alphabet containing N symbols if we choose quantize to N levels. An N symbol
+alphabet containing N symbols if we choose to quantize to N levels. An N symbol
 alphabet contains `log2(N)` bits of information per character. If we have an
 alphabet of 5 possible symbols then each character contains ~2.32 bits of
 information, but simple binary storage would require us to round up to 3 bits.
@@ -185,8 +185,8 @@ most space-efficient choice of bits, trits, and quints.
 
 * Alphabets with up to (2<sup>n</sup> - 1) symbols can be encoded using n bits
   per character.
-* Alphabets with up (3 * 2<sup>n</sup> - 1) symbols can be encoded using n bits
-  (m) and a trit (t) per character, and reconstructed using the equation
+* Alphabets with up to (3 * 2<sup>n</sup> - 1) symbols can be encoded using n
+  bits (m) and a trit (t) per character, and reconstructed using the equation
   (t * 2<sup>n</sup> + m).
 * Alphabets with up to (5 * 2<sup>n</sup> - 1) symbols can be encoded using n
   bits (m) and a quint (q) per character, and reconstructed using the equation
@@ -203,16 +203,16 @@ to store any padding after the end of the bit sequence, as we can safely assume
 that they are zero bits.
 
 With this constraint in place - and by some smart packing the bits, trits, and
-quints - BISE encodes an string of S characters in an N symbol alphabet using a
+quints - BISE encodes a string of S characters in an N symbol alphabet using a
 fixed number of bits:
 
 * S values up to (2<sup>n</sup> - 1) uses (NS) bits.
 * S values up to (3 * 2<sup>n</sup> - 1) uses (NS + ceil(8S / 5)) bits.
 * S values up to (5 * 2<sup>n</sup> - 1) uses (NS + ceil(7S / 3)) bits.
 
-... and the compressor will choose the one of these which produces the smallest
-storage for the alphabet size being stored; some will use binary, some will use
-bits and a trit, and some will use bits and a quint. If we compare the storage
+... and the compressor will choose the one which produces the smallest storage
+for the alphabet size being stored; some will use binary, some will use bits
+and a trit, and some will use bits and a quint. If we compare the storage
 efficiency of BISE against simple binary for the range of possible alphabet
 sizes we might want to encode we can see that it is much more efficient.
 
@@ -266,7 +266,7 @@ lying on green grass. ASTC allows up to four color gradients - known as
 "partitions" - to be assigned to a single block. Each texel is then assigned to
 a single partition for the purposes of decompression.
 
-Rather then directly storing the partition assignment for each texel, which
+Rather than directly storing the partition assignment for each texel, which
 would need a lot of decompressor hardware to store it for all block sizes, we
 generate it procedurally. Each block only needs to store the partition index -
 which is the seed for the procedural generator - and the per texel assignment
@@ -336,7 +336,7 @@ Adaptive
 --------
 
 The first word in the name of ASTC is "adaptive", and it should now hopefully
-be clear why. Each block always compresses into 128-bits of storage, but the
+be clear why. Each block always compresses into 128 bits of storage, but the
 developer can choose from a wide range of texel block sizes and the compressor
 gets a huge amount of latitude to determine how those 128 bits are used.
 
@@ -367,10 +367,10 @@ The only significant omission is the absence of a dedicated two channel
 encoding for HDR textures. We simply ran out of entries in the space we had for
 encoding color endpoint modes, and this one didn't make the cut.
 
-The flexibility allowed by ASTC ticks the requirement that almost any asset can
-be compressed to some degree, at an appropriate bitrate for its quality needs.
-This is a powerful enabler for a compression format, because it puts control in
-the hands of content creators and not arbitrary format restrictions.
+The flexibility allowed by ASTC meets the requirement that almost any asset
+can be compressed to some degree, at an appropriate bitrate for its quality
+needs. This is a powerful enabler for a compression format, because it puts
+control in the hands of content creators and not arbitrary format restrictions.
 
 
 Image quality
@@ -485,4 +485,4 @@ which allow applications to reduce the intermediate precision to either UNORM8
 
 - - -
 
-_Copyright © 2019-2022, Arm Limited and contributors. All rights reserved._
+_Copyright © 2019-2026, Arm Limited and contributors._

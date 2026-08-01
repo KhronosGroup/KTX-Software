@@ -94,7 +94,7 @@ list(APPEND mkvkformatfiles_output
     "${lib_src}/vkformat_enum.h"
     "${lib_src}/vkformat_typesize.c"
     "${lib_src}/vkformat_check.c"
-    "${lib_src}/src/vkformat_str.c"
+    "${lib_src}/vkformat_str.c"
     "${unittests}/vkformat_list.inl")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
@@ -127,47 +127,6 @@ add_custom_command(OUTPUT ${mkvkformatfiles_output}
 add_custom_target(mkvkformatfiles
     DEPENDS ${mkvkformatfiles_output}
     SOURCES ${mkvkformatfiles_input}
-)
-
-list(APPEND makevk2dfd_input
-    ${vulkan_header}
-    external/dfdutils/makevk2dfd.pl)
-set(makevk2dfd_output "${dfdutils}/vk2dfd.inl")
-
-add_custom_command(
-    OUTPUT ${makevk2dfd_output}
-    COMMAND "${PERL_EXECUTABLE}" ${dfdutils}/makevk2dfd.pl ${vulkan_header} ${dfdutils}/vk2dfd.inl
-    DEPENDS ${makevk2dfd_input}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Generating VkFormat/DFD switch body"
-    VERBATIM
-)
-
-add_custom_target(makevk2dfd
-    DEPENDS ${makevk2dfd_output}
-    SOURCES ${makevk2dfd_input}
-)
-
-
-list(APPEND makedfd2vk_input
-    ${vulkan_header}
-    ${dfdutils}/makedfd2vk.pl)
-list(APPEND makedfd2vk_output
-    "${dfdutils}/dfd2vk.inl")
-
-add_custom_command(
-    OUTPUT ${makedfd2vk_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${dfdutils}
-    COMMAND "${PERL_EXECUTABLE}" ${dfdutils}/makedfd2vk.pl ${vulkan_header} ${dfdutils}/dfd2vk.inl
-    DEPENDS ${makedfd2vk_input}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Generating DFD/VkFormat switch body"
-    VERBATIM
-)
-
-add_custom_target(makedfd2vk
-    DEPENDS ${makedfd2vk_output}
-    SOURCES ${makedfd2vk_input}
 )
 
 list(APPEND makevk2gl_input
@@ -203,7 +162,7 @@ add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
 
 add_dependencies(mkvk
     mkvkformatfiles
-    makevk2dfd
-    makedfd2vk
+    dfd2vk_inl
+    vk2dfd_inl
     makevk2gl
 )

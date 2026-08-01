@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ----------------------------------------------------------------------------
-// Copyright 2021 Arm Limited
+// Copyright 2021-2026 Arm Limited
 //
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
 // use this file except in compliance with the License. You may obtain a copy
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 		int outblk_x = end_x - start_x;
 		int outblk_y = end_y - start_y;
 
-		printf("Block errors found at ~(%u, %u) px\n", start_x, start_y);
+		printf("Block errors found at ~(%d, %d) px\n", start_x, start_y);
 
 		// Write out the worst bad block (from original reference)
 		uint8_t* data_out = &(data_ref[pix(ref_dim_x, start_y, start_x, 4, 0)]);

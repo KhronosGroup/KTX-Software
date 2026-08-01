@@ -73,13 +73,19 @@ if [[ -z $BUILD_DIR ]]; then
   if [ "$ARCH" != $(uname -m) ]; then
     BUILD_DIR+="-$ARCH-"
   fi
+  # Add configuration name to directory for single-configuration generators
   if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
     # Single configuration generator. That only a single configuration
     # is specified has already been verified.
     BUILD_DIR+="-$CONFIGURATION"
-    CMAKE_BUILD_TYPE=$CONFIGURATION
   fi
 fi
+
+# Set CMAKE_BUILD_TYPE only for single-configuration generators
+if [ ! "$CMAKE_GEN" = "Ninja Multi-Config" ]; then
+  CMAKE_BUILD_TYPE=$CONFIGURATION
+fi
+
 cmake_args+=("-B" $BUILD_DIR)
 # Just setting the environment variable does not seem to work so pass to cmake.
 if [[ -n "$VCPKG_INSTALL_OPTIONS" ]]; then
@@ -108,7 +114,8 @@ cmake_args+=(\
   "-D" "LIBKTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SSE=$SUPPORT_SSE" \
-  "-D" "KTX_WERROR=$WERROR"
+  "-D" "KTX_WERROR=$WERROR" \
+  "-D" "SANITIZE=$SANITIZE"
 )
 if [ "$FEATURE_PY" = "ON" ]; then
   cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")
@@ -128,6 +135,13 @@ for arg in "${cmake_args[@]}"; do
   esac
 done
 echo ${config_display%??}
+
+# To be supplied as `-j $njobs`. We might add `+ 1` if the particular cmd is IO
+# bound (this is done in a lot of CIs). On GH CIs, this is most likely to be 4.
+njobs=$(nproc)
+
+# Print cmake command to be able to verify configuration and replicate locally
+echo "running cmake command (in source directory): cmake . ${cmake_args[@]}"
 cmake . "${cmake_args[@]}"
 
 pushd $BUILD_DIR
@@ -139,10 +153,10 @@ do
   IFS=$oldifs # Because of ; IFS set above will still be present.
   # Build and test
   echo "Build KTX-Software (Linux $ARCH $config)"
-  cmake --build . --config $config
+  cmake --build . --config $config -j $njobs
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
-    ctest --output-on-failure -C $config #--verbose
+    ctest --output-on-failure -C $config -j $njobs #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"

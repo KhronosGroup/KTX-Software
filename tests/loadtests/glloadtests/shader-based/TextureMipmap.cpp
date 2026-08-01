@@ -105,11 +105,11 @@ TextureMipmap::TextureMipmap(uint32_t width, uint32_t height,
     InstancedSampleBase::ShaderSource vs;
 
     fs.push_back(pszLodFsDeclarations);
-    if (framebufferColorEncoding() == GL_LINEAR) {
+    if (colorEncodingSRGBOrTrueLinear()) {
+        fs.push_back(pszLodFsMain);;
+    } else {
         fs.push_back(pszSrgbEncodeFunc);
         fs.push_back(pszLodSrgbEncodeFsMain);
-    } else {
-        fs.push_back(pszLodFsMain);;
     }
     vs.push_back(pszInstancingVsDeclarations);
     vs.push_back(pszLodVsMain);

@@ -55,7 +55,7 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        os: [ windows-latest ]
+        os: [ windows-2022 ]
         generator: [ 'Visual Studio 17 2022' ]
         toolset: [v143, CLangCL]
         arch: [ x64 ]
@@ -80,18 +80,18 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
+#          - os: windows-2022
+#            generator: 'Visual Studio 17 2022'
+#            toolset: v143
+#            arch: x64
+#            java-version: '17'
+#            options: {
+#              config: 'Debug,Release',
+#              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+#              package: NO,
+#              sse: ON, opencl: OFF
+#            }
           - os: windows-2022
-            generator: 'Visual Studio 17 2022'
-            toolset: v143
-            arch: x64
-            java-version: '17'
-            options: {
-              config: 'Debug,Release',
-              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
-              package: NO,
-              sse: ON, opencl: OFF
-            }
-          - os: windows-latest
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
             arch: arm64
@@ -172,11 +172,10 @@ jobs:
         fetch-depth: 0
 
     - name: Install NSIS
-      # NSIS was removed from windows-2025 (windows-latest as of this writing).
-      # Earlier runner images only have NSIS 3.08 so install latest everywhere.
-      # install-nsis v1.1.0 also installs long string support.
+      # NSIS was removed from windows runners.
+      # Since v1.1.0 install-nsis also installs long string support.
       if: matrix.options.package == 'YES'
-      uses: repolevedavaj/install-nsis@v1.2.0
+      uses: repolevedavaj/install-nsis@v1.2.1
       with:
         nsis-version: '3.12'
 
@@ -195,7 +194,7 @@ jobs:
 
     - name: Install Graphviz
       if: matrix.options.doc == 'ON'
-      uses: ts-graphviz/setup-graphviz@v2
+      uses: MarkCallow/setup-graphviz@v3
 
     - name: Install AzureSignTool
       if: matrix.check_mkvk != 'ONLY'
@@ -334,7 +333,9 @@ jobs:
     - name: Test Windows build
       # Tests built for arm64 can't be run as the CI runners are all x64.
       if: matrix.options.tests == 'ON'
-      run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
+      run: |
+        $njobs = [Environment]::ProcessorCount
+        ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release -j $njobs
 
 #    - name: Upload test log
 #      if: ${{ failure() }}

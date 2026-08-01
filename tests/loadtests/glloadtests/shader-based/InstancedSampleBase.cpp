@@ -128,11 +128,7 @@ InstancedSampleBase::InstancedSampleBase(uint32_t width, uint32_t height,
         throw std::runtime_error(message.str());
     }
 
-    if (ktxTexture_NeedsTranscoding(kTexture)) {
-        transcodeTarget = KTX_TTF_NOSELECTION;
-        TextureTranscoder tc;
-        tc.transcode((ktxTexture2*)kTexture, transcodeTarget);
-    }
+    (void)transcodeIfNeeded(kTexture);
 
     ktxresult = ktxTexture_GLUpload(kTexture, &gnTexture, &texTarget,
                                     &glerror);

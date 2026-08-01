@@ -50,6 +50,11 @@ Javascript wrapper for Basis Universal formats. For use with KTX parsers written
   - *ktx help* - Display help information about the ktx tools
 - *pyktx* - Python wrapper
 
+*NOTE:* Desktop release packages contain multiple components. By default only the
+_ktx_ tool and runtime _libktx_ are installed. To install other components, such
+as _Development_ (headers and linkable _libktx_, if different) and _Java Wrapper_,
+click the Customize button on the Installation Type screen of the installer.
+
 See [CONTRIBUTING](CONTRIBUTING.md) for information about contributing.
 
 See [LICENSE](LICENSE.md) for information about licensing.
