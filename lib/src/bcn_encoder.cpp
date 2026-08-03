@@ -54,9 +54,9 @@
 
 /*
  * set to write utrasmooth blocks mask PNG. You need to add:
- *   - external/lodepng/lodepng.h
- *   - external/lodepng/lodepng.cpp
- * to libktx's CMakeLists.
+ *   ${KTX_ROOT_DIR}/external/lodepng/lodepng.h
+ *   ${KTX_ROOT_DIR}/external/lodepng/lodepng.cpp
+ * to libktx's CMakeLists' LIBKTX_MAIN_SRC.
  */
 #define DEBUG_RDO_ULTRASMOOTH 0
 #if DEBUG_RDO_ULTRASMOOTH
@@ -659,9 +659,9 @@ save_png(const char* pFilename, const std::vector<ert::color_rgba>& img, uint32_
     unsigned char* pDst = &pixels[0];
     for (uint32_t y = 0; y < height; y++)
         for (uint32_t x = 0; x < width; x++, pDst += 3) {
-            pDst[0] = img[x + y * width][0];
-            pDst[1] = img[x + y * width][1];
-            pDst[2] = img[x + y * width][2];
+            pDst[0] = img[x + y * width].r;
+            pDst[1] = img[x + y * width].g;
+            pDst[2] = img[x + y * width].b;
         }
     return lodepng::encode(pFilename, pixels, width, height, LCT_RGB) == 0;
 }
@@ -1622,7 +1622,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
-    ktxTexture2* prototype;
+    ktxTexture2* prototype = nullptr;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");

@@ -1450,9 +1450,9 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
         fillOptionsCodecBasis<decltype(options)>(options);
 
     if (options.compare_ssim && !canCompare)
-        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC or ASTC encoding.");
+        fatal_usage("--compare-ssim can only be used with BasisLZ, UASTC, ASTC or BCn encoding.");
     if (options.compare_psnr && !canCompare)
-        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC or ASTC encoding.");
+        fatal_usage("--compare-psnr can only be used with BasisLZ, UASTC, ASTC or BCn encoding.");
 
     if (isASTC && !options.raw) {
         options.encodeASTC = true;

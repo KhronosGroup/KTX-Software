@@ -158,7 +158,7 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
-    ktxTexture2* prototype;
+    ktxTexture2* prototype = nullptr;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
 
     if (result != KTX_SUCCESS) {
