@@ -416,3 +416,99 @@ modify is the `qualityLevel`. Remove the declaration and initialization of
 int quality = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
 result = ktxTexture2_CompressAstc(texture, quality);
 ~~~~~~~~~~~~~~~~
+
+## Writing a BCn-Compressed Texture
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
+
+ktxTexture2* texture = NULL;            // KTX2 texture handle
+ktxTextureCreateInfo createInfo;
+KTX_error_code result;                  // libktx returns success/error results as KTX_error_code
+FILE* src = NULL;
+ktx_size_t srcSize;                     // Size of uncompressed source image slice
+ktxBCnParams params = {0};              // Make sure to 0-initialize this struct
+
+// Fill up texture creation struct. Notice that the supplied vkFormat has to
+// of some uncompressed format that matches the target BCn that is set later.
+// In this example, BC7 expects RGBA input.
+createInfo.glInternalformat = 0;  // Ignored as we'll create a KTX2 texture.
+createInfo.vkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+createInfo.baseWidth = 1024;
+createInfo.baseHeight = 1024;
+createInfo.baseDepth = 1;
+createInfo.numDimensions = 1;
+// Note: it is not necessary to provide a full mipmap pyramid.
+createInfo.numLevels = log2(createInfo.baseWidth) + 1;
+createInfo.numLayers = 1;
+createInfo.numFaces = 1;
+createInfo.isArray = KTX_FALSE;
+createInfo.generateMipmaps = KTX_FALSE;
+
+result = ktxTexture2_Create(&createInfo,
+                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                            &texture);
+if (result != KTX_SUCCESS) {
+    // error handling ...
+}
+
+src = 0;            // Open the file for the baseLevel image, slice 0 and
+                    // read it into memory.
+srcSize = 0;        // Query size of one image slice from file
+
+// Set uncompressed image data for each mip level, each array layer, and each
+// face/depth slice
+for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
+    // Compute the width/height/depth for this MIP level
+    const uint32_t width = max(texture->baseWidth >> levelIndex, 1u);
+    const uint32_t height = max(texture->baseHeight >> levelIndex, 1u);
+    const uint32_t depth = max(texture->baseDepth >> levelIndex, 1u);
+    for (uint32_t layerIndex = 0; layerIndex < texture->numLayers; ++layerIndex) {
+        for (uint32_t faceIndex = 0; faceIndex < texture->numFaces; ++faceIndex) {
+            for (uint32_t depthSliceIndex = 0; depthSliceIndex < depth; ++depthSliceIndex) {
+                // Set image data. Adding face and depth slice indices is fine because both
+                // are mutually exclusive (if one is > 0 the other is guranteed to be 0)
+                result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                                       levelIndex, layerIndex,
+                                                       faceIndex + depthSliceIndex,
+                                                       src, srcSize);
+                if (result != KTX_SUCCESS) {
+                    // error handling ...
+                }
+            }
+        }
+    }
+}
+
+// Now that uncompressed image data is set, compress to BCn:
+params.structSize = sizeof(params);
+params.bcn = KTX_BCN_COMPRESSION_BC7;
+params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
+
+// There are a lot of other parameters that are only activated depending on the
+// target BCn scheme and whether rate distortion optimization (RDO) is enabled.
+// The discussion about RDO parameter details is too involved for this simple
+// example => read member parameter description ktxBCnParams struct
+
+result = ktxtexture2_CompressBCnEx(texture, &params);
+if (result != KTX_SUCCESS) {
+    // error handling ...
+}
+
+result = ktxTexture_WriteToNamedFile(ktxTexture(texture), "bc7_texture.ktx2");
+if (result != KTX_SUCCESS) {
+    // error handling ...
+}
+
+// Don't forget to destroy the texture (this will clean-up all allocated
+// resources)
+ktxTexture_Destroy(ktxTexture(texture));
+
+// You may notice that there are a `ktxTexture2` alternative for the above
+// textures that take `ktxTexture2*`. These can also be used instead of the
+// ones above. Both fall down to calling the same approriate function on the
+// supplied KTX texture (either ktxTexture1 or ktxTexture2). This is achieved
+// via virtual table pointer in ktxTexture C struct.
+
+~~~~~~~~~~~~~~~~
