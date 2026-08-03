@@ -350,6 +350,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         break;
       case KTX_TTF_RGB_9E5:
         vkFormat = VK_FORMAT_E5B9G9R9_UFLOAT_PACK32;
+        break;
       default:
         return KTX_INVALID_VALUE;
     }
