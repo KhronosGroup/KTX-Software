@@ -42,7 +42,7 @@ struct OptionsTranscodeTarget {
         // "extract" command - optional "transcode" argument
         const auto argName = TRANSCODE_CMD ? "target" : "transcode";
 
-        static const std::unordered_map<std::string, std::pair<ktx_transcode_fmt_e, uint32_t>> targets{
+        static const std::unordered_map<std::string, std::pair<ktx_transcode_fmt_e, uint32_t>> targets {
             {"etc-rgb", {KTX_TTF_ETC1_RGB, 0}},
             {"etc-rgba", {KTX_TTF_ETC2_RGBA, 0}},
             {"eac-r11", {KTX_TTF_ETC2_EAC_R11, 0}},
@@ -57,10 +57,12 @@ struct OptionsTranscodeTarget {
             {"rg8", {KTX_TTF_RGBA32, 2}},
             {"rgb8", {KTX_TTF_RGBA32, 3}},
             {"rgba8", {KTX_TTF_RGBA32, 4}},
-            {"rgba16f", {KTX_TTF_RGBA_HALF, 4}},
+            {"rgb16f", {KTX_TTF_RGB_HALF, 0}},
+            {"rgba16f", {KTX_TTF_RGBA_HALF, 0}},
+            {"rgb9e5", {KTX_TTF_RGB_9E5, 0}},
             {"astc-hdr-4x4", {KTX_TTF_ASTC_HDR_4x4_RGBA, 0}},
             {"astc-hdr-6x6", {KTX_TTF_ASTC_HDR_6x6_RGBA, 0}},
-            {"bc6hu", {KTX_TTF_BC6HU, 0}},        
+            {"bc6hu", {KTX_TTF_BC6HU_RGB, 0}},
         };
         if (args[argName].count()) {
             const auto argStr = to_lower_copy(args[argName].as<std::string>());
@@ -74,13 +76,27 @@ struct OptionsTranscodeTarget {
         }
     }
 
+    static bool isTargetHDR(ktx_transcode_fmt_e target) {
+        switch (target) {
+        case KTX_TTF_RGB_HALF: [[fallthrough]];
+        case KTX_TTF_RGBA_HALF: [[fallthrough]];
+        case KTX_TTF_RGB_9E5: [[fallthrough]];
+        case KTX_TTF_ASTC_HDR_4x4_RGBA: [[fallthrough]];
+        case KTX_TTF_ASTC_HDR_6x6_RGBA: [[fallthrough]];
+        case KTX_TTF_BC6HU_RGB:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     void validateTextureTranscode(const KTXTexture2& texture, Reporter& report) {
         const auto tswizzle = determineTranscodeSwizzle(texture, report);
-
+        const uint32_t model = khr_df_model_e(KHR_DFDVAL(texture->pDfd + 1, MODEL));
+        const bool isSrcHDR =
+                (model == KHR_DF_MODEL_UASTC_HDR_6x6 || model == KHR_DF_MODEL_UASTC_HDR_4x4);
         if (!transcodeTarget.has_value()) {
-            const auto* bdfd = texture->pDfd + 1;
-            if (khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_6x6
-             || khr_df_model_e(KHR_DFDVAL(bdfd, MODEL)) == KHR_DF_MODEL_UASTC_HDR_4x4) {
+            if (isSrcHDR) {
                 transcodeTarget = KTX_TTF_RGBA_HALF;
                 transcodeTargetName = "rgba16f";
                 transcodeSwizzleComponents = tswizzle.defaultNumComponents;
@@ -89,6 +105,10 @@ struct OptionsTranscodeTarget {
                 transcodeTargetName = "rgba8";
                 transcodeSwizzleComponents = tswizzle.defaultNumComponents;
             }
+        } else if (isSrcHDR && !isTargetHDR(transcodeTarget.value())) {
+            report.fatal_usage("UASTC HDR textures can only be transcoded to HDR formats.");
+        } else if (!isSrcHDR && isTargetHDR(transcodeTarget.value())) {
+            report.fatal_usage("BasisLZ and UASTC LDR textures can only be transcoded to LDR formats.");
         }
 
         transcodeSwizzle = tswizzle.swizzle;
