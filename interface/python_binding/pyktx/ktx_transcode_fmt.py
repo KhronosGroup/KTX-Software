@@ -16,7 +16,8 @@ class KtxTranscodeFmt(IntEnum):
     BC7_RGBA = 6
     PVRTC1_4_RGB = 8
     PVRTC1_4_RGBA = 9
-    ASTC_4x4_RGBA = 10
+    ASTC_LDR_4x4_RGBA = 10
+    ASTC_4x4_RGBA = ASTC_LDR_4x4_RGBA
     PVRTC2_4_RGB = 18
     PVRTC2_4_RGBA = 19
     ETC2_EAC_R11 = 20
@@ -27,4 +28,10 @@ class KtxTranscodeFmt(IntEnum):
     RGBA4444 = 16
     ETC = 22
     BC1_OR_3 = 23
+    RGB_HALF = 24
+    RGBA_HALF = 25
+    RGB_9E5 = 26
+    ASTC_HDR_4x4_RGBA = 29
+    ASTC_HDR_6x6_RGBA = 30
+    BC6HU_RGB = 31
     NO_SELECTION = 0x7fffffff

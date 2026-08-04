@@ -1693,11 +1693,14 @@ typedef enum ktx_transcode_fmt_e {
                  texture format. */
 
         // ASTC (mobile, Intel devices, hopefully all desktop GPU's one day)
-        KTX_TTF_ASTC_4x4_RGBA = 10,
+        KTX_TTF_ASTC_LDR_4x4_RGBA = 10,
             /*!< Opaque+alpha, ASTC 4x4. The alpha channel will be opaque for
                  textures without an alpha channel.  The transcoder uses
                  RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and
                  [0,255]) endpoint precisions. */
+
+        KTX_TTF_ASTC_4x4_RGBA = KTX_TTF_ASTC_LDR_4x4_RGBA,
+            /*!< @deprecated Use #KTX_TTF_ASTC_LDR_4x4_RGBA. */
 
         // ATC and FXT1 formats are not supported by KTX2 as there
         // are no equivalent VkFormats.
@@ -1744,12 +1747,24 @@ typedef enum ktx_transcode_fmt_e {
             /*!< Automatically selects @c KTX_TTF_BC1_RGB or
                  @c KTX_TTF_BC3_RGBA according to presence of alpha. */
 
-        /* 48bpp RGB half (16-bits/component, 3 components) */
-        KTX_TTF_RGBA_HALF = 25, 
+        KTX_TTF_RGB_HALF = 24,
+            /*!< 48bpp RGB half (16-bits/component, 3 components) */
+        KTX_TTF_RGBA_HALF = 25,
+            /*!< 64bpp RGBA half (16-bits/component, 4 components). A will
+                always be  1.0 as UASTC_HDR does not support alpha. */
+        KTX_TTF_RGB_9E5 = 26,
+            /*!< 32bpp RGB 9E5 (shared exponent, positive only). */
 
-        KTX_TTF_ASTC_HDR_4x4_RGBA = 29,					// HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
-        KTX_TTF_ASTC_HDR_6x6_RGBA = 30,					// HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
-        KTX_TTF_BC6HU = 31,						// HDR, RGB only, unsigned
+        KTX_TTF_ASTC_HDR_4x4_RGBA = 29,
+            /*!< HDR, RGBA unsigned. A will always be 1.0 as UASTC_HDR does
+                 not support alpha. */
+        KTX_TTF_ASTC_HDR_6x6_RGBA = 30,
+            /*!< HDR, RGBA unsigned. A will always be 1.0 as UASTC_HDR does
+                 not support alpha. */
+        KTX_TTF_BC6HU_RGB = 31,
+            /*!< HDR, RGB only, unsigned. */
+        KTX_TTF_BC6HU = KTX_TTF_BC6HU_RGB,
+            /*!< @deprecated Use #KTX_TTF_BC6HU_RGB. */
 
         KTX_TTF_NOSELECTION = 0x7fffffff,
 
@@ -1784,17 +1799,23 @@ typedef enum ktx_transcode_fmt_e {
 typedef enum ktx_transcode_flag_bits_e {
     KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 = 2U,
         /*!< PVRTC1: decode non-pow2 ETC1S texture level to the next larger
-             power of 2 (not implemented yet, but we're going to support it).
-             Ignored if the slice's dimensions are already a power of 2.
+             power of 2 (not implemented yet). Ignored if the slice's
+             dimensions are already a power of 2.
          */
     KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4U,
         /*!< When decoding to an opaque texture format, if the Basis data has
              alpha, decode the alpha slice instead of the color slice to the
              output texture format. Has no effect if there is no alpha data.
          */
+
+    KTX_TF_NO_ETC1S_CHROMA_FILTERING = 64U,
+        /*!< Disable ETC1S to BC7 adaptive chroma filtering, for much faster
+             transcoding to BC7.  This flag is unused by other ETC1S
+             transcoders. */
+
     KTX_TF_HIGH_QUALITY = 32U,
-        /*!< Request higher quality transcode of UASTC to BC1, BC3, ETC2_EAC_R11 and
-             ETC2_EAC_RG11. The flag is unused by other UASTC transcoders.
+        /*!< Request higher quality transcode of UASTC to BC1, BC3, ETC2\_EAC\_R11 or
+             ETC2\_EAC\_RG11. The flag is unused by other UASTC transcoders.
          */
 } ktx_transcode_flag_bits_e;
 typedef ktx_uint32_t ktx_transcode_flags;

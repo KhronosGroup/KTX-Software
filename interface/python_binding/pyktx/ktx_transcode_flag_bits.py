@@ -21,6 +21,13 @@ class KtxTranscodeFlagBits(IntEnum):
     output texture format. Has no effect if there is no alpha data.
     """
 
+    NO_ETC1S_CHROMA_FILTERING = 64
+    """
+    Disable ETC1S to BC7 adaptive chroma filtering, for much faster
+    transcoding to BC7.  This flag is unused by other ETC1S
+    transcoders.
+    """
+
     HIGH_QUALITY = 32
     """
     Request higher quality transcode of UASTC to BC1, BC3, ETC2_EAC_R11 and

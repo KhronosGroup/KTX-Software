@@ -42,8 +42,8 @@ Transcode a KTX2 file.
     optionally supercompress the result, and save it as the @e output-file.
     If the @e input-file is '-' the file will be read from the stdin.
     If the @e output-path is '-' the output file will be written to the stdout.
-    The input file must be transcodable (it must be either BasisLZ supercompressed or has UASTC
-    color model in the DFD).
+    The input file must be transcodable (it must be either BasisLZ supercompressed or has one of
+    the UASTC color models in the DFD).
     If the input file is invalid the first encountered validation error is displayed
     to the stderr and the command exits with the relevant non-zero status code.
 
@@ -53,11 +53,12 @@ Transcode a KTX2 file.
         <dt>\--target &lt;target&gt;</dt>
         <dd>Target transcode format.
             If the target option is not set the r8, rg8, rgb8 or rgba8 target will be
-            selected based on the number of channels in the input texture.
-            Block compressed transcode targets can only be saved in raw format.
-            Case-insensitive. Possible options are:
-            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 | astc | astc-hdr-4x4 | astc-hdr-6x6 |
-            r8 | rg8 | rgb8 | rgba8 | rgba16f.
+            selected for LDR payloads based on the number of channels in the input texture.
+            rgba16f will be selected for HDR payloads. Case-insensitive. Possible options are:
+            etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 | astc |
+            astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgb16f | rgba16f | rgb9e5.
+            KTX files with UASTC HDR payloads can only be transcoded to HDR formats: astc-hdr-\*,
+            rgb16f, rgba16f or rgb9e5. LDR payloads can only be transcoded to LDR formats.
             etc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.
         </dd>
     </dl>
@@ -119,12 +120,18 @@ int CommandTranscode::main(int argc, char* argv[]) {
 void CommandTranscode::OptionsTranscode::init(cxxopts::Options& opts) {
     opts.add_options()
         ("target", "Target transcode format."
-                   " Block compressed transcode targets can only be saved in raw format."
+                   " If the target option is not set the r8, rg8, rgb8 or rgba8 target will be"
+                   " selected for LDR payloads based on the number of channels in the input"
+                   " texture. rgba16f will be selected for HDR payloads."
                    " Case-insensitive."
                    "\nPossible options are:"
-                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu | bc7 |"
-                   " astc | astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgba16f."
-                   "\netc-rgb is ETC1; etc-rgba, eac-r11 and eac-rg11 are ETC2.",
+                   " etc-rgb | etc-rgba | eac-r11 | eac-rg11 | bc1 | bc3 | bc4 | bc5 | bc6hu |"
+                   " bc7 | astc | astc-hdr-4x4 | astc-hdr-6x6 | r8 | rg8 | rgb8 | rgba8 | rgb16f |"
+                   " rgba16f | rgb9e5."
+                   "\nKTX files with UASTC HDR payloads can only be transcoded to HDR"
+                   " formats: astc-hdr-*, rgb16f, rgba16f or rgb9e5. LDR payloads can only"
+                   " be transcoded to LDR formats. etc-rgb is ETC1; etc-rgba, eac-r11 and"
+                   " eac-rg11 are ETC2.",
                    cxxopts::value<std::string>(), "<target>");
 }
 
