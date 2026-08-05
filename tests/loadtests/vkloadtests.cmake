@@ -187,8 +187,17 @@ add_executable( vkloadtests
     ${SHADER_SOURCES}
     ${Vulkan_SHARE_VULKAN}
 )
+if(APPLE)
+    target_sources( vkloadtests
+    PRIVATE
+        # Annoyingly, files will not be copied to a bundle's resources unless they appear
+        # both in RESOURCES and in the targets source list. At least mark them private.
+        ${SHADER_SPVS}
+    )
+endif()
 
-source_group( "Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group( "Shader Source Files" FILES ${SHADER_SOURCES})
+source_group( "Resources/Shader Binaries" FILES ${SHADER_SPVS})
 source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
