@@ -806,7 +806,7 @@ VulkanAppSDL::createDevice()
     if (hdr)
         wantedExtensions.push_back({VK_EXT_HDR_METADATA_EXTENSION_NAME, optional});
 #if VK_EXT_texture_compression_astc_3d
-    wantedExtensions.push_back({TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional});
+    wantedExtensions.push_back({VK_EXT_TEXTURE_COMPRESSION_ASTC_3D_EXTENSION_NAME, optional});
 #endif
 
     vk::Result err;
