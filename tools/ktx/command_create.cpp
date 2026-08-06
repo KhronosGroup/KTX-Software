@@ -2056,13 +2056,17 @@ void CommandCreate::executeCreate() {
 
     compress(texture, options);
 
-    // We don't want to capture mipmap generation options if mipmap generation is not activated
-    // (because looking at kv metadata might give the wrong impression that mipmaps were generated)
-    std::string mipmapGenerationOptionsCpy;
-    if (options.mipmapGenerate) mipmapGenerationOptionsCpy = options.mipmapGenerationOptions;
-
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}{}{}", options.astcOptions, options.codecOptions, mipmapGenerationOptionsCpy, options.commonOptions, options.compressOptions);
+    // Note:
+    //  We don't want to capture mipmap generation options if mipmap generation
+    //  is not activated (because looking at kv metadata might give the wrong
+    //  impression that mipmaps were generated). This is the same for ASTC.
+    const auto writerScParams = fmt::format("{}{}{}{}{}",
+        options.encodeASTC ? options.astcOptions : "",
+        options.codecOptions,
+        options.commonOptions,
+        options.mipmapGenerate ? options.mipmapGenerationOptions : "",
+        options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
