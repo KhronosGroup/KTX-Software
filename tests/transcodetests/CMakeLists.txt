@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( transcodetests
+    streaming_construction_tests.cc
     transcodetests.cc
     ../tests.cmake
 )
