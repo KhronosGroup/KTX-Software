@@ -1181,6 +1181,32 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
                            ktx_uint32_t layer, ktx_uint32_t faceSlice,
                            ktx_size_t* pOffset);
 
+/**
+ * @~English
+ * @brief Location and size of one mip level within a serialized KTX2 source.
+ *
+ * The values describe the level's stored (possibly supercompressed) payload
+ * exactly as recorded in the serialized file's Level Index, with
+ * @c byteOffset converted to an absolute file offset. They are what a
+ * streaming consumer needs to fetch a level's bytes, e.g. with an HTTP
+ * Range request, without parsing the container itself.
+ *
+ * @sa ktxTexture2_GetLevelFileInfo()
+ */
+typedef struct ktxLevelFileInfo {
+    ktx_uint64_t byteOffset; /*!< Absolute offset of the level's first byte
+                                  in the serialized KTX2 source. */
+    ktx_uint64_t byteLength; /*!< Number of stored bytes belonging to the
+                                  level. */
+    ktx_uint64_t uncompressedByteLength;
+                             /*!< The uncompressedByteLength value from the
+                                  serialized KTX2 Level Index. */
+} ktxLevelFileInfo;
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_GetLevelFileInfo(const ktxTexture2* This, ktx_uint32_t level,
+                             ktxLevelFileInfo* pInfo);
+
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 

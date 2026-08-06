@@ -399,6 +399,133 @@ TEST_P(StreamingShellTest, PrefixShortByOneByte) {
     }
 }
 
+//////////////////////////////
+// ktxTexture2_GetLevelFileInfo: the public exposure of the serialized
+// level index for streaming consumers.
+//////////////////////////////
+
+TEST_P(StreamingShellTest, GetLevelFileInfoMatchesSerializedIndex) {
+    const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
+    ASSERT_FALSE(file.empty());
+    const FileMap m = parseFileMap(file);
+
+    BoundedStreamState state = {file.data(), (ktx_size_t)m.prefixLen, 0, false};
+    ktxStream stream = makeBoundedStream(&state);
+
+    ktxTexture2* shell = nullptr;
+    KTX_error_code result = ktxTexture2_CreateFromStream(&stream, 0, &shell);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    for (ktx_uint32_t level = 0; level < m.levelCount; level++) {
+        ktxLevelFileInfo info = {};
+        result = ktxTexture2_GetLevelFileInfo(shell, level, &info);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        EXPECT_EQ(info.byteOffset, m.levels[level].byteOffset)
+            << "level " << level;
+        EXPECT_EQ(info.byteLength, m.levels[level].byteLength)
+            << "level " << level;
+        EXPECT_EQ(info.uncompressedByteLength,
+                  m.levels[level].uncompressedByteLength)
+            << "level " << level;
+    }
+
+    ktxTexture_Destroy(ktxTexture(shell));
+}
+
+TEST_P(StreamingShellTest, GetLevelFileInfoAvailableBeforeFullLoad) {
+    // A complete file constructed WITHOUT the LOAD bit still has its
+    // serialized-source state: the query must work, and keep working until
+    // image data is actually loaded.
+    const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
+    ASSERT_FALSE(file.empty());
+    const FileMap m = parseFileMap(file);
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result =
+        ktxTexture2_CreateFromMemory(file.data(), file.size(), 0, &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    ktxLevelFileInfo info = {};
+    result = ktxTexture2_GetLevelFileInfo(texture, 0, &info);
+    EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    EXPECT_EQ(info.byteOffset, m.levels[0].byteOffset);
+
+    // Loading the image data discards the serialized layout.
+    const ktx_size_t size = ktxTexture2_GetDataSizeUncompressed(texture);
+    std::vector<ktx_uint8_t> buffer(size);
+    result = ktxTexture2_LoadImageData(texture, buffer.data(), size);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    result = ktxTexture2_GetLevelFileInfo(texture, 0, &info);
+    EXPECT_EQ(result, KTX_INVALID_OPERATION);
+
+    ktxTexture_Destroy(ktxTexture(texture));
+}
+
+TEST_P(StreamingShellTest, GetLevelFileInfoAfterLoadBitIsInvalid) {
+    const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
+    ASSERT_FALSE(file.empty());
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result = ktxTexture2_CreateFromMemory(
+        file.data(), file.size(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    ktxLevelFileInfo info = {};
+    result = ktxTexture2_GetLevelFileInfo(texture, 0, &info);
+    EXPECT_EQ(result, KTX_INVALID_OPERATION);
+
+    ktxTexture_Destroy(ktxTexture(texture));
+}
+
+TEST(GetLevelFileInfo, InvalidArguments) {
+    const std::vector<ktx_uint8_t>& file = fileFor(Variant::UastcRaw);
+    ASSERT_FALSE(file.empty());
+    const FileMap m = parseFileMap(file);
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result =
+        ktxTexture2_CreateFromMemory(file.data(), file.size(), 0, &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    ktxLevelFileInfo info = {};
+    EXPECT_EQ(ktxTexture2_GetLevelFileInfo(nullptr, 0, &info),
+              KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture2_GetLevelFileInfo(texture, 0, nullptr),
+              KTX_INVALID_VALUE);
+    EXPECT_EQ(ktxTexture2_GetLevelFileInfo(texture, m.levelCount, &info),
+              KTX_INVALID_VALUE);
+
+    ktxTexture_Destroy(ktxTexture(texture));
+}
+
+TEST(GetLevelFileInfo, NoSerializedSourceIsInvalid) {
+    // A texture created with ktxTexture2_Create never had a serialized
+    // source; the query has nothing to report.
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.vkFormat = 43;  // VK_FORMAT_R8G8B8A8_SRGB
+    createInfo.baseWidth = 4;
+    createInfo.baseHeight = 4;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 1;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = KTX_FALSE;
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result = ktxTexture2_Create(
+        &createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    ktxLevelFileInfo info = {};
+    EXPECT_EQ(ktxTexture2_GetLevelFileInfo(texture, 0, &info),
+              KTX_INVALID_OPERATION);
+
+    ktxTexture_Destroy(ktxTexture(texture));
+}
+
 INSTANTIATE_TEST_SUITE_P(
     Transcode, StreamingShellTest,
     ::testing::Values(Variant::Etc1sBasisLz, Variant::UastcZstd,
