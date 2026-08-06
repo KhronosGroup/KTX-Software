@@ -510,15 +510,6 @@ VulkanAppSDL::createInstance()
                     instanceValidationLayers = instanceValidationLayers_alt2;
                 }
             }
-#if 0
-            if (validationFound) {
-                for (uint32_t i = 0; i < instanceValidationLayers->size(); i++)
-                {
-                    deviceValidationLayers.push_back(
-                                instanceValidationLayers->data()[i]);
-                }
-            }
-#endif
             delete [] instanceLayers;
         }
 
