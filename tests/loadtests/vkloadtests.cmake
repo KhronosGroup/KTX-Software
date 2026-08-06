@@ -180,21 +180,23 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
     vkloadtests.cmake
+)
+# Resource files will not be copied to their destination (app bundle or
+# directory specified by the RESOURCE option of the install(TARGETS) command)
+# unless they appear in both the target's RESOURCE and SOURCES properties.
+# Add them to SOURCES this way so we can mark them private though I'm not
+# sure there is any benefit to doing so.
+target_sources( vkloadtests
+PRIVATE
     ${ktx2_file_sources}
     ${ktx1_file_sources}
     ${KTX_ICON_SOURCES}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
     ${SHADER_SOURCES}
     ${Vulkan_SHARE_VULKAN}
+    # These are shader binaries not sources. Annoying they have to be in SOURCES.
+    ${SHADER_SPVS}
 )
-if(APPLE)
-    target_sources( vkloadtests
-    PRIVATE
-        # Annoyingly, files will not be copied to a bundle's resources unless they appear
-        # both in RESOURCES and in the targets source list. At least mark them private.
-        ${SHADER_SPVS}
-    )
-endif()
 
 source_group( "Shader Source Files" FILES ${SHADER_SOURCES})
 source_group( "Resources/Shader Binaries" FILES ${SHADER_SPVS})
