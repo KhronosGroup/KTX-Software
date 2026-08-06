@@ -469,7 +469,7 @@ VulkanAppSDL::createInstance()
 {
     MAYBE_UNUSED VkResult err;
     uint32_t instanceLayerCount = 0;
-    std::vector<const char *>* instanceValidationLayers = nullptr;
+    std::vector<const char *> instanceValidationLayers;
 
     std::vector<const char *> instanceValidationLayers_alt1 = {
         "VK_LAYER_KHRONOS_validation"
@@ -498,7 +498,7 @@ VulkanAppSDL::createInstance()
                                 instanceLayerCount,
                                 instanceLayers);
             if (validationFound) {
-                instanceValidationLayers = &instanceValidationLayers_alt1;
+                instanceValidationLayers = instanceValidationLayers_alt1;
             } else {
                 // Use alternative set of validation layers.
                 validationFound = checkLayers(
@@ -506,8 +506,11 @@ VulkanAppSDL::createInstance()
                                 instanceValidationLayers_alt2.data(),
                                 instanceLayerCount,
                                 instanceLayers);
-                instanceValidationLayers = &instanceValidationLayers_alt2;
+                if (validationFound) {
+                    instanceValidationLayers = instanceValidationLayers_alt2;
+                }
             }
+#if 0
             if (validationFound) {
                 for (uint32_t i = 0; i < instanceValidationLayers->size(); i++)
                 {
@@ -515,6 +518,7 @@ VulkanAppSDL::createInstance()
                                 instanceValidationLayers->data()[i]);
                 }
             }
+#endif
             delete [] instanceLayers;
         }
 
@@ -585,8 +589,8 @@ VulkanAppSDL::createInstance()
     vk::InstanceCreateInfo instanceInfo(
                             {},
                             &app,
-                            (uint32_t)deviceValidationLayers.size(),
-                            (const char *const *)deviceValidationLayers.data(),
+                            (uint32_t)instanceValidationLayers.size(),
+                            (const char *const *)instanceValidationLayers.data(),
                             (uint32_t)extensionNames.size(),
                             (const char *const *)extensionNames.data());
 #if VK_KHR_portability_subset
@@ -913,10 +917,8 @@ VulkanAppSDL::createDevice()
             {},
             1,
             &queueInfo,
-            (uint32_t)deviceValidationLayers.size(),
-            (const char *const *)((validate)
-                                  ? deviceValidationLayers.data()
-                                  : NULL),
+            0, // enabledLayerCount
+            nullptr,
             (uint32_t)extensionsToEnable.size(),
             (const char *const *)extensionsToEnable.data(),
             nullptr);
