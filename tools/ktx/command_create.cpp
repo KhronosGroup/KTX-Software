@@ -2035,7 +2035,13 @@ void CommandCreate::executeCreate() {
     if (options.encodeASTC)
         encodeASTC(texture, options);
 
-    metrics.decodeAndCalculateMetrics(texture, options, *this);
+    OutputStream outputFile(options.outputFilepath, *this);
+    const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
+    if (outputPath.has_parent_path())
+        std::filesystem::create_directories(outputPath.parent_path());
+
+    // If output is stdout, we write metrics to stderr (this is done to avoid polluting the KTX file binary in stdout)
+    metrics.decodeAndCalculateMetrics(texture, options, *this, outputFile.isStdout() ? stderr : stdout);
 
     compress(texture, options);
 
@@ -2050,11 +2056,6 @@ void CommandCreate::executeCreate() {
     }
 
     // Save output file
-    const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
-    if (outputPath.has_parent_path())
-        std::filesystem::create_directories(outputPath.parent_path());
-
-    OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);
 }
 
