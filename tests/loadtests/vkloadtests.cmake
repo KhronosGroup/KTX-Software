@@ -180,15 +180,26 @@ add_executable( vkloadtests
     vkloadtests/VulkanLoadTestSample.cpp
     vkloadtests/VulkanLoadTestSample.h
     vkloadtests.cmake
+)
+# Resource files will not be copied to their destination (app bundle or
+# directory specified by the RESOURCE option of the install(TARGETS) command)
+# unless they appear in both the target's RESOURCE and SOURCES properties.
+# Add them to SOURCES this way so we can mark them private though I'm not
+# sure there is any benefit to doing so.
+target_sources( vkloadtests
+PRIVATE
     ${ktx2_file_sources}
     ${ktx1_file_sources}
     ${KTX_ICON_SOURCES}
     ${LOAD_TEST_COMMON_MODEL_SOURCES}
     ${SHADER_SOURCES}
     ${Vulkan_SHARE_VULKAN}
+    # These are shader binaries not sources. Annoying they have to be in SOURCES.
+    ${SHADER_SPVS}
 )
 
-source_group( "Resources/Shaders" FILES ${SHADER_SOURCES})
+source_group( "Shader Source Files" FILES ${SHADER_SOURCES})
+source_group( "Resources/Shader Binaries" FILES ${SHADER_SPVS})
 source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
