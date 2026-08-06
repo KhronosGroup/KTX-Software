@@ -201,6 +201,7 @@ PRIVATE
 source_group( "Shader Source Files" FILES ${SHADER_SOURCES})
 source_group( "Resources/Shader Binaries" FILES ${SHADER_SPVS})
 source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
+source_group( "Resources" FILES ${Vulkan_SHARE_VULKAN} )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
 # explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
