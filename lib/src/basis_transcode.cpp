@@ -575,11 +575,11 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // Temporary invariant value
     uint32_t layersFaces = This->numLayers * This->numFaces;
     firstImages[0] = 0;
-    for (uint32_t level = 1; level <= This->numLevels; level++) {
+    for (uint32_t level = 0; level < This->numLevels; level++) {
         // NOTA BENE: numFaces * depth is only reasonable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
-        firstImages[level] = firstImages[level - 1]
-                           + layersFaces * MAX(This->baseDepth >> (level - 1), 1);
+        firstImages[level + 1] = firstImages[level]
+                           + layersFaces * MAX(This->baseDepth >> level, 1);
     }
     uint32_t& imageCount = firstImages[This->numLevels];
 
@@ -932,6 +932,30 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
         reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(This->_private->_supercompressionGlobalData);
     const uint64_t totalImageDescs = This->_private->_sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
 
+    // The image descriptions are stored in level order, level 0 first, with
+    // each level contributing numLayers * numFaces * depth(level) images (see
+    // the writer in basis_encode.cpp). level * levelImageCount only equals
+    // the index of a level's first description while every level has the
+    // same image count; for 3D textures depth halves with each level, so the
+    // first-image index of each level must be accumulated, as transcodeEtc1s
+    // does with its firstImages table.
+    std::vector<uint64_t> firstImages(This->numLevels + 1);
+    firstImages[0] = 0;
+    for (uint32_t l = 0; l < This->numLevels; l++) {
+        firstImages[l + 1] = firstImages[l]
+                             + (uint64_t)This->numLayers * This->numFaces
+                               * MAX(This->baseDepth >> l, 1);
+    }
+
+    // firstImages[numLevels] has the total image count for the texture's
+    // dimensions so a descriptor table whose size does not match exactly is
+    // corrupt; reject it before processing any level.
+    if (This->_private->_sgdByteLength
+            % sizeof(ktxUASTCHDR6x6IntermediateImageDesc) != 0
+        || firstImages[This->numLevels] != totalImageDescs) {
+        return KTX_FILE_DATA_ERROR;
+    }
+
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
         ktx_uint32_t depth;
         uint64_t writeOffset = levelOffsetWrite;
@@ -977,8 +1001,8 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
             // See comment before same lines in transcodeEtc1s.
             if (++stateIndex == xcoderStates.size()) stateIndex = 0;
 
-            // Compute the start index into the image seek table.
-            const uint32_t sgdImageDescIndex = (level * levelImageCount) + image;
+            // Compute the index into the image seek table.
+            const uint64_t sgdImageDescIndex = firstImages[level] + image;
 
             // Sanity check the SGD image desc index
             if (sgdImageDescIndex >= totalImageDescs) {
