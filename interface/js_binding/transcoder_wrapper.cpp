@@ -448,15 +448,22 @@ enum TranscodeTarget = {
     "BC3_RGBA",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
+    "BC6HU_RGB",
     "BC7_RGBA",
     "BC7_M6_RGB",   //Deprecated. Use BC7_RGBA.
     "BC7_M5_RGBA",  //Deprecated. Use BC7_RGBA.
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
+    "ASTC_LDR_4x4_RGBA",
+    "ASTC_HDR_4x4_RGBA",
+    "ASTC_HDR_6x6_RGBA",
     "RGBA32",
     "RGB565",
     "BGR565",
     "RGBA4444",
+    "RGB16F",
+    "RGBA16F",
+    "RGB9E5",
     "PVRTC2_4_RGB",
     "PVRTC2_4_RGBA",
     "EAC_R11",
@@ -727,17 +734,24 @@ EMSCRIPTEN_BINDINGS(ktx_wrappers)
         .value("BC3_RGBA", transcoder_texture_format::cTFBC3_RGBA)
         .value("PVRTC1_4_RGB", transcoder_texture_format::cTFPVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", transcoder_texture_format::cTFPVRTC1_4_RGBA)
+        .value("BC6HU_RGB", transcoder_texture_format::cTFBC6H)
         .value("BC7_RGBA", transcoder_texture_format::cTFBC7_RGBA)
         // Deprecated. Use BC7_RGBA.
         .value("BC7_M6_RGB", transcoder_texture_format::cTFBC7_M6_RGB)
         // Deprecated. Use BC7_RGBA.
         .value("BC7_M5_RGBA", transcoder_texture_format::cTFBC7_M5_RGBA)
         .value("ETC2_RGBA", transcoder_texture_format::cTFETC2_RGBA)
-        .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_4x4_RGBA)
+        .value("ASTC_4x4_RGBA", transcoder_texture_format::cTFASTC_LDR_4x4_RGBA)
+        .value("ASTC_LDR_4x4_RGBA", transcoder_texture_format::cTFASTC_LDR_4x4_RGBA)
+        .value("ASTC_HDR_4x4_RGBA", transcoder_texture_format::cTFASTC_HDR_4x4_RGBA)
+        .value("ASTC_HDR_6x6_RGBA", transcoder_texture_format::cTFASTC_HDR_6x6_RGBA)
         .value("RGBA32", transcoder_texture_format::cTFRGBA32)
         .value("RGB565", transcoder_texture_format::cTFRGB565)
         .value("BGR565", transcoder_texture_format::cTFBGR565)
         .value("RGBA4444", transcoder_texture_format::cTFRGBA4444)
+        .value("RGB16F", transcoder_texture_format::cTFRGB_HALF)
+        .value("RGBA16F", transcoder_texture_format::cTFRGBA_HALF)
+        .value("RGB9E5", transcoder_texture_format::cTFRGB_9E5)
         .value("PVRTC2_4_RGB", transcoder_texture_format::cTFPVRTC2_4_RGB)
         .value("PVRTC2_4_RGBA", transcoder_texture_format::cTFPVRTC2_4_RGBA)
         .value("EAC_R11", transcoder_texture_format::cTFETC2_EAC_R11)

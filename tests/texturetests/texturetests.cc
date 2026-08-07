@@ -23,6 +23,8 @@
   #endif
 #endif
 
+// This should be included first to avoid/suppress issues on Windows
+#include "platform_utils.h"
 #include <version>
 #include <barrier>
 #include <filesystem>
@@ -47,7 +49,6 @@
 #include "texture.h"
 #include "texture1.h"
 #include "texture2.h"
-#include "platform_utils.h"
 #include "gtest/gtest.h"
 #include "wthelper.h"
 #include "vk_format.h"
@@ -1207,6 +1208,73 @@ TEST(ktxTexture2_invalidCreateInfoParams, InvalidWidth) {
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
     texture_raii.reset(ktxTexture(texture));
     EXPECT_EQ(result, KTX_INVALID_VALUE);
+}
+
+/////////////////////////////////////////
+// ktxTexture1/2 ktxTexture_GetRowPitch vs. ktxTexture_GetImageSize
+////////////////////////////////////////
+
+TEST(ktxTexture_GetRowPitch, GetRowPitchVsGetImageSize) {
+    const uint32_t level = 0;
+    KTX_error_code result;
+
+    {  // KTXv1 texture (padding to KTX_GL_UNPACK_ALIGNMENT required)
+        ktxTexture_unique_ptr texture1_raii{nullptr, ktxTexture_Deleter};
+        ktxTexture1* texture1 = nullptr;
+        ktxTextureCreateInfo createInfo;
+        createInfo.glInternalformat = GL_SRGB8;
+        createInfo.vkFormat = 0;
+        createInfo.pDfd = nullptr;
+        createInfo.baseWidth = 3;
+        createInfo.baseHeight = 3;
+        createInfo.baseDepth = 1;
+        createInfo.numDimensions = 2;
+        createInfo.numLevels = 1;
+        createInfo.numLayers = 1;
+        createInfo.numFaces = 1;
+        createInfo.isArray = KTX_FALSE;
+        createInfo.generateMipmaps = KTX_FALSE;
+        result = ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        texture1_raii.reset(ktxTexture(texture1));
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture1 != NULL) << "ktxTexture1_Create failed: " << ktxErrorString(result);
+        // 3 * 3 == 9 => should pad to 12 for KTXv1
+        EXPECT_EQ(ktxTexture_GetRowPitch(ktxTexture(texture1), level) % KTX_GL_UNPACK_ALIGNMENT, 0u);
+        // ktxTexture_GetRowPitch and ktxTexture_calcImageSize should both be consistent
+        const size_t image_size_0 = ktxTexture_GetRowPitch(ktxTexture(texture1), level) *
+                                    std::max(texture1->baseHeight >> level, 1u);
+        const size_t image_size_1 =
+            ktxTexture_calcImageSize(ktxTexture(texture1), level, KTX_FORMAT_VERSION_ONE);
+        EXPECT_EQ(image_size_0, image_size_1);
+    }
+
+    {  // KTXv2 texture (no padding required)
+        ktxTexture_unique_ptr texture2_raii{nullptr, ktxTexture_Deleter};
+        ktxTexture2* texture2 = nullptr;
+        ktxTextureCreateInfo createInfo;
+        createInfo.glInternalformat = 0;
+        createInfo.vkFormat = VK_FORMAT_R8G8B8_SRGB;
+        createInfo.pDfd = nullptr;
+        createInfo.baseWidth = 3;  // 3 * 3 == 9 => no padding for KTXv2
+        createInfo.baseHeight = 3;
+        createInfo.baseDepth = 1;
+        createInfo.numDimensions = 2;
+        createInfo.numLevels = 1;
+        createInfo.numLayers = 1;
+        createInfo.numFaces = 1;
+        createInfo.isArray = KTX_FALSE;
+        createInfo.generateMipmaps = KTX_FALSE;
+        result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        texture2_raii.reset(ktxTexture(texture2));
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture2 != NULL) << "ktxTexture2_Create failed: " << ktxErrorString(result);
+        // ktxTexture_GetRowPitch and ktxTexture_calcImageSize should both be consistent
+        const size_t image_size_0 = ktxTexture_GetRowPitch(ktxTexture(texture2), level) *
+                                    std::max(texture2->baseHeight >> level, 1u);
+        const size_t image_size_1 =
+            ktxTexture_calcImageSize(ktxTexture(texture2), level, KTX_FORMAT_VERSION_TWO);
+        EXPECT_EQ(image_size_0, image_size_1);
+    }
 }
 
 /////////////////////////////////////////////

@@ -10,7 +10,7 @@ function(compile_shader shader_target shader_name shader_src_path shader_path)
     add_custom_command(OUTPUT
         ${vert2spirv_out}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-        COMMAND glslc "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
+        COMMAND ${Vulkan_GLSLC_EXECUTABLE} "-fshader-stage=vertex" -o "${vert2spirv_out}" "${vert2spirv_in}"
         DEPENDS ${vert2spirv_in}
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
         COMMENT "Compiling ${vert_name}."
@@ -24,7 +24,7 @@ function(compile_shader shader_target shader_name shader_src_path shader_path)
     add_custom_command(OUTPUT
         ${frag2spirv_out}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-        COMMAND glslc "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
+        COMMAND ${Vulkan_GLSLC_EXECUTABLE} "-fshader-stage=fragment" -o "${frag2spirv_out}" "${frag2spirv_in}"
         DEPENDS ${frag2spirv_in}
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
         COMMENT "Compiling ${frag_name}."
@@ -57,7 +57,7 @@ function(compile_shader_list shader_target shader_src_path shader_path)
         add_custom_command(OUTPUT
             ${spirv_out}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${shader_path}
-            COMMAND glslc -o "${spirv_out}" "${spirv_in}"
+            COMMAND ${Vulkan_GLSLC_EXECUTABLE} -o "${spirv_out}" "${spirv_in}"
             DEPENDS ${spirv_in}
             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
             COMMENT "Compiling ${shader}."

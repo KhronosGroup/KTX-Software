@@ -748,16 +748,19 @@ enum transcode_fmt = {
     "BC1_OR_3",
     "PVRTC1_4_RGB",
     "PVRTC1_4_RGBA",
-    "BC6HU",
+    "BC6HU_RGB",
     "BC7_RGBA",
     "ETC2_RGBA",
     "ASTC_4x4_RGBA",
+    "ASTC_LDR_4x4_RGBA",
     "ASTC_HDR_4x4_RGBA",
     "ASTC_HDR_6x6_RGBA",
     "RGBA32",
     "RGB565",
     "BGR565",
     "RGBA4444",
+    "RGB16F",
+    "RGB9E5",
     "RGBA16F",
     "PVRTC2_4_RGB",
     "PVRTC2_4_RGBA",
@@ -1242,10 +1245,11 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("BC1_OR_3", KTX_TTF_BC1_OR_3)
         .value("PVRTC1_4_RGB", KTX_TTF_PVRTC1_4_RGB)
         .value("PVRTC1_4_RGBA", KTX_TTF_PVRTC1_4_RGBA)
-        .value("BC6HU", KTX_TTF_BC6HU)
+        .value("BC6HU_RGB", KTX_TTF_BC6HU_RGB)
         .value("BC7_RGBA", KTX_TTF_BC7_RGBA)
         .value("ETC2_RGBA", KTX_TTF_ETC2_RGBA)
-        .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_4x4_RGBA)
+        .value("ASTC_4x4_RGBA", KTX_TTF_ASTC_LDR_4x4_RGBA)
+        .value("ASTC_LDR_4x4_RGBA", KTX_TTF_ASTC_LDR_4x4_RGBA)
         .value("ASTC_HDR_4x4_RGBA", KTX_TTF_ASTC_HDR_4x4_RGBA)
         .value("ASTC_HDR_6x6_RGBA", KTX_TTF_ASTC_HDR_6x6_RGBA)
         .value("RGBA32", KTX_TTF_RGBA32)
@@ -1253,6 +1257,8 @@ EMSCRIPTEN_BINDINGS(ktx)
         .value("BGR565", KTX_TTF_BGR565)
         .value("RGBA4444", KTX_TTF_RGBA4444)
         .value("RGBA8888", KTX_TTF_RGBA32)
+        .value("RGB16F", KTX_TTF_RGB_HALF)
+        .value("RGB9E5", KTX_TTF_RGB_9E5)
         .value("RGBA16F", KTX_TTF_RGBA_HALF)
         .value("PVRTC2_4_RGB", KTX_TTF_PVRTC2_4_RGB)
         .value("PVRTC2_4_RGBA", KTX_TTF_PVRTC2_4_RGBA)
