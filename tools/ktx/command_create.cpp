@@ -114,6 +114,8 @@ struct OptionsCreate {
     std::optional<basisu::Resampler::Boundary_Op> mipmapWrap;
     basisu::Resampler::Boundary_Op defaultMipmapWrap =
                                        basisu::Resampler::Boundary_Op::BOUNDARY_CLAMP;
+    std::string mipmapGenerationOptions{};  /// Capture mipmap generation options
+
     std::optional<std::string> swizzle; /// Sets KTXswizzle
     std::optional<std::string> swizzleInput; /// Used to swizzle the input image data
 
@@ -443,6 +445,17 @@ struct OptionsCreate {
         return result;
     }
 
+    void captureMipmapGenerationOption(const char* name) {
+        mipmapGenerationOptions += fmt::format(" --{}", name);
+    }
+
+    template <typename T>
+    T captureMipmapGenerationOption(cxxopts::ParseResult& args, const char* name) {
+        const T value = args[name].as<T>();
+        mipmapGenerationOptions += fmt::format(" --{} {}", name, value);
+        return value;
+    }
+
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
         _1d = args[k1D].as<bool>();
         cubemap = args[kCubemap].as<bool>();
@@ -460,7 +473,11 @@ struct OptionsCreate {
             levels = args[kLevels].as<uint32_t>();
 
         mipmapRuntime = args[kRuntimeMipmap].as<bool>();
-        mipmapGenerate = args[kGenerateMipmap].as<bool>();
+      
+        if (args[kGenerateMipmap].count()) {
+            mipmapGenerate = true;
+            captureMipmapGenerationOption(kGenerateMipmap);
+        }
 
         if (args[kMipmapFilter].count()) {
             static const std::unordered_set<std::string> filter_table{
@@ -482,13 +499,13 @@ struct OptionsCreate {
                 "quadratic_mix",
             };
 
-            mipmapFilter = to_lower_copy(args[kMipmapFilter].as<std::string>());
+            mipmapFilter = to_lower_copy(captureMipmapGenerationOption<std::string>(args, kMipmapFilter));
             if (filter_table.count(*mipmapFilter) == 0)
                 report.fatal_usage("Invalid or unsupported mipmap filter specified as --mipmap-filter argument: \"{}\".", *mipmapFilter);
         }
 
         if (args[kMipmapFilterScale].count())
-            mipmapFilterScale = args[kMipmapFilterScale].as<float>();
+            mipmapFilterScale = captureMipmapGenerationOption<float>(args, kMipmapFilterScale);
 
         if (args[kMipmapWrap].count()) {
             static const std::unordered_map<std::string, basisu::Resampler::Boundary_Op> wrap_table{
@@ -497,7 +514,7 @@ struct OptionsCreate {
                 { "reflect", basisu::Resampler::Boundary_Op::BOUNDARY_REFLECT },
             };
 
-            const auto wrapStr = to_lower_copy(args[kMipmapWrap].as<std::string>());
+            const auto wrapStr = to_lower_copy(captureMipmapGenerationOption<std::string>(args, kMipmapWrap));
             const auto it = wrap_table.find(wrapStr);
             if (it == wrap_table.end())
                 report.fatal_usage("Invalid or unsupported mipmap wrap mode specified as --mipmap-wrap argument: \"{}\".", wrapStr);
@@ -2040,7 +2057,16 @@ void CommandCreate::executeCreate() {
     compress(texture, options);
 
     // Add KTXwriterScParams metadata if ASTC encoding, BasisU encoding, or other supercompression was used
-    const auto writerScParams = fmt::format("{}{}{}{}", options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    // Note:
+    //  We don't want to capture mipmap generation options if mipmap generation
+    //  is not activated (because looking at kv metadata might give the wrong
+    //  impression that mipmaps were generated). This is the same for ASTC.
+    const auto writerScParams = fmt::format("{}{}{}{}{}",
+        options.encodeASTC ? options.astcOptions : "",
+        options.codecOptions,
+        options.commonOptions,
+        options.mipmapGenerate ? options.mipmapGenerationOptions : "",
+        options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');
