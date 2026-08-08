@@ -230,7 +230,8 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     if (!prepared)
         return;
 
-    prepareFrame();
+    if (!prepareFrame())
+        return;
 
     vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
     vkctx.drawCmdSubmitInfo.pCommandBuffers =
@@ -323,7 +324,7 @@ VulkanAppSDL::onFPSUpdate()
 //----------------------------------------------------------------------
 
 
-void
+bool
 VulkanAppSDL::prepareFrame()
 {
     // Acquire the next image from the swap chain
@@ -354,7 +355,7 @@ VulkanAppSDL::prepareFrame()
 	if (err != VK_SUCCESS)
 	{
 		vkQueueWaitIdle(vkctx.queue);
-		return;
+		return false;
 	}
 
     // Submit post present image barrier to transform the image back to a
@@ -371,6 +372,7 @@ VulkanAppSDL::prepareFrame()
     submitInfo.pWaitDstStageMask    = &waitFlags;
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
                                   &submitInfo, VK_NULL_HANDLE));
+    return true;
 }
 
 
