@@ -1690,6 +1690,8 @@ setImageLayout(
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
     };
+    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     imageMemoryBarrier.oldLayout = oldLayout;
     imageMemoryBarrier.newLayout = newLayout;
@@ -1711,6 +1713,7 @@ setImageLayout(
         // Image is preinitialized.
         // Only valid as initial layout for linear images; preserves memory
         // contents. Make sure host writes have finished.
+        srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT;
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
         break;
 
@@ -1750,8 +1753,6 @@ setImageLayout(
         assert(KTX_FALSE);
     }
 
-    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
     // Target layouts (new)
     // The destination access mask controls the dependency for the new image
     // layout.
@@ -1789,11 +1790,12 @@ setImageLayout(
         // Make sure any writes to the image have finished.
         if (imageMemoryBarrier.srcAccessMask == 0)
         {
+            srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
             imageMemoryBarrier.srcAccessMask
                     = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         }
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
 
     default:
@@ -1802,8 +1804,6 @@ setImageLayout(
     }
 
     // Put barrier on top of pipeline.
-    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
     // Add the barrier to the passed command buffer
     vkFuncs.vkCmdPipelineBarrier(
         cmdBuffer,

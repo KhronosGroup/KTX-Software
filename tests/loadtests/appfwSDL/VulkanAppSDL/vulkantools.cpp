@@ -131,6 +131,9 @@ namespace vkTools
         imageMemoryBarrier.image = image;
         imageMemoryBarrier.subresourceRange = subresourceRange;
 
+        VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
         // Source layouts (old)
         // Source access mask controls actions that have to be finished on the old layout
         // before it will be transitioned to the new layout
@@ -147,6 +150,7 @@ namespace vkTools
                 // Image is preinitialized
                 // Only valid as initial layout for linear images, preserves memory contents
                 // Make sure host writes have been finished
+                srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT;
                 imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
                 break;
 
@@ -219,8 +223,11 @@ namespace vkTools
             // Make sure any writes to the image have been finished
             if (imageMemoryBarrier.srcAccessMask == 0)
             {
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+               srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+               imageMemoryBarrier.srcAccessMask
+                       = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
             }
+            destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
             break;
 
@@ -229,9 +236,6 @@ namespace vkTools
         }
 
         // Put barrier on top
-        VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-        VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
         // Put barrier inside setup command buffer
         vkCmdPipelineBarrier(
             cmdbuffer, 

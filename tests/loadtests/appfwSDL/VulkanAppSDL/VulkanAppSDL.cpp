@@ -351,6 +351,11 @@ VulkanAppSDL::prepareFrame()
     submitInfo.pNext = NULL;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &vkctx.postPresentCmdBuffers[currentBuffer];
+    // Must wait for presentComplete before transforming the image.
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    submitInfo.pWaitSemaphores      = &semaphores.presentComplete;
+    submitInfo.waitSemaphoreCount   = 1;
+    submitInfo.pWaitDstStageMask    = &waitFlags;
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
                                   &submitInfo, VK_NULL_HANDLE));
 }
@@ -388,10 +393,9 @@ VulkanAppSDL::submitFrame()
         // Reset stage mask
         vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
         // Reset wait and signal semaphores for rendering next frame
-        // Wait for swap chain presentation to finish
-        vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 1;
-        vkctx.drawCmdSubmitInfo.pWaitSemaphores = &semaphores.presentComplete;
         // Signal ready with offscreen semaphore
+        vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 0;
+        vkctx.drawCmdSubmitInfo.pWaitSemaphores = nullptr;
         vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
         vkctx.drawCmdSubmitInfo.pSignalSemaphores = &semaphores.renderComplete;
     }
@@ -985,8 +989,6 @@ VulkanAppSDL::createSemaphores()
     vkctx.drawCmdSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     vkctx.drawCmdSubmitInfo.pNext = NULL;
     vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
-    vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 1;
-    vkctx.drawCmdSubmitInfo.pWaitSemaphores = &semaphores.presentComplete;
     vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
     vkctx.drawCmdSubmitInfo.pSignalSemaphores = &semaphores.renderComplete;
     return true;

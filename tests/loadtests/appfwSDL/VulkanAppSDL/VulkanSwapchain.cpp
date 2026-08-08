@@ -412,7 +412,7 @@ VulkanSwapchain::acquireNextImage(VkSemaphore presentCompleteSemaphore,
 {
     return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                  presentCompleteSemaphore,
-                                 (VkFence)nullptr,
+                                 nullptr,
                                  currentBuffer);
 }
 
