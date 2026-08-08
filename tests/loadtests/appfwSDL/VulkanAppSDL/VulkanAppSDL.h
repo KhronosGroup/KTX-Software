@@ -78,7 +78,7 @@ class VulkanAppSDL : public AppBaseSDL {
     bool prepareCommandBuffers();
     bool prepareDepthBuffer();
     bool prepareDescriptorLayout();
-    void prepareFrame();
+    bool prepareFrame();
     bool preparePresentCommandBuffers();
     bool prepareRenderPass();
     bool preparePipeline();
