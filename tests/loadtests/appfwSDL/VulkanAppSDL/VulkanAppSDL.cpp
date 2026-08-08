@@ -331,18 +331,31 @@ VulkanAppSDL::prepareFrame()
     err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
                                            &currentBuffer);
 
-    if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        // Swap chain is out of date (e.g. the window was resized).
-        // Re-create it.
+    // Handle outdated or non-optimal error.
+	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+#if 1
+        // Our resize handler recreates the swap-chain and redraws the
+        // content so I don't think we have to do anything here.
         //resize();
-        //draw(demo);
-        return;
-    } else if (err == VK_SUBOPTIMAL_KHR) {
-        // demo->swapchain is not as optimal as it could be, but the platform's
-        // presentation engine will still present the image correctly.
-    } else {
-        assert(!err);
-    }
+#else
+        // For reference, Vulkan samples do this. I have not been able to find
+        // all the pieces but suspect the resize event handler just updates the
+        // swapchain dimensions and leaves the rest of the resize to this which
+        // happens just before rendering.
+		if (!resize(context.swapchain_dimensions.width, context.swapchain_dimensions.height))
+		{
+			//LOGI("Resize failed");
+		}
+		err = acquire_next_swapchain_image(&index);
+#endif
+	}
+
+	if (err != VK_SUCCESS)
+	{
+		vkQueueWaitIdle(vkctx.queue);
+		return;
+	}
 
     // Submit post present image barrier to transform the image back to a
     // color attachment that our render pass can write to
