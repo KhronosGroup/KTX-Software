@@ -254,18 +254,6 @@ VulkanAppSDL::windowResized()
 void
 VulkanAppSDL::resizeWindow(int width, int height)
 {
-    // XXX Necessary? Get out-of-date errors from vkAcquireNextImage regardless
-    // of whether this guard is used. This guard doesn't seem to make them any
-    // less likely.
-#define GUARD 0
-#if GUARD
-    if (!prepared)
-    {
-        return;
-    }
-    prepared = false;
-#endif
-
     // Recreate swap chain.
 
     w_width = width;
@@ -302,9 +290,6 @@ VulkanAppSDL::resizeWindow(int width, int height)
     }
     // Notify derived class.
     windowResized();
-#if GUARD
-    prepared = true;
-#endif
 }
 
 
