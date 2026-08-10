@@ -244,9 +244,11 @@ ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
  * @~English
  * @brief Struct that contains callbacks necessary for guarding access to the supplied queue in vdi.
  * 
- *        Needs to be used in conjunction with suballocator callbacks that are also guarded for thread-safety. Together they can make UploadEx fully thread-safe in an efficient manner.
- *        The suballocator callbacks need to guard around memory objects and if sparse binding support is introduced, will need to guard around both memory and queue objects.
- *        As of now, guarding for external bookkeeping mechanisms are also a necessity in a threaded environment.
+ *        Needs to be used in conjunction with suballocator callbacks that are also thread-safe.
+ *        Together they can make UploadEx fully thread-safe in an efficient manner.
+ *        The suballocator callbacks need to guard around memory objects and if sparse binding
+ *        support is introduced, will need to guard around both memory and queue objects.
+ *        Thread-safety for the external bookkeeping mechanism is also a necessity.
  *
  */
 typedef struct {
