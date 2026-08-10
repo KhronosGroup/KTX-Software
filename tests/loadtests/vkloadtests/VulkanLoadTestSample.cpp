@@ -150,15 +150,15 @@ namespace VMA_CALLBACKS
         }
         pCreateInfo.memoryTypeBits = memReq->memoryTypeBits;
 
+        VmaAllocation allocation;
+        VkResult result = vmaAllocateMemory(vmaAllocator, memReq, &pCreateInfo, &allocation, VMA_NULL);
+        if (result != VK_SUCCESS)
+        {
+            return 0ull;
+        }
+
         {
             std::lock_guard<std::mutex> lk(memoryAccessGuard);
-            VmaAllocation allocation;
-            VkResult result = vmaAllocateMemory(vmaAllocator, memReq, &pCreateInfo, &allocation, VMA_NULL);
-            if (result != VK_SUCCESS)
-            {
-                return 0ull;
-            }
-
             AllocMemCWrapperDirectory[allocId].allocation = allocation;
             AllocMemCWrapperDirectory[allocId].mapSize = memReq->size;
         }
@@ -169,34 +169,46 @@ namespace VMA_CALLBACKS
 
     VkResult BindBufferMemoryCWrapperGuarded(VkBuffer buffer, uint64_t allocId)
     {
-        std::lock_guard<std::mutex> lk(memoryAccessGuard);
-        return vmaBindBufferMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, buffer);
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        return vmaBindBufferMemory(vmaAllocator, allocation, buffer);
     }
 
     VkResult BindImageMemoryCWrapperGuarded(VkImage image, uint64_t allocId)
     {
-        std::lock_guard<std::mutex> lk(memoryAccessGuard);
-        return vmaBindImageMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, image);
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        return vmaBindImageMemory(vmaAllocator, allocation, image);
     }
 
     VkResult MapMemoryCWrapperGuarded(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr)
     {
-        memoryAccessGuard.lock();  // Locked for the duration of access to VkDeviceMemory
+        std::lock_guard<std::mutex> lk(memoryAccessGuard);
         *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
         return vmaMapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, dataPtr);
     }
 
     void UnmapMemoryCWrapperGuarded(uint64_t allocId, uint64_t)
     {
+        std::lock_guard<std::mutex> lk(memoryAccessGuard);
         vmaUnmapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
-        memoryAccessGuard.unlock();  // Done with VkDeviceMemory access
     }
 
     void FreeMemCWrapperGuarded(uint64_t allocId)
     {
-        std::lock_guard<std::mutex> lk(memoryAccessGuard);
-        vmaFreeMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
-        AllocMemCWrapperDirectory.erase(allocId);
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+            AllocMemCWrapperDirectory.erase(allocId);
+        }
+        vmaFreeMemory(vmaAllocator, allocation);
     }
 }
 
