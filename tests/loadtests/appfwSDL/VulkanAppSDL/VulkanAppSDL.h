@@ -30,7 +30,7 @@ class VulkanAppSDL : public AppBaseSDL {
              const uint32_t version,
              bool enableTextOverlay)
             : AppBaseSDL(name), w_width(width), w_height(height),
-              subOptimalPresentWarned(false), validate(false), hdr(false),
+              presentSwapchainErrorWarned(false), validate(false), hdr(false),
               vkVersion(version),
               enableTextOverlay(enableTextOverlay),
               textOverlay(nullptr)
@@ -129,7 +129,7 @@ class VulkanAppSDL : public AppBaseSDL {
     uint32_t w_width;
     uint32_t w_height;
 
-    bool subOptimalPresentWarned;
+    bool presentSwapchainErrorWarned;
     bool validate;
     bool hdr;
     // colorSpace is only used with --hdr and this space is never used with --hdr
