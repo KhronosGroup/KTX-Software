@@ -267,8 +267,7 @@ VulkanAppSDL::resizeWindow(int width, int height)
     vkFreeMemory(vkctx.device, vkctx.depthBuffer.mem, nullptr);
 
     // Recreate the frame buffers
-    for (uint32_t i = 0; i < vkctx.framebuffers.size(); i++)
-    {
+    for (uint32_t i = 0; i < vkctx.framebuffers.size(); i++) {
         vkDestroyFramebuffer(vkctx.device, vkctx.framebuffers[i], nullptr);
     }
 
@@ -283,8 +282,7 @@ VulkanAppSDL::resizeWindow(int width, int height)
         && prepareFramebuffers());
 
     flushInitialCommands();
-    if (enableTextOverlay)
-    {
+    if (enableTextOverlay) {
         textOverlay->reallocateCommandBuffers();
         updateTextOverlay();
     }
@@ -317,9 +315,8 @@ VulkanAppSDL::prepareFrame()
     err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
                                            &currentBuffer);
 
-    // Handle outdated or non-optimal error.
-	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR)
-	{
+    // Handle outdated error in acquire.
+	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
 #if 1
         // Our resize handler recreates the swap-chain and redraws the
         // content so I don't think we have to do anything here.
@@ -337,8 +334,7 @@ VulkanAppSDL::prepareFrame()
 #endif
 	}
 
-	if (err != VK_SUCCESS)
-	{
+	if (err != VK_SUCCESS) {
 		vkQueueWaitIdle(vkctx.queue);
 		return false;
 	}
@@ -413,18 +409,30 @@ VulkanAppSDL::submitFrame()
                submitTextOverlay ?
                    semaphores.textOverlayComplete : semaphores.renderComplete);
 
-    if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        // swapchain is out of date (e.g. the window was resized) and
-        // must be recreated:
+	// Handle outdated error in present.
+	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
+#if 1
+        // Our resize handler recreates the swap-chain and redraws the
+        // content so I don't think we have to do anything here.
         //resize();
-    } else if (err == VK_SUBOPTIMAL_KHR) {
-        if (!subOptimalPresentWarned) {
+    } else if (err != VK_SUCCESS) {
+        if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
-                                     "Suboptimal present of framebuffer.",
+                                     "Failed to present swapchain image.",
                                      NULL);
         }
-    } else
-        assert(!err);
+#else
+        // For reference this is what Vulkan samples does.
+		if (!resize(context.swapchain_dimensions.width, context.swapchain_dimensions.height))
+		{
+			LOGI("Resize failed");
+		}
+	}
+	else if (err != VK_SUCCESS)
+	{
+		LOGE("Failed to present swapchain image.");
+#endif
+    }
 
     // This is necessary because the text overlay's command buffer changes
     // every frame and, although the other command buffers are the same
