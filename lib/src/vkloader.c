@@ -799,7 +799,8 @@ linearTilingPadCallback(int miplevel, int face,
  *                                        (or additionally queue if sparse binding support
  *                                        is added) and external suballocation managements
  *                                        objects, it can make UploadEx fully thread-safe
- *                                        and efficiently so.
+ *                                        and efficiently so. This is assuming that a
+ *                                        per-thread VDI is used as well.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
@@ -1172,10 +1173,21 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
                                       (ktx_size_t)memAllocInfo.allocationSize);
                 if (kResult != KTX_SUCCESS)
                 {
+                    // TODO: This should be a common clean-up path for all failure cases,
+                    //       complete with checks for partial initialization.
+                    VK_CHECK_RESULT(vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
+                    free(copyRegions);
                     if (!useSuballocator)
+                    {
                         vdi->vkFuncs.vkUnmapMemory(vdi->device, stagingMemory);
+                        vdi->vkFuncs.vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
+                    }
                     else
+                    {
                         subAllocatorCallbacks->memoryUnmapFuncPtr(stagingAllocId, 0ull);
+                        subAllocatorCallbacks->freeMemFuncPtr(stagingAllocId);
+                    }
+                    vdi->vkFuncs.vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
                     return kResult;
                 }
             }
@@ -1314,10 +1326,10 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
-        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr();
+        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr(vdi->queue);
         VK_CHECK_RESULT(
                 vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, copyFence));
-        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr();
+        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr(vdi->queue);
 
         VK_CHECK_RESULT(
                 vdi->vkFuncs.vkWaitForFences(vdi->device, 1, &copyFence,
@@ -1468,10 +1480,10 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vdi->cmdBuffer;
 
-        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr();
+        if (useQueueMutex) queueMutexCallbacks->queueLockFuncPtr(vdi->queue);
         VK_CHECK_RESULT(vdi->vkFuncs.vkQueueSubmit(vdi->queue, 1, &submitInfo, nullFence));
         VK_CHECK_RESULT(vdi->vkFuncs.vkQueueWaitIdle(vdi->queue));
-        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr();
+        if (useQueueMutex) queueMutexCallbacks->queueUnlockFuncPtr(vdi->queue);
     }
     return KTX_SUCCESS;
 }

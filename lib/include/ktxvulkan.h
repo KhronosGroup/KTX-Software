@@ -134,8 +134,8 @@ typedef VkResult(*ktxVulkanTexture_subAllocatorBindImageFuncPtr)(VkImage image, 
 typedef VkResult(*ktxVulkanTexture_subAllocatorMemoryMapFuncPtr)(uint64_t allocId, uint64_t pageNumber, VkDeviceSize *mapLength, void** dataPtr);
 typedef void (*ktxVulkanTexture_subAllocatorMemoryUnmapFuncPtr)(uint64_t allocId, uint64_t pageNumber);
 typedef void (*ktxVulkanTexture_subAllocatorFreeMemFuncPtr)(uint64_t allocId);
-typedef void (*ktxVulkanTexture_queueLockFuncPtr)();
-typedef void (*ktxVulkanTexture_queueUnlockFuncPtr)();
+typedef void (*ktxVulkanTexture_queueLockFuncPtr)(VkQueue queueToLock);
+typedef void (*ktxVulkanTexture_queueUnlockFuncPtr)(VkQueue queueToUnlock);
 
 /**
  * @class ktxVulkanTexture_subAllocatorCallbacks
@@ -244,6 +244,7 @@ ktxVulkanDeviceInfo_Destroy(ktxVulkanDeviceInfo* This);
  * @~English
  * @brief Struct that contains callbacks necessary for guarding access to the supplied queue in vdi.
  * 
+ *        As a prerequisite, a per-thread VDI is necessary for thread-safety.
  *        Needs to be used in conjunction with suballocator callbacks that are also thread-safe.
  *        Together they can make UploadEx fully thread-safe in an efficient manner.
  *        The suballocator callbacks need to guard around memory objects and if sparse binding

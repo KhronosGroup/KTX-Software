@@ -44,8 +44,8 @@ namespace VMA_CALLBACKS
 
 namespace QUEUE_GUARD_CALLBACKS
 {
-    void LockQueue();
-    void UnlockQueue();
+    void LockQueue(VkQueue queue);
+    void UnlockQueue(VkQueue queue);
 }
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))

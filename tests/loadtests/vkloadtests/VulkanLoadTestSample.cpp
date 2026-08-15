@@ -136,7 +136,6 @@ namespace VMA_CALLBACKS
     std::mutex memoryAccessGuard;
     uint64_t AllocMemCWrapperGuarded(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages)
     {
-        uint64_t allocId = mt64();
         VmaAllocationCreateInfo pCreateInfo = {};
         if ((cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ||
             (cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
@@ -157,8 +156,10 @@ namespace VMA_CALLBACKS
             return 0ull;
         }
 
+        uint64_t allocId;
         {
             std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocId = mt64();
             AllocMemCWrapperDirectory[allocId].allocation = allocation;
             AllocMemCWrapperDirectory[allocId].mapSize = memReq->size;
         }
@@ -189,15 +190,23 @@ namespace VMA_CALLBACKS
 
     VkResult MapMemoryCWrapperGuarded(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr)
     {
-        std::lock_guard<std::mutex> lk(memoryAccessGuard);
-        *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
-        return vmaMapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation, dataPtr);
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+            *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
+        }
+        return vmaMapMemory(vmaAllocator, allocation, dataPtr);
     }
 
     void UnmapMemoryCWrapperGuarded(uint64_t allocId, uint64_t)
     {
-        std::lock_guard<std::mutex> lk(memoryAccessGuard);
-        vmaUnmapMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        vmaUnmapMemory(vmaAllocator, allocation);
     }
 
     void FreeMemCWrapperGuarded(uint64_t allocId)
@@ -215,15 +224,14 @@ namespace VMA_CALLBACKS
 namespace QUEUE_GUARD_CALLBACKS
 {
     std::mutex queueAccessGuard;
-
-    void LockQueue()
+    void LockQueue(VkQueue)
 	{
-		queueAccessGuard.lock();
+		queueAccessGuard.lock(); // Only a single queue at the moment
 	}
 
-	void UnlockQueue()
+	void UnlockQueue(VkQueue)
 	{
-		queueAccessGuard.unlock();
+		queueAccessGuard.unlock(); // Only a single queue at the moment
 	}
 }
 

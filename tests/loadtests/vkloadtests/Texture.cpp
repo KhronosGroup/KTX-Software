@@ -136,7 +136,7 @@ Texture::Texture(VulkanContext& vkctx,
             });
             uploaderThread.join(); // We really have no choice here. This crucible/test-environment only loads one texture at a time.
                                    // Additionally `QUEUE_GUARD_CALLBACKS::queueAccessGuard` and `QUEUE_GUARD_CALLBACKS::memoryAccessGuard` would
-                                   // need to be re-used when arena `VkDeviceMemory`s or the same `VkQueue`s are being accessed simultaneously.
+                                   // need to be re-used when arena allocations or the same `VkQueue`s are being accessed simultaneously.
         }
         else
         {
