@@ -41,6 +41,8 @@
   #pragma GCC diagnostic pop
 #endif
 
+#include <iostream>
+
 #undef DECLARE_PRIVATE
 #undef DECLARE_PROTECTED
 #define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
@@ -720,11 +722,9 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
         protoLevelIndex[level].byteOffset = levelOffsetWrite;
         protoLevelIndex[level].byteLength = levelSizeOut;
         protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
-        levelOffsetWrite += levelSizeOut;
-        assert(levelOffsetWrite == writeOffset);
         // In case of transcoding to uncompressed.
-        levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
-                                     levelOffsetWrite);
+        levelOffsetWrite += _KTX_PADN(protoPriv._requiredLevelAlignment,
+                                      levelSizeOut);
     } // level loop
 
     result = KTX_SUCCESS;
