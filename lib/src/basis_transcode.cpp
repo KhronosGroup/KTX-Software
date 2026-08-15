@@ -41,8 +41,6 @@
   #pragma GCC diagnostic pop
 #endif
 
-#include <iostream>
-
 #undef DECLARE_PRIVATE
 #undef DECLARE_PROTECTED
 #define DECLARE_PRIVATE(n,t2) ktxTexture2_private& n = *(t2->_private)
