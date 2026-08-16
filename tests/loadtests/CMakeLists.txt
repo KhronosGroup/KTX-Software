@@ -120,7 +120,6 @@ PUBLIC
 target_include_directories(
     appfwSDL
 SYSTEM AFTER PUBLIC
-    SDL3::Headers
     ${PROJECT_SOURCE_DIR}/other_include # For glm
 )
 
