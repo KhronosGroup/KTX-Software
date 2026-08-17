@@ -2,11 +2,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 5.0.0-rc1
+## Version 5.0.0-rc2
 
 ### Summary
 
-This is a major release. Although the reason for bumping the major number is a small but incompatible change in the *libktx* API, there are major changes throughout the software:
+Version 5 is a major release. Although the reason for bumping the major number is a small but incompatible change in the *libktx* API, there are major changes throughout the software.
 
 * __`ktxBasisParams` API has two incompatible changes.__
 * Support for the Binomial UASTC HDR formats has been added to all supported API bindings and relevant tools.
@@ -16,6 +16,23 @@ This is a major release. Although the reason for bumping the major number is a s
 * Source code of dependencies is no longer included in CMake target source lists. All dependencies are now built by their own CMake projects and linked to *libktx*.
 
 This is a pre-release because the version of the KTX specification with which it is compliant, Document Revision 5, has not yet been published. The source of the draft is available at https://github.com/KhronosGroup/KTX-Specification/pull/216.
+
+### User-facing Changes Since v5.0.0-rc1
+
+Most of the changes are bug fixes, robustness fixes and updates to included third-party software. See [Commits since v5.0.0-rc1](#commits-since-v500-rc1-by-part-with-details) for details. Here is a list of the user-facing changes.
+
+* New UASTC HDR transcode targets: KTX_TTF_RGB_HALF and KTX_TTF_RGB9E5.
+* New ETC1S/BasisLZ transcode flag: KTX_TF_NO_ETC1S_CHROMA_FILTERING.
+* Print SSIM and PSNR metrics to stderr if the output file set to stdout.
+* Extract explicitly marks linear output PNG files as such.
+* Fix crash when reading tiled EXR files. 
+* Fix transcode failure on 3D HDR textures.
+* Fix transcode failure on some levels in files with certain mip-level sizes.
+* Change typedef of `ktx_off_t` on Windows to a signed type as originally intended.
+
+For developers v5.0.0-rc2 enables running builds and tests across multiple jobs greatly reducing the elapsed wall-time.
+
+Huge thanks to Walid Chtioui (@walcht) who contributed the majority of the bug fixes, all the robustness improvements and fixed the issues preventing parallel builds and tests.
 
 ### New Features in v5.0
 #### Tools
@@ -56,8 +73,7 @@ The new functionality is exposed in the Java, JavaScript and Python bindings.
 ### Notable Fixes in v5.0
 
 * A crash in ___ktx create___ when reading tiled `.exr` files has been fixed.
-* An extra swizzle, when generating mip levels when the output image components are not in RGBA order, leading to incorrect colors in some mip levels has been
-fixed.
+* An extra swizzle, when generating mip levels when the output image components are not in RGBA order, leading to incorrect colors in some mip levels has been fixed.
 * The default wrap mode when generating mip levels in __*ktx create*__ has been changed to `CLAMP`, the same default that was set in __*toktx*__.
 * When loading `.exr` files in `ktx create`, the default primaries are set to `BT709` instead of `UNSPECIFIED`.
 * Non-sRGB ASTC format KTX v1 files are mapped to the `VK_FORMAT_ASTC_*_SFLOAT_BLOCK` format with the same block dimensions when uploaded to Vulkan or converted to KTX v2 instead of the `VK_FORMAT_ASTC_*_UNORM_BLOCK` format.
@@ -78,11 +94,709 @@ fixed.
 Thanks to all who have contributed to this release. Their GitHub handles are included in the list of commits below. Particluar thanks to:
 
 * Rich Geldreich (@richgel999) for creating the transcodable HDR technology.
-* Phasmatic (@ViNeek and @agkar) who did the bulk of the HDR-related work under
-  contract from Khronos.
+* Phasmatic (@ViNeek and @agkar) who did the bulk of the HDR-related work under contract from Khronos.
 * Google for funding that work.
 * Marco Hutter (@javagl) for adding the HDR api to the Java binding.
 * @jiangzhhhh for adding pre-multiplied alpha support to __*ktx create*__.
+
+### Commits since v5.0.0-rc1 (by part with details)
+
+Note: commits will appear in each part they affected.
+
+### libktx
+
+* Fix incorrect padding of accumulated data size rather than current level's size (#1242) (2114e2f94) (@MarkCallow)
+
+  The transcode functions were padding the accumulated level sizes. They
+  should have been padding the current level's size before adding it to
+  the accumulated size. This led to a check for an output buffer of
+  sufficient size to fail in the underlying Basis transcoders.
+
+  While investigating I observed that the transcode functions were
+  unnecessarily keeping track of level sizes and writing the level index
+  fields of the prototype transcoded texture based on this tracking. The
+  level index is correctly set when the prototype is created. Now it is
+  used to pass write offsets to the underlying Basis transcoders and this
+  PR deletes the unnecessary tracking and level-index writes. A nice
+  simplification.
+
+  Fixes #1241.
+
+* Fix SGD image desc indexing for 3D UASTC HDR 6x6i textures (#1237) (235540906) (@SashaRX)
+
+  Fixes transcoding of 3D textures encoded to UASTC HDR 6x6 intermediate.
+
+  #### Problem
+
+  `transcodeUastcHDR6x6_intermediate` indexes the SGD image description
+  table with
+
+  ```
+  sgdImageDescIndex = level * levelImageCount + image
+  ```
+
+  using the *current* level's image count. The encoder
+  (`basis_encode.cpp`) writes the `ktxUASTCHDR6x6IntermediateImageDesc`
+  entries in level order, level 0 first, with each level contributing
+  `numLayers × numFaces × depth(level)` descriptions. The two agree only
+  while every level has the same image count. For 3D textures, depth halves
+  with each mip level, so the transcoder selects descriptions belonging to
+  other levels; since slice offsets are relative to their own level's
+  data, transcoding fails with `KTX_TRANSCODE_FAILED` (or could silently
+  read wrong slices when the offsets happen to stay in range).
+
+  This reproduces with libktx's own encoder output: encode a 24×24×8
+  `VK_FORMAT_R16G16B16A16_SFLOAT` texture with 4 mip levels via
+  `ktxTexture2_CompressBasisEx` with
+  `KTX_BASIS_CODEC_UASTC_HDR_6x6_INTERMEDIATE`, then
+  `ktxTexture2_TranscodeBasis(..., KTX_TTF_ASTC_HDR_6x6_RGBA, 0)` fails. A
+  2D texture with otherwise identical parameters transcodes fine —
+  presumably why this hasn't been noticed.
+
+  #### Fix
+
+  Accumulate per-level first-image indices before the level loop and index
+  with `firstImages[level] + image` — the same approach `transcodeEtc1s`
+  already uses with its `firstImages` table. No behavior change for
+  textures where every level has the same image count (2D, arrays,
+  cubemaps): for those `firstImages[level] == level * levelImageCount`.
+
+  Since `firstImages[numLevels]` is the image count implied by the
+  texture's dimensions, the descriptor table size is now also validated up
+  front: a table that is not exactly that many descriptions, or not a
+  whole number of them, is rejected with `KTX_FILE_DATA_ERROR` before any
+  level is processed, instead of surfacing as `KTX_TRANSCODE_FAILED` per
+  image.
+
+  #### Tests
+
+  Adds generated 2D control and 3D multi-mip round-trip regression tests
+  to `transcodetests` (in-process encode → transcode), with no new binary
+  test resources. The 3D case fails without the fix and passes with it;
+  both verify the post-transcode state (`vkFormat`, supercompression
+  scheme, image data present).
+
+  Found while studying the transcoder for the per-level streaming work
+  discussed in #1224.
+
+  Co-authored-by: SashaRX <6702929+SashaRX@users.noreply.github.com>
+
+* Allocate the replacement DFD before mutating the texture in the UASTC HDR 4x4 relabel path (#1236) (8c915cd85) (@SashaRX)
+
+  Small defensive robustness fix in the UASTC\_HDR\_4x4 → ASTC\_HDR\_4x4 early
+  exit of `ktxTexture2_TranscodeBasis`, related to the passthrough discussion in
+  #1224.
+
+  #### Problem
+
+  The early exit frees `This->pDfd` and updates `This->vkFormat` before
+  constructing the replacement DFD with `vk2dfd()`.
+
+  If DFD creation ever reports a failure, the function returns with a
+  partially mutated texture: the original DFD has already been freed and
+  `vkFormat` already describes ASTC HDR.
+
+  #### Fix
+
+  Construct the replacement DFD first. Only after successful construction,
+  free the old DFD and commit the new `pDfd` and `vkFormat`.
+
+  There is no behavior change on the success path. The path was
+  smoke-tested with an encode → relabel-transcode round trip.
+
+  No regression test is included because the current generated mapping
+  contains `VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK`, and there is no existing
+  failure-injection mechanism for `vk2dfd()`. This is therefore a defensive
+  transactional-ordering fix rather than a currently reproducible input-driven
+  failure.
+
+  Co-authored-by: SashaRX <6702929+SashaRX@users.noreply.github.com>
+
+* Expose more transcode formats and flags. (#1234) (02f39de04) (@MarkCallow)
+
+  Expose the following that are in basis\_universal but not previously in
+  libktx.
+
+  HDR Formats: KTX\_TTF\_RGB\_HALF, KTX\_TTF\_RGB9E5.
+  Flags: KTX\_TF\_NO\_ETC1S\_CHROMA\_FILTERING.
+
+  Rename KTX\_TTF\_BC6HU to KTX\_TTF\_BC6HU\_RGB. Retain but deprecate the
+  old name.
+
+  Deprecate KTX\_TTF\_ASTC\_4x4\_RGBA in favour of KTX\_TTF\_ASTC\_LDR\_4x4\_RGBA
+
+  Fix description of KTX\_TTF\_RGBA\_HALF and a multitude of errors in the
+  documentation for the ktxTexture2 transcode functions.
+
+  Fixes https://github.com/KhronosGroup/KTX-Software/issues/1221.
+
+  Needs https://github.com/KhronosGroup/KTX-Software-CTS/pull/81.
+
+* fix: ktxTexture\_GetRowPitch erroneous padding with KTXv2 inputs (#1230) (5b7e9aa01) (@walcht)
+
+  Fixes #1228.
+
+  * Prior to this commit, ktxTexture\_GetRowPitch always peforms padding to
+    4 even for KTXv2 inputs which should never be padded.
+
+  * Adds regression tests for ktxTexture\_GetRowPitch vs.
+    ktxTexture\_GetImageSize.
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* fix: minor memory leak with invalid ktxTexture2CreateInfo dimensions (#1227) (920ec4887) (@walcht)
+
+  Fixes #1222.
+
+  The test I added fails, prior to this commit, when ran through ASan:
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Fix docstring typo in ktx.h (#1219) (89d2b6e91) (@petar-andrejic)
+
+  Docstring for `numLayers` was written as `numLevels` which made it not
+  appear in the doxygen pages
+
+* Fix use of StreambufStream for output by ktx tool suite (#1215) (e2f948066) (@MarkCallow)
+
+  The issue was that ktxStream `getpos()` in the `StreambufStream`
+  implementation was always returning KTX\_SUCCESS even when the stream was
+  not seekable. This led to a failed assert, so the failures were only
+  seen in Debug configurations.
+
+  Add support to `StreambufStream` for reading from std::cin and add tests
+  to streamtests. The _ktx_ tool suite reads std::cin into a buffer which
+  it passes to `StreambufStream` so does not need this functionality but
+  as `StreambufStream` is available for anyone to use, it should support
+  it.
+
+  Remove the stdio workaround the tool suite was using instead of
+  StreambufStream.
+
+  ### IMPORTANT NOTE
+  This changes the typedef of `ktx_off_t` on Windows from an unsigned to a
+  signed type which was always intended. The error was spotted during this
+  work as it caused a signed/unsigned mismatch with value of -1 returned
+  by `std::streambuf::pubseekoff` on failure.
+
+* Fix memory issues reported by asan (#1205) (926d49505) (@walcht)
+
+  Also:
+
+  - change streamtests, texturetests, transcodetests and unittests to use smart pointers;
+  - add job to linux.yml to run Asan during CI;
+  - change streamtests to use `sbufstream.h` implementation of `StreambufStream` instead
+    of its own;
+  - fix `StreambufStream::streambuf` implementation to prevent link errors;
+  - remove unnecessary destructor and destruct trampoline from `StreambufStream`.
+
+  Fixes #1204. Fixes #1206.
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Update ASTC encoder to 5.6.0 (#1207) (2ca7d5410) (@MarkCallow)
+
+  * Adapt our 3 direct callers, astc\_codec, ktxdiff and command\_extract,
+    to a small API change.
+  * Switch imageio to use tinyexr.h from basis\_universal which is
+    self-contained. The updated tinyexr.h in 5.6.0 requires either miniz.h,
+    which is not present in astc-encoder, or stb\_zlib.h. It was easier to
+    use the self-contained one than figure out how to make dependent
+    projects find stb\_zlib.h.
+  * Adapt exrinput.cc to a small API change in TinyEXR present in
+    tinyexr.h in both astc-encoder and basis-universal which are very much
+    newer than the one in the previous version of atsc-encoder.
+  * Remove unneeded link of imageio with libktx.
+  * Make explicit in the imageio #include directives where the header
+    files from other parts of the KTX-Software source come from.
+  * Upgrade Android CI to NDK r27d from r25c to get more recent clang to
+    avoid "unsupported use of floating point exceptions" warning. r25c clang
+    was v14. cmake does not print the compiler version in r27d.
+    `-ffp-exception-behavior` does not appear in the compiles that are
+    failing. I suspect the culprit is `-fno-math-errno`, which is newly used
+    in 5.6.0, though the clang documentation for it says nothing about
+    exceptions.
+
+* Fix memory leak in ktxHashList\_DeleteKVPair/Entry functions (#1203) (44038c7dd) (@walcht)
+
+  Fixes #1202.
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Fix minor documentation issues (#1199) (76b88d1cf) (@MarkCallow)
+
+  * A copy-paste error in ktx.h.
+  * Inadvertent inclusion of internal header in example code.
+
+* Export some missing functions (#1197) (d523970e0) (@tuket)
+
+  This PR exports some missing functions in ktx.h.
+
+  You could call those functions though the macros that do the vtable
+  dispatch. However, I have found that those macros are not suitable for
+  creating C# bindings.\
+  Yes, you can call find those function pointers manually from C# and
+  perform the calls: I have done that and it works in Windows. The problem
+  comes when you compile for other platforms such as iOS and Wasm with AOT
+  (ahead of time compilation). When compiling with AOT calling function
+  pointers from C# will crash.
+
+* Update basisu to v2.1.0 (#1170) (1dacc4bc5) (@MarkCallow)
+
+  git subrepo clone --branch=fixes\_for\_ktx --force https://github.com/KhronosGroup/basis\_universal.git external/basis\_universal
+
+  subrepo:
+      subdir:   "external/basis\_universal"
+      merged:   "a660e7be1"
+  upstream:
+      origin:   "https://github.com/KhronosGroup/basis\_universal.git"
+      branch:   "fixes\_for\_ktx"
+      commit:   "a660e7be1"
+  git-subrepo:
+      version:  "0.4.9"
+      origin:   "https://github.com/MarkCallow/git-subrepo.git"
+      commit:   "4f60dd7"
+
+  Changes in KTX-Software to match the above:
+    * Remove check for unsupported stream semantic version in UASTC 6x6i as,
+      with this update, both versions are now supported.
+    * Adapt to member name changes in basisu\_compressor\_params class.
+    * Use set\_rgb\_options() instead of individually setting the various sRGB related
+      options in basisu\_compressor\_params for increased robustness to future changes
+      and to handle changed default for m\_ktx2\_and\_basis\_srgb\_transfer\_function.
+
+* Add workflow to check determinism (#1164) (bc8d0c290) (@MarkCallow)
+
+  A manually dispatched workflow to that runs the CTS, set to require exact
+  matches to golden files, on macOS, Ubuntu and Windows using arm64
+  and x86\_86 processors, with ktx and libktx compiled with clang and gcc
+  and, in addition, on macOS AppleClang and on Windows ClangCL and msvc.
+
+  Of necessity to avoid a build failure on the macos-15-intel runner, update
+  the version of zstd included in external/basis\_universal/zstd.
+
+  The failure arose due to a combination of three factors: zstd\_errors.h
+  was not in `external/basis_universal/zstd` but in `other_Include` which
+  is marked as a system directory; macos-15-intel has a newer version
+  installed in `/usr/local/include` which omits declaration of a function
+  _libktx_ uses; the AppleClang version on that runner was searching
+  `/usr/local/include` before directories specified with `-isystem`, in
+  what looks like a bug. The updated version, from basis\_universal 2.0,
+  declares the function that _libktx_ uses in `zstd.h`. Furthermore it
+  includes `zstd_errors.h` in the same directory nullifying the `-isystem`
+  and conflicting version problems.
+
+### Tools
+
+* fix: metrics output to stderr if stdout is in use (#1240) (31145d1be) (@walcht)
+
+  * PSNR and SSIM metrics now ouput to stderr if stdout is in use. This is
+    done to avoid polluting KTX file ouput to stdout which causes issues
+    when, for instance, output gets piped to ktx extract tool.
+  * Fixes https://github.com/KhronosGroup/KTX-Software/issues/1233
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Expose more transcode formats and flags. (#1234) (02f39de04) (@MarkCallow)
+
+  Expose the following that are in basis\_universal but not previously in
+  libktx.
+
+  HDR Formats: KTX\_TTF\_RGB\_HALF, KTX\_TTF\_RGB9E5.
+  Flags: KTX\_TF\_NO\_ETC1S\_CHROMA\_FILTERING.
+
+  Rename KTX\_TTF\_BC6HU to KTX\_TTF\_BC6HU\_RGB. Retain but deprecate the
+  old name.
+
+  Deprecate KTX\_TTF\_ASTC\_4x4\_RGBA in favour of KTX\_TTF\_ASTC\_LDR\_4x4\_RGBA
+
+  Fix description of KTX\_TTF\_RGBA\_HALF and a multitude of errors in the
+  documentation for the ktxTexture2 transcode functions.
+
+  Fixes https://github.com/KhronosGroup/KTX-Software/issues/1221.
+
+  Needs https://github.com/KhronosGroup/KTX-Software-CTS/pull/81.
+
+* Fix use of StreambufStream for output by ktx tool suite (#1215) (e2f948066) (@MarkCallow)
+
+  The issue was that ktxStream `getpos()` in the `StreambufStream`
+  implementation was always returning KTX\_SUCCESS even when the stream was
+  not seekable. This led to a failed assert, so the failures were only
+  seen in Debug configurations.
+
+  Add support to `StreambufStream` for reading from std::cin and add tests
+  to streamtests. The _ktx_ tool suite reads std::cin into a buffer which
+  it passes to `StreambufStream` so does not need this functionality but
+  as `StreambufStream` is available for anyone to use, it should support
+  it.
+
+  Remove the stdio workaround the tool suite was using instead of
+  StreambufStream.
+
+  ### IMPORTANT NOTE
+  This changes the typedef of `ktx_off_t` on Windows from an unsigned to a
+  signed type which was always intended. The error was spotted during this
+  work as it caused a signed/unsigned mismatch with value of -1 returned
+  by `std::streambuf::pubseekoff` on failure.
+
+* Fix memory issues reported by asan (#1205) (926d49505) (@walcht)
+
+  Also:
+
+  - change streamtests, texturetests, transcodetests and unittests to use smart pointers;
+  - add job to linux.yml to run Asan during CI;
+  - change streamtests to use `sbufstream.h` implementation of `StreambufStream` instead
+    of its own;
+  - fix `StreambufStream::streambuf` implementation to prevent link errors;
+  - remove unnecessary destructor and destruct trampoline from `StreambufStream`.
+
+  Fixes #1204. Fixes #1206.
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Update ASTC encoder to 5.6.0 (#1207) (2ca7d5410) (@MarkCallow)
+
+  * Adapt our 3 direct callers, astc\_codec, ktxdiff and command\_extract,
+    to a small API change.
+  * Switch imageio to use tinyexr.h from basis\_universal which is
+    self-contained. The updated tinyexr.h in 5.6.0 requires either miniz.h,
+    which is not present in astc-encoder, or stb\_zlib.h. It was easier to
+    use the self-contained one than figure out how to make dependent
+    projects find stb\_zlib.h.
+  * Adapt exrinput.cc to a small API change in TinyEXR present in
+    tinyexr.h in both astc-encoder and basis-universal which are very much
+    newer than the one in the previous version of atsc-encoder.
+  * Remove unneeded link of imageio with libktx.
+  * Make explicit in the imageio #include directives where the header
+    files from other parts of the KTX-Software source come from.
+  * Upgrade Android CI to NDK r27d from r25c to get more recent clang to
+    avoid "unsupported use of floating point exceptions" warning. r25c clang
+    was v14. cmake does not print the compiler version in r27d.
+    `-ffp-exception-behavior` does not appear in the compiles that are
+    failing. I suspect the culprit is `-fno-math-errno`, which is newly used
+    in 5.6.0, though the clang documentation for it says nothing about
+    exceptions.
+
+* Write PNG colorspace info for linear inputs. (#1195) (b9bcfeb1d) (@MarkCallow)
+
+  Update CTS ref.
+
+  Fixes #1194.
+
+  Thanks to @walcht for the patch.
+
+  The good news is that a bunch of tests failed. I.e the tests include
+  many linear inputs. Now that the golden files have been regenerated, the
+  CTS will flag any regression.
+
+* Record ASTC options in ktx encode (#1190) (5b65657a5) (@walcht)
+
+  Fixes #1188.
+
+  ---------
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Fix ktx encode ASTC threads CL option capture (#1186) (04452eaa6) (@walcht)
+
+  Fixes #1185.
+
+  Signed-off-by: Walid Chtioui <walid.chtioui.main@gmail.com>
+
+* Fix handling of edge tiles in EXR input. (#1174) (93e59998c) (@MarkCallow)
+
+  Use `tile.width` & `tlle.height` for pointer calculations instead of header.tile\_size.[xy]
+  thus avoiding crashes.
+
+  Fixes #1173.
+
+* Fix tolerance handling for unnormalized formats (#1166) (4e0b32886) (@MarkCallow)
+
+  The tolerance for unnormalized formats is now specified as a fraction of
+  the minimum of the two values being compared, given as a value between 0
+  and 1. For normalized formats the tolerance is, as before, specified as
+  the normalized value of the acceptable difference.
+
+  The PR also adds a comparison for 16-bit unorm values.
+
+  ---------
+
+  Co-authored-by: Vineek <nickvitsas@gmail.com>
+
+### JS Bindings
+
+* Expose more transcode formats and flags. (#1234) (02f39de04) (@MarkCallow)
+
+  Expose the following that are in basis\_universal but not previously in
+  libktx.
+
+  HDR Formats: KTX\_TTF\_RGB\_HALF, KTX\_TTF\_RGB9E5.
+  Flags: KTX\_TF\_NO\_ETC1S\_CHROMA\_FILTERING.
+
+  Rename KTX\_TTF\_BC6HU to KTX\_TTF\_BC6HU\_RGB. Retain but deprecate the
+  old name.
+
+  Deprecate KTX\_TTF\_ASTC\_4x4\_RGBA in favour of KTX\_TTF\_ASTC\_LDR\_4x4\_RGBA
+
+  Fix description of KTX\_TTF\_RGBA\_HALF and a multitude of errors in the
+  documentation for the ktxTexture2 transcode functions.
+
+  Fixes https://github.com/KhronosGroup/KTX-Software/issues/1221.
+
+  Needs https://github.com/KhronosGroup/KTX-Software-CTS/pull/81.
+
+* Update KTX2Loader to use new UASTC\_LDR\_4x4 name. (#1208) (50536fd44) (@MarkCallow)
+
+  Update UASTC4x4 names in doc. comments in transcoder.
+
+* Update basisu to v2.1.0 (#1170) (1dacc4bc5) (@MarkCallow)
+
+  git subrepo clone --branch=fixes\_for\_ktx --force https://github.com/KhronosGroup/basis\_universal.git external/basis\_universal
+
+  subrepo:
+      subdir:   "external/basis\_universal"
+      merged:   "a660e7be1"
+  upstream:
+      origin:   "https://github.com/KhronosGroup/basis\_universal.git"
+      branch:   "fixes\_for\_ktx"
+      commit:   "a660e7be1"
+  git-subrepo:
+      version:  "0.4.9"
+      origin:   "https://github.com/MarkCallow/git-subrepo.git"
+      commit:   "4f60dd7"
+
+  Changes in KTX-Software to match the above:
+    * Remove check for unsupported stream semantic version in UASTC 6x6i as,
+      with this update, both versions are now supported.
+    * Adapt to member name changes in basisu\_compressor\_params class.
+    * Use set\_rgb\_options() instead of individually setting the various sRGB related
+      options in basisu\_compressor\_params for increased robustness to future changes
+      and to handle changed default for m\_ktx2\_and\_basis\_srgb\_transfer\_function.
+
+* Add basis\_tex\_format HDR names. (a880b32aa) (@MarkCallow)
+
+* Fix missing double-quote in doxygen comment. (f2d0ba2c3) (@MarkCallow)
+
+### Java Bindings
+
+* Expose more transcode formats and flags. (#1234) (02f39de04) (@MarkCallow)
+
+  Expose the following that are in basis\_universal but not previously in
+  libktx.
+
+  HDR Formats: KTX\_TTF\_RGB\_HALF, KTX\_TTF\_RGB9E5.
+  Flags: KTX\_TF\_NO\_ETC1S\_CHROMA\_FILTERING.
+
+  Rename KTX\_TTF\_BC6HU to KTX\_TTF\_BC6HU\_RGB. Retain but deprecate the
+  old name.
+
+  Deprecate KTX\_TTF\_ASTC\_4x4\_RGBA in favour of KTX\_TTF\_ASTC\_LDR\_4x4\_RGBA
+
+  Fix description of KTX\_TTF\_RGBA\_HALF and a multitude of errors in the
+  documentation for the ktxTexture2 transcode functions.
+
+  Fixes https://github.com/KhronosGroup/KTX-Software/issues/1221.
+
+  Needs https://github.com/KhronosGroup/KTX-Software-CTS/pull/81.
+
+### Python Bindings
+
+* Expose more transcode formats and flags. (#1234) (02f39de04) (@MarkCallow)
+
+  Expose the following that are in basis\_universal but not previously in
+  libktx.
+
+  HDR Formats: KTX\_TTF\_RGB\_HALF, KTX\_TTF\_RGB9E5.
+  Flags: KTX\_TF\_NO\_ETC1S\_CHROMA\_FILTERING.
+
+  Rename KTX\_TTF\_BC6HU to KTX\_TTF\_BC6HU\_RGB. Retain but deprecate the
+  old name.
+
+  Deprecate KTX\_TTF\_ASTC\_4x4\_RGBA in favour of KTX\_TTF\_ASTC\_LDR\_4x4\_RGBA
+
+  Fix description of KTX\_TTF\_RGBA\_HALF and a multitude of errors in the
+  documentation for the ktxTexture2 transcode functions.
+
+  Fixes https://github.com/KhronosGroup/KTX-Software/issues/1221.
+
+  Needs https://github.com/KhronosGroup/KTX-Software-CTS/pull/81.
+
+* Bump setuptools from 78.1.1 to 83.0.0 in /interface/python\_binding (#1226) (6373ffb63) (@dependabot[bot])
+
+  Recommended by dependabot for vulnerability.
+
+### External Package Dependencies
+
+* git subrepo pull external/basis\_universal for updated CMakeLists.txt (#1232) (48b4e824e) (@MarkCallow)
+
+  This updates the way of finding the python11 package to remove the need
+  for soon to be removed OLD CMP0148 policy, quieting warnings from
+  CMake >= 4.1.0.
+
+  subrepo:
+    subdir:   "external/basis\_universal"
+    merged:   "9bba38d63"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/basis\_universal.git"
+    branch:   "fixes\_for\_ktx"
+    commit:   "9bba38d63"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* Update dfdutils for UB fix (left shift on signed int channel setting sign bit) (#1217) (96521b255) (@MarkCallow)
+
+  subrepo:
+    subdir:   "external/dfdutils"
+    merged:   "875e493a7"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "main"
+    commit:   "875e493a7"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* Update ASTC encoder to 5.6.0 (#1207) (2ca7d5410) (@MarkCallow)
+
+  * Adapt our 3 direct callers, astc\_codec, ktxdiff and command\_extract,
+    to a small API change.
+  * Switch imageio to use tinyexr.h from basis\_universal which is
+    self-contained. The updated tinyexr.h in 5.6.0 requires either miniz.h,
+    which is not present in astc-encoder, or stb\_zlib.h. It was easier to
+    use the self-contained one than figure out how to make dependent
+    projects find stb\_zlib.h.
+  * Adapt exrinput.cc to a small API change in TinyEXR present in
+    tinyexr.h in both astc-encoder and basis-universal which are very much
+    newer than the one in the previous version of atsc-encoder.
+  * Remove unneeded link of imageio with libktx.
+  * Make explicit in the imageio #include directives where the header
+    files from other parts of the KTX-Software source come from.
+  * Upgrade Android CI to NDK r27d from r25c to get more recent clang to
+    avoid "unsupported use of floating point exceptions" warning. r25c clang
+    was v14. cmake does not print the compiler version in r27d.
+    `-ffp-exception-behavior` does not appear in the compiles that are
+    failing. I suspect the culprit is `-fno-math-errno`, which is newly used
+    in 5.6.0, though the clang documentation for it says nothing about
+    exceptions.
+
+* git subrepo pull external/dfdutils for out-of-bounds memaccess fix (#1209) (8f87e7665) (@MarkCallow)
+
+  subrepo:
+    subdir:   "external/dfdutils"
+    merged:   "fd3349ca0"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "main"
+    commit:   "fd3349ca0"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* git subrepo pull external/dfdutils (c1602171b) (@MarkCallow)
+
+  subrepo:
+    subdir:   "external/dfdutils"
+    merged:   "d30085644"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "main"
+    commit:   "d30085644"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* Update basisu to v2.1.0 (#1170) (1dacc4bc5) (@MarkCallow)
+
+  git subrepo clone --branch=fixes\_for\_ktx --force https://github.com/KhronosGroup/basis\_universal.git external/basis\_universal
+
+  subrepo:
+      subdir:   "external/basis\_universal"
+      merged:   "a660e7be1"
+  upstream:
+      origin:   "https://github.com/KhronosGroup/basis\_universal.git"
+      branch:   "fixes\_for\_ktx"
+      commit:   "a660e7be1"
+  git-subrepo:
+      version:  "0.4.9"
+      origin:   "https://github.com/MarkCallow/git-subrepo.git"
+      commit:   "4f60dd7"
+
+  Changes in KTX-Software to match the above:
+    * Remove check for unsupported stream semantic version in UASTC 6x6i as,
+      with this update, both versions are now supported.
+    * Adapt to member name changes in basisu\_compressor\_params class.
+    * Use set\_rgb\_options() instead of individually setting the various sRGB related
+      options in basisu\_compressor\_params for increased robustness to future changes
+      and to handle changed default for m\_ktx2\_and\_basis\_srgb\_transfer\_function.
+
+* git subrepo push external/dfdutils (c827def19) (@MarkCallow)
+
+  subrepo:
+    subdir:   "external/dfdutils"
+    merged:   "5c40d719a"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/dfdutils.git"
+    branch:   "main"
+    commit:   "5c40d719a"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* git subrepo push external/basis\_universal (4cbc0436e) (@MarkCallow)
+
+  subrepo:
+    subdir:   "external/basis\_universal"
+    merged:   "e72b15c65"
+  upstream:
+    origin:   "https://github.com/KhronosGroup/basis\_universal.git"
+    branch:   "fixes\_for\_ktx\_v5"
+    commit:   "e72b15c65"
+  git-subrepo:
+    version:  "0.4.9"
+    origin:   "https://github.com/MarkCallow/git-subrepo.git"
+    commit:   "4f60dd7"
+
+* Add workflow to check determinism (#1164) (bc8d0c290) (@MarkCallow)
+
+  A manually dispatched workflow to that runs the CTS, set to require exact
+  matches to golden files, on macOS, Ubuntu and Windows using arm64
+  and x86\_86 processors, with ktx and libktx compiled with clang and gcc
+  and, in addition, on macOS AppleClang and on Windows ClangCL and msvc.
+
+  Of necessity to avoid a build failure on the macos-15-intel runner, update
+  the version of zstd included in external/basis\_universal/zstd.
+
+  The failure arose due to a combination of three factors: zstd\_errors.h
+  was not in `external/basis_universal/zstd` but in `other_Include` which
+  is marked as a system directory; macos-15-intel has a newer version
+  installed in `/usr/local/include` which omits declaration of a function
+  _libktx_ uses; the AppleClang version on that runner was searching
+  `/usr/local/include` before directories specified with `-isystem`, in
+  what looks like a bug. The updated version, from basis\_universal 2.0,
+  declares the function that _libktx_ uses in `zstd.h`. Furthermore it
+  includes `zstd_errors.h` in the same directory nullifying the `-isystem`
+  and conflicting version problems.
+
+
+
+
+
 
 ### Commits since v4.4.2 (by part with details)
 
