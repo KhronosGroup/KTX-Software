@@ -736,6 +736,38 @@ linearTilingPadCallback(int miplevel, int face,
 }
 
 /**
+ * @internal
+ * @~English
+ * @brief Clean-up call for texture upload failures.
+ *
+ * Frees partially initialized resources before exiting.
+ */
+void
+freeUploadResources(ktxVulkanDeviceInfo* vdi, VkBufferImageCopy** copyRegions, bool isRecording,
+                    bool hasAllocated, bool hasCreatedBuffer, bool useSuballocator,
+                    VkDeviceMemory stagingMemory, uint64_t stagingAllocId,
+                    ktxVulkanTexture_subAllocatorCallbacks* subAllocatorCallbacks,
+                    VkBuffer stagingBuffer) {
+    if (isRecording && vdi) {
+        VK_CHECK_RESULT(vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
+    }
+    if (copyRegions && *copyRegions) {
+        free(*copyRegions);
+        *copyRegions = NULL;
+    }
+    if (hasAllocated) {
+        if (!useSuballocator && vdi) {
+            vdi->vkFuncs.vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
+        } else if (subAllocatorCallbacks) {
+            subAllocatorCallbacks->freeMemFuncPtr(stagingAllocId);
+        }
+    }
+    if (hasCreatedBuffer && vdi) {
+        vdi->vkFuncs.vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
+    }
+}
+
+/**
  * @memberof ktxTexture
  * @~English
  * @brief Create a Vulkan image object from a ktxTexture object.
@@ -870,22 +902,32 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             subAllocatorCallbacks->memoryUnmapFuncPtr &&
             subAllocatorCallbacks->freeMemFuncPtr)
             useSuballocator = true;
-        else
+        else {
+            freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                                subAllocatorCallbacks, VK_NULL_HANDLE);
             return KTX_INVALID_VALUE;
+        }
     }
     if (queueMutexCallbacks) {
         if (queueMutexCallbacks->queueLockFuncPtr && 
             queueMutexCallbacks->queueUnlockFuncPtr)
                 useQueueMutex = true;
-        else
+        else {
+            freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                                subAllocatorCallbacks, VK_NULL_HANDLE);
             return KTX_INVALID_VALUE;
+        }
     }
 
     if (!vdi || !This || !vkTexture) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         return KTX_INVALID_VALUE;
     }
 
     if (!This->pData && !ktxTexture_isActiveStream(This)) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         /* Nothing to upload. */
         return KTX_INVALID_OPERATION;
     }
@@ -928,6 +970,8 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
 
     vkFormat = ktxTexture_GetVkFormat(This);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         return KTX_INVALID_OPERATION;
     }
 
@@ -948,9 +992,13 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
                                                       createFlags,
                                                       &imageFormatProperties);
     if (vResult == VK_ERROR_FORMAT_NOT_SUPPORTED) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         return KTX_INVALID_OPERATION;
     }
     if (This->numLayers > imageFormatProperties.maxArrayLayers) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         return KTX_INVALID_OPERATION;
     }
 
@@ -984,6 +1032,8 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
     }
 
     if (numImageLevels > imageFormatProperties.maxMipLevels) {
+        freeUploadResources(vdi, NULL, false, false, false, useSuballocator, VK_NULL_HANDLE, 0,
+                            subAllocatorCallbacks, VK_NULL_HANDLE);
         return KTX_INVALID_OPERATION;
     }
 
@@ -1032,7 +1082,7 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
     if (tiling == VK_IMAGE_TILING_OPTIMAL)
     {
         // Create a host-visible staging buffer that contains the raw image data
-        VkBuffer stagingBuffer;
+        VkBuffer stagingBuffer = VK_NULL_HANDLE;
         VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
         VkBufferImageCopy* copyRegions;
         VkDeviceSize textureSize;
@@ -1084,6 +1134,8 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
         copyRegions = (VkBufferImageCopy*)malloc(sizeof(VkBufferImageCopy)
                                                    * numCopyRegions);
         if (copyRegions == NULL) {
+            freeUploadResources(vdi, &copyRegions, true, false, false, useSuballocator,
+                                stagingMemory, 0, subAllocatorCallbacks, stagingBuffer);
             return KTX_OUT_OF_MEMORY;
         }
 
@@ -1113,7 +1165,9 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo,
                 vdi->pAllocator, &stagingMemory);
             if (vResult != VK_SUCCESS) {
-                free(copyRegions);
+                freeUploadResources(vdi, &copyRegions, true, false, true, useSuballocator,
+                                    stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                    stagingBuffer);
                 return KTX_OUT_OF_MEMORY;
             }
             VK_CHECK_RESULT(
@@ -1129,11 +1183,15 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             uint64_t numPages = 0ull;
             stagingAllocId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (stagingAllocId == 0ull) {
-                free(copyRegions);
+                freeUploadResources(vdi, &copyRegions, true, false, true, useSuballocator,
+                                    stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                    stagingBuffer);
                 return KTX_OUT_OF_MEMORY;
             }
             if (numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
-                free(copyRegions);
+                freeUploadResources(vdi, &copyRegions, true, true, true, useSuballocator,
+                                    stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                    stagingBuffer);
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
@@ -1173,21 +1231,13 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
                                       (ktx_size_t)memAllocInfo.allocationSize);
                 if (kResult != KTX_SUCCESS)
                 {
-                    // TODO: This should be a common clean-up path for all failure cases,
-                    //       complete with checks for partial initialization.
-                    VK_CHECK_RESULT(vdi->vkFuncs.vkEndCommandBuffer(vdi->cmdBuffer));
-                    free(copyRegions);
                     if (!useSuballocator)
-                    {
                         vdi->vkFuncs.vkUnmapMemory(vdi->device, stagingMemory);
-                        vdi->vkFuncs.vkFreeMemory(vdi->device, stagingMemory, vdi->pAllocator);
-                    }
                     else
-                    {
                         subAllocatorCallbacks->memoryUnmapFuncPtr(stagingAllocId, 0ull);
-                        subAllocatorCallbacks->freeMemFuncPtr(stagingAllocId);
-                    }
-                    vdi->vkFuncs.vkDestroyBuffer(vdi->device, stagingBuffer, vdi->pAllocator);
+                    freeUploadResources(vdi, &copyRegions, true, true, true, useSuballocator,
+                                        stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                        stagingBuffer);
                     return kResult;
                 }
             }
@@ -1261,9 +1311,16 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             uint64_t numPages = 0ull;
             vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
+                freeUploadResources(vdi, &copyRegions, true, true, true, useSuballocator,
+                                    stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                    stagingBuffer);
                 return KTX_OUT_OF_MEMORY;
             }
             if(numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+                freeUploadResources(vdi, &copyRegions, true, true, true, useSuballocator,
+                                    stagingMemory, stagingAllocId, subAllocatorCallbacks,
+                                    stagingBuffer);
+                subAllocatorCallbacks->freeMemFuncPtr(vkTexture->allocationId);
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
@@ -1393,6 +1450,8 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             vResult = vdi->vkFuncs.vkAllocateMemory(vdi->device, &memAllocInfo, vdi->pAllocator,
                 &mappableMemory);
             if (vResult != VK_SUCCESS) {
+                freeUploadResources(vdi, NULL, true, false, false, useSuballocator, mappableMemory,
+                                    vkTexture->allocationId, subAllocatorCallbacks, VK_NULL_HANDLE);
                 return KTX_OUT_OF_MEMORY;
             }
             VK_CHECK_RESULT(
@@ -1403,9 +1462,13 @@ ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(ktxTexture* This, ktxVulkanD
             uint64_t numPages = 0ull;
             vkTexture->allocationId = subAllocatorCallbacks->allocMemFuncPtr(&memAllocInfo, &memReqs, &numPages);
             if (vkTexture->allocationId == 0ull) {
+                freeUploadResources(vdi, NULL, true, false, false, useSuballocator, mappableMemory,
+                                    vkTexture->allocationId, subAllocatorCallbacks, VK_NULL_HANDLE);
                 return KTX_OUT_OF_MEMORY;
             }
             if (numPages > 1ull) { // Sparse binding of KTX textures is unsupported for the moment
+                freeUploadResources(vdi, NULL, true, true, false, useSuballocator, mappableMemory,
+                                    vkTexture->allocationId, subAllocatorCallbacks, VK_NULL_HANDLE);
                 return KTX_UNSUPPORTED_FEATURE;
             }
             VK_CHECK_RESULT(
