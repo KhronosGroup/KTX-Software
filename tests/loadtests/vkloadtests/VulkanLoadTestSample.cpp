@@ -20,6 +20,7 @@
 
 #include <random>
 #include <unordered_map>
+#include <mutex>
 
 #define VMA_IMPLEMENTATION
 #define VMA_VULKAN_VERSION 1000000
@@ -131,6 +132,107 @@ namespace VMA_CALLBACKS
         vmaFreeMemory(vmaAllocator, AllocMemCWrapperDirectory[allocId].allocation);
         AllocMemCWrapperDirectory.erase(allocId);
     }
+
+    std::mutex memoryAccessGuard;
+    uint64_t AllocMemCWrapperGuarded(VkMemoryAllocateInfo* allocInfo, VkMemoryRequirements* memReq, uint64_t* numPages)
+    {
+        VmaAllocationCreateInfo pCreateInfo = {};
+        if ((cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) ||
+            (cachedDevMemProps.memoryTypes[allocInfo->memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT))
+        {
+            pCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+            pCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+        }
+        else
+        {
+            pCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+        }
+        pCreateInfo.memoryTypeBits = memReq->memoryTypeBits;
+
+        VmaAllocation allocation;
+        VkResult result = vmaAllocateMemory(vmaAllocator, memReq, &pCreateInfo, &allocation, VMA_NULL);
+        if (result != VK_SUCCESS)
+        {
+            return 0ull;
+        }
+
+        uint64_t allocId;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocId = mt64();
+            AllocMemCWrapperDirectory[allocId].allocation = allocation;
+            AllocMemCWrapperDirectory[allocId].mapSize = memReq->size;
+        }
+        *numPages = 1ull;
+
+        return allocId;
+    }
+
+    VkResult BindBufferMemoryCWrapperGuarded(VkBuffer buffer, uint64_t allocId)
+    {
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        return vmaBindBufferMemory(vmaAllocator, allocation, buffer);
+    }
+
+    VkResult BindImageMemoryCWrapperGuarded(VkImage image, uint64_t allocId)
+    {
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        return vmaBindImageMemory(vmaAllocator, allocation, image);
+    }
+
+    VkResult MapMemoryCWrapperGuarded(uint64_t allocId, uint64_t, VkDeviceSize* mapLength, void** dataPtr)
+    {
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+            *mapLength = AllocMemCWrapperDirectory[allocId].mapSize;
+        }
+        return vmaMapMemory(vmaAllocator, allocation, dataPtr);
+    }
+
+    void UnmapMemoryCWrapperGuarded(uint64_t allocId, uint64_t)
+    {
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+        }
+        vmaUnmapMemory(vmaAllocator, allocation);
+    }
+
+    void FreeMemCWrapperGuarded(uint64_t allocId)
+    {
+        VmaAllocation allocation;
+        {
+            std::lock_guard<std::mutex> lk(memoryAccessGuard);
+            allocation = AllocMemCWrapperDirectory[allocId].allocation;
+            AllocMemCWrapperDirectory.erase(allocId);
+        }
+        vmaFreeMemory(vmaAllocator, allocation);
+    }
+}
+
+namespace QUEUE_GUARD_CALLBACKS
+{
+    std::mutex queueAccessGuard;
+    void LockQueue(VkQueue)
+	{
+		queueAccessGuard.lock(); // Only a single queue at the moment
+	}
+
+	void UnlockQueue(VkQueue)
+	{
+		queueAccessGuard.unlock(); // Only a single queue at the moment
+	}
 }
 
 VulkanLoadTestSample::~VulkanLoadTestSample()

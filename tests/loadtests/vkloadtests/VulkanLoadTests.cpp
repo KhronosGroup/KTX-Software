@@ -400,6 +400,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "KTX2: UASTC+zstd Compressed XY Normal Map Mipmapped Using VMA,"
     },
     { Texture::create,
+      "--use-vma --guard-queue Iron_Bars_001_normal_uastc_zstd_10.ktx2",
+      "KTX2: UASTC+zstd Compressed XY Normal Map Mipmapped Using VMA and Queue Guard,"
+    },
+    { Texture::create,
       "color_grid_zstd_5.ktx2",
       "KTX2: Zstd Compressed RGBA8 Non-mipmapped"
     },
