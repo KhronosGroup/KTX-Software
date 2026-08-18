@@ -33,7 +33,7 @@ class TextureTranscoder {
         if (vkctx.gpuFeatureAstcHdr)
             defaultHDRTf = KTX_TTF_ASTC_HDR_4x4_RGBA;
         else if (vkctx.gpuFeatures.textureCompressionBC)
-            defaultHDRTf = KTX_TTF_BC6HU;
+            defaultHDRTf = KTX_TTF_BC6HU_RGB;
     }
 
     void transcode(ktxTexture2* kTexture,

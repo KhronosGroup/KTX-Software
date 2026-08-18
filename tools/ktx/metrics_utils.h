@@ -28,11 +28,11 @@ namespace ktx {
     <dd></dd>
     <dl>
       <dt>\--compare-ssim</dt>
-      <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout.
-          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
+      <dd>Calculate encoding structural similarity index measure (SSIM) and print it to stdout
+          or stderr if stdout is used to write a KTX file. Requires Basis-LZ, UASTC or ASTC encoding.</dd>
       <dt>\--compare-psnr</dt>
-      <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout.
-          Requires Basis-LZ, UASTC or ASTC encoding.</dd>
+      <dd>Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout or stderr if stdout
+          is used to write a KTX file. Requires Basis-LZ, UASTC or ASTC encoding.</dd>
     </dl>
 </dl>
 //! [command options_metrics]
@@ -43,8 +43,8 @@ struct OptionsMetrics {
 
     void init(cxxopts::Options& opts) {
         opts.add_options()
-            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.")
-            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout. Requires Basis-LZ, UASTC or ASTC encoding.");
+            ("compare-ssim", "Calculate encoding structural similarity index measure (SSIM) and print it to stdout or stderr if stdout is used to write a KTX file. Requires Basis-LZ, UASTC or ASTC encoding.")
+            ("compare-psnr", "Calculate encoding peak signal-to-noise ratio (PSNR) and print it to stdout or stderr if stdout is used to write a KTX file. Requires Basis-LZ, UASTC or ASTC encoding.");
     }
 
     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter&) {
@@ -94,19 +94,21 @@ public:
         }
     }
 
-    void decodeAndCalculateMetrics(KTXTexture2& encodedTexture, const OptionsMetrics& opts, Reporter& report) {
+    void decodeAndCalculateMetrics(KTXTexture2& encodedTexture, const OptionsMetrics& opts, Reporter& report, FILE* output = stdout) {
         if (!opts.compare_ssim && !opts.compare_psnr)
             return;
 
-        KTXTexture2 texture{static_cast<ktxTexture2*>(malloc(sizeof(ktxTexture2)))};
-        ktxTexture2_constructCopy(texture, encodedTexture);
+        ktxTexture2* texture_handle = nullptr;
+        ktx_error_code_e ec = KTX_SUCCESS;
+
+        if (ec = ktxTexture2_CreateCopy(encodedTexture, &texture_handle); ec != KTX_SUCCESS)
+            report.fatal(rc::KTX_FAILURE, "Failed to create KTX2 texture copy: {}", ktxErrorString(ec));
+        KTXTexture2 texture(texture_handle);
 
         // Start with a default swizzle
         TranscodeSwizzleInfo  tSwizzleInfo{};
         tSwizzleInfo.defaultNumComponents = 4;
         tSwizzleInfo.swizzle = "rgba";
-
-        ktx_error_code_e ec = KTX_SUCCESS;
 
         // Decode the encoded texture to observe the compression losses
         const auto* bdfd = texture->pDfd + 1;
@@ -155,7 +157,7 @@ public:
                         }
 
                         if (referenceImages.size() != 1)
-                            fmt::print("Level {}{}{}{}:\n",
+                            fmt::print(output, "Level {}{}{}{}:\n",
                                     levelIndex,
                                     texture->isArray ? fmt::format(" Layer {}", layerIndex) : "",
                                     texture->isCubemap ? fmt::format(" Face {}", faceIndex) : "",
@@ -165,13 +167,13 @@ public:
                             const auto ssim = basisu::compute_ssim(ref, basisuImage, false, false);
                             if (referenceImages.size() != 1) {
                                 if (referenceNumChannels > 3)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", ssim[0], ssim[1], ssim[2], ssim[3]);
+                                    fmt::print(output, "    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", ssim[0], ssim[1], ssim[2], ssim[3]);
                                 else if (referenceNumChannels > 2)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", ssim[0], ssim[1], ssim[2]);
+                                    fmt::print(output, "    SSIM R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", ssim[0], ssim[1], ssim[2]);
                                 else if (referenceNumChannels > 1)
-                                    fmt::print("    SSIM R: {:+7.6f}, G: {:+7.6f}\n", ssim[0], ssim[1]);
+                                    fmt::print(output, "    SSIM R: {:+7.6f}, G: {:+7.6f}\n", ssim[0], ssim[1]);
                                 else if (referenceNumChannels > 0)
-                                    fmt::print("    SSIM R: {:+7.6f}\n", ssim[0]);
+                                    fmt::print(output, "    SSIM R: {:+7.6f}\n", ssim[0]);
                             }
                             for (int i = 0; i < 4; ++i)
                                 overallSSIM[i] += ssim[i];
@@ -181,7 +183,7 @@ public:
                             basisu::image_metrics im;
                             im.calc(ref, basisuImage);
                             if (referenceImages.size() != 1)
-                                fmt::print("    PSNR: {:9.6f}\n", im.m_psnr);
+                                fmt::print(output, "    PSNR: {:9.6f}\n", im.m_psnr);
                             overallPSNR = std::max(overallPSNR, im.m_psnr);
                         }
                     }
@@ -190,22 +192,22 @@ public:
         }
         assert(refIt == referenceImages.end() && "Internal error");
 
-        fmt::print("{}Overall:\n", referenceImages.size() != 1 ? "\n" : "");
+        fmt::print(output, "{}Overall:\n", referenceImages.size() != 1 ? "\n" : "");
 
         if (opts.compare_ssim) {
             const auto numIf = static_cast<float>(referenceImages.size());
             if (referenceNumChannels > 3)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf, overallSSIM[3] / numIf);
+                fmt::print(output, "    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}, A: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf, overallSSIM[3] / numIf);
             else if (referenceNumChannels > 2)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf);
+                fmt::print(output, "    SSIM Avg R: {:+7.6f}, G: {:+7.6f}, B: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf, overallSSIM[2] / numIf);
             else if (referenceNumChannels > 1)
-                fmt::print("    SSIM Avg R: {:+7.6f}, G: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf);
+                fmt::print(output, "    SSIM Avg R: {:+7.6f}, G: {:+7.6f}\n", overallSSIM[0] / numIf, overallSSIM[1] / numIf);
             else
-                fmt::print("    SSIM Avg R: {:+7.6f}\n", overallSSIM[0] / numIf);
+                fmt::print(output, "    SSIM Avg R: {:+7.6f}\n", overallSSIM[0] / numIf);
         }
 
         if (opts.compare_psnr) {
-            fmt::print("    PSNR Max: {:9.6f}\n", overallPSNR);
+            fmt::print(output, "    PSNR Max: {:9.6f}\n", overallPSNR);
         }
     }
 };

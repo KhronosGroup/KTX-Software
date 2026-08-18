@@ -150,26 +150,44 @@ public class KtxTranscodeFormat {
 	/**
 	 * 48bpp RGB half (16-bits/component, 3 components) 
 	 */
-        public static final int RGBA_HALF = 25; 
+    public static final int RGB_HALF = 24;
 
 	/**
-	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+	 * 64bpp RGBA half (16-bits/component, 4 components).
+	 * A will always 1.0 as UASTC_HDR does not support alpha.
 	 */
-        public static final int ASTC_HDR_4x4_RGBA = 29;
-        
+    public static final int RGBA_HALF = 25;
+
 	/**
-	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned
+	 * 32bpp RGB9E5 (shared exponent, positive only).
 	 */
-        public static final int ASTC_HDR_6x6_RGBA = 30;
-        
+    public static final int RGB_9E5 = 26;
+
+	/**
+	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned.
+	 * A will always 1.0 as UASTC_HDR does not support alpha.
+	 */
+    public static final int ASTC_HDR_4x4_RGBA = 29;
+
+	/**
+	 * HDR, RGBA (currently UASTC HDR 4x4 encoders are only RGB), unsigned.
+	 * A will always 1.0 as UASTC_HDR does not support alpha.
+	 */
+    public static final int ASTC_HDR_6x6_RGBA = 30;
+
 	/**
 	 * HDR, RGB only, unsigned
 	 */
-        public static final int BC6HU = 31;
-	
-        /**
-         * No selection
-         */
+    public static final int BC6HU_RGB = 31;
+
+    /**
+     * @deprecated Use BC6HU_RGB
+     */
+    public static final int BC6HU = BC6HU_RGB;
+
+    /**
+     * No selection
+     */
 	public static final int NOSELECTION = 0x7fffffff;
 
 	/**
@@ -200,10 +218,12 @@ public class KtxTranscodeFormat {
 		case RGBA4444: return "RGBA4444";
 		case ETC: return "ETC";
 		case BC1_OR_3: return "BC1_OR_3";
+		case RGB_HALF: return "RGB_HALF"; 
 		case RGBA_HALF: return "RGBA_HALF"; 
+		case RGB_9E5: return "RGB_9E5"; 
 		case ASTC_HDR_4x4_RGBA: return "ASTC_HDR_4x4_RGBA";
 		case ASTC_HDR_6x6_RGBA: return "ASTC_HDR_6x6_RGBA";
-		case BC6HU: return "BC6HU";
+		case BC6HU_RGB: return "BC6HU_RGB";
 		case NOSELECTION: return "NOSELECTION";
 		}
 		return "[Unknown KtxTranscodeFormat]";

@@ -45,7 +45,7 @@ class TextureTranscoder {
         if (deviceFeatures.astc_hdr)
             defaultHDRTf = KTX_TTF_ASTC_HDR_4x4_RGBA;
         else if (deviceFeatures.bc6h)
-            defaultHDRTf = KTX_TTF_BC6HU;
+            defaultHDRTf = KTX_TTF_BC6HU_RGB;
         else
             defaultHDRTf = KTX_TTF_NOSELECTION;
     }

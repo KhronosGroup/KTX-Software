@@ -14,8 +14,8 @@ public class KtxTranscodeFlagBits {
 
 	/**
 	 * PVRTC1: decode non-pow2 ETC1S texture level to the next larger
-	 * power of 2 (not implemented yet, but we're going to support it).
-	 * Ignored if the slice's dimensions are already a power of 2.
+	 * power of 2 (not implemented yet). Ignored if the slice's
+	 * dimensions are already a power of 2.
 	 */
 	public static final int PVRTC_DECODE_TO_NEXT_POW2 = 2;
 
@@ -25,6 +25,12 @@ public class KtxTranscodeFlagBits {
 	 * output texture format. Has no effect if there is no alpha data.
 	 */
 	public static final int TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS = 4;
+
+	/**
+	 * Disable ETC1S to BC7 adaptive chroma filtering, for much faster
+	 * transcoding to BC7. This flag is unused by other ETC1S transcoders.
+	 */
+    public static final int NO_ETC1S_CHROMA_FILTERING = 64;
 
 	/**
 	 * Request higher quality transcode of UASTC to BC1, BC3, ETC2_EAC_R11 and
@@ -55,6 +61,12 @@ public class KtxTranscodeFlagBits {
 				sb.append("|");
 			}
 			sb.append("TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS");
+		}
+		if ((n & NO_ETC1S_CHROMA_FILTERING) != 0) {
+			if (sb.length() != 0) {
+				sb.append("|");
+			}
+			sb.append("NO_ETC1S_CHROMA_FILTERING");
 		}
 		if ((n & HIGH_QUALITY) != 0) {
 			if (sb.length() != 0) {
