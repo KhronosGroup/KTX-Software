@@ -1767,6 +1767,7 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
         // Image will be used as a transfer source.
         // Make sure any reads from and writes to the image have finished.
+        srcStageFlags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
         imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         break;
