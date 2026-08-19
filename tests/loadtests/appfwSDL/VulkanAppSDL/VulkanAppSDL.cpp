@@ -252,12 +252,21 @@ VulkanAppSDL::windowResized()
 }
 
 void
-VulkanAppSDL::resizeWindow(int width, int height)
+VulkanAppSDL::resizeWindow(int, int)
 {
     // Recreate swap chain.
+    VkSurfaceCapabilitiesKHR surface_properties;
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkctx.gpu, vkctx.swapchain.getSurface(), &surface_properties);
 
-    w_width = width;
-    w_height = height;
+	// Only rebuild the swapchain if the dimensions have changed
+	if (surface_properties.currentExtent.width == w_width &&
+	    surface_properties.currentExtent.height == w_height)
+	{
+		return;
+	}
+
+    w_width = surface_properties.currentExtent.width;
+    w_height = surface_properties.currentExtent.height;
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();
@@ -320,7 +329,9 @@ VulkanAppSDL::prepareFrame()
 #if 1
         // Our resize handler recreates the swap-chain and redraws the
         // content so I don't think we have to do anything here.
-        //resize();
+        resizeWindow(w_width, w_height);
+        err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
+                                               &currentBuffer);
 #else
         // For reference, Vulkan samples do this. I have not been able to find
         // all the pieces but suspect the resize event handler just updates the
@@ -414,7 +425,7 @@ VulkanAppSDL::submitFrame()
 #if 1
         // Our resize handler recreates the swap-chain and redraws the
         // content so I don't think we have to do anything here.
-        //resize();
+        resizeWindow(w_width, w_height);
     } else if (err != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
