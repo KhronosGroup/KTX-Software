@@ -70,6 +70,7 @@ class VulkanSwapchain
     VkResult queuePresent(VkQueue queue, uint32_t currentBuffer,
                           VkSemaphore waitSemaphore);
 
+    VkSurfaceKHR getSurface() { return surface; }
 
     // Free all Vulkan resources used by the swap chain
     void cleanup();
