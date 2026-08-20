@@ -230,7 +230,8 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     if (!prepared)
         return;
 
-    if (!prepareFrame())
+    VkResult err = prepareFrame();
+    if (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)
         return;
 
     vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
@@ -316,7 +317,7 @@ VulkanAppSDL::onFPSUpdate()
 //----------------------------------------------------------------------
 
 
-bool
+VkResult
 VulkanAppSDL::prepareFrame()
 {
     // Acquire the next image from the swap chain
@@ -325,7 +326,7 @@ VulkanAppSDL::prepareFrame()
                                            &currentBuffer);
 
     // Handle outdated error in acquire.
-	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (err == VK_ERROR_OUT_OF_DATE_KHR) {
 #if 1
         // Our resize handler recreates the swap-chain and redraws the
         // content so I don't think we have to do anything here.
@@ -347,7 +348,7 @@ VulkanAppSDL::prepareFrame()
 
 	if (err != VK_SUCCESS) {
 		vkQueueWaitIdle(vkctx.queue);
-		return false;
+		return err;
 	}
 
     // Submit post present image barrier to transform the image back to a
@@ -364,7 +365,7 @@ VulkanAppSDL::prepareFrame()
     submitInfo.pWaitDstStageMask    = &waitFlags;
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
                                   &submitInfo, VK_NULL_HANDLE));
-    return true;
+    return err;
 }
 
 
