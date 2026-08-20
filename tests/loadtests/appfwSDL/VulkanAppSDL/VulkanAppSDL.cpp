@@ -230,15 +230,47 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     if (!prepared)
         return;
 
-    VkResult err = prepareFrame();
-    if (err != VK_SUCCESS && err != VK_SUBOPTIMAL_KHR)
-        return;
+    VkResult res = acquireNextImage();
 
+	// Handle outdated error in acquire.
+	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+		resizeWindow(w_width, w_height);
+		res = acquireNextImage();
+	}
+
+	if (res != VK_SUCCESS) {
+		vkQueueWaitIdle(vkctx.queue);
+		return;
+	}
+
+    // Submit post present image barrier to transform the image back to a
+    // color attachment that our render pass can write to
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.pNext = NULL;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &vkctx.postPresentCmdBuffers[currentImage];
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    // Must wait for presentComplete before transforming the image.
+    submitInfo.waitSemaphoreCount   = 1;
+    submitInfo.pWaitSemaphores      = &vkctx.frames[currentImage].semaphores.presentComplete;
+    submitInfo.pWaitDstStageMask    = &waitFlags;
+    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
+                                  &submitInfo, VK_NULL_HANDLE));
+
+	// Submit draw command to the queue with a renderComplete semaphore.
+	if (vkctx.frames[currentImage].semaphores.renderComplete == VK_NULL_HANDLE) {
+		VkSemaphoreCreateInfo semaphore_info{
+		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+		VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
+                        &vkctx.frames[currentImage].semaphores.renderComplete));
+	}
+    vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
+    vkctx.drawCmdSubmitInfo.pSignalSemaphores
+                 = &vkctx.frames[currentImage].semaphores.renderComplete;
     vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
-    vkctx.drawCmdSubmitInfo.pCommandBuffers =
-                    &vkctx.drawCmdBuffers[currentBuffer];
+    vkctx.drawCmdSubmitInfo.pCommandBuffers = &vkctx.drawCmdBuffers[currentImage];
 
-    // Submit to queue
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
                                   &vkctx.drawCmdSubmitInfo, VK_NULL_HANDLE));
 
@@ -318,54 +350,57 @@ VulkanAppSDL::onFPSUpdate()
 
 
 VkResult
-VulkanAppSDL::prepareFrame()
+VulkanAppSDL::acquireNextImage()
 {
     // Acquire the next image from the swap chain
-    VkResult err;
-    err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
-                                           &currentBuffer);
+    VkResult res;
+    VkSemaphore presentCompleteSemaphore;
+	if (vkctx.recycledSemaphores.empty()) {
+		VkSemaphoreCreateInfo info = {
+		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+        VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &info, nullptr, &presentCompleteSemaphore));
+	} else {
+		presentCompleteSemaphore = vkctx.recycledSemaphores.back();
+		vkctx.recycledSemaphores.pop_back();
+	}
+    res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
-    // Handle outdated error in acquire.
-	if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-#if 1
-        // Our resize handler recreates the swap-chain and redraws the
-        // content so I don't think we have to do anything here.
-        resizeWindow(w_width, w_height);
-        err = vkctx.swapchain.acquireNextImage(semaphores.presentComplete,
-                                               &currentBuffer);
-#else
-        // For reference, Vulkan samples do this. I have not been able to find
-        // all the pieces but suspect the resize event handler just updates the
-        // swapchain dimensions and leaves the rest of the resize to this which
-        // happens just before rendering.
-		if (!resize(context.swapchain_dimensions.width, context.swapchain_dimensions.height))
-		{
-			//LOGI("Resize failed");
-		}
-		err = acquire_next_swapchain_image(&index);
+	if (res != VK_SUCCESS)
+	{
+		vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
+		return res;
+	}
+
+#if 0
+	// If we have outstanding fences for this swapchain image, wait for them to complete first.
+	// After begin frame returns, it is safe to reuse or delete resources which
+	// were used previously.
+	//
+	// We wait for fences which completes N frames earlier, so we do not stall,
+	// waiting for all GPU work to complete before this returns.
+	// Normally, this doesn't really block at all,
+	// since we're waiting for old frames to have been completed, but just in case.
+	if (context.per_frame[*image].queue_submit_fence != VK_NULL_HANDLE)
+	{
+		vkWaitForFences(context.device, 1, &context.per_frame[*image].queue_submit_fence, true, UINT64_MAX);
+		vkResetFences(context.device, 1, &context.per_frame[*image].queue_submit_fence);
+	}
+
+	if (context.per_frame[*image].primary_command_pool != VK_NULL_HANDLE)
+	{
+		vkResetCommandPool(context.device, context.per_frame[*image].primary_command_pool, 0);
+	}
 #endif
+	// Recycle the old semaphore back into the semaphore manager.
+	VkSemaphore oldSemaphore = vkctx.frames[currentImage].semaphores.presentComplete;
+
+	if (oldSemaphore != VK_NULL_HANDLE) {
+		vkctx.recycledSemaphores.push_back(oldSemaphore);
 	}
 
-	if (err != VK_SUCCESS) {
-		vkQueueWaitIdle(vkctx.queue);
-		return err;
-	}
+	vkctx.frames[currentImage].semaphores.presentComplete = presentCompleteSemaphore;
 
-    // Submit post present image barrier to transform the image back to a
-    // color attachment that our render pass can write to
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.pNext = NULL;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &vkctx.postPresentCmdBuffers[currentBuffer];
-    // Must wait for presentComplete before transforming the image.
-    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    submitInfo.pWaitSemaphores      = &semaphores.presentComplete;
-    submitInfo.waitSemaphoreCount   = 1;
-    submitInfo.pWaitDstStageMask    = &waitFlags;
-    VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
-                                  &submitInfo, VK_NULL_HANDLE));
-    return err;
+	return VK_SUCCESS;
 }
 
 
@@ -385,27 +420,31 @@ VulkanAppSDL::submitFrame()
         // Set semaphores
         // Wait for render complete semaphore
         vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 1;
-        vkctx.drawCmdSubmitInfo.pWaitSemaphores = &semaphores.renderComplete;
+        vkctx.drawCmdSubmitInfo.pWaitSemaphores
+                = &vkctx.frames[currentImage].semaphores.renderComplete;
         // Signal ready with text overlay complete semaphore
+        if (vkctx.frames[currentImage].semaphores.textOverlayComplete == VK_NULL_HANDLE) {
+            VkSemaphoreCreateInfo semaphore_info{
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+            VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
+                            &vkctx.frames[currentImage].semaphores.textOverlayComplete));
+        }
         vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
         vkctx.drawCmdSubmitInfo.pSignalSemaphores
-                                            = &semaphores.textOverlayComplete;
+                                  = &vkctx.frames[currentImage].semaphores.textOverlayComplete;
 
         // Submit current text overlay command buffer
         vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
         vkctx.drawCmdSubmitInfo.pCommandBuffers
-                                     = &textOverlay->cmdBuffers[currentBuffer];
+                                     = &textOverlay->cmdBuffers[currentImage];
         VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &vkctx.drawCmdSubmitInfo,
                                       VK_NULL_HANDLE));
 
         // Reset stage mask
         vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
-        // Reset wait and signal semaphores for rendering next frame
-        // Signal ready with offscreen semaphore
+        // Reset wait semaphores for rendering next frame
         vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 0;
         vkctx.drawCmdSubmitInfo.pWaitSemaphores = nullptr;
-        vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
-        vkctx.drawCmdSubmitInfo.pSignalSemaphores = &semaphores.renderComplete;
     }
     // Submit pre-present image barrier to transform the image from color
     // attachment to present(khr) for presenting to the swap chain.
@@ -413,37 +452,26 @@ VulkanAppSDL::submitFrame()
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pNext = NULL;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &vkctx.prePresentCmdBuffers[currentBuffer];
+    submitInfo.pCommandBuffers = &vkctx.prePresentCmdBuffers[currentImage];
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &submitInfo, VK_NULL_HANDLE));
 
-    VkResult err =
-            vkctx.swapchain.queuePresent(vkctx.queue, currentBuffer,
-               submitTextOverlay ?
-                   semaphores.textOverlayComplete : semaphores.renderComplete);
+    VkResult res =
+            vkctx.swapchain.queuePresent(vkctx.queue, currentImage,
+               submitTextOverlay
+                   ? vkctx.frames[currentImage].semaphores.textOverlayComplete
+                   : vkctx.frames[currentImage].semaphores.renderComplete);
 
 	// Handle outdated error in present.
-	if (err == VK_SUBOPTIMAL_KHR || err == VK_ERROR_OUT_OF_DATE_KHR) {
-#if 1
+	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
         // Our resize handler recreates the swap-chain and redraws the
         // content so I don't think we have to do anything here.
         resizeWindow(w_width, w_height);
-    } else if (err != VK_SUCCESS) {
+    } else if (res != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
                                      "Failed to present swapchain image.",
                                      NULL);
         }
-#else
-        // For reference this is what Vulkan samples does.
-		if (!resize(context.swapchain_dimensions.width, context.swapchain_dimensions.height))
-		{
-			LOGI("Resize failed");
-		}
-	}
-	else if (err != VK_SUCCESS)
-	{
-		LOGE("Failed to present swapchain image.");
-#endif
     }
 
     // This is necessary because the text overlay's command buffer changes
@@ -975,6 +1003,7 @@ VulkanAppSDL::createDevice()
 bool
 VulkanAppSDL::createSemaphores()
 {
+#if 0
     VkSemaphoreCreateInfo semaphoreCreateInfo = {};
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = NULL;
@@ -1002,29 +1031,28 @@ VulkanAppSDL::createSemaphores()
                                       &semaphoreCreateInfo,
                                       nullptr,
                                       &semaphores.textOverlayComplete));
-
+#endif
     // Set up submit info structure
     // Semaphores will stay the same during application lifetime
     // Command buffer submission info is set by each example
     vkctx.drawCmdSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     vkctx.drawCmdSubmitInfo.pNext = NULL;
     vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
-    vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
-    vkctx.drawCmdSubmitInfo.pSignalSemaphores = &semaphores.renderComplete;
-    return true;
+   return true;
 }
 
 
 bool
 VulkanAppSDL::createSwapchain()
 {
+    // TODO: Move this to a function in vkctx
     vkctx.swapchain.create(&w_width, &w_height, enableVSync);
+    vkctx.frames.resize(vkctx.swapchain.imageCount);
 #if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
     extern void setWantsExtendedDynamicRangeContent(SDL_Window* window, bool enable);
     if (hdr)
         setWantsExtendedDynamicRangeContent(pswMainWindow, hdr);
 #endif
-
     return true;
 } // createSwapchain
 
