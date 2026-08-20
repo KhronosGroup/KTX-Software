@@ -4,7 +4,6 @@
 
 #include "ktx.h"
 #include "ktxint.h"
-#include "texture2.h"
 #include "vkformat_enum.h"
 #include "platform_utils.h"
 #include "imageio_utility.h"
@@ -15,12 +14,14 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
-#include <string_view>
 #include <vector>
 
 #include <fmt/os.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+
+#define CXXOPTS_NO_EXCEPTIONS
+#include <cxxopts.hpp>
 
 template <typename T>
 [[nodiscard]] constexpr inline T ceil_div(const T x, const T y) noexcept {
@@ -429,53 +430,55 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
     return true;
 }
 
-inline void print_usage_msg() {
-    fmt::print(
-        "Usage: ktxdiff <expected-ktx2> <received-ktx2> [tolerance] [--skip-kvd]\n"
-        "  For normalized formats tolerance is the normalized absolute value of the acceptable "
-        "difference.\n"
-        "  For unnormalized formats it is the fraction of the minimum of the values being compared "
-        "that is acceptable.\n");
-}
-
 /// EXIT CODES:
 ///     0 - Matching files
 ///     1 - Mismatching files
 ///     2 - Error while loading, decoding or processing an input file
+///     3 - Missing arguments, incorrect options, and other CLI errors.
 int main(int argc, char* argv[]) {
-    InitUTF8CLI(argc, argv);
-
-    if (argc < 3) {
-        fmt::print("Missing input file arguments\n");
-        print_usage_msg();
-        return EXIT_FAILURE;
-    }
-
-    if (argc > 5) {
-        fmt::print("Too many arguments or/and options\n");
-        print_usage_msg();
-        return EXIT_FAILURE;
-    }
-
     float tolerance = 0.05f;
     bool skip_kvd = false;
-    std::string lhs_path = argv[1], rhs_path = argv[2];
 
-    if (argc == 4) {
-        if (std::string(argv[3]) != "--skip-kvd") {
-            tolerance = std::stof(argv[3]);
-        } else {
-            skip_kvd = true;
-        }
-    } else if (argc == 5) {
-        if (std::string(argv[4]) != "--skip-kvd") {
-            fmt::print("Option '--skip-kvd' should be specified as last option\n");
-            print_usage_msg();
-            return EXIT_FAILURE;
-        }
-        tolerance = std::stof(argv[3]);
-        skip_kvd = true;
+    cxxopts::Options opts("ktxdiff", "diff two KTX2 files");
+    opts.add_options()("expected-ktx2", "Expected KTX2 file", cxxopts::value<std::string>())(
+        "received-ktx2", "Received KTX2 file", cxxopts::value<std::string>())(
+        "tolerance",
+        "For normalized formats tolerance is the normalized absolute value of the acceptable "
+        "difference (inclusive). For unnormalized formats it is the fraction of the minimum of the "
+        "values being compared that is acceptable. Default is 0.05",
+        cxxopts::value<float>(), "<tolerance>")("skip-kvd", "Ignore key-value metadata (KVD)")(
+        "help,h", "Show this help message and exit");
+    opts.parse_positional({"expected-ktx2", "received-ktx2"});
+    opts.positional_help("<expected-ktx2> <received-ktx2>");
+
+    auto result = opts.parse(argc, argv);
+    if (result.count("help")) {
+        fmt::print(opts.help());
+        std::exit(0);
     }
+
+    // Mandatory arguments
+    if (!result.count("expected-ktx2")) {
+        fmt::println(stderr,
+                     "Missing input (expected) KTX2 file. <expected-ktx2> must be specified.");
+        fmt::println(stderr, opts.help());
+        std::exit(3);
+    }
+    if (!result.count("received-ktx2")) {
+        fmt::println(stderr,
+                     "Missing input (received) KTX2 file. <received-ktx2> must be specified.");
+        fmt::println(stderr, opts.help());
+        std::exit(3);
+    }
+
+    // Parse options
+    if (result.count("tolerance")) tolerance = result["tolerance"].as<float>();
+    if (result.count("skip-kvd")) skip_kvd = true;
+
+    InitUTF8CLI(argc, argv);
+
+    auto lhs_path = result["expected-ktx2"].as<std::string>();
+    auto rhs_path = result["received-ktx2"].as<std::string>();
 
     Texture lhs(lhs_path);
     Texture rhs(rhs_path);
