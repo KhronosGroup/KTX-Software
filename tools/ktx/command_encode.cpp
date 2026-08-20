@@ -397,7 +397,13 @@ void CommandEncode::executeEncode() {
            fatal(rc::IO_FAILURE, "Failed to encode KTX2 file with codec \"{}\". KTX Error: {}", options.codecName, ktxErrorString(ret));
     }
 
-    metrics.decodeAndCalculateMetrics(texture, options, *this);
+    const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
+    if (outputPath.has_parent_path())
+        std::filesystem::create_directories(outputPath.parent_path());
+    OutputStream outputFile(options.outputFilepath, *this);
+
+    // If output is stdout, we write metrics to stderr (this is done to avoid polluting the KTX file binary in stdout)
+    metrics.decodeAndCalculateMetrics(texture, options, *this, outputFile.isStdout() ? stderr : stdout);
 
     if (options.zstd) {
         ret = ktxTexture2_DeflateZstd(texture, *options.zstd);
@@ -425,11 +431,6 @@ void CommandEncode::executeEncode() {
     }
 
     // Save output file
-    const auto outputPath = std::filesystem::path(DecodeUTF8Path(options.outputFilepath));
-    if (outputPath.has_parent_path())
-        std::filesystem::create_directories(outputPath.parent_path());
-
-    OutputStream outputFile(options.outputFilepath, *this);
     outputFile.writeKTX2(texture, *this);
 }
 
