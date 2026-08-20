@@ -61,7 +61,7 @@ class VulkanSwapchain
 
     // Acquires the next image in the swap chain
     VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore,
-                              uint32_t *currentBuffer);
+                              uint32_t *imageIndex);
 
     // Present the current image to the queue
     VkResult queuePresent(VkQueue queue, uint32_t currentBuffer);

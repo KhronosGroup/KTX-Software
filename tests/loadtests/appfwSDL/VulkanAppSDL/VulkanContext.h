@@ -86,7 +86,22 @@ struct VulkanContext {
 
     VulkanSwapchain swapchain;
     // List of frame buffers (same as number of swap chain images)
-    std::vector<VkFramebuffer>framebuffers;
+    std::vector<VkFramebuffer> framebuffers;
+    struct Frame {
+//		VkFence         queue_submit_fence          = VK_NULL_HANDLE;
+//		VkCommandPool   primary_command_pool        = VK_NULL_HANDLE;
+//		VkCommandBuffer primary_command_buffer      = VK_NULL_HANDLE;
+        struct {
+            VkSemaphore     presentComplete         = VK_NULL_HANDLE;
+            VkSemaphore     renderComplete          = VK_NULL_HANDLE;
+            VkSemaphore     textOverlayComplete     = VK_NULL_HANDLE;
+        } semaphores;
+	};
+    std::vector<Frame> frames;
+
+    // A set of semaphores that can be reused.
+    std::vector<VkSemaphore> recycledSemaphores;
+
     VulkanDepthBuffer depthBuffer;
 
     // Create a new command buffer, opening it for command entry,
