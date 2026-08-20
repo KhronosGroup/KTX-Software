@@ -408,12 +408,12 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
 // Acquires the next image in the swap chain
 VkResult
 VulkanSwapchain::acquireNextImage(VkSemaphore presentCompleteSemaphore,
-                                  uint32_t *currentBuffer)
+                                  uint32_t *imageIndex)
 {
     return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                  presentCompleteSemaphore,
                                  nullptr,
-                                 currentBuffer);
+                                 imageIndex);
 }
 
 
