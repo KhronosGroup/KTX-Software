@@ -419,6 +419,20 @@ result = ktxTexture2_CompressAstc(texture, quality);
 
 ## Writing a BCn-Compressed Texture
 
+The following example showcases how to use libktx to generate a BCn-compressed
+(i.e., BC1, BC3, BC4, BC5, BC6HU, BC6HS, or BC7) texture.
+
+You can also use Basis Universal's transcode utilities to transcode UASTC (or
+other supported codecs) to BCn but the difference here is that this directly
+encodes to target BCn format without any intermediate steps (i.e., transcoding)
+that are very likely to introduce more artifacts.
+
+This example is kept as simple as possible. There are a lot of other parameters
+that are only activated depending on the target BCn scheme and whether rate
+distortion optimization (RDO) is enabled. The discussion about RDO parameter
+details is too involved for this example (see member parameters descriptions
+in ktxBCnParams struct).
+
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 #include <vulkan/vulkan_core.h>         // From your Vulkan SDK
@@ -430,9 +444,9 @@ FILE* src = NULL;
 ktx_size_t srcSize;                     // Size of uncompressed source image slice
 ktxBCnParams params = {0};              // Make sure to 0-initialize this struct
 
-// Fill up texture creation struct. Notice that the supplied vkFormat has to
-// of some uncompressed format that matches the target BCn that is set later.
-// In this example, BC7 expects RGBA input.
+// Fill up texture creation struct. Notice that the supplied vkFormat must be
+// an uncompressed format that matches the target BCn that is set later. In this
+// example, BC7 expects RGBA input.
 createInfo.glInternalformat = 0;  // Ignored as we'll create a KTX2 texture.
 createInfo.vkFormat = VK_FORMAT_R8G8B8A8_SRGB;
 createInfo.baseWidth = 1024;
@@ -484,14 +498,9 @@ for (uint32_t levelIndex = 0; levelIndex < texture->numLevels; ++levelIndex) {
 // Now that uncompressed image data is set, compress to BCn:
 params.structSize = sizeof(params);
 params.bcn = KTX_BCN_COMPRESSION_BC7;
-params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
+params.bcnCompressionQuality = KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM;
 
-// There are a lot of other parameters that are only activated depending on the
-// target BCn scheme and whether rate distortion optimization (RDO) is enabled.
-// The discussion about RDO parameter details is too involved for this simple
-// example => read member parameter description ktxBCnParams struct
-
-result = ktxtexture2_CompressBCnEx(texture, &params);
+result = ktxTexture2_CompressBCnEx(texture, &params);
 if (result != KTX_SUCCESS) {
     // error handling ...
 }
@@ -504,11 +513,10 @@ if (result != KTX_SUCCESS) {
 // Don't forget to destroy the texture (this will clean-up all allocated
 // resources)
 ktxTexture_Destroy(ktxTexture(texture));
-
-// You may notice that there are a `ktxTexture2` alternative for the above
-// textures that take `ktxTexture2*`. These can also be used instead of the
-// ones above. Both fall down to calling the same approriate function on the
-// supplied KTX texture (either ktxTexture1 or ktxTexture2). This is achieved
-// via virtual table pointer in ktxTexture C struct.
-
 ~~~~~~~~~~~~~~~~
+
+You may notice that there are `ktxTexture2` alternatives for the above
+textures that take `ktxTexture2*`. These can also be used instead of the
+last ones. Both fall down to calling the same approriate function on the
+supplied KTX texture (either ktxTexture1 or ktxTexture2). This is achieved
+via virtual table pointer in ktxTexture C struct.

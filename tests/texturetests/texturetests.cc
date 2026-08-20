@@ -3562,8 +3562,7 @@ class ktxTexture2BCnEncodeDecodeTestBase
         params.threadCount = 1;
         params.bcn = bcn;
         params.normalMap = false;
-        params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM;
-        params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM;
+        params.bcnCompressionQuality = KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM;
         params.bcnRDO = rdo;
         result = ktxTexture2_CompressBCnEx(texture, &params);
 
@@ -3886,9 +3885,7 @@ TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb8_srgb_bc1_rdo_zstd) { runTest(u8
 // BC2:
 //  - VK_FORMAT_R8G8B8A8_UNORM
 //  - VK_FORMAT_R8G8B8A8_SRGB (TODO)
-// Notes:
-//  - different BC2 encoder tools produce widely different results (e.g., GIMP vs OpenImageIO).
-//  - RDO is not supported for BC2 because of the lack of an encoder
+// TODO: add BC2 RDO when BC2 encoder is implemented
 TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgba8_unorm_bc2) { runTest(u8"rgba8_unorm_bc2.ktx2", u8"rgba8_unorm_input_for_bc2.ktx2"); }
 
 // BC3:

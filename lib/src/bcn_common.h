@@ -63,6 +63,48 @@ lerp(F a, F b, F s) {
     return a + (b - a) * s;
 }
 
+inline uint32_t
+get_bc1_compression_quality(ktx_pack_bcn_quality_levels bcn_quality) {
+    switch (bcn_quality) {
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FASTEST:
+        return 0u;
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FASTER:
+        return 2U;
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FAST:
+        return 5U;
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM:
+        return 10U;
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH:
+        return 15U;
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE:
+        return 19U;
+    default:  // should never occur
+        assert(false);
+        return 15U;
+    }
+}
+
+inline uint32_t
+get_bc7_compression_quality(ktx_pack_bcn_quality_levels bcn_quality) {
+    switch (bcn_quality) {
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FASTEST:
+        return 128U; /* cPackBC7FlagDefaultFastest */
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FASTER:
+        return 176U; /* cPackBC7FlagDefaultFaster */
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_FAST:
+        return 179U; /* cPackBC7FlagDefaultFast */
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM:
+        return 255U; /* cPackBC7FlagDefault */
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH:
+        return 1023U; /* cPackBC7FlagDefaultPartiallyAnalytical */
+    case ktx_pack_bcn_quality_levels_e::KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE:
+        return 3967U; /* cPackBC7FlagDefaultNonAnalytical */
+    default:          // should never occur
+        assert(false);
+        return 1023U;
+    }
+}
+
 //
 // Extracts/Copies a [4 x 4 x nchannels] unpacked/uncompressed block of data
 // from provided pSrc to provided pDst. For each row of the source block,
@@ -196,10 +238,10 @@ insert_block(T* dst, const T* src, uint32_t x, uint32_t y, uint32_t width, uint3
     const uint32_t dst_pitch = width * nchannels;       // nbr bytes per raw of dst
     uint32_t nbr_written_bytes = 0;
     const int cols = std::min(kBlockSize, width - x);  // nbr columns to copy from src
+    const uint32_t nbr_bytes_to_write = cols * nchannels * sizeof(T);
     const T* pSrc = src;
     T* pDst = dst + y * dst_pitch + nchannels * x;
     for (uint32_t py = 0; py < kBlockSize && y + py < height; ++py) {
-        const uint32_t nbr_bytes_to_write = cols * nchannels * sizeof(T);
         memcpy(pDst, pSrc, nbr_bytes_to_write);
         nbr_written_bytes += nbr_bytes_to_write;
         pSrc += src_pitch;

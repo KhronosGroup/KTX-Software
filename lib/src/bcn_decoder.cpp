@@ -47,6 +47,16 @@ unpack_block_bc1(const void* pBlock, void* pPixels, rgbcx::bc1_approx_mode bc1_a
     return true;
 };
 
+// Returns true on success, false otherwise.
+static inline bool
+unpack_block_bc3(const void* pBlock, void* pPixels, rgbcx::bc1_approx_mode bc1_approx_mode) {
+    auto pDst_pixels = static_cast<uint8_t*>(pPixels);
+    bool success = true;
+    success = unpack_block_bc1((const uint8_t*)pBlock + BC4_BLOCK_SIZE, pPixels, bc1_approx_mode);
+    rgbcx::unpack_bc4(pBlock, &pDst_pixels[3], BC3_NCHANNELS);
+    return success;
+}
+
 /**
  * @ingroup reader
  * @brief Decodes a ktx2 texture object, if it is BCn encoded. All BCn
@@ -64,7 +74,7 @@ unpack_block_bc1(const void* pBlock, void* pPixels, rgbcx::bc1_approx_mode bc1_a
  *        - For BC6HU, BC6HS:
  *            VK_FORMAT_R16G16B16_SFLOAT
  *
- *        UNORM vs. SRGB is determined depending on the original color model.
+ *        UNORM vs. SRGB is determined depending on the original BCn VkFormat.
  *
  *        The images are decompressed from BCn block-compressed format. The
  *        decompressed images replace the original images and the texture's
@@ -94,7 +104,7 @@ unpack_block_bc1(const void* pBlock, void* pPixels, rgbcx::bc1_approx_mode bc1_a
  *                    The texture does not contain any data (i.e.,
  *                    @c This->pData is @c NULL and there is no pending data
  *                    load).
- * @exception KTX_INVALID_OPERATION
+ * @exception KTX_DECOMPRESS_FAILURE
  *                    Decoder/Unpacker returned an error exit code or a
  *                    non-success return flag. Only occurs for BC1, BC2, BC3,
  *                    and BC7 (BC2 and BC3 are based on BC1).
@@ -112,13 +122,11 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     KTX_error_code result;
 
     if (This->supercompressionScheme == KTX_SS_BASIS_LZ ||
-        This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
+        This->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE)
         return KTX_FILE_DATA_ERROR;  // Not a valid file.
-    }
     // Safety check.
-    if (This->supercompressionScheme > KTX_SS_END_RANGE) {
+    if (This->supercompressionScheme > KTX_SS_END_RANGE)
         return KTX_UNSUPPORTED_FEATURE;  // Unsupported scheme.
-    }
 
     if (!This->isCompressed) return KTX_INVALID_OPERATION;
 
@@ -158,11 +166,14 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> prototype_raii{
+        nullptr, ktxTexture2_Destroy};
     ktxTexture2* prototype = nullptr;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+    prototype_raii.reset(prototype);
 
     if (result != KTX_SUCCESS) {
-        assert(result == KTX_OUT_OF_MEMORY);  // The only run time error
+        assert(result == KTX_OUT_OF_MEMORY);
         return result;
     }
 
@@ -170,6 +181,8 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
         const uint32_t width = std::max(This->baseWidth >> levelIndex, 1u);
         const uint32_t height = std::max(This->baseHeight >> levelIndex, 1u);
         const uint32_t depth = std::max(This->baseDepth >> levelIndex, 1u);
+
+        const auto image_data_out_size = ktxTexture2_GetImageSize(prototype, levelIndex);
 
         for (uint32_t layerIndex = 0; layerIndex < This->numLayers; ++layerIndex) {
             for (uint32_t faceIndex = 0; faceIndex < This->numFaces; ++faceIndex) {
@@ -182,53 +195,49 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
                                                faceIndex + depthSliceIndex, &image_offset_out);
                     const auto* image_data_in = This->pData + image_offset_in;
                     auto* image_data_out = prototype->pData + image_offset_out;
-                    auto res = ktxUnpackBCn(image_data_in, image_data_out, width, height, bcn);
-                    if (res != KTX_SUCCESS) {
-                        ktxTexture2_Destroy(prototype);
-                        return res;
-                    }
+                    auto res = ktxUnpackBCn(image_data_in, image_data_out, image_data_out_size,
+                                            width, height, bcn);
+                    if (res != KTX_SUCCESS) return res;
                 }  // depth slices
             }  // faces
         }  // layers
     }
 
-    if (result == KTX_SUCCESS) {
-        // Fix up the current texture
-        DECLARE_PROTECTED_EX(thisPrtctd, This);
-        DECLARE_PRIVATE_EX(protoPriv, prototype);
-        DECLARE_PROTECTED_EX(protoPrtctd, prototype);
-        memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
-        This->vkFormat = decompressedVkFormat;
-        This->isCompressed = prototype->isCompressed;
-        This->supercompressionScheme = KTX_SS_NONE;
-        priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
+    if (result != KTX_SUCCESS) return result;
 
-        // Copy typesize otherwise `ktx info` and `ktx validate` fails and
-        // complains that block-compressed types should have a typesize of 1.
-        This->_protected->_typeSize = prototype->_protected->_typeSize;
+    // Fix up the current texture
+    DECLARE_PROTECTED_EX(thisPrtctd, This);
+    DECLARE_PRIVATE_EX(protoPriv, prototype);
+    DECLARE_PROTECTED_EX(protoPrtctd, prototype);
+    memcpy(&thisPrtctd._formatSize, &protoPrtctd._formatSize, sizeof(ktxFormatSize));
+    This->vkFormat = decompressedVkFormat;
+    This->isCompressed = prototype->isCompressed;
+    This->supercompressionScheme = KTX_SS_NONE;
+    priv._requiredLevelAlignment = protoPriv._requiredLevelAlignment;
 
-        // Copy the levelIndex from the prototype to This.
-        memcpy(priv._levelIndex, protoPriv._levelIndex,
-               This->numLevels * sizeof(ktxLevelIndexEntry));
+    // Copy typesize otherwise `ktx info` and `ktx validate` fails and
+    // complains that block-compressed types should have a typesize of 1.
+    This->_protected->_typeSize = prototype->_protected->_typeSize;
 
-        // Move the DFD and data from the prototype to This.
-        free(This->pDfd);
-        This->pDfd = prototype->pDfd;
-        prototype->pDfd = 0;
-        free(This->pData);
-        This->pData = prototype->pData;
-        This->dataSize = prototype->dataSize;
-        prototype->pData = 0;
-        prototype->dataSize = 0;
+    // Copy the levelIndex from the prototype to This.
+    memcpy(priv._levelIndex, protoPriv._levelIndex, This->numLevels * sizeof(ktxLevelIndexEntry));
 
-        // Free SGD data
-        This->_private->_sgdByteLength = 0;
-        if (This->_private->_supercompressionGlobalData) {
-            free(This->_private->_supercompressionGlobalData);
-            This->_private->_supercompressionGlobalData = NULL;
-        }
+    // Move the DFD and data from the prototype to This.
+    free(This->pDfd);
+    This->pDfd = prototype->pDfd;
+    prototype->pDfd = 0;
+    free(This->pData);
+    This->pData = prototype->pData;
+    This->dataSize = prototype->dataSize;
+    prototype->pData = 0;
+    prototype->dataSize = 0;
+
+    // Free SGD data
+    This->_private->_sgdByteLength = 0;
+    if (This->_private->_supercompressionGlobalData) {
+        free(This->_private->_supercompressionGlobalData);
+        This->_private->_supercompressionGlobalData = NULL;
     }
-    ktxTexture2_Destroy(prototype);
     return result;
 }
 
@@ -263,22 +272,28 @@ ktxTexture2_DecodeBCn(ktxTexture2* This) {
  *                              @p bcn is set to KTX_BCN_COMPRESSION_NONE.
  */
 extern "C" KTX_error_code
-ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width,
+ktxUnpackBCn(const ktx_uint8_t* src_blocks, void* dst, ktx_size_t dstByteLength, ktx_uint32_t width,
              ktx_uint32_t height, ktx_bcn_compression_e bcn) {
     // Create intermediate storage to store decoded blocks. Not all blocks
     // necessarily decode to 4x4x4 but this is enough to hold all possible
-    // combinations (at least for LDR - i.e., not for BC6H formats).
-    const uint32_t rgba_pitch = 4 * 4;
-    uint8_t rgba[4 * rgba_pitch]; /* 64 bytes */
+    // combinations (at least for LDR and not for BC6H formats).
+    uint8_t rgba[4 * 4 * 4]; /* width * height * num channels = 64 bytes */
 
+    // Number of uint16_t elements to move from pixel x at some scanline to next
+    // pixel at x on the next scanline for an RGB HDR decoded block.
     const uint32_t rgbh_pitch = 4 * 3;
-    uint16_t rgbh[4 * 4 * rgbh_pitch];
+    uint16_t rgbh[4 * rgbh_pitch]; /* height * pitch = 48 uint16_t */
 
     uint8_t rgb[4 * 4 * 3]; /* only for BC1 */
 
     const uint32_t nchannels = get_nchannels(bcn);
 
-    // [[maybe_unused]] size_t nbr_written_bytes_total = 0;
+    const bool is_hdr = (bcn == KTX_BCN_COMPRESSION_BC6HU) || (bcn == KTX_BCN_COMPRESSION_BC6HS);
+
+    [[maybe_unused]] size_t nbr_written_bytes_total = 0;
+    // Doing individual checks is a bit involved so just do an initial check
+    size_t expectedDstByteLength = width * height * (is_hdr ? sizeof(uint16_t) : sizeof(uint8_t));
+    if (dstByteLength < expectedDstByteLength) return KTX_INVALID_VALUE;
 
     if (bcn == KTX_BCN_COMPRESSION_NONE) return KTX_INVALID_OPERATION;
 
@@ -306,11 +321,7 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
 
             case KTX_BCN_COMPRESSION_BC3:
                 // BC3: 16 bytes -> 4 x 4 x 4 = 64 bytes
-                // Return code is not used because if this returns false => this means that 3 color
-                // punchthrough has been used which is (apparently) not supported on all GPUs.
-                // Problem is that when using RDO, this always returns false so I decided to just
-                // suppress it for the moment.
-                /* rv = */ rgbcx::unpack_bc3(src_blocks, rgba, rgbcx::bc1_approx_mode::cBC1Ideal);
+                rv = unpack_block_bc3(src_blocks, rgba, rgbcx::bc1_approx_mode::cBC1Ideal);
                 src_blocks += BC3_BLOCK_SIZE;
                 break;
 
@@ -355,30 +366,25 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, ktx_uint8_t* dst, ktx_uint32_t width
 
             // If any of the decoders/unpackers returned false
             // => something went wrong
-            if (!rv) {
-                return KTX_DECOMPRESS_FAILURE;  // decoder failure
-            }
+            if (!rv) return KTX_DECOMPRESS_FAILURE;  // decoder failure
 
-            // size_t nbr_written_bytes = 0;
+            [[maybe_unused]] size_t nbr_written_bytes = 0;
 
             // copy the decoded block into the actual texture image
-            if (bcn == KTX_BCN_COMPRESSION_BC6HU || bcn == KTX_BCN_COMPRESSION_BC6HS) {
-                /* nbr_written_bytes = */ insert_block(reinterpret_cast<uint16_t*>(dst), rgbh, x, y,
-                                                       width, height, nchannels);
+            if (is_hdr) {
+                nbr_written_bytes =
+                    insert_block(static_cast<uint16_t*>(dst), rgbh, x, y, width, height, nchannels);
             } else if (bcn == KTX_BCN_COMPRESSION_BC1) {
                 extract_rgb_from_rgba_block(rgb, rgba);
-                /* nbr_written_bytes = */ insert_block(dst, rgb, x, y, width, height, nchannels);
+                nbr_written_bytes =
+                    insert_block(static_cast<uint8_t*>(dst), rgb, x, y, width, height, nchannels);
             } else {
-                /* nbr_written_bytes = */
-                insert_block(dst, rgba, x, y, width, height, nchannels);
+                nbr_written_bytes =
+                    insert_block(static_cast<uint8_t*>(dst), rgba, x, y, width, height, nchannels);
             }
-            // nbr_written_bytes_total += nbr_written_bytes;
+            nbr_written_bytes_total += nbr_written_bytes;
         }  // x blocks
     }  // y blocks
-
-    // [[maybe_unused]] size_t expected_nbr_written_bytes_total =
-    //     ktxTexture2_GetImageSize(prototype, levelIndex);
-    // assert(nbr_written_bytes_total == expected_nbr_written_bytes_total);
-
+    assert(nbr_written_bytes_total == expectedDstByteLength);
     return KTX_SUCCESS;
 }

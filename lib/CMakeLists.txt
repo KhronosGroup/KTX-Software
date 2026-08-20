@@ -57,7 +57,6 @@ option( LIBKTX_FEATURE_KTX2 "Enable KTX 2 support." ON )
 option( LIBKTX_FEATURE_VK_UPLOAD "Enable Vulkan texture upload." ON )
 option( LIBKTX_FEATURE_GL_UPLOAD "Enable OpenGL texture upload." ON )
 option( LIBKTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
-option( LIBKTX_FEATURE_BCN_DECODER "BCn decoding support." ON )
 
 # Intentionally override the BASISU options, only making them visible
 # when they are useful.
@@ -720,17 +719,15 @@ endif()
 ####################################################
 
 # Force static build for bc7enc
-if (LIBKTX_FEATURE_BCN_DECODER)
-    set(BUILD_SHARED_LIBS OFF)
-    add_subdirectory(${KTX_ROOT_DIR}/external/bc7enc_rdo bc7enc_rdo)
-    set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(${KTX_ROOT_DIR}/external/bc7enc_rdo bc7enc_rdo)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 
-    if (LIBKTX_VERSION_FULL)
-        add_lib_dependencies(ktx bc7enc_rdo)
-    endif()
-    if(LIBKTX_VERSION_READ_ONLY)
-        add_lib_dependencies(ktx_read bc7enc_rdo)
-    endif()
+if (LIBKTX_VERSION_FULL)
+    add_lib_dependencies(ktx bc7enc_rdo)
+endif()
+if(LIBKTX_VERSION_READ_ONLY)
+    add_lib_dependencies(ktx_read bc7enc_rdo)
 endif()
 
 

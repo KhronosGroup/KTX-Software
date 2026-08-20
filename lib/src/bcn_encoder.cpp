@@ -27,6 +27,7 @@
  * @author Walid Chtioui, independent contributor (walid.chtioui.main@gmail.com)
  */
 
+#include <memory>
 #include "ktx.h"
 
 #if KTX_FEATURE_WRITE
@@ -53,7 +54,7 @@
 #endif
 
 /*
- * set to write utrasmooth blocks mask PNG. You need to add:
+ * set to write utrasmooth blocks mask to PNG. You need to add:
  *   ${KTX_ROOT_DIR}/external/lodepng/lodepng.h
  *   ${KTX_ROOT_DIR}/external/lodepng/lodepng.cpp
  * to libktx's CMakeLists' LIBKTX_MAIN_SRC.
@@ -330,7 +331,6 @@ unpack_block_bc1(const void* pBlock, ert::color_rgba* pPixels, uint32_t, void*) 
     if (used_3color) {
         if (!allow_3color_mode) return false;
         if (!use_3color_mode_for_black) {
-            // TODO: is this also UB (does it respect strict-aliasing rule or am I paranoid)?
             auto pBC1_block = static_cast<const rgbcx::bc1_block*>(pBlock);
             for (uint32_t y = 0; y < 4; ++y)
                 for (uint32_t x = 0; x < 4; ++x)
@@ -441,14 +441,14 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
 #endif
         case KTX_BCN_COMPRESSION_BC1:
             // BC1: 4 x 4 x 3 = 64 bytes -> 8 bytes
-            rgbcx::encode_bc1(workload->params.bc1CompressionQuality,
+            rgbcx::encode_bc1(get_bc1_compression_quality(workload->params.bcnCompressionQuality),
                               pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC1_BLOCK_SIZE,
                               rgbx, true, false);
             break;
 
         case KTX_BCN_COMPRESSION_BC3:
             // BC3: 4 x 4 x 4 = 64 bytes -> 16 bytes
-            rgbcx::encode_bc3(workload->params.bc1CompressionQuality,
+            rgbcx::encode_bc3(get_bc1_compression_quality(workload->params.bcnCompressionQuality),
                               pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC3_BLOCK_SIZE,
                               rgba);
             break;
@@ -483,7 +483,7 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             memcpy(rgba_bc7, rgba, sizeof(rgba_bc7));
             basist::bc7f::fast_pack_bc7_auto_rgba(
                 pDstLevelImage + (yBlock * num_blocks_x + xBlock) * BC7_BLOCK_SIZE, rgba_bc7,
-                workload->params.bc7CompressionQuality);
+                get_bc7_compression_quality(workload->params.bcnCompressionQuality));
             break;
 
         default:  // should never occur
@@ -900,6 +900,7 @@ struct clean_hdr_results {
 
 /*
  * @~English
+ * @private
  * @brief Clean up HDR input for basisu's BC6HU encoder.
  *
  *        Based on basisu's basis_compressor::clean_hdr_image. It sets NaN,
@@ -966,6 +967,7 @@ clean_hdr_image(ktx_uint8_t* src_rgb16, uint32_t width, uint32_t height) {
 
 /**
  * @~English
+ * @private
  * @brief Performs rate distortion optimization (RDO) on BCn-encoded blocks.
  *
  *        RDO is performed to reduce entropy for a potential subsequent Deflate
@@ -1386,15 +1388,16 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
  * @memberof ktxTexture2
  * @ingroup writer
  * @~English
- * @brief Compress a ktx texture with uncompressed images to provided BCn
+ * @brief Compress a ktx texture with uncompressed images to specified BCn
  *        format. Currently, only BC1, BC3, BC4, BC5, BC6HU*, and BC7 target
  *        formats are supported. Punch-through alpha for BC1 is not supported.
  *
- *        The images are encoded to provided BCn block-compressed format. The
+ *        The images are encoded to specified BCn block-compressed format. The
  *        encoded images replace the original images and the texture's fields
  *        including the DFD are modified to reflect the new state.
  *
- *        Such textures can be directly uploaded to a GPU via a graphics API.
+ *        Such textures can be directly uploaded to a BCn-supporting GPU via
+ *        a graphics API.
  *
  *        Encoding non-multiple-of-4 texture dimensions is supported. Block
  *        pixels/texels that are out of the texture's dimensions are
@@ -1426,7 +1429,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
  *                      RGB565).
  * @exception KTX_INVALID_OPERATION
  *                      The texture's images are not 2D. Only 2D images can be
- *                      block compressed.
+ *                      block compressed with BCn.
  * @exception KTX_INVALID_OPERATION
  *                      The texture does not contain any data (i.e.,
  *                      @c This->pData is @c NULL and there is no pending data
@@ -1439,7 +1442,7 @@ postprocess_rdo_bcn(const uint8_t* unpacked_img, size_t unpacked_img_size, uint8
  * @exception KTX_OUT_OF_MEMORY
  *                      Not enough memory to carry out compression.
  * @exception KTX_UNSUPPORTED_FEATURE
- *                      Unsupported or not-yet-to-be-supported target BCn format
+ *                      Unsupported or not-yet-supported target BCn format
  *                      (e.g., BC1A, BC2, and BC6HS).
  * @exception KTX_UNSUPPORTED_FEATURE
  *                      Unsupported supercompression scheme.
@@ -1622,8 +1625,11 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> prototype_raii{
+        nullptr, ktxTexture2_Destroy};
     ktxTexture2* prototype = nullptr;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+    prototype_raii.reset(prototype);
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY && "Out of memory allocating texture.");
         return result;
@@ -1644,7 +1650,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
         const uint32_t depth = MAX(1, This->baseDepth >> level);
         const uint32_t num_blocks_x = (width + 3) / 4;
         const uint32_t num_blocks_y = (height + 3) / 4;
-        const uint32_t num_blocks_total = num_blocks_x * num_blocks_y;
 
         ktx_size_t levelImageSizeIn = 0;
         ktx_size_t levelImageSizeOut = 0;
@@ -1737,16 +1742,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                 // => this will certainly result in non-deterministic output (+ change of actual
                 // used window size)
                 uint32_t thread_count_rdo = 1;
-                if (!defaulted_params.bcnRDONoMultithreading) {
-                    thread_count_rdo = ert::adjust_num_threads_for_deterministic_rdo(
-                        thread_count, defaulted_params.bcnRDODictSize, blocksize_in_bytes,
-                        num_blocks_total);
-                }
-                assert(thread_count_rdo <= thread_count);
-                assert((num_blocks_total >= defaulted_params.bcnRDODictSize / blocksize_in_bytes)
-                           ? (num_blocks_total / thread_count_rdo >=
-                              defaulted_params.bcnRDODictSize / blocksize_in_bytes)
-                           : thread_count_rdo == 1);
+                if (!defaulted_params.bcnRDONoMultithreading) thread_count_rdo = thread_count;
                 rdo_params rdo_p;
                 rdo_p.ert_p.m_lambda = defaulted_params.bcnRDOQualityScalar;
                 rdo_p.ert_p.m_lookback_window_size = defaulted_params.bcnRDODictSize;
@@ -1764,10 +1760,7 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
                     pSrcLevelImage, (size_t)width * height * nchannels, pDstLevelImage,
                     (size_t)num_blocks_x * num_blocks_y * blocksize_in_bytes, rdo_p,
                     defaulted_params.bcn, width, height, thread_count_rdo);
-                if (res != KTX_SUCCESS) {
-                    ktxTexture2_Destroy(prototype);
-                    return res;
-                }
+                if (res != KTX_SUCCESS) return res;
             }
 
             pDstLevelImage += levelImageSizeOut;  // next destination image within this miplevel
@@ -1818,8 +1811,6 @@ ktxTexture2_CompressBCnEx(ktxTexture2* This, ktxBCnParams* params) {
     This->dataSize = prototype->dataSize;
     prototype->pData = 0;
     prototype->dataSize = 0;
-
-    ktxTexture2_Destroy(prototype);
 
     KHR_DFDSETVAL(This->pDfd + 1, FLAGS, alphaMode);  // Restore alphaMode flags
     return KTX_SUCCESS;

@@ -16,12 +16,8 @@
 #include "utility.h"
 #include "validate.h"
 #include "ktx.h"
-#include <array>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <regex>
-#include <unordered_map>
 
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
@@ -79,7 +75,7 @@ Encode a KTX2 file.
             @snippet{doc} ktx/encode_utils_basis.h command options_basis_encoders
         <dt>\--format &lt;enum&gt;</dt>
         <dd>KTX format enum that specifies the target ASTC or BCn format.
-            Formats that neither are ASTC nor one of the supported BCn formats
+            Formats that are neither ASTC nor one of the supported BCn formats
             are invalid. When specified the ASTC-specific or BCn-specific and
             common encoder options listed @ref ktx\_encode\_options\_encoding
             "below" become valid, otherwise they are ignored.</dd>
@@ -258,14 +254,22 @@ void CommandEncode::executeEncode() {
         fatal(rc::INVALID_FILE, "Cannot encode KTX2 file with {} supercompression.",
             toString(ktxSupercmpScheme(texture->supercompressionScheme)));
 
+    const std::string common_fatal_msg =
+        "You can use the 'ktx extract' tool to decode into an uncompressed format then use 'ktx "
+        "encode' to encode back into your target {} format. Decoding and re-encoding a lossy format will "
+        "result in quality loss.";
+
     const auto* bdfd = texture->pDfd + 1;
     auto model = khr_df_model_e(KHR_DFDVAL(bdfd, MODEL));
     // Can't directly encode from ASTC to ASTC
     if (model == KHR_DF_MODEL_ASTC && options.encodeASTC)
-        fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+        fatal_usage("Encoding from ASTC format {} to another ASTC format {} is not supported. " +
+                        common_fatal_msg,
+                    toString(VkFormat(texture->vkFormat)), toString(options.vkFormat), "ASTC");
     // Can't directly encode from ASTC to BCn
     if (model == KHR_DF_MODEL_ASTC && options.encodeBCn)
-        fatal_usage("Encoding from ASTC format {} to BCn format {} is not supported.", toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+        fatal_usage("Encoding from ASTC format {} to BCn format {} is not supported. " + common_fatal_msg,
+                    toString(VkFormat(texture->vkFormat)), toString(options.vkFormat), "BCn");
 
 
     const auto is_hdr = ktxTexture2_IsHDR(texture);
@@ -275,25 +279,22 @@ void CommandEncode::executeEncode() {
     {
       // Can't directly encode from BCn to BCn
       if (options.encodeBCn)
-        fatal_usage(
-            "Encoding from BCn format {} to another BCn format {} is not supported.",
-            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+        fatal_usage("Encoding from BCn format {} to another BCn format {} is not supported. " +
+                        common_fatal_msg,
+                    toString(VkFormat(texture->vkFormat)), toString(options.vkFormat), "BCn");
       // Can't directly encode from BCn to ASTC
       if (options.encodeASTC)
-        fatal_usage(
-            "Encoding from BCn format {} to ASTC format {} is not supported.",
-            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+        fatal_usage("Encoding from BCn format {} to ASTC format {} is not supported. " + common_fatal_msg,
+                    toString(VkFormat(texture->vkFormat)), toString(options.vkFormat), "ASTC");
     }
   
     // Can't encode from BCn to ASTC
     if ((model == KHR_DF_MODEL_BC1A || model == KHR_DF_MODEL_BC3 || model == KHR_DF_MODEL_BC4 ||
          model == KHR_DF_MODEL_BC5 || model == KHR_DF_MODEL_BC6H || model == KHR_DF_MODEL_BC7) &&
         options.encodeBCn)
-        fatal_usage(
-            "Encoding from BCn format {} to another BCn format {} is not supported. "
-            "You can use the `ktx extract` tool to decode into a raw format then use this tool to "
-            "encode back into your target BCn format.",
-            toString(VkFormat(texture->vkFormat)), toString(options.vkFormat));
+        fatal_usage("Encoding from BCn format {} to another BCn format {} is not supported. " +
+                        common_fatal_msg,
+                    toString(VkFormat(texture->vkFormat)), toString(options.vkFormat), "BCn");
 
     if ((options.selectedCodec == BasisCodec::NONE && !is_hdr) ||
         options.selectedCodec == BasisCodec::BasisLZ ||
@@ -411,7 +412,9 @@ void CommandEncode::executeEncode() {
     }
 
     // Add KTXwriterScParams metadata
-    auto writerScParams = fmt::format("{}{}{}{}{}", options.bcnOptions, options.astcOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    auto writerScParams =
+        fmt::format("{}{}{}{}{}", options.bcnOptions, options.astcOptions, options.codecOptions,
+                    options.commonOptions, options.compressOptions);
     ktxHashList_DeleteKVPair(&texture->kvDataHead, KTX_WRITER_SCPARAMS_KEY);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space

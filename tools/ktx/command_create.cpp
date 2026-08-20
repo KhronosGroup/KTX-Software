@@ -17,7 +17,6 @@
 #include <filesystem>
 #include <iostream>
 #include <regex>
-#include <sstream>
 #include <cxxopts.hpp>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
@@ -1379,6 +1378,7 @@ void CommandCreate::processOptions(cxxopts::Options& opts, cxxopts::ParseResult&
             fatal_usage("--{} is not allowed with ASTC encode", OptionsEncodeCommon::kNoSse);
     } else /* isBCn */ {
         // TODO: I have just copied this from ASTC above - need to verify this
+        // TODO: Revisit noSSE check when updating to bc7g
         fillOptionsCodecBCn<decltype(options)>(options);
         if (options.OptionsEncodeCommon::noSSE)
             fatal_usage("--{} is not allowed with BCn encode", OptionsEncodeCommon::kNoSse);
@@ -2098,8 +2098,11 @@ void CommandCreate::executeCreate() {
 
     compress(texture, options);
 
-    // Add KTXwriterScParams metadata if ASTC encoding, BCn encoding, BasisU encoding, or other supercompression was used
-    auto writerScParams = fmt::format("{}{}{}{}{}", options.astcOptions, options.bcnOptions, options.codecOptions, options.commonOptions, options.compressOptions);
+    // Add KTXwriterScParams metadata if ASTC encoding, BCn encoding, BasisU encoding, or other
+    // supercompression was used
+    auto writerScParams =
+        fmt::format("{}{}{}{}{}", options.astcOptions, options.bcnOptions, options.codecOptions,
+                    options.commonOptions, options.compressOptions);
     if (writerScParams.size() > 0) {
         // Options always contain a leading space
         assert(writerScParams[0] == ' ');

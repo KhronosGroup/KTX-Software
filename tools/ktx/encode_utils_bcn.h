@@ -24,41 +24,16 @@ namespace ktx {
     <dd></dd>
 
     <dl>
-        <dt>\--bc1-quality &lt;level&gt;</dt>
+        <dt>\--bcn-quality &lt;level&gt;</dt>
         <dd>The quality level configures the quality-performance tradeoff for
-            BC1/BC3 encoders. The quality level can be set in the range [0, 19]
-            with (0) being the 'fastest' and (19) the slowest but most
-            'exhaustive'. Default is (15) 'thorough'. Can also be set via the
-            following aliases:
-            <table>
-                <tr><th>Level      </th> <th> Quality                      </th></tr>
-                <tr><td>fastest    </td> <td>(equivalent to quality =   0) </td></tr>
-                <tr><td>faster     </td> <td>(equivalent to quality =   2) </td></tr>
-                <tr><td>fast       </td> <td>(equivalent to quality =   5) </td></tr>
-                <tr><td>medium     </td> <td>(equivalent to quality =  10) </td></tr>
-                <tr><td>thorough   </td> <td>(equivalent to quality =  15) </td></tr>
-                <tr><td>exhaustive </td> <td>(equivalent to quality =  19) </td></tr>
-            </table>
+            BC1, BC3, and BC7 encoders. Can also be set via the following
+            presets: fastest, faster, fast, medium, thorough, exhaustive.
             Note on BC1 vs. BC3 vs. BC7: apart from lower VRAM consumption (4bpp
             vs. 8bpp) and better GPU texture cache efficiency, there's little
-            need to use BC1 now. BC3 still has an advantage vs. BC7, because it
-            very strongly separates how RGB is encoded from the alpha channel,
+            need to use BC1 now. BC7 offers significantly better quality than
+            BC1 and BC3. BC3 still has an advantage vs. BC7, because it very
+            strongly separates how RGB is encoded from the alpha channel,
             in a predictable way.
-        </dd>
-        <dt>\--bc7-quality &lt;level&gt;</dt>
-        <dd>The quality level configures the quality-performance tradeoff for
-            BC7 encoder. Default is 'medium'. The quality level can be set
-            between fastest and exhaustive via the following fixed quality
-            presets where each preset is an OR'ed set of flags:
-            <table>
-                <tr><th>Level      </th> <th> OR'ed flags                    </th></tr>
-                <tr><td>fastest    </td> <td>(equivalent to quality =   128) </td></tr>
-                <tr><td>faster     </td> <td>(equivalent to quality =   176) </td></tr>
-                <tr><td>fast       </td> <td>(equivalent to quality =   179) </td></tr>
-                <tr><td>medium     </td> <td>(equivalent to quality =   255) </td></tr>
-                <tr><td>thorough   </td> <td>(equivalent to quality =  1023) </td></tr>
-                <tr><td>exhaustive </td> <td>(equivalent to quality =  3967) </td></tr>
-            </table>
         </dd>
         <dt>\--bcn-rdo</dt>
         <dd>Enable BCn LDR RDO post-processing. HDR formats (BC6HU/BC6HS) are
@@ -98,8 +73,8 @@ namespace ktx {
         <dd>Skip blocks that have zero mean-squared error (MSE). Might result in
             faster but potentially lower compression.</dd>
         <dt>\--bcn-rdo-m</dt>
-        <dd>Disable RDO multithreading (results are always deterministic with or
-            without multithreading).</dd>
+        <dd>Disable RDO multithreading (potentially slightly higher
+            compression).</dd>
     </dl>
 </dl>
 //! [command options_encode_bcn]
@@ -111,8 +86,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     // inline static const char* kBCnEffort = "effort";
 
     /* low-level params */
-    inline static const char* kBC1Quality = "bc1-quality";
-    inline static const char* kBC7Quality = "bc7-quality";
+    inline static const char* kBCnQuality = "bcn-quality";
     inline static const char* kBCnRdo = "bcn-rdo";
     inline static const char* kBCnRdoL = "bcn-rdo-l";
     inline static const char* kBCnRdoD = "bcn-rdo-d";
@@ -125,16 +99,20 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     inline static const char* kBCnRdoNoMultithreading = "bcn-rdo-m";
 
     inline static const char* kBCnOptions[] = {
-        // kBCnQuality,
         // kBCnEffort,
-        kBC1Quality,        kBC7Quality,
-        kBCnRdo,  kBCnRdoL,           kBCnRdoD,
-        kBCnRdoB, kBCnRdoS,           kBCnRdoNoUltrasmoothBlocks,
-        kBCnRdoR, kBCnRdoTryOneMatch, kBCnRdoSkipZeroMSEBlocks,
+        kBCnQuality,
+        kBCnRdo,
+        kBCnRdoL,
+        kBCnRdoD,
+        kBCnRdoB,
+        kBCnRdoS,
+        kBCnRdoNoUltrasmoothBlocks,
+        kBCnRdoR,
+        kBCnRdoTryOneMatch,
+        kBCnRdoSkipZeroMSEBlocks,
     };
 
-    ClampedOption<ktx_uint32_t> bc1CompressionQuality;
-    ClampedOption<ktx_uint32_t> bc7CompressionQuality;
+    ClampedOption<ktx_uint32_t> bcnCompressionQuality;
     ClampedOption<float> bcnRDOQualityScalar;
     ClampedOption<ktx_uint32_t> bcnRDODictSize;
     ClampedOption<float> bcnRDOMaxSmoothBlockErrorScale;
@@ -148,10 +126,8 @@ struct OptionsEncodeBCn : public ktxBCnParams {
     bool encodeBCn = false;
 
     OptionsEncodeBCn()
-        : bc1CompressionQuality(ktxBCnParams::bc1CompressionQuality, 0u,
-                                KTX_PACK_BC1_QUALITY_LEVEL_MAX),
-          bc7CompressionQuality(ktxBCnParams::bc7CompressionQuality, 0u,
-                                KTX_PACK_BC7_QUALITY_LEVEL_MAX),
+        : bcnCompressionQuality(ktxBCnParams::bcnCompressionQuality, 0u,
+                                KTX_PACK_BCN_QUALITY_LEVEL_MAX),
           bcnRDOQualityScalar(ktxBCnParams::bcnRDOQualityScalar, 0.001f, 50.0f),
           bcnRDODictSize(ktxBCnParams::bcnRDODictSize, 64u, 65536u),
           bcnRDOMaxSmoothBlockErrorScale(ktxBCnParams::bcnRDOMaxSmoothBlockErrorScale, 1.0f,
@@ -163,8 +139,7 @@ struct OptionsEncodeBCn : public ktxBCnParams {
         threadCount = std::max<ktx_uint32_t>(1u, std::thread::hardware_concurrency());
         /* bcn is set depending in ktx create/encode commands not here */
         normalMap = false;
-        bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH;
-        bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH;
+        bcnCompressionQuality = KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH;
         bcnRDO = false;
         bcnRDOQualityScalar = 1.0f;
         bcnRDOMaxSmoothBlockErrorScale = 10.0f;
@@ -179,41 +154,19 @@ struct OptionsEncodeBCn : public ktxBCnParams {
 
     void init(cxxopts::Options& opts) {
         opts.add_options("Encode BCn")(
-            kBC1Quality,
-            "The quality level configures the quality-performance tradeoff for BC1/BC3 encoders. "
-            "The quality level can be set in the range [0, 19] with (0) being the 'fastest' and "
-            "(19) the slowest but most 'exhaustive'. Default is (15) 'thorough'. "
-            "Can also be set via the following aliases:\n\n"
-            "    Level      |  Quality\n"
-            "    ---------- | ---------------------------- \n"
-            "    fastest    | (equivalent to quality =  0) \n"
-            "    faster     | (equivalent to quality =  2) \n"
-            "    fast       | (equivalent to quality =  5) \n"
-            "    medium     | (equivalent to quality = 10) \n"
-            "    thorough   | (equivalent to quality = 15) \n"
-            "    exhaustive | (equivalent to quality = 19) \n\n"
-            "Note on BC1 vs. BC3 vs. BC7: apart from lower VRAM consumption (4bpp vs. "
-            "8bpp) and better GPU texture cache efficiency, there's little need to use "
-            "BC1 now. BC3 still has an advantage vs. BC7, because it very strongly "
-            "separates how RGB is encoded from the alpha channel, in a predictable way.",
+            kBCnQuality,
+            "The quality level configures the quality-performance tradeoff for BC1, BC3, and BC7 "
+            "encoders. Can also be set via the following presets: fastest, faster, fast, medium, "
+            "thorough, exhaustive."
+            "Default is 'thorough'. Note on BC1 vs. BC3 vs. BC7: apart from lower VRAM consumption "
+            "(4bpp vs. 8bpp) and better GPU texture cache efficiency, there's little need to use "
+            "BC1 now. BC7 offers significantly better quality than BC1 and BC3. BC3 still has an "
+            "advantage vs. BC7, because it very strongly separates how RGB is encoded from the "
+            "alpha channel, in a predictable way.",
             cxxopts::value<std::string>(),
-            "<level>")(kBC7Quality,
-                       "The quality level configures the quality-performance tradeoff"
-                       " for BC7 encoder. Default is 'medium'. The quality level can be"
-                       " set between fastest and exhaustive via the following fixed"
-                       " quality presets where each preset is an OR'ed set of flags:\n\n"
-                       "    Level      |  OR'ed flags                 \n"
-                       "    ---------- | ---------------------------- \n"
-                       "    fastest    | (equivalent to flags =  128) \n"
-                       "    faster     | (equivalent to flags =  176) \n"
-                       "    fast       | (equivalent to flags =  179) \n"
-                       "    medium     | (equivalent to flags =  255) \n"
-                       "    thorough   | (equivalent to flags = 1023) \n"
-                       "    exhaustive | (equivalent to flags = 3967)",
-                       cxxopts::value<std::string>(),
-                       "<level>")(kBCnRdo,
-                                  "Enable BCn LDR RDO post-processing. HDR formats (BC6HU/BC6HS) "
-                                  "are currently not supported.")(
+            "<level>")(kBCnRdo,
+                       "Enable BCn LDR RDO post-processing. HDR formats (BC6HU/BC6HS) "
+                       "are currently not supported.")(
             kBCnRdoL,
             "Set BCn RDO quality scalar to the specified value. Lower values yield higher "
             "quality/larger supercompressed files, higher values yield lower quality/smaller "
@@ -249,9 +202,9 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             "in slightly faster, but noticeably lower compression.")(
             kBCnRdoSkipZeroMSEBlocks,
             "Skip blocks that have zero mean-squared error (MSE). Might result in faster but "
-            "potentially lower compression.")(kBCnRdoNoMultithreading,
-                                              "Disable RDO multithreading (results are always "
-                                              "deterministic with or without multithreading).");
+            "potentially lower compression.")(
+            kBCnRdoNoMultithreading,
+            "Disable RDO multithreading (potentially slightly higher compression).");
     }
 
     void captureBCnOption(const char* name) { bcnOptions += fmt::format(" --{}", name); }
@@ -268,75 +221,30 @@ struct OptionsEncodeBCn : public ktxBCnParams {
             "RDO has to be enabled (via --rdo flag) in order for RDO-specific arguments to take "
             "effect.";
 
-        /* high-level params (if specified, low-level params are ignored) */
-        // if (args[kBCnQuality].count() && !args[kBCnEffort].count()) {
-        //     report.fatal_usage(
-        //         "High-level --effort option has to be provided when --quality is used.");
-        // }
-
-        // if (!args[kBCnQuality].count() && args[kBCnEffort].count()) {
-        //     report.fatal_usage(
-        //         "High-level --quality option has to be provided when --effort is used.");
-        // }
-
-        // if (args[kBCnQuality].count() && args[kBCnEffort].count()) {
-        //     captureBCnOption<int>(args, kBCnEffort);
-        //     captureBCnOption<int>(args, kBCnQuality);
-        // }
-
-        /* BC1-5 params */
-
-        if (args[kBC1Quality].count()) {
-            static std::unordered_map<std::string, ktx_pack_bc1_quality_levels_e>
-                bc1_quality_mapping{{"fastest", KTX_PACK_BC1_QUALITY_LEVEL_FASTEST},
-                                    {"faster", KTX_PACK_BC1_QUALITY_LEVEL_FASTER},
-                                    {"fast", KTX_PACK_BC1_QUALITY_LEVEL_FAST},
-                                    {"medium", KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM},
-                                    {"thorough", KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH},
-                                    {"exhaustive", KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE}};
+        if (args[kBCnQuality].count()) {
+            static std::unordered_map<std::string, ktx_pack_bcn_quality_levels_e>
+                bcn_quality_mapping{{"fastest", KTX_PACK_BCN_QUALITY_LEVEL_FASTEST},
+                                    {"faster", KTX_PACK_BCN_QUALITY_LEVEL_FASTER},
+                                    {"fast", KTX_PACK_BCN_QUALITY_LEVEL_FAST},
+                                    {"medium", KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM},
+                                    {"thorough", KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH},
+                                    {"exhaustive", KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE}};
             const auto qualityLevelStr =
-                to_lower_copy(captureBCnOption<std::string>(args, kBC1Quality));
-            const auto it = bc1_quality_mapping.find(qualityLevelStr);
-            if (it == bc1_quality_mapping.end()) {
+                to_lower_copy(captureBCnOption<std::string>(args, kBCnQuality));
+            const auto it = bcn_quality_mapping.find(qualityLevelStr);
+            if (it == bcn_quality_mapping.end()) {
                 // try to parse explicitly provided value (advanced usecase)
                 try {
-                    bc1CompressionQuality = static_cast<ktx_uint32_t>(std::stoul(qualityLevelStr));
+                    bcnCompressionQuality = static_cast<ktx_uint32_t>(std::stoul(qualityLevelStr));
                 } catch (const std::exception&) {
                     report.fatal_usage(
-                        "Invalid bc1-quality. Expected a quality level string alias (e.g., "
-                        "'medium') or a value in range [0, 19] but got: \"{}\"",
+                        "Invalid bcn-quality value. Expected a quality level string preset (e.g., "
+                        "'medium') but got: \"{}\"",
                         qualityLevelStr);
                 }
             } else {
-                bc1CompressionQuality = it->second;
+                bcnCompressionQuality = it->second;
             }
-        }
-
-        /* BC7 params */
-
-        if (args[kBC7Quality].count()) {
-            static std::unordered_map<std::string, ktx_pack_bc7_quality_levels_e>
-                bc7_quality_mapping{{"fastest", KTX_PACK_BC7_QUALITY_LEVEL_FASTEST},
-                                    {"faster", KTX_PACK_BC7_QUALITY_LEVEL_FASTER},
-                                    {"fast", KTX_PACK_BC7_QUALITY_LEVEL_FAST},
-                                    {"medium", KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM},
-                                    {"thorough", KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH},
-                                    {"exhaustive", KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE}};
-            const auto qualityLevelStr =
-                to_lower_copy(captureBCnOption<std::string>(args, kBC7Quality));
-            const auto it = bc7_quality_mapping.find(qualityLevelStr);
-            if (it == bc7_quality_mapping.end()) {
-                // try to parse explicitly provided OR'ed flags (advanced usecase)
-                try {
-                    bc7CompressionQuality = static_cast<ktx_uint32_t>(std::stoul(qualityLevelStr));
-                } catch (const std::exception&) {
-                    report.fatal_usage(
-                        "Invalid bc7-quality. Expected a quality level string alias (e.g., "
-                        "'medium') or an OR'ed set of flags (e.g., 255) but got: \"{}\"",
-                        qualityLevelStr);
-                }
-            }
-            bc7CompressionQuality = it->second;
         }
 
         /* RDO params */

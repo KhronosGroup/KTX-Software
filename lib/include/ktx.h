@@ -1409,57 +1409,29 @@ typedef struct ktxAstcParams {
 
 /**
  * @~English
- * @brief Options specifiying BC1/BC3 encoding quality levels.
+ * @brief Options specifiying high-level BC1, BC2, BC3, and BC7 encoding quality
+ *        levels.
+ *
+ * These enums will be mapped to their corresponding BC1 or BC7 quality values.
+ * For BC1, these are mapped to [0, 19]. For BC7, these are mapped to particular
+ * bitsets of flags.
  */
-typedef enum ktx_pack_bc1_quality_levels_e {
-    KTX_PACK_BC1_QUALITY_LEVEL_FASTEST    = 0U,
+typedef enum ktx_pack_bcn_quality_levels_e {
+    KTX_PACK_BCN_QUALITY_LEVEL_FASTEST,
         /*!< Fastest compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_FASTER     = 2U,
+    KTX_PACK_BCN_QUALITY_LEVEL_FASTER,
         /*!< Faster compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_FAST       = 5U,
+    KTX_PACK_BCN_QUALITY_LEVEL_FAST,
         /*!< Fast compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_MEDIUM     = 10U,
+    KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM,
         /*!< Medium compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_THOROUGH   = 15U,
-        /*!< Slower compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE = 19U,
-        /*!< Very slow compression. */
-    KTX_PACK_BC1_QUALITY_LEVEL_MAX        = KTX_PACK_BC1_QUALITY_LEVEL_EXHAUSTIVE,
-        /*!< Maximum supported quality level. */
-} ktx_pack_bc1_quality_levels_e;
-typedef ktx_uint32_t ktx_pack_bc1_quality_levels;
-
-/**
- * @~English
- * @brief Options specifiying high-level BC7 encoding quality levels.
- */
-typedef enum ktx_pack_bc7_quality_levels_e {
-    KTX_PACK_BC7_QUALITY_LEVEL_FASTEST    = 128U,
-        /*!< Fastest compression. Very weak particularly on alpha, mode 6 only
-           for RGB/RGBA. Maps to: cPackBC7FlagDefaultFastest.
-         */
-    KTX_PACK_BC7_QUALITY_LEVEL_FASTER     = 176U,
-        /*!< Faster compression. Mode 6 with pbits for RGB, Modes 4,5,6 for
-           alpha. Maps to: cPackBC7FlagDefaultFaster.
-         */
-    KTX_PACK_BC7_QUALITY_LEVEL_FAST       = 179U,
-        /*!< Fast compression. Maps to: cPackBC7FlagDefaultFast. */
-    KTX_PACK_BC7_QUALITY_LEVEL_MEDIUM     = 255U,
-        /*!< Medium compression. Maps to: cPackBC7FlagDefault. */
-    KTX_PACK_BC7_QUALITY_LEVEL_THOROUGH   = 1023U,
-        /*!< Slower compression. Partially analytical BC7 defaults (slower).
-          Maps to cPackBC7FlagDefaultPartiallyAnalytical.
-         */
-    KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE = 3967U,
-        /*!< Very slow compression. Non-analytical BC7 defaults (very slow).
-           In reality the encoder is still analytical on the mode pairs, but at
-           the highest level is non-analytical.
-           Maps to cPackBC7FlagDefaultNonAnalytical.
-         */
-    KTX_PACK_BC7_QUALITY_LEVEL_MAX        = KTX_PACK_BC7_QUALITY_LEVEL_EXHAUSTIVE,
-        /*!< Maximum supported quality level. */
-} ktx_pack_bc7_quality_levels_e;
-typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
+    KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH,
+        /*!< Thorough compression. */
+    KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE,
+        /*!< Exhaustive compression. */
+    KTX_PACK_BCN_QUALITY_LEVEL_MAX = KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE,
+} ktx_pack_bcn_quality_levels_e;
+typedef ktx_uint32_t ktx_pack_bcn_quality_levels;
 
 /**
  * @~English
@@ -1467,15 +1439,38 @@ typedef ktx_uint32_t ktx_pack_bc7_quality_levels;
  */
 typedef enum ktx_bcn_compression_e {
     KTX_BCN_COMPRESSION_NONE    = 0,
+        /*!< NONE. */
     KTX_BCN_COMPRESSION_BC1     = 1,
+        /*!< BC1 compression (RGB). */
     KTX_BCN_COMPRESSION_BC1A    = 2,
+        /*!< BC1 compression. Encodes a 4x4 RGBA LDR RGBA block into 8 bytes.
+           Alpha is encoded just using 1 bit (i.e., fully opaque or fully
+           transparent).
+         */
     KTX_BCN_COMPRESSION_BC2     = 3,
+        /*!< BC2 compression. Encodes a 4x4 RGBA LDR block into 16 bytes.
+           RGB block is encoded using BC1 into 8 bytes. Alpha is sharply encoded
+           into 8 bytes.
+         */
     KTX_BCN_COMPRESSION_BC3     = 4,
+        /*!< BC3 compression. Encodes a 4x4 RGBA LDR block into 16 bytes.
+           RGB block is encoded using BC1 into 8 bytes. Alpha is encoded
+           separately into 8 bytes.
+         */
     KTX_BCN_COMPRESSION_BC4     = 5,
+        /*!< BC4 compression. Encodes a 4x4 R LDR block into 8 bytes. */
     KTX_BCN_COMPRESSION_BC5     = 6,
+        /*!< BC5 compression. Encodes a 4x4 RG LDR block into 16 bytes.
+           Each channel is encoded separately (ideal for 2-channel, non-color
+           data. E.g., normal maps). */
     KTX_BCN_COMPRESSION_BC6HU   = 7,
+        /*!< BC6HU compression. Encodes a 4x4 RGB HDR unsigned block into
+           16 bytes. */
     KTX_BCN_COMPRESSION_BC6HS   = 8,
+        /*!< BC6HS compression. Encodes a 4x4 RGB HDR signed block into
+           16 bytes. */
     KTX_BCN_COMPRESSION_BC7     = 9,
+        /*!< BC7 compression. Encodes a 4x4 RGBA LDR block into 16 bytes. */
 } ktx_bcn_compression_e;
 
 /**
@@ -1491,10 +1486,8 @@ typedef enum ktx_bcn_compression_e {
  *  ktxBCnParams params = {0};
  *  params.structSize = sizeof(params);
  *  params.bcn = KTX_BCN_COMPRESSION_BCX;
- *  // If targeting BC1 or BC3:
- *  params.bc1CompressionQuality = KTX_PACK_BC1_QUALITY_LEVEL_XXXX;
- *  // If targeting BC7:
- *  params.bc7CompressionQuality = KTX_PACK_BC7_QUALITY_LEVEL_XXXX;
+ *  // If targeting BC1, BC3, or BC7:
+ *  params.bcnCompressionQuality = KTX_PACK_BCN_QUALITY_LEVEL_XXXX;
  * @endcode
  *
  * When targeting BC1 or BC3, @e bc1CompressionQuality has to be explicitly set
@@ -1526,29 +1519,18 @@ typedef struct ktxBCnParams {
          */
 
     ktx_bool_t normalMap;
-        /*!< Currently unused (added for same code structure convenience with
-           ASTC encoder).
-         */
+        /*!< */
 
-    /* BC1-5 params */
+    ktx_pack_bcn_quality_levels bcnCompressionQuality;
+        /*!< BC1 (consequently BC2 and BC3) and BC7 compression quality.
+           Lower values give faster compression speed but potentially lower
+           quality. Higher values give slower compression speed but potentially
+           better quality. There is no default. Caller must explicitly set this
+           value.
 
-    ktx_pack_bc1_quality_levels bc1CompressionQuality;
-        /*!< BC1/BC3 compression quality. Range is [0,19]. Lower values give
-           faster compression speed but potentially lower quality. Higher values
-           give slower compression speed but potentially better quality. There
-           is no default. Callers must explicitly set this value.
-         */
-
-    /* BC7 encoder params */
-
-    ktx_pack_bc7_quality_levels bc7CompressionQuality;
-        /*!< BC7 compression quality. Lower values give faster compression speed
-           at the expense of potentially lower quality. Higher values give
-           slower compression speed but potentially better quality. There is no
-           default. Callers must explicitly set this value.
-
-           This maps to an OR'ed set of lower-level flags which can also be set
-           directly for advanced use-cases.
+           For BC1, BC2, and BC3, this maps to the range [0, 19].
+           For BC7, this maps to an OR'ed set of lower-level flags which can
+           also be set directly for advanced use-cases.
          */
 
     /* RDO params */
@@ -1658,8 +1640,8 @@ typedef struct ktxBCnParams {
          */
 
     ktx_bool_t bcnRDONoMultithreading;
-        /*!< Disable RDO multithreading (for BCn, results are always
-           deterministic with or without multithreading). Default is false.
+        /*!< Disable RDO multithreading (potentially slightly higher
+           compression). Default is false.
          */
 } ktxBCnParams;
 
@@ -1679,8 +1661,9 @@ KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_DecodeBCn(ktxTexture2* This);
 
 KTX_API KTX_error_code KTX_APIENTRY
-ktxUnpackBCn(const ktx_uint8_t* imageDataIn, ktx_uint8_t* imageDataOut, ktx_uint32_t width,
-             ktx_uint32_t height, ktx_bcn_compression_e bcn);
+ktxUnpackBCn(const ktx_uint8_t* imageDataIn, void* imageDataOut,
+             ktx_size_t dstByteLength, ktx_uint32_t width, ktx_uint32_t height,
+             ktx_bcn_compression_e bcn);
 
 /**
  * @~English

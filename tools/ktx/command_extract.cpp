@@ -600,9 +600,9 @@ void CommandExtract::decodeAndSaveASTC(std::string filepath, bool appendExtensio
 
 void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension, VkFormat vkFormat,
                                       uint32_t width, uint32_t height, const char* compressedData,
-                                      std::size_t compressedSize) {
+                                      std::size_t compressedDataByteLength) {
     int nchannels;
-    size_t expectedCompressedSize;
+    size_t expectedCompressedDataByteLength;
     const size_t nBlocks = (std::size_t)((width + 3) / 4) * ((height + 3) / 4);
 
     VkFormat decompressed_format;
@@ -613,39 +613,39 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     switch (bcn) {
     case KTX_BCN_COMPRESSION_BC1:
     case KTX_BCN_COMPRESSION_BC1A:
-        expectedCompressedSize = BC1_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC1_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC2:
-        expectedCompressedSize = BC2_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC2_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC3:
-        expectedCompressedSize = BC3_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC3_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC4:
-        expectedCompressedSize = BC4_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC4_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC5:
-        expectedCompressedSize = BC5_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC5_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC6HU:
-        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC6H_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC6HS:
-        expectedCompressedSize = BC6H_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC6H_BLOCK_SIZE * nBlocks;
         break;
     case KTX_BCN_COMPRESSION_BC7:
-        expectedCompressedSize = BC7_BLOCK_SIZE * nBlocks;
+        expectedCompressedDataByteLength = BC7_BLOCK_SIZE * nBlocks;
         break;
     default:  // should never occur
         assert(false);
         fatal(rc::RUNTIME_ERROR, "Provided format is not a BCn block-compressed format: {}",
-              static_cast<ktx_uint32_t>(vkFormat));
+              vkFormatString(vkFormat));
         return;
     }
 
-    // be absolutely certain that we won't overflow the compressedData buffer
-    if (compressedSize != expectedCompressedSize)
-        fatal(rc::RUNTIME_ERROR, "Provided compressed size is unexpected.");
+    // make sure we won't read past the end of the compressed data buffer
+    if (compressedDataByteLength != expectedCompressedDataByteLength)
+        fatal(rc::RUNTIME_ERROR, "Size of provided data != expected size.");
 
     const std::size_t decompressed_size = width * height * nchannels * (is_hdr ? 2 : 1);
     const auto decompressed_buffer = std::make_unique<uint8_t[]>(decompressed_size);
@@ -653,10 +653,11 @@ void CommandExtract::decodeAndSaveBCn(std::string filepath, bool appendExtension
     ktx_uint8_t* buffer_ptr = decompressed_buffer.get();
     const ktx_uint8_t* src_blocks = reinterpret_cast<const ktx_uint8_t*>(compressedData);
 
-    auto res = ktxUnpackBCn(src_blocks, buffer_ptr, width, height, bcn);
-    if (res != KTX_SUCCESS) {
-        fatal(rc::RUNTIME_ERROR, "Unpack of BCn-compressed image failed.");
-    }
+    if (auto res = ktxUnpackBCn(src_blocks, buffer_ptr, decompressed_size, width, height, bcn);
+        res != KTX_SUCCESS)
+        fatal(rc::RUNTIME_ERROR,
+              "Unpack of BCn-compressed image failed (ktxUnpackBCn returned exit code: {})",
+              ktxErrorString(res));
 
     saveImageFile(std::move(filepath), appendExtension,
                   reinterpret_cast<const char*>(decompressed_buffer.get()), decompressed_size,
