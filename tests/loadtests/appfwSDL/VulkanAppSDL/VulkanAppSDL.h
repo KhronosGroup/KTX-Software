@@ -78,7 +78,7 @@ class VulkanAppSDL : public AppBaseSDL {
     bool prepareCommandBuffers();
     bool prepareDepthBuffer();
     bool prepareDescriptorLayout();
-    VkResult prepareFrame();
+    VkResult acquireNextImage();
     bool preparePresentCommandBuffers();
     bool prepareRenderPass();
     bool preparePipeline();
@@ -143,9 +143,10 @@ class VulkanAppSDL : public AppBaseSDL {
 
     VulkanContext vkctx;
 
-    // Index of active framebuffer.
-    uint32_t currentBuffer;
+    // Index of active framebuffer image.
+    uint32_t currentImage;
 
+#if 0
     // Synchronization semaphores
     struct {
         // Swap chain image presentation
@@ -155,6 +156,7 @@ class VulkanAppSDL : public AppBaseSDL {
         // Text overlay submission and execution
         VkSemaphore textOverlayComplete;
     } semaphores;
+#endif
 
     const uint32_t vkVersion;
 
