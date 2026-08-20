@@ -260,8 +260,11 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
 
 	// Submit draw command to the queue with a renderComplete semaphore.
 	if (vkctx.frames[currentImage].semaphores.renderComplete == VK_NULL_HANDLE) {
-		VkSemaphoreCreateInfo semaphore_info{
-		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+		VkSemaphoreCreateInfo semaphore_info {
+		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0
+        };
 		VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
                         &vkctx.frames[currentImage].semaphores.renderComplete));
 	}
@@ -356,9 +359,13 @@ VulkanAppSDL::acquireNextImage()
     VkResult res;
     VkSemaphore presentCompleteSemaphore;
 	if (vkctx.recycledSemaphores.empty()) {
-		VkSemaphoreCreateInfo info = {
-		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-        VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &info, nullptr, &presentCompleteSemaphore));
+		VkSemaphoreCreateInfo semaphore_info {
+		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0
+        };
+        VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
+                                          &presentCompleteSemaphore));
 	} else {
 		presentCompleteSemaphore = vkctx.recycledSemaphores.back();
 		vkctx.recycledSemaphores.pop_back();
@@ -424,8 +431,11 @@ VulkanAppSDL::submitFrame()
                 = &vkctx.frames[currentImage].semaphores.renderComplete;
         // Signal ready with text overlay complete semaphore
         if (vkctx.frames[currentImage].semaphores.textOverlayComplete == VK_NULL_HANDLE) {
-            VkSemaphoreCreateInfo semaphore_info{
-                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+            VkSemaphoreCreateInfo semaphore_info {
+                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+                .pNext = NULL,
+                .flags = 0
+            };
             VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
                             &vkctx.frames[currentImage].semaphores.textOverlayComplete));
         }
