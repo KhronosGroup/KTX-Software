@@ -292,8 +292,8 @@ ktxUnpackBCn(const ktx_uint8_t* src_blocks, void* dst, ktx_size_t dstByteLength,
 
     [[maybe_unused]] size_t nbr_written_bytes_total = 0;
     // Doing individual checks is a bit involved so just do an initial check
-    size_t expectedDstByteLength = width * height * (is_hdr ? sizeof(uint16_t) : sizeof(uint8_t));
-    if (dstByteLength < expectedDstByteLength) return KTX_INVALID_VALUE;
+    size_t expectedDstByteLength = width * height * nchannels * (is_hdr ? sizeof(uint16_t) : sizeof(uint8_t));
+    if (dstByteLength != expectedDstByteLength) return KTX_INVALID_VALUE;
 
     if (bcn == KTX_BCN_COMPRESSION_NONE) return KTX_INVALID_OPERATION;
 
