@@ -18,6 +18,12 @@ SPDX-FileCopyrightText = "Copyright (c) 2004, Industrial Light & Magic, a divisi
 SPDX-License-Identifier = "BSD-3-Clause"
 
 [[annotations]]
+path = "tests/resources/input/exr/rgb16_sfloat_bc6hu.exr"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The Khronos Group Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "tests/resources/ktx2/Desk_uastc_hdr4x4_zstd_15.ktx2"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Copyright (c) 2004, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd."

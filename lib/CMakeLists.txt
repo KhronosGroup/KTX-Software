@@ -135,6 +135,10 @@ endif()
 set(LIBKTX_MAIN_SRC
     include/ktx.h
     src/astc_codec.cpp
+    src/bcn_common.h
+    src/bcn_encoder.cpp
+    src/bcn_decoder.cpp
+    src/multithreading.cpp
     src/basis_sgd.h
     src/basis_transcode.cpp
     src/miniz_wrapper.cpp
@@ -708,6 +712,24 @@ endif()
 if(LIBKTX_VERSION_READ_ONLY)
     add_lib_dependencies(ktx_read ${ASTCENC_LIB_TARGET})
 endif()
+
+
+####################################################
+# BCn Encoders/Decoders + RDO.
+####################################################
+
+# Force static build for bc7enc
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(${KTX_ROOT_DIR}/external/bc7enc_rdo bc7enc_rdo)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+
+if (LIBKTX_VERSION_FULL)
+    add_lib_dependencies(ktx bc7enc_rdo)
+endif()
+if(LIBKTX_VERSION_READ_ONLY)
+    add_lib_dependencies(ktx_read bc7enc_rdo)
+endif()
+
 
 # Install
 
