@@ -19,6 +19,7 @@
 #include <fmt/os.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+#include <filesystem>
 
 #define CXXOPTS_NO_EXCEPTIONS
 #include <cxxopts.hpp>
@@ -162,6 +163,8 @@ struct CompareResult {
     float difference = 0.f;
     std::size_t elementIndex = 0;
     std::size_t byteOffset = 0;
+    float lhsElementValue = 0.f;
+    float rhsElementValue = 0.f;
 };
 
 CompareResult compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t rawSize, float tolerance) {
@@ -171,9 +174,11 @@ CompareResult compareUnorm8(const char* rawLhs, const char* rawRhs, std::size_t 
     const auto count = rawSize / element_size;
 
     for (std::size_t i = 0; i < count; ++i) {
-        const auto diff = std::abs(static_cast<float>(lhs[i]) / 255.f - static_cast<float>(rhs[i]) / 255.f);
+        const auto lhsFloat = static_cast<float>(lhs[i]) / 255.f;
+        const auto rhsFloat = static_cast<float>(rhs[i]) / 255.f;
+        const auto diff = std::abs(lhsFloat - rhsFloat);
         if (diff > tolerance)
-            return CompareResult{false, diff, i, i * element_size};
+            return CompareResult{false, diff, i, i * element_size, lhsFloat, rhsFloat};
     }
 
     return CompareResult{};
@@ -187,9 +192,11 @@ CompareResult compareUnorm16(const char* rawLhs, const char* rawRhs, std::size_t
     const auto count = rawSize / element_size;
 
     for (std::size_t i = 0; i < count; ++i) {
-        const auto diff =
-            std::abs(static_cast<float>(lhs[i]) / 65535.f - static_cast<float>(rhs[i]) / 65535.f);
-        if (diff > tolerance) return CompareResult{false, diff, i, i * element_size};
+        const auto lhsFloat = static_cast<float>(lhs[i]) / 65535.f;
+        const auto rhsFloat = static_cast<float>(rhs[i]) / 65535.f;
+        const auto diff = std::abs(lhsFloat - rhsFloat);
+        if (diff > tolerance)
+            return CompareResult{false, diff, i, i * element_size, lhsFloat, rhsFloat};
     }
 
     return CompareResult{};
@@ -206,7 +213,7 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
         const auto diff = std::abs(lhs[i] - rhs[i]);
         const auto absMin = std::min(std::abs(lhs[1]), std::abs(rhs[1]));
         if (diff > tolerance * absMin)
-            return CompareResult{false, diff, i, i * element_size};
+            return CompareResult{false, diff, i, i * element_size, lhs[i], rhs[i]};
     }
 
     return CompareResult{};
@@ -217,15 +224,18 @@ CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_
     const auto* rhs = reinterpret_cast<const uint16_t*>(rawRhs);
     const auto element_size = sizeof(uint16_t);
     const auto count = rawSize / element_size;
+    const auto baseline = (std::numeric_limits<float>::epsilon() * 100000) * tolerance;
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto lhsFloat = imageio::half_to_float(lhs[i]);
         const auto rhsFloat = imageio::half_to_float(rhs[i]);
         const auto diff = std::abs(lhsFloat - rhsFloat);
         const auto absMin = std::min(std::abs(lhsFloat), std::abs(rhsFloat));
-        //const auto calcTolerance = tolerance * absMin;
-        if (diff > tolerance * absMin)
-            return CompareResult{false, diff, i, i * element_size};
+        // Some encoders don't encode 0 values as 0 but rather as a very small number (e.g., BC6HU encodes 0 into circa 1e-06).
+        // This is why a baseline is introduced so the difference doesn't have to be extremely small for 0 values or
+        // for very small values.
+        if (diff > std::max(tolerance * absMin, baseline))
+            return CompareResult{false, diff, i, i * element_size, lhsFloat, rhsFloat};
     }
 
     return CompareResult{};
@@ -412,14 +422,14 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
                     } else {
                         for (std::size_t i = 0; i < imageSize; ++i) {
                             if (imageDataLhs[i] != imageDataRhs[i])
-                                return mismatch("Mismatching image data: level {}, face {}, layer {}, depth {}, image byte {}",
-                                        levelIndex, faceIndex, layerIndex, depthIndex, i);
+                                return mismatch("Mismatching image data (lhs[{}]={} != rhs[{}]={}): level {}, face {}, layer {}, depth {}, image byte {}",
+                                        i, imageDataLhs[i], i, imageDataRhs[i], levelIndex, faceIndex, layerIndex, depthIndex, i);
                         }
                     }
 
                     if (!result.match) {
-                        return mismatch("Mismatching image data (diff: {}): level {}, face {}, layer {}, depth {}, pixel {}, component {}",
-                                result.difference, levelIndex, faceIndex, layerIndex, depthIndex,
+                        return mismatch("Mismatching image data (diff: {}; lhs[{}]={}; rhs[{}]={}): level {}, face {}, layer {}, depth {}, pixel {}, component {}",
+                                result.difference, result.elementIndex, result.lhsElementValue, result.elementIndex, result.rhsElementValue, levelIndex, faceIndex, layerIndex, depthIndex,
                                 result.elementIndex / componentCount, result.elementIndex % componentCount);
                     }
                 }
@@ -436,6 +446,8 @@ bool compare(Texture& lhs, Texture& rhs, float tolerance, bool skip_kvd) {
 ///     2 - Error while loading, decoding or processing an input file
 ///     3 - Missing arguments, incorrect options, and other CLI errors.
 int main(int argc, char* argv[]) {
+    namespace fs = std::filesystem;
+
     float tolerance = 0.05f;
     bool skip_kvd = false;
 
@@ -446,10 +458,11 @@ int main(int argc, char* argv[]) {
         "For normalized formats tolerance is the normalized absolute value of the acceptable "
         "difference (inclusive). For unnormalized formats it is the fraction of the minimum of the "
         "values being compared that is acceptable. Default is 0.05",
-        cxxopts::value<float>(), "<tolerance>")("skip-kvd", "Ignore key-value metadata (KVD)")(
+        cxxopts::value<float>())("skip-kvd", "Ignore key-value metadata (KVD)")(
         "help,h", "Show this help message and exit");
-    opts.parse_positional({"expected-ktx2", "received-ktx2"});
-    opts.positional_help("<expected-ktx2> <received-ktx2>");
+    opts.parse_positional({"expected-ktx2", "received-ktx2", "tolerance"});
+    opts.positional_help("<expected-ktx2> <received-ktx2> [tolerance]");
+    opts.show_positional_help();
 
     auto result = opts.parse(argc, argv);
     if (result.count("help")) {
@@ -479,6 +492,23 @@ int main(int argc, char* argv[]) {
 
     auto lhs_path = result["expected-ktx2"].as<std::string>();
     auto rhs_path = result["received-ktx2"].as<std::string>();
+
+    // Make sure provided paths are paths to regular files (i.e., not directories) otherwise we get
+    // all sort of issues (e.g., bad_alloc if a directory is supplied)
+    if ((fs::status(lhs_path)).type() != fs::file_type::regular) {
+        fmt::println(
+            stderr,
+            "Profided expected-ktx2 filepath \"{}\" either does not exist or is not a regular file.",
+            lhs_path);
+        std::exit(3);
+    }
+    if ((fs::status(rhs_path)).type() != fs::file_type::regular) {
+        fmt::println(
+            stderr,
+            "Profided received-ktx2 filepath \"{}\" either does not exist or is not a regular file.",
+            lhs_path);
+        std::exit(3);
+    }
 
     Texture lhs(lhs_path);
     Texture rhs(rhs_path);

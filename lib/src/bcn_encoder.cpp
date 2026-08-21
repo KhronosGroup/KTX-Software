@@ -467,7 +467,6 @@ compression_workload_runner(int thread_count, int thread_id, void* payload) {
             break;
 
         case KTX_BCN_COMPRESSION_BC6HU:
-            // TODO: is this reinterpret_cast an UB? fix/verify before merge
             basist::astc_6x6_hdr::fast_encode_bc6h(
                 rgbh,
                 reinterpret_cast<basist::bc6h_block*>(

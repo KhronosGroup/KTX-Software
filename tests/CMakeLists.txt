@@ -35,8 +35,3 @@ if(KTX_FEATURE_TOOLS AND KTX_FEATURE_TOOLS_CTS)
     endif()
     add_subdirectory(cts/clitests)
 endif()
-
-# cxxopts used by ktxdiff CLI
-if(NOT TARGET cxxopts::cxxopts)
-    add_subdirectory(external/cxxopts)
-endif()

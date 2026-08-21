@@ -3539,7 +3539,8 @@ class ktxTexture2BCnEncodeDecodeTestBase
             }
             break;
 
-          default:
+          default:  // should never occur
+            ASSERT_TRUE(false);
             return;
         }
 
@@ -3597,34 +3598,31 @@ class ktxTexture2BCnEncodeDecodeTestBase
                                               decoded.path().stem().string());
 
         // Compare orginal vs. decoded texture with 0.08 tolerance
-        // Since BC6HU input might be cleaned (i.e., signed values are set to 0) running ktxdiff on them will fail
-        if (bcn != KTX_BCN_COMPRESSION_BC6HU) {
-            std::string command =
-                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), original.path().string(),
-                       decoded.path().string(), ktxdiffOut.path().string());
-            int status = std::system(command.c_str());
-            EXPECT_EQ(status, 0)
-                << format("std::system() with command \"{}\" returned error code: {}", command, status);
-            // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
-            if (status != 0) {
-              // Print ktxdiff output
-              std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
-              {  // Copy original KTX2 file
-                  std::ifstream src(original.path(), std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / original.path().filename(), std::ios::binary);
-                  dst << src.rdbuf();
-              }
-              {  // Copy decoded KTX2 file
-                  std::ifstream src(decoded.path(), std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / decoded.path().filename(), std::ios::binary);
-                  dst << src.rdbuf();
-              }
-              {  // Then copy ktxdiff output text file
-                  std::ifstream src(ktxdiffOut.path(), std::ios::binary);
-                  std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(), std::ios::binary);
-                  dst << src.rdbuf();
-              }
-            }
+        std::string command =
+            format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(), original.path().string(),
+                   decoded.path().string(), ktxdiffOut.path().string());
+        int status = std::system(command.c_str());
+        EXPECT_EQ(status, 0)
+            << format("std::system() with command \"{}\" returned error code: {}", command, status);
+        // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can inspect it
+        if (status != 0) {
+          // Print ktxdiff output
+          std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
+          {  // Copy original KTX2 file
+              std::ifstream src(original.path(), std::ios::binary);
+              std::ofstream dst(tmpGeneratedFilesOutputPath / original.path().filename(), std::ios::binary);
+              dst << src.rdbuf();
+          }
+          {  // Copy decoded KTX2 file
+              std::ifstream src(decoded.path(), std::ios::binary);
+              std::ofstream dst(tmpGeneratedFilesOutputPath / decoded.path().filename(), std::ios::binary);
+              dst << src.rdbuf();
+          }
+          {  // Then copy ktxdiff output text file
+              std::ifstream src(ktxdiffOut.path(), std::ios::binary);
+              std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(), std::ios::binary);
+              dst << src.rdbuf();
+          }
         }
 
         EXPECT_EQ(texture->baseHeight, height);
@@ -3717,7 +3715,7 @@ TEST_F(ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB, encode_rgba8_srgb_to_bc7_rdo_t
 
 class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
   public:
-    void runTest(const std::u8string& bcnFileName, const std::u8string bcnOriginal = u8"") {
+    void runTest(const std::u8string& bcnFileName, const std::u8string bcnOriginal) {
         ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
         KTX_error_code result;
         ktxTexture2* texture = nullptr;
@@ -3832,37 +3830,33 @@ class ktxTexture2BCnDecodeTestBase : public ::testing::Test {
             << format("ktxTexture2_WriteToNamedFile failed: {}", ktxErrorString(result));
 
         // Compare orginal vs. decoded texture with 0.08 tolerance
-        // Running ktxdiff on 16bit SFLOAT inputs simply fails (regardless of the provided
-        // tolerance)
-        if (texture->vkFormat != VK_FORMAT_R16G16B16_SFLOAT) {
-            fs::path bcnOriginalPath = ktx2Path;
-            bcnOriginalPath.replace_filename(bcnOriginal);
-            FileRAII ktxdiffOut =
-                tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
-                                decodedPath.path().stem().string());
-            std::string command =
-                format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(),
-                       bcnOriginalPath.string(), decodedPath.path().string(), ktxdiffOut.path().string());
-            int status = std::system(command.c_str());
-            EXPECT_EQ(status, 0) << format(
-                "std::system() with command \"{}\" returned error code: {}", command, status);
-            // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can
-            // inspect it
-            if (status != 0) {
-                // Print ktxdiff output
-                std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
-                {  // Copy decoded KTX2 file
-                    std::ifstream src(decodedPath.path(), std::ios::binary);
-                    std::ofstream dst(tmpGeneratedFilesOutputPath / decodedPath.path().filename(),
-                                      std::ios::binary);
-                    dst << src.rdbuf();
-                }
-                {  // Then copy ktxdiff output text file if it exists
-                    std::ifstream src(ktxdiffOut.path(), std::ios::binary);
-                    std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(),
-                                      std::ios::binary);
-                    dst << src.rdbuf();
-                }
+        fs::path bcnOriginalPath = ktx2Path;
+        bcnOriginalPath.replace_filename(bcnOriginal);
+        FileRAII ktxdiffOut =
+            tmpDir / format("ktxdiff_{}_vs_{}.txt", bcnOriginalPath.stem().string(),
+                            decodedPath.path().stem().string());
+        std::string command =
+            format("{} {} {} 0.08 --skip-kvd > {}", ktxdiffPath.string(),
+                   bcnOriginalPath.string(), decodedPath.path().string(), ktxdiffOut.path().string());
+        int status = std::system(command.c_str());
+        EXPECT_EQ(status, 0) << format(
+            "std::system() with command \"{}\" returned error code: {}", command, status);
+        // Copy decoded ktx2 and ktxdiff output files out of tmp directory so that we can
+        // inspect it
+        if (status != 0) {
+            // Print ktxdiff output
+            std::cout << std::ifstream(ktxdiffOut.path()).rdbuf();
+            {  // Copy decoded KTX2 file
+                std::ifstream src(decodedPath.path(), std::ios::binary);
+                std::ofstream dst(tmpGeneratedFilesOutputPath / decodedPath.path().filename(),
+                                  std::ios::binary);
+                dst << src.rdbuf();
+            }
+            {  // Then copy ktxdiff output text file if it exists
+                std::ifstream src(ktxdiffOut.path(), std::ios::binary);
+                std::ofstream dst(tmpGeneratedFilesOutputPath / ktxdiffOut.path().filename(),
+                                  std::ios::binary);
+                dst << src.rdbuf();
             }
         }
     }
@@ -3910,7 +3904,7 @@ TEST_F(ktxTexture2BCnDecodeTestBase, decode_rg8_unorm_bc5_rdo_zstd) { runTest(u8
 
 // BC6HU:
 //    - VK_FORMAT_R16G16B16_SFLOAT
-TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) { runTest(u8"rgb16_sfloat_bc6hu.ktx2"); }
+TEST_F(ktxTexture2BCnDecodeTestBase, decode_rgb16_sfloat_bc6hu) { runTest(u8"rgb16_sfloat_bc6hu.ktx2", u8"rgb16_sfloat_input_for_bc6hu.ktx2"); }
 // RDO is not supported for HDR formats
 
 // TODO: add BC6HS decode test once a BC6HS encoder is implemented (if it is at all planned)
