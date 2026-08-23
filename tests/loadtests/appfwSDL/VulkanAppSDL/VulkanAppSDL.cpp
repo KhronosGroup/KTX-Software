@@ -233,14 +233,13 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     VkResult res = acquireNextImage();
 
 	// Handle outdated error in acquire.
-	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (/*res == VK_SUBOPTIMAL_KHR || */res == VK_ERROR_OUT_OF_DATE_KHR) {
 		resizeWindow(w_width, w_height);
 		res = acquireNextImage();
-	}
-
-	if (res != VK_SUCCESS) {
-		vkQueueWaitIdle(vkctx.queue);
-		return;
+	    if (res != VK_SUCCESS) {
+		    vkQueueWaitIdle(vkctx.queue);
+		    return;
+	    }
 	}
 
     // Submit post present image barrier to transform the image back to a
@@ -303,6 +302,8 @@ VulkanAppSDL::resizeWindow(int, int)
 
     w_width = surface_properties.currentExtent.width;
     w_height = surface_properties.currentExtent.height;
+
+    VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 
     // This destroys any existing swapchain and makes a new one.
     createSwapchain();
@@ -372,7 +373,7 @@ VulkanAppSDL::acquireNextImage()
 	}
     res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
-	if (res != VK_SUCCESS)
+	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR)
 	{
 		vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
 		return res;
@@ -407,7 +408,7 @@ VulkanAppSDL::acquireNextImage()
 
 	vkctx.frames[currentImage].semaphores.presentComplete = presentCompleteSemaphore;
 
-	return VK_SUCCESS;
+	return res;
 }
 
 
@@ -471,6 +472,11 @@ VulkanAppSDL::submitFrame()
                    ? vkctx.frames[currentImage].semaphores.textOverlayComplete
                    : vkctx.frames[currentImage].semaphores.renderComplete);
 
+    // This is necessary because the text overlay's command buffer changes
+    // every frame and, although the other command buffers are the same
+    // every frame, they aren't marked for simultaneous use.
+    VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
+
 	// Handle outdated error in present.
 	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
         // Our resize handler recreates the swap-chain and redraws the
@@ -484,10 +490,7 @@ VulkanAppSDL::submitFrame()
         }
     }
 
-    // This is necessary because the text overlay's command buffer changes
-    // every frame and, although the other command buffers are the same
-    // every frame, they aren't marked for simultaneous use.
-    VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
+
 }
 
 
