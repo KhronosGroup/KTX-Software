@@ -223,6 +223,9 @@ VulkanAppSDL::doEvent(SDL_Event* event)
     return AppBaseSDL::doEvent(event);
 }
 
+#define IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW 0
+#define IGNORE_SUBPTIMAL_ACQUIRE IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW
+#define IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT 0
 
 void
 VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
@@ -233,13 +236,17 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     VkResult res = acquireNextImage();
 
 	// Handle outdated error in acquire.
-	if (/*res == VK_SUBOPTIMAL_KHR || */res == VK_ERROR_OUT_OF_DATE_KHR) {
+#if !IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW
+	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
 		resizeWindow(w_width, w_height);
 		res = acquireNextImage();
-	    if (res != VK_SUCCESS) {
-		    vkQueueWaitIdle(vkctx.queue);
-		    return;
-	    }
+	}
+	if (res != VK_SUCCESS) {
+#else
+	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
+#endif
+		vkQueueWaitIdle(vkctx.queue);
+		return;
 	}
 
     // Submit post present image barrier to transform the image back to a
@@ -373,8 +380,16 @@ VulkanAppSDL::acquireNextImage()
 	}
     res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
-	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR)
-	{
+#if !IGNORE_SUBPTIMAL_ACQUIRE
+	if (res == VK_SUBOPTIMAL_KHR) {
+		// Some implementations signal the semaphore in this case. Since passing a
+		// signalled semaphore to acquireNextImage is invalid we must remove it.
+		vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
+		return res;
+	} else if (res != VK_SUCCESS) {
+#else
+	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
+#endif
 		vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
 		return res;
 	}
@@ -474,8 +489,10 @@ VulkanAppSDL::submitFrame()
 
 	// Handle outdated error in present.
 	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+#if !IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT
         resizeWindow(w_width, w_height);
         return;
+#endif
     } else if (res != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
