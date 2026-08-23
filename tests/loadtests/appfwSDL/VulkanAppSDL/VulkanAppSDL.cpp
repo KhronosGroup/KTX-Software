@@ -223,9 +223,9 @@ VulkanAppSDL::doEvent(SDL_Event* event)
     return AppBaseSDL::doEvent(event);
 }
 
-#define IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW 0
+#define IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW 1
 #define IGNORE_SUBPTIMAL_ACQUIRE IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW
-#define IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT 0
+#define IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT 1
 
 void
 VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
@@ -296,20 +296,23 @@ VulkanAppSDL::windowResized()
 void
 VulkanAppSDL::resizeWindow(int, int)
 {
-    // Recreate swap chain.
     VkSurfaceCapabilitiesKHR surface_properties;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkctx.gpu, vkctx.swapchain.getSurface(), &surface_properties);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkctx.gpu, vkctx.swapchain.getSurface(),
+                                              &surface_properties);
 
-	// Only rebuild the swapchain if the dimensions have changed
+	// Only re-create the swapchain if the dimensions have changed.
 	if (surface_properties.currentExtent.width == w_width &&
 	    surface_properties.currentExtent.height == w_height)
 	{
 		return;
 	}
 
+    // Set width & height from surface properties not passed arguments so this can be
+    // called from places other than the resize event handler.
     w_width = surface_properties.currentExtent.width;
     w_height = surface_properties.currentExtent.height;
 
+    // In-flight rendering must be complete before any images can be deleted.
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 
     // This destroys any existing swapchain and makes a new one.
@@ -325,7 +328,7 @@ VulkanAppSDL::resizeWindow(int, int)
     }
 
     // XXX Is this necessary? Is Willems doing this?
-    vkDestroyRenderPass(vkctx.device, vkctx.renderPass, NULL);
+    //vkDestroyRenderPass(vkctx.device, vkctx.renderPass, NULL);
 
     vkctx.destroyPresentCommandBuffers();
     (void)(prepareDepthBuffer() // XXX Call it DepthStencil?
@@ -363,9 +366,11 @@ VulkanAppSDL::onFPSUpdate()
 VkResult
 VulkanAppSDL::acquireNextImage()
 {
-    // Acquire the next image from the swap chain
     VkResult res;
     VkSemaphore presentCompleteSemaphore;
+    // Since we don't know which image will be acquired we cannot pass a
+    // semaphore associated with a particular image. Make a new one which
+    // we will associate with the image later.
 	if (vkctx.recycledSemaphores.empty()) {
 		VkSemaphoreCreateInfo semaphore_info {
 		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
@@ -378,12 +383,13 @@ VulkanAppSDL::acquireNextImage()
 		presentCompleteSemaphore = vkctx.recycledSemaphores.back();
 		vkctx.recycledSemaphores.pop_back();
 	}
+    // Acquire the next image from the swap chain
     res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
 #if !IGNORE_SUBPTIMAL_ACQUIRE
 	if (res == VK_SUBOPTIMAL_KHR) {
 		// Some implementations signal the semaphore in this case. Since passing a
-		// signalled semaphore to acquireNextImage is invalid we must remove it.
+		// signalled semaphore to acquireNextImage is invalid we cannot recycle it.
 		vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
 		return res;
 	} else if (res != VK_SUCCESS) {
@@ -394,27 +400,7 @@ VulkanAppSDL::acquireNextImage()
 		return res;
 	}
 
-#if 0
-	// If we have outstanding fences for this swapchain image, wait for them to complete first.
-	// After begin frame returns, it is safe to reuse or delete resources which
-	// were used previously.
-	//
-	// We wait for fences which completes N frames earlier, so we do not stall,
-	// waiting for all GPU work to complete before this returns.
-	// Normally, this doesn't really block at all,
-	// since we're waiting for old frames to have been completed, but just in case.
-	if (context.per_frame[*image].queue_submit_fence != VK_NULL_HANDLE)
-	{
-		vkWaitForFences(context.device, 1, &context.per_frame[*image].queue_submit_fence, true, UINT64_MAX);
-		vkResetFences(context.device, 1, &context.per_frame[*image].queue_submit_fence);
-	}
-
-	if (context.per_frame[*image].primary_command_pool != VK_NULL_HANDLE)
-	{
-		vkResetCommandPool(context.device, context.per_frame[*image].primary_command_pool, 0);
-	}
-#endif
-	// Recycle the old semaphore back into the semaphore manager.
+	// Recycle the image's old semaphore back into the semaphore manager.
 	VkSemaphore oldSemaphore = vkctx.frames[currentImage].semaphores.presentComplete;
 
 	if (oldSemaphore != VK_NULL_HANDLE) {
@@ -501,8 +487,8 @@ VulkanAppSDL::submitFrame()
         }
     }
     // This is necessary because the text overlay's command buffer changes
-    // every frame and, although the other command buffers are the same
-    // every frame, they aren't marked for simultaneous use.
+    // every frame and the other command buffers aren't marked for
+    // simultaneous use. although they are the same every frame.
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 }
 
