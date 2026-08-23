@@ -334,7 +334,7 @@ VulkanAppSDL::resizeWindow(int, int)
     (void)(prepareDepthBuffer() // XXX Call it DepthStencil?
         && vkctx.createPresentCommandBuffers()
         && preparePresentCommandBuffers()
-        && prepareRenderPass()
+        //&& prepareRenderPass()
         && prepareFramebuffers());
 
     flushInitialCommands();
