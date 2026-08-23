@@ -472,16 +472,10 @@ VulkanAppSDL::submitFrame()
                    ? vkctx.frames[currentImage].semaphores.textOverlayComplete
                    : vkctx.frames[currentImage].semaphores.renderComplete);
 
-    // This is necessary because the text overlay's command buffer changes
-    // every frame and, although the other command buffers are the same
-    // every frame, they aren't marked for simultaneous use.
-    VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
-
 	// Handle outdated error in present.
 	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
-        // Our resize handler recreates the swap-chain and redraws the
-        // content so I don't think we have to do anything here.
         resizeWindow(w_width, w_height);
+        return;
     } else if (res != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
@@ -489,8 +483,10 @@ VulkanAppSDL::submitFrame()
                                      NULL);
         }
     }
-
-
+    // This is necessary because the text overlay's command buffer changes
+    // every frame and, although the other command buffers are the same
+    // every frame, they aren't marked for simultaneous use.
+    VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 }
 
 
