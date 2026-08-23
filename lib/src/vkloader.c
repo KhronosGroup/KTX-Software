@@ -810,7 +810,11 @@ freeUploadResources(ktxVulkanDeviceInfo* vdi, VkBufferImageCopy** copyRegions, b
  * @param[in] This                        pointer to the ktxTexture from which to upload.
  * @param [in] vdi                        pointer to a ktxVulkanDeviceInfo structure providing
  *                                        information about the Vulkan device onto which to
- *                                        load the texture.
+ *                                        load the texture. If subAllocatorCallbacks and 
+ *                                        queueMutexCallbacks are provided, this operation
+ *                                        is assumed to be taking place in a threaded
+ *                                        environment requiring a per-thread value for
+ *                                        this parameter.
  * @param [in,out] vkTexture              pointer to a ktxVulkanTexture structure into which
  *                                        the function writes information about the created
  *                                        VkImage.
@@ -829,10 +833,10 @@ freeUploadResources(ktxVulkanDeviceInfo* vdi, VkBufferImageCopy** copyRegions, b
  * @param [in] queueMutexCallbacks        If used in conjunction with suballocator callbacks
  *                                        that guard against simultaneous access to memory
  *                                        (or additionally queue if sparse binding support
- *                                        is added) and external suballocation managements
- *                                        objects, it can make UploadEx fully thread-safe
- *                                        and efficiently so. This is assuming that a
- *                                        per-thread VDI is used as well.
+ *                                        is added) and external suballocation management
+ *                                        objects, it can make this function fully 
+ *                                        thread-safe and efficiently so. As noted, a 
+ *                                        per-thread VDI is a necessity when this is supplied.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
