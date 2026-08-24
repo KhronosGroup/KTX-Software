@@ -148,18 +148,6 @@ class VulkanAppSDL : public AppBaseSDL {
     // Index of active framebuffer image.
     uint32_t currentImage;
 
-#if 0
-    // Synchronization semaphores
-    struct {
-        // Swap chain image presentation
-        VkSemaphore presentComplete;
-        // Command buffer submission and execution
-        VkSemaphore renderComplete;
-        // Text overlay submission and execution
-        VkSemaphore textOverlayComplete;
-    } semaphores;
-#endif
-
     const uint32_t vkVersion;
 
     // Saved for clean-up
