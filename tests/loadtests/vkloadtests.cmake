@@ -440,6 +440,17 @@ else()
     # ${CMAKE_INSTALL_LIBDIR}? NOTE: if we put lib in /opt/<provider>
     # then consider putting the executables in /opt/provider/<target>.
 
+    # TODO: Note somewhere in the documentation that to run this on
+    # Ubuntu/Debian (24.04 or later only) you need to either install
+    # the Vulkan SDK or install libvulkan1 and, if you want to run
+    # validation, vulkan-validationlayers:
+    #     sudo apt install libvulkan1 vulkan-validationlayers
+    # You also need a Vulkan ICD from your GPU's maker or, as a fallback,
+    # mesa-vulkan-drivers.
+
+    # TODO: Figure out how to add the above packages as dependencies
+    # of the install package and whether doing so is a good idea.
+
     # TODO: Before adding this target to the release packages, ensure
     # this RPATH will work for alternate install root.
     set_target_properties( vkloadtests PROPERTIES
