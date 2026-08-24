@@ -246,7 +246,7 @@ VulkanSwapchain::connectInstance(VkInstance targetInstance,
 
 // Create the swap chain and get images with given width and height
 void
-VulkanSwapchain::create(uint32_t *width, uint32_t *height,
+VulkanSwapchain::create(uint32_t& width, uint32_t& height,
                         bool vsync)
 {
     U_ASSERT_ONLY VkResult err;
@@ -278,14 +278,14 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     {
         // If the surface size is undefined, the size is set to
         // the size of the images requested.
-        swapchainExtent.width = *width;
-        swapchainExtent.height = *height;
+        swapchainExtent.width = width;
+        swapchainExtent.height = height;
     }
     else
     {
         swapchainExtent = surfCaps.currentExtent;
-        *width = surfCaps.currentExtent.width;
-        *height = surfCaps.currentExtent.height;
+        width = surfCaps.currentExtent.width;
+        height = surfCaps.currentExtent.height;
     }
 
 
