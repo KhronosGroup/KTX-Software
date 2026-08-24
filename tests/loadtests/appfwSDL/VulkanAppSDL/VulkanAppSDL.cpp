@@ -223,9 +223,7 @@ VulkanAppSDL::doEvent(SDL_Event* event)
     return AppBaseSDL::doEvent(event);
 }
 
-#define IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW 1
-#define IGNORE_SUBPTIMAL_ACQUIRE IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW
-#define IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT 1
+#define RECREATE_SWAPCHAIN_ON_SUBOPTIMAL 1
 
 void
 VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
@@ -236,15 +234,11 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     VkResult res = acquireNextImage();
 
 	// Handle outdated error in acquire.
-#if !IGNORE_SUBPTIMAL_OUTDATED_BEFORE_DRAW
-	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
 		resizeWindow(w_width, w_height);
 		res = acquireNextImage();
 	}
-	if (res != VK_SUCCESS) {
-#else
-	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
-#endif
+	if (res != VK_SUCCESS && (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res != VK_SUBOPTIMAL_KHR)) {
 		vkQueueWaitIdle(vkctx.queue);
 		return;
 	}
@@ -386,17 +380,15 @@ VulkanAppSDL::acquireNextImage()
     // Acquire the next image from the swap chain
     res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
-#if !IGNORE_SUBPTIMAL_ACQUIRE
-	if (res == VK_SUBOPTIMAL_KHR) {
-		// Some implementations signal the semaphore in this case. Since passing a
-		// signalled semaphore to acquireNextImage is invalid we cannot recycle it.
-		vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
-		return res;
-	} else if (res != VK_SUCCESS) {
-#else
-	if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
-#endif
-		vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
+        if (res == VK_SUBOPTIMAL_KHR) {
+            // Some implementations signal the semaphore in this case. Since passing a
+            // signalled semaphore to acquireNextImage is invalid we cannot recycle it.
+            vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
+            return res;
+        } else {
+		    vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
+        }
 		return res;
 	}
 
@@ -474,11 +466,8 @@ VulkanAppSDL::submitFrame()
                    : vkctx.perFb[currentImage].semaphores.renderComplete);
 
 	// Handle outdated error in present.
-	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
-#if !IGNORE_SUBPTIMAL_OUTDATED_AFTER_PRESENT
+	if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
         resizeWindow(w_width, w_height);
-        return;
-#endif
     } else if (res != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
