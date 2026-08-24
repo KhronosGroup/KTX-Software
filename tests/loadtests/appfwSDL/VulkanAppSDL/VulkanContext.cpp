@@ -96,13 +96,11 @@ VulkanContext::createDrawCommandBuffers()
     aInfo.pNext = NULL;
     aInfo.commandPool = commandPool;
     aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
+    aInfo.commandBufferCount = swapchain.imageCount;
 
     drawCmdBuffers.resize(swapchain.imageCount);
-    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &drawCmdBuffers[i]));
-    }
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    drawCmdBuffers.data()));
     return true;
 }
 
@@ -114,16 +112,14 @@ VulkanContext::createPresentCommandBuffers()
     aInfo.pNext = NULL;
     aInfo.commandPool = commandPool;
     aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
+    aInfo.commandBufferCount = swapchain.imageCount;
 
     prePresentCmdBuffers.resize(swapchain.imageCount);
     postPresentCmdBuffers.resize(swapchain.imageCount);
-    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &prePresentCmdBuffers[i]));
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &postPresentCmdBuffers[i]));
-    }
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    prePresentCmdBuffers.data()));
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    postPresentCmdBuffers.data()));
     return true;
 }
 
@@ -138,7 +134,6 @@ VulkanContext::destroyDrawCommandBuffers()
     for (uint32_t i = 0; i < drawCmdBuffers.size(); ++i) {
         drawCmdBuffers[i] = nullptr;
     }
-
 }
 
 void
@@ -226,8 +221,9 @@ VulkanContext::createSemaphores()
                                           &semaphore_info,
                                           nullptr,
                                           &perFb[i].semaphores.textOverlayComplete));
-        // Do not create a presentComplete semaphore. See
-        // VulkanAppSDL::acquireNextImage for explanation.
+        // A presentComplete semaphore cannot be permanently associated with a
+        // framebuffer so not created here. See VulkanAppSDL::acquireNextImage
+        // for explanation.
     }
 
     // TODO: Move this somewhere else.

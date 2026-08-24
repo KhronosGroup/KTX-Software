@@ -93,6 +93,8 @@ struct VulkanContext {
             VkSemaphore     renderComplete          = VK_NULL_HANDLE;
             VkSemaphore     textOverlayComplete     = VK_NULL_HANDLE;
         } semaphores;
+        // CommandBuffers not added here because Allocate and Free commands can handle an
+        // array of buffers.
 	};
     std::vector<PerFramebufferData> perFb;
 
