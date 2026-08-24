@@ -223,8 +223,6 @@ VulkanAppSDL::doEvent(SDL_Event* event)
     return AppBaseSDL::doEvent(event);
 }
 
-#define RECREATE_SWAPCHAIN_ON_SUBOPTIMAL 1
-
 void
 VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
 {
@@ -233,15 +231,16 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
 
     VkResult res = acquireNextImage();
 
-	// Handle outdated error in acquire.
-    if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
-		resizeWindow(w_width, w_height);
-		res = acquireNextImage();
-	}
-	if (res != VK_SUCCESS && (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res != VK_SUBOPTIMAL_KHR)) {
-		vkQueueWaitIdle(vkctx.queue);
-		return;
-	}
+    if (res != VK_SUCCESS) {
+        if (!acquireNextImageErrorWarned) {
+            std::stringstream msg;
+            msg << "Failed to acquire swapchain image: VK_RESULT = " << res;
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
+                                     msg.str().c_str(), NULL);
+            acquireNextImageErrorWarned = true;
+        }
+        return;
+    }
 
     // Submit post present image barrier to transform the image back to a
     // color attachment that our render pass can write to
@@ -356,6 +355,9 @@ VulkanAppSDL::onFPSUpdate()
 //  Frame draw utilities
 //----------------------------------------------------------------------
 
+#if !defined(RECREATE_SWAPCHAIN_ON_SUBOPTIMAL)
+  #define RECREATE_SWAPCHAIN_ON_SUBOPTIMAL 0
+#endif
 
 VkResult
 VulkanAppSDL::acquireNextImage()
@@ -380,15 +382,23 @@ VulkanAppSDL::acquireNextImage()
     // Acquire the next image from the swap chain
     res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
 
-    if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
+    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)
+        res = VK_SUCCESS;
+
+    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         if (res == VK_SUBOPTIMAL_KHR) {
-            // Some implementations signal the semaphore in this case. Since passing a
+            // Implementations can signal the semaphore in this case. Since passing a
             // signalled semaphore to acquireNextImage is invalid we cannot recycle it.
             vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
             return res;
         } else {
 		    vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
         }
+        resizeWindow(w_width, w_height);
+        res = acquireNextImage();
+	}
+	if (res != VK_SUCCESS) {
+		vkQueueWaitIdle(vkctx.queue);
 		return res;
 	}
 
@@ -465,14 +475,20 @@ VulkanAppSDL::submitFrame()
                    ? vkctx.perFb[currentImage].semaphores.textOverlayComplete
                    : vkctx.perFb[currentImage].semaphores.renderComplete);
 
-	// Handle outdated error in present.
-	if (res == VK_ERROR_OUT_OF_DATE_KHR || (RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)) {
+	// Handle error in present.
+    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR) {
+        res = VK_SUCCESS;
+    }
+
+	if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         resizeWindow(w_width, w_height);
     } else if (res != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
+            std::stringstream msg;
+            msg << "Failed to present swapchain image: VK_RESULT = " << res;
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
-                                     "Failed to present swapchain image.",
-                                     NULL);
+                                     msg.str().c_str(), NULL);
+            presentSwapchainErrorWarned = true;
         }
     }
     // This is necessary because the text overlay's command buffer changes
