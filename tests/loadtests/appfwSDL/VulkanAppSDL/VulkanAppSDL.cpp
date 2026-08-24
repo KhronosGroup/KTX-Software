@@ -373,29 +373,33 @@ VulkanAppSDL::acquireNextImage()
             .pNext = NULL,
             .flags = 0
         };
-        VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
+        VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info,
+                                          nullptr,
                                           &presentCompleteSemaphore));
 	} else {
 		presentCompleteSemaphore = vkctx.recycledSemaphores.back();
 		vkctx.recycledSemaphores.pop_back();
 	}
     // Acquire the next image from the swap chain
-    res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore, &currentImage);
+    res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore,
+                                           &currentImage);
 
     if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)
         res = VK_SUCCESS;
 
     if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
         if (res == VK_SUBOPTIMAL_KHR) {
-            // Implementations can signal the semaphore in this case. Since passing a
-            // signalled semaphore to acquireNextImage is invalid we cannot recycle it.
+            // Implementations can signal the semaphore in this case. Since
+            // passing a signaled semaphore to acquireNextImage is invalid
+            // we cannot recycle it.
             vkDestroySemaphore(vkctx.device, presentCompleteSemaphore, nullptr);
-            return res;
         } else {
 		    vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
         }
         resizeWindow(w_width, w_height);
         res = acquireNextImage();
+        if (res == VK_SUCCESS)
+            return res; // The recursive call sets the semaphore on the FB.
 	}
 	if (res != VK_SUCCESS) {
 		vkQueueWaitIdle(vkctx.queue);
