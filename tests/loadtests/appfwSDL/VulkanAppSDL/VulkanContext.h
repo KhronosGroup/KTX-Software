@@ -85,19 +85,16 @@ struct VulkanContext {
     VkPipelineCache pipelineCache;
 
     VulkanSwapchain swapchain;
-    // List of frame buffers (same as number of swap chain images)
+    // List of frame buffers and per-buffer items (same as number of swap chain images)
     std::vector<VkFramebuffer> framebuffers;
-    struct Frame {
-//		VkFence         queue_submit_fence          = VK_NULL_HANDLE;
-//		VkCommandPool   primary_command_pool        = VK_NULL_HANDLE;
-//		VkCommandBuffer primary_command_buffer      = VK_NULL_HANDLE;
+    struct PerFramebufferData {
         struct {
             VkSemaphore     presentComplete         = VK_NULL_HANDLE;
             VkSemaphore     renderComplete          = VK_NULL_HANDLE;
             VkSemaphore     textOverlayComplete     = VK_NULL_HANDLE;
         } semaphores;
 	};
-    std::vector<Frame> frames;
+    std::vector<PerFramebufferData> perFb;
 
     // A set of semaphores that can be reused.
     std::vector<VkSemaphore> recycledSemaphores;
@@ -114,10 +111,14 @@ struct VulkanContext {
 
     // Create a command buffer for each image in the swap chain.
     bool createDrawCommandBuffers();
-    bool createPresentCommandBuffers();
     bool checkDrawCommandBuffers();
+    bool createPresentCommandBuffers();
+    void createFramebuffers(uint32_t width, uint32_t height);
+    void createSemaphores();
+    void createSwapchain(uint32_t& width, uint32_t& height, bool enableVSync);
     void destroyDrawCommandBuffers();
     void destroyPresentCommandBuffers();
+
 
 
     bool getMemoryType(uint32_t typeBits,

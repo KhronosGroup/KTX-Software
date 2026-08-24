@@ -56,7 +56,7 @@ class VulkanSwapchain
                          VkPhysicalDevice physicalDevice);
 
     // Create the swap chain and get images with given width and height
-    void create(uint32_t *width, uint32_t *height,
+    void create(uint32_t& width, uint32_t& height,
                 bool vsync = false);
 
     // Acquires the next image in the swap chain
