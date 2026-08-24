@@ -259,24 +259,24 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     // Must wait for presentComplete before transforming the image.
     submitInfo.waitSemaphoreCount   = 1;
-    submitInfo.pWaitSemaphores      = &vkctx.frames[currentImage].semaphores.presentComplete;
+    submitInfo.pWaitSemaphores      = &vkctx.perFb[currentImage].semaphores.presentComplete;
     submitInfo.pWaitDstStageMask    = &waitFlags;
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1,
                                   &submitInfo, VK_NULL_HANDLE));
 
 	// Submit draw command to the queue with a renderComplete semaphore.
-	if (vkctx.frames[currentImage].semaphores.renderComplete == VK_NULL_HANDLE) {
+	if (vkctx.perFb[currentImage].semaphores.renderComplete == VK_NULL_HANDLE) {
 		VkSemaphoreCreateInfo semaphore_info {
 		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
             .pNext = NULL,
             .flags = 0
         };
 		VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
-                        &vkctx.frames[currentImage].semaphores.renderComplete));
+                        &vkctx.perFb[currentImage].semaphores.renderComplete));
 	}
     vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
     vkctx.drawCmdSubmitInfo.pSignalSemaphores
-                 = &vkctx.frames[currentImage].semaphores.renderComplete;
+                 = &vkctx.perFb[currentImage].semaphores.renderComplete;
     vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
     vkctx.drawCmdSubmitInfo.pCommandBuffers = &vkctx.drawCmdBuffers[currentImage];
 
@@ -401,13 +401,13 @@ VulkanAppSDL::acquireNextImage()
 	}
 
 	// Recycle the image's old semaphore back into the semaphore manager.
-	VkSemaphore oldSemaphore = vkctx.frames[currentImage].semaphores.presentComplete;
+	VkSemaphore oldSemaphore = vkctx.perFb[currentImage].semaphores.presentComplete;
 
 	if (oldSemaphore != VK_NULL_HANDLE) {
 		vkctx.recycledSemaphores.push_back(oldSemaphore);
 	}
 
-	vkctx.frames[currentImage].semaphores.presentComplete = presentCompleteSemaphore;
+	vkctx.perFb[currentImage].semaphores.presentComplete = presentCompleteSemaphore;
 
 	return res;
 }
@@ -430,20 +430,20 @@ VulkanAppSDL::submitFrame()
         // Wait for render complete semaphore
         vkctx.drawCmdSubmitInfo.waitSemaphoreCount = 1;
         vkctx.drawCmdSubmitInfo.pWaitSemaphores
-                = &vkctx.frames[currentImage].semaphores.renderComplete;
+                = &vkctx.perFb[currentImage].semaphores.renderComplete;
         // Signal ready with text overlay complete semaphore
-        if (vkctx.frames[currentImage].semaphores.textOverlayComplete == VK_NULL_HANDLE) {
+        if (vkctx.perFb[currentImage].semaphores.textOverlayComplete == VK_NULL_HANDLE) {
             VkSemaphoreCreateInfo semaphore_info {
                 .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
                 .pNext = NULL,
                 .flags = 0
             };
             VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
-                            &vkctx.frames[currentImage].semaphores.textOverlayComplete));
+                            &vkctx.perFb[currentImage].semaphores.textOverlayComplete));
         }
         vkctx.drawCmdSubmitInfo.signalSemaphoreCount = 1;
         vkctx.drawCmdSubmitInfo.pSignalSemaphores
-                                  = &vkctx.frames[currentImage].semaphores.textOverlayComplete;
+                                  = &vkctx.perFb[currentImage].semaphores.textOverlayComplete;
 
         // Submit current text overlay command buffer
         vkctx.drawCmdSubmitInfo.commandBufferCount = 1;
@@ -470,8 +470,8 @@ VulkanAppSDL::submitFrame()
     VkResult res =
             vkctx.swapchain.queuePresent(vkctx.queue, currentImage,
                submitTextOverlay
-                   ? vkctx.frames[currentImage].semaphores.textOverlayComplete
-                   : vkctx.frames[currentImage].semaphores.renderComplete);
+                   ? vkctx.perFb[currentImage].semaphores.textOverlayComplete
+                   : vkctx.perFb[currentImage].semaphores.renderComplete);
 
 	// Handle outdated error in present.
 	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -1015,51 +1015,15 @@ VulkanAppSDL::createDevice()
 bool
 VulkanAppSDL::createSemaphores()
 {
-#if 0
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreCreateInfo.pNext = NULL;
-    semaphoreCreateInfo.flags = 0;
-
-    // Semaphore used to synchronize image presentation.
-    // Ensures that the image is displayed before we start submitting new
-    // commands to the queue.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.presentComplete));
-    // Semaphore used to synchronize render command submission.
-    // Ensures that the image is not presented until all render commands have
-    // been submitted and executed.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.renderComplete));
-    // Semaphore used to synchronize text overlay command submission.
-    // Ensures that the image is not presented until all commands for the
-    // text overlay have been submitted and executed. Will be inserted after
-    // the render complete semaphore if the text overlay is enabled.
-    VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device,
-                                      &semaphoreCreateInfo,
-                                      nullptr,
-                                      &semaphores.textOverlayComplete));
-#endif
-    // Set up submit info structure
-    // Semaphores will stay the same during application lifetime
-    // Command buffer submission info is set by each example
-    vkctx.drawCmdSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    vkctx.drawCmdSubmitInfo.pNext = NULL;
-    vkctx.drawCmdSubmitInfo.pWaitDstStageMask = &vkctx.submitPipelineStages;
-   return true;
+    vkctx.createSemaphores();
+    return true;
 }
 
 
 bool
 VulkanAppSDL::createSwapchain()
 {
-    // TODO: Move this to a function in vkctx
-    vkctx.swapchain.create(&w_width, &w_height, enableVSync);
-    vkctx.frames.resize(vkctx.swapchain.imageCount);
+    vkctx.createSwapchain(w_width, w_height, enableVSync);
 #if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
     extern void setWantsExtendedDynamicRangeContent(SDL_Window* window, bool enable);
     if (hdr)
@@ -1337,30 +1301,7 @@ VulkanAppSDL::prepareDescriptorSet()
 bool
 VulkanAppSDL::prepareFramebuffers()
 {
-    VkImageView attachments[2];
-    attachments[1] = vkctx.depthBuffer.view;
-
-    const VkFramebufferCreateInfo fb_info = {
-        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        NULL,
-        0,
-        vkctx.renderPass,
-        2,
-        attachments,
-        w_width,
-        w_height,
-        1,
-    };
-    U_ASSERT_ONLY VkResult err;
-    uint32_t i;
-
-    vkctx.framebuffers.resize(vkctx.swapchain.imageCount);
-    for (i = 0; i < vkctx.framebuffers.size(); i++) {
-        attachments[0] = vkctx.swapchain.buffers[i].view;
-        err = vkCreateFramebuffer(vkctx.device, &fb_info, NULL,
-                                  &vkctx.framebuffers[i]);
-        assert(!err);
-    }
+    vkctx.createFramebuffers(w_width, w_height);
     return true;
 }
 
