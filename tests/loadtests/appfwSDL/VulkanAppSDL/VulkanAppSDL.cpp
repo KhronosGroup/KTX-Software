@@ -1423,7 +1423,7 @@ void VulkanAppSDL::updateTextOverlay()
 
     ss.str("");
     ss << vkctx.gpuProperties.deviceName << " with "
-       << vkctx.gpuDriverProperties.driverName << " v"
+       << vkctx.gpuDriverProperties.driverName << " version "
        << vkctx.gpuDriverProperties.driverInfo;
     textOverlay->addText(ss.str(), 5.0f, 45.0f,
                          VulkanTextOverlay::alignLeft);
