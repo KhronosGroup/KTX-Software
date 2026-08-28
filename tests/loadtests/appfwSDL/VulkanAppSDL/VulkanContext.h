@@ -50,7 +50,12 @@ struct VulkanContext {
     vk::PhysicalDevicePortabilitySubsetFeaturesKHR& gpuPortabilityFeatures =
         gpuFeaturesChain.get<vk::PhysicalDevicePortabilitySubsetFeaturesKHR>();
 #endif
-    vk::PhysicalDeviceProperties gpuProperties;
+    vk::StructureChain<vk::PhysicalDeviceProperties2,
+        vk::PhysicalDeviceDriverProperties> gpuPropertiesChain;
+    vk::PhysicalDeviceProperties& gpuProperties
+        = gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>().properties;
+    vk::PhysicalDeviceDriverProperties& gpuDriverProperties
+        = gpuPropertiesChain.get<vk::PhysicalDeviceDriverProperties>();
     vk::PhysicalDeviceMemoryProperties memoryProperties;
     vk::Device device;
     vk::CommandPool commandPool;

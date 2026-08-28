@@ -1005,6 +1005,7 @@ VulkanAppSDL::createDevice()
                                        msg.str().c_str(), NULL);
         return false;
     }
+    vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
 
     const vk::CommandPoolCreateInfo cmdPoolInfo(
         vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -1420,10 +1421,11 @@ void VulkanAppSDL::updateTextOverlay()
        << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)";
     textOverlay->addText(ss.str(), 5.0f, 25.0f, VulkanTextOverlay::alignLeft);
 
-    // Cast is a workaround for a change in Vulkan SDK 1.2.141 to the
-    // declaration of deviceName in PhysicalDeviceProperties from a char
-    // array to use an Array1D template.
-    textOverlay->addText((char*)vkctx.gpuProperties.deviceName, 5.0f, 45.0f,
+    ss.str("");
+    ss << vkctx.gpuProperties.deviceName << " with "
+       << vkctx.gpuDriverProperties.driverName << " v"
+       << vkctx.gpuDriverProperties.driverInfo;
+    textOverlay->addText(ss.str(), 5.0f, 45.0f,
                          VulkanTextOverlay::alignLeft);
 
     // Leave a blank line between us and the derived class's text.
