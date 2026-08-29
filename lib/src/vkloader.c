@@ -810,11 +810,11 @@ freeUploadResources(ktxVulkanDeviceInfo* vdi, VkBufferImageCopy** copyRegions, b
  * @param[in] This                        pointer to the ktxTexture from which to upload.
  * @param [in] vdi                        pointer to a ktxVulkanDeviceInfo structure providing
  *                                        information about the Vulkan device onto which to
- *                                        load the texture. If subAllocatorCallbacks and 
- *                                        queueMutexCallbacks are provided, this operation
- *                                        is assumed to be taking place in a threaded
- *                                        environment requiring a per-thread value for
- *                                        this parameter.
+ *                                        load the texture. If calling this function from
+ *                                        multiple threads, a per-thread value is required for
+ *                                        this parameter. This will be the case when
+ *                                        subAllocatorCallbacks and queueMutexCallbacks are
+ *                                        provided but normally a single thread is used.
  * @param [in,out] vkTexture              pointer to a ktxVulkanTexture structure into which
  *                                        the function writes information about the created
  *                                        VkImage.
@@ -830,13 +830,16 @@ freeUploadResources(ktxVulkanDeviceInfo* vdi, VkBufferImageCopy** copyRegions, b
  *                                        They use a uint64_t stored in the @c allocationId
  *                                        field of the structure pointed at by @a vkTexture
  *                                        to reference allocated page(s).
- * @param [in] queueMutexCallbacks        If used in conjunction with suballocator callbacks
- *                                        that guard against simultaneous access to memory
- *                                        (or additionally queue if sparse binding support
- *                                        is added) and external suballocation management
- *                                        objects, it can make this function fully 
- *                                        thread-safe and efficiently so. As noted, a 
- *                                        per-thread VDI is a necessity when this is supplied.
+ * @param [in] queueMutexCallbacks        Pointer to a set of queue-mutex callbacks which
+ *                                        the function uses to protect accesses to the queue.
+ *                                        When used in conjunction with suballocator callbacks
+ *                                        that guard against simultaneous access to memory and
+ *                                        suballocation management objects, these will make the
+ *                                        function fully thread-safe and efficiently so.
+ *                                        Note that if sparse binding support is added, the
+ *                                        suballocator callbacks must also guard against
+ *                                        simultaneous access to the queue. Note also that a
+ *                                        per-thread VDI is necessary when using these callbacks.
  *
  * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
  *
