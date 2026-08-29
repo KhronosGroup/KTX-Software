@@ -8,8 +8,11 @@ if(APPLE)
     # file. Therefore ensure to make that env. var. available to CMake and
     # Xcode. Special care is needed to ensure it is available to the CMake
     # and Xcode GUIs.
+    if(NOT APPLE_LOCKED_OS)
+        set( kosmickrisp KosmicKrisp )
+    endif()
 #    set(CMAKE_FIND_DEBUG_MODE TRUE)
-    find_package( Vulkan REQUIRED COMPONENTS MoltenVK )
+    find_package( Vulkan REQUIRED COMPONENTS MoltenVK ${kosmickrisp} validation )
 #    set(CMAKE_FIND_DEBUG_MODE FALSE)
     # Derive some other useful variables from those provided by find_package
     if(APPLE_LOCKED_OS)
@@ -357,10 +360,9 @@ if(APPLE)
     # copies the executable and all files with the RESOURCE property to the
     # bundle adjusting for the difference in bundle layout between iOS &
     # macOS.
-
     if(IOS)
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_MoltenVK_LIBRARY};${Vulkan_LIBRARIES};${Vulkan_Layer_VALIDATION}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_MoltenVK_LIBRARY};${Vulkan_LIBRARIES};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY		"YES"
             XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY	"YES"
             # Set RPATH to find frameworks
@@ -373,7 +375,7 @@ if(APPLE)
         # hand the Vulkan and MoltenVK frameworks in the iOS SDK are not
         # signed. hence it is set there.
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_VALIDATION}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH @executable_path/../Frameworks
         )
