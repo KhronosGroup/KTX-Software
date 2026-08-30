@@ -395,6 +395,10 @@ Finding the Vulkan library along with additional components:
   target_link_libraries(project_target PRIVATE Vulkan::Vulkan Vulkan::volk)
 #]=======================================================================]
 
+if(APPLE)
+  cmake_minimum_required(VERSION 3.28)  # For .xcframework support in find_library.
+endif()
+
 cmake_policy(PUSH)
 cmake_policy(SET CMP0159 NEW) # file(STRINGS) with REGEX updates CMAKE_MATCH_<n>
 
@@ -415,31 +419,6 @@ if(NOT glslc IN_LIST Vulkan_FIND_COMPONENTS)
 endif()
 if(NOT glslangValidator IN_LIST Vulkan_FIND_COMPONENTS)
   list(APPEND Vulkan_FIND_COMPONENTS glslangValidator)
-endif()
-
-# FindVulkan only works correctly for iOS with CMAKE_FIND_FRAMEWORK set to
-# FIRST or ALWAYS. If LAST or NEVER it will find the macOS dylibs instead
-# of the iOS frameworks because the macOS lib directory has to be added to
-# the search path so libraries for various tools can be found.
-#
-# For macOS there is a MoltenVK.xcframework which contains a static library.
-# To find the MoltenVK.dylib, which is needed when building bundles we need
-# to LAST or NEVER. LAST appears to be default value.
-#
-# If frameworks are ever included in the SDK for macOS, the search mechanism
-# will need  revisiting.
-if(APPLE)
-    if(IOS)
-        if (NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "FIRST" AND NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "ALWAYS")
-            message(NOTICE "Temporarily setting CMAKE_FIND_FRAMEWORK to FIRST to find Vulkan iOS frameworks.")
-            set(_Vulkan_saved_cmake_find_framework ${CMAKE_FIND_FRAMEWORK})
-            set(CMAKE_FIND_FRAMEWORK FIRST)
-        endif()
-    else()
-        if (NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "LAST" AND NOT ${CMAKE_FIND_FRAMEWORK} STREQUAL "NEVER")
-            message(NOTICE "Temporarily setting CMAKE_FIND_FRAMEWORK to LAST to find Vulkan macOS dylibs.")
-        endif()
-    endif()
 endif()
 
 if(APPLE)
@@ -1225,6 +1204,11 @@ if(Vulkan_KosmicKrisp_FOUND)
         IMPORTED_LOCATION "${Vulkan_KosmicKrisp_LIBRARY}"
     )
   endif()
+endif()
+
+if(DEFINED _Vulkan_saved_cmake_find_framework)
+    set(CMAKE_FIND_FRAMEWORK ${_Vulkan_saved_cmake_find_framework})
+    unset(_Vulkan_saved_cmake_find_framework)
 endif()
 
 unset(_Vulkan_library_name)
