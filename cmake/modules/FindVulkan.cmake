@@ -399,8 +399,10 @@ if(APPLE)
   cmake_minimum_required(VERSION 3.28)  # For .xcframework support in find_library.
 endif()
 
-cmake_policy(PUSH)
-cmake_policy(SET CMP0159 NEW) # file(STRINGS) with REGEX updates CMAKE_MATCH_<n>
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.29)
+  cmake_policy(PUSH)
+  cmake_policy(SET CMP0159 NEW) # file(STRINGS) with REGEX updates CMAKE_MATCH_<n>
+endif()
 
 # Provide compatibility with a common invalid component request that
 # was silently ignored prior to CMake 3.24.
@@ -1216,4 +1218,6 @@ unset(_Vulkan_hint_include_search_paths)
 unset(_Vulkan_hint_executable_search_paths)
 unset(_Vulkan_hint_library_search_paths)
 
-cmake_policy(POP)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.29)
+  cmake_policy(POP)
+endif()
