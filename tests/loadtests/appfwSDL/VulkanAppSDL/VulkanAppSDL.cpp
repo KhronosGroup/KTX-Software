@@ -987,9 +987,13 @@ VulkanAppSDL::createDevice()
             (const char *const *)extensionsToEnable.data(),
             nullptr);
 
-    // Want to enable all available features in the queried device features so use the
-    // structure chain where getFeatures2 saved them.
+    // Want to enable all available features in the queried device features so
+    // use the structure chain where getFeatures2 saved them.
+#if VK_HEADER_VERSION < 304 // Rough estimate. Don't know which version fixed vulkan.hpp.
+    deviceInfo.pNext = (const void*)&vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>();
+#else
     deviceInfo.pNext = vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>();
+#endif
 
     err = vkctx.gpu.createDevice(&deviceInfo, NULL, &vkctx.device);
     if (err != vk::Result::eSuccess) {
