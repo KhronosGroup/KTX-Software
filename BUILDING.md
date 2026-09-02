@@ -54,9 +54,9 @@ If you need the library to be static, add `-D BUILD_SHARED_LIBS=OFF` to the CMak
 > apps that will be linked to the static library.
 
 If you want the Basis Universal encoders in `libktx` to use OpenCL
-add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command. In this case
-you must have an OpenCL development environment installed on the build machine
-and a driver on the run-time machine.
+add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command. In this
+case you must have an OpenCL development environment installed on the build
+machine and a driver on the run-time machine.
 
 > **Note:**
 > 
@@ -165,47 +165,53 @@ On Fedora and RedHat these can be installed via
 sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninja-build doxygen graphviz mesa-libOpenCL
 ```
 
-
 To build the load test applications you also need to install the following
 
 - [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
 - OpenGL development libraries
-- Vulkan development libraries
+- Vulkan development libraries and tools
 - [Vulkan SDK](#vulkan-sdk)
 - zlib development library
 
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install libsdl3-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan1 libvulkan-dev libassimp-dev
+sudo apt install libgl1-mesa-glx libgl1-mesa-dev libvulkan-dev glslang-tools glslc
 ```
 
 On Fedora and RedHat these can be installed via
 
 ```bash
-sudo dnf install SDL3-devel mesa-libGL mesa-libGL-devel mesa-vulkan-drivers assimp-devel
+sudo dnf install mesa-libGL mesa-libGL-devel glslang glslc vulkan-headers vulkan-loader
 ```
 
-KTX requires `glslc`, which comes with [Vulkan SDK](#vulkan-sdk) (in sub-
-folder `x86_64/bin/glslc`). Make sure the complete path to the tool is in
-in your environment's `PATH` variable. If you've followed Vulkan SDK
-install instructions for your platform this should already be set up. You
-can test it by running
+If you want to run Vulkan validation on `vkloadtests` (`--validate`) you
+also need to install `vulkan-validationlayers` (Ubuntu and Debian) or
+`vulkan-validation-layers` (Fedora and RedHat).
 
-```bash
-# Should output version number.
-glslc --version
-# If it fails, try this then repeat the above.
-export PATH=$PATH:/path/to/vulkansdk/x86_64/bin
-```
+> **Note:**
+>
+> Additional packages are required to build and run `vkloadtests` including
+> a Vulkan library and Vulkan ICD. The latter is provided by your GPU's
+> maker. Installing the packages shown will cause `libvulkan`
+> to be loaded (`vulkan-loader`) for the former and, if no ICD is currently
+> installed, `mesa-vulkan-drivers` for the latter.
 
-You should be able then to build like this
+Alternatively you can build `vkloadtests` using the
+[Vulkan SDK](#vulkan-sdk). Instead of the `*vulkan*` and `glsl*` packages
+shown above install just `libvulkan1` (Ubuntu and Debian) or `vulkan-loader`
+(Fedora and RedHat).
+
+Make sure you have the environment variable `VULKAN_SDK` set as described in the Vulkan SDK installation instructions before you run cmake.
+`source $VULKAN_SDK/setup-env.sh` before you try to run the built program if you want to use the SDK's version of the Khronos validation library.
+ 
+You should then be able to build like this
 
 ```bash
 # First either configure a debug build of libktx and the tools
-cmake . -G Ninja -B build
+cmake . -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug
 # ...or alternatively a release build including all targets
-cmake . -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=<which> -D KTX_FEATURE_DOC=ON
+cmake . -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D KTX_FEATURE_LOADTEST_APPS=<which> -D KTX_FEATURE_DOC=ON
 
 # Compile the project
 cmake --build build
