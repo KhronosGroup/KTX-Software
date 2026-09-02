@@ -127,7 +127,7 @@ jobs:
         # "generic" so POCL (the only OpenCL CPU driver) can't figure out
         # which code to use. Disable tests, just check building.
         - name: OpenCL,SSE
-          os: ubuntu-22.04
+          os: ubuntu-24.04
           generator: Ninja
           arch: x86_64
           compiler: gcc
@@ -138,7 +138,7 @@ jobs:
             tools_cts: OFF, sse: ON, opencl: ON
           }
         - name: OpenCL
-          os: ubuntu-22.04
+          os: ubuntu-24.04
           generator: Ninja
           arch: x86_64
           compiler: gcc
@@ -149,7 +149,7 @@ jobs:
             tools_cts: OFF, sse: OFF, opencl: ON
           }
         - name: All OFF
-          os: ubuntu-22.04
+          os: ubuntu-24.04
           generator: Ninja
           arch: x86_64
           compiler: gcc
