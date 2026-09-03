@@ -236,10 +236,10 @@ Other dependencies (like OpenGL) come with Xcode.
 For the load test applications you must also set these environment variables:
 
 - `VCPKG_ROOT` to the location where you installed [vcpkg](#vcpkg).
-- `VULKAN_SDK` to the `macOS` folder in your VulkanSDK installation. This can be set with the command `. /path/to/your/vulkansdk/setenv.sh`.
+- `VULKAN_SDK` to the `macOS` folder in your VulkanSDK installation. This can be set with the command `. /path/to/your/vulkansdk/setup-env.sh`.
 
-> **Note:** If using the CMake GUI or Xcode IDE you must ensure `VULKAN_SDK` is
-> made available to them.
+> **Note:** If using the CMake GUI or Xcode IDE you must ensure `VULKAN_SDK`
+>  is made available to them.
 
 > **Note:** `VULKAN_SDK` is essential when bulding for iOS. When building for
 > macOS it is not necessary if you selected _System Global Installation_ when
@@ -247,10 +247,10 @@ For the load test applications you must also set these environment variables:
 
 > **Note:** the `iphoneos` or `MacOSX` SDK version gets hardwired into the
 > generated projects. After installing an Xcode update that has the SDK for a
-> new version of iOS, builds will fail. The only way to remedy this is to delete
-> the CMake cache and reconfigure and regenerate from scratch. Use of a
-> [`CMakeUserPresets.json`](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html)
-> file to capture unchanging settings is recommended.
+> new version of iOS, builds will fail. The only way to remedy this is to
+> delete the CMake cache and reconfigure and regenerate from scratch. Use
+>  of a [`CMakeUserPresets.json`](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html)
+> file to capture unchanging settings is highly recommended.
 
 #### macOS
 
