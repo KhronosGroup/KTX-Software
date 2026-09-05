@@ -511,6 +511,17 @@ KTX_error_code appendLibId(ktxHashList* head,
  * @~English
  * @brief Write a ktxTexture object to a ktxStream in KTX 2 format.
  *
+ * @note Payloads with one of the  @c GL_COMPRESSED_RGBA_ASTC_\*_KHR formats are
+ * by default mapped to the equivalent @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK
+ * format as implementations will display both LDR and HDR blocks in ASTC data
+ * labelled with one of these formats. An application uploading such a converted
+ * file to Vulkan must therefore enable the
+ * @c VK_EXT_texture_compression_astc_hdr extension and its
+ * @c textureCompressionASTC_HDR feature in order to render such textures. With
+ * the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK implementations
+ * will render any HDR blocks in the error color (magenta). Applications can change
+ * the mapping via @ref ktxTexture1\_SetRgbaAstcMapping.
+ *
  * @param[in] This      pointer to the target ktxTexture object.
  * @param[in] dststr    destination ktxStream.
  *
@@ -552,7 +563,8 @@ ktxTexture1_WriteKTX2ToStream(ktxTexture1* This, ktxStream* dststr)
         return KTX_INVALID_OPERATION;
 
     header.vkFormat
-            = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+            = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat,
+                                                  ktxTexture1_GetRgbaAstcMapping(This));
     // The above function does not return any formats in the prohibited list.
     if (header.vkFormat == VK_FORMAT_UNDEFINED) {
         // XXX TODO. Handle ASTC HDR & 3D.

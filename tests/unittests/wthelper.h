@@ -409,7 +409,7 @@ class WriterTestHelper {
 
         bool compare(KTX_header2* header) {
             VkFormat format =
-            vkGetFormatFromOpenGLInternalFormat(glInternalformat);
+            vkGetFormatFromOpenGLInternalFormat(glInternalformat, KTX_MAP_RGBA_ASTC_TO_HDR);
 
             // Should find better way to test this. Code we're testing uses the
             // same switch to convert format.
@@ -429,7 +429,7 @@ class WriterTestHelper {
 
         bool compare(ktxTexture2* texture) {
             VkFormat format =
-                 vkGetFormatFromOpenGLInternalFormat(glInternalformat);
+                 vkGetFormatFromOpenGLInternalFormat(glInternalformat, KTX_MAP_RGBA_ASTC_TO_HDR);
 
             if (texture->vkFormat == (ktx_uint32_t)format
                 && texture->baseWidth == baseWidth

@@ -380,85 +380,9 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                          writer.c_str());
 
     if (options.mapAstcRGBAToLDR) {
-        // Can't add a parameter to writeKTX2 to change the mapping of ASTC
-        // formats without breaking backward compatibility so do it the hard
-        // way: write the converted file to memory, create a ktxTexture2 from
-        // it and fix up the mapping. This is possible because ASTC blocks are
-        // always 128-bits.
-        std::unique_ptr<ktx_uint8_t, decltype(free)*> memory_file(nullptr, free);
-        ktx_uint8_t* bytes;
-        ktx_size_t byteCount;
-        res = ktxTexture1_WriteKTX2ToMemory(texture, &bytes, &byteCount);
-        memory_file.reset(bytes);
-        if (res != KTX_SUCCESS) {
-            fatal(rc::INVALID_FILE, "Failed to write texture to memory as KTX2 (internal error): {}",
-                  ktxErrorString(res));
-        }
-        std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*>
-            texture2_raii{nullptr, ktxTexture2_Destroy};
-        ktxTexture2* texture2 = nullptr;
-        res = ktxTexture2_CreateFromMemory(memory_file.get(), byteCount,
-                                           KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-                                           &texture2);
-        if (res != KTX_SUCCESS) {
-            fatal(rc::INVALID_FILE, "Failed to open converted KTX2 from memory (internal error): {}",
-                  ktxErrorString(res));
-        }
-        texture2_raii.reset(texture2);
-        memory_file.release();
-        switch(texture2->vkFormat) {
-        case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_4x4_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_5x4_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_5x5_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_6x5_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_6x6_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_8x5_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_8x6_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_8x8_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_10x5_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_10x6_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_10x8_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_10x10_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_12x10_UNORM_BLOCK;
-            break;
-        case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK:
-            texture2->vkFormat = VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
-            break;
-        default:
-            assert(false && "Remapping non ASTC_SFLOAT format");
-        }
-        free(texture2->pDfd);
-        // The DFD size does not change. Only the DFD itself needs updating.
-        texture2->pDfd = vk2dfd(static_cast<VkFormat>(texture2->vkFormat));
-        outputStream.write(texture2, *this);
-    } else {
-        outputStream.writeKTX2(texture, *this);
+        ktxTexture1_SetRgbaAstcMapping(texture, KTX_MAP_RGBA_ASTC_TO_LDR);
     }
+    outputStream.writeKTX2(texture, *this);
 }
 
 } // namespace ktx

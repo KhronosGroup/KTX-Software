@@ -276,7 +276,8 @@ class ktxTextureTestBase : public ::testing::Test {
             kvDataLen = helper.kvDataLenWriter_ktx2;
             kvData = helper.kvDataWriter_ktx2.get();
             texinfo.vkFormat
-                = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat);
+                = vkGetFormatFromOpenGLInternalFormat(texinfo.glInternalformat,
+                                                      KTX_MAP_RGBA_ASTC_TO_HDR);
             errorCode = ktxTexture2_Create(&texinfo,
                                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                            (ktxTexture2**)&texture);
@@ -429,7 +430,7 @@ class ktxTexture2TestBase : public ktxTextureTestBase<component_type,
     bool
     compareTexture(ktxTexture2* texture)
     {
-        if (texture->vkFormat != (uint32_t)vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat))
+        if (texture->vkFormat != (uint32_t)vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat, KTX_MAP_RGBA_ASTC_TO_HDR))
             return false;
         if (texture->baseWidth != texinfo.baseWidth)
             return false;

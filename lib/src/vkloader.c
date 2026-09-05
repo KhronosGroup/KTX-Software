@@ -767,13 +767,15 @@ linearTilingPadCallback(int miplevel, int face,
  * that references the suballocated page(s) is returned on memory procurement 
  * and saved in the @c allocationId field of the structure pointed to by @a vkTexture.
  *
- * @note When loading a ktxTexture1, payloads with format @c GL_COMPRESSED_RGBA_ASTC_\*_KHR
- * are mapped to the equivalent @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK. The calling application
- * must therefore enable the @c VK_EXT_texture_compression_astc_hdr extension and its
- * @c textureCompressionASTC_HDR feature in order to render such textures. Using these formats,
- * Vulkan implementations will render both HDR and LDR blocks within the texture. With
- * the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK they will render HDR
- * blocks in the error color.
+ * @note When loading a ktxTexture1, payloads with one of the  @c GL_COMPRESSED_RGBA_ASTC_\*_KHR
+ * formats are by default mapped to the equivalent @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK
+ * format as implementations will display both LDR and HDR blocks in ASTC data labelled with one
+ * of these formats. The calling application must therefore enable the
+ * @c VK_EXT_texture_compression_astc_hdr extension and its
+ * @c textureCompressionASTC_HDR feature in order to render such textures. With
+ * the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK implementations will
+ * render any HDR blocks in the error color (magenta). Applications can change the mapping via
+ * @ref ktxTexture1::ktxTexture1\_SetRgbaAstcMapping.
  *
  * @param[in] This                        pointer to the ktxTexture from which to upload.
  * @param [in] vdi                        pointer to a ktxVulkanDeviceInfo structure providing
@@ -1623,7 +1625,8 @@ ktxTexture1_GetVkFormat(ktxTexture1* This)
 {
     VkFormat vkFormat;
 
-    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat);
+    vkFormat = vkGetFormatFromOpenGLInternalFormat(This->glInternalformat,
+                                                   ktxTexture1_GetRgbaAstcMapping(This));
     if (vkFormat == VK_FORMAT_UNDEFINED) {
         vkFormat = vkGetFormatFromOpenGLFormat(This->glFormat,
             This->glType);

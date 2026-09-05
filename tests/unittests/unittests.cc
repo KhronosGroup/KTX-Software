@@ -981,7 +981,8 @@ class SwizzleTestBase : public ::testing::Test {
         ktx_error_code_e result;
 
         helper.texinfo.vkFormat
-                = vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat);
+                = vkGetFormatFromOpenGLInternalFormat(helper.texinfo.glInternalformat,
+                                                      KTX_MAP_RGBA_ASTC_TO_HDR);
         ktxTexture2* texture;
         result = ktxTexture2_Create(&helper.texinfo,
                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE,

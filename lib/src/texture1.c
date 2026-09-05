@@ -34,6 +34,7 @@
 
 typedef struct ktxTexture1_private {
    ktx_bool_t   _needSwap;
+   ktx_rgba_astc_mapping_e rgbaAstcMapping;
 } ktxTexture1_private;
 
 struct ktxTexture_vtbl ktxTexture1_vtbl;
@@ -52,6 +53,9 @@ ktxTexture1_constructCommon(ktxTexture1* This)
         return KTX_OUT_OF_MEMORY;
     }
 	memset(This->_private, 0, sizeof(*This->_private));
+    // As HDR will display both LDR and HDR blocks this is the best default mapping
+    // to a VkFormat to resolve the ambiguity of the GL internal format.
+    This->_private->rgbaAstcMapping = KTX_MAP_RGBA_ASTC_TO_HDR;
 
     return KTX_SUCCESS;
 }
@@ -1404,6 +1408,45 @@ ktxTexture1_IsHDR(ktxTexture1* This)
 {
     UNUSED(This);
     return KTX_FALSE;
+}
+
+/**
+ * @memberof ktxTexture1
+ * @~English
+ * @brief Sets the mapping  to use for RGBA ASTC GL internal to Vulkan formats.
+ *
+ * The @c GL_COMPRESSED_RGBA_ASTC_\*_KHR OpenGL internalformat enums are used for
+ * both LDR and HDR ASTC data. This function lets applications choose the VkFormats to which
+ * these formats will be mapped, either @c VK_FORMAT_ASTC_\*_UNORM_BLOCK or
+ * @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK. The latter is the default as it will display both
+ * LDR and HDR blocks. Mapping is done only by @ref ktxTexture1\_VkUploadEx\_WithSuballocator
+ * and @ref ktxTexture1\_WriteKTX2ToStream.
+ *
+ * This function provide application control without requiring breaking API changes.
+ *
+ * @param[in] This         pointer to the ktxTexture object of interest.
+ * @param[in] mapping  a value from the ktx_rgba_astc_mapping_e enumerator specifying the mapping.
+ */
+void
+ktxTexture1_SetRgbaAstcMapping(ktxTexture1* This, ktx_rgba_astc_mapping_e mapping) {
+    DECLARE_PRIVATE(ktxTexture1);
+    private->rgbaAstcMapping = mapping;
+}
+
+/**
+ * @memberof ktxTexture1
+ * @~English
+ * @brief Gets the mapping  used for RGBA ASTC GL internal to Vulkan formats.
+ *
+ * @param[in] This         pointer to the ktxTexture object of interest.
+ * @return a value from the ktx_rgba_astc_mapping_e enumerator showing the mapping.
+ *
+ * @sa ktxTexture1\_SetRgbaAstcMapping
+ */
+ktx_rgba_astc_mapping_e
+ktxTexture1_GetRgbaAstcMapping(ktxTexture1* This) {
+    DECLARE_PRIVATE(ktxTexture1);
+    return private->rgbaAstcMapping;
 }
 
 #if !KTX_FEATURE_WRITE
