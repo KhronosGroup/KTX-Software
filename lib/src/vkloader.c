@@ -1814,6 +1814,12 @@ setImageLayout(
                                 = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
         break;
 
+    case VK_IMAGE_LAYOUT_GENERAL:
+        // Image may be used for arbitrary read/write access.
+        imageMemoryBarrier.dstAccessMask
+                                = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+        break;
+
     default:
         /* Value not used by callers, so not supported. */
         assert(KTX_FALSE);
