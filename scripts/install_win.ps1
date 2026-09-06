@@ -51,7 +51,7 @@ $OPENCL_SDK_NAME = Set-ConfigVariable OPENCL_SDK_NAME "win-oclcpuexp-2021.12.9.0
 $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR "C:/Imagination/Windows_x86_64"
 $OPENGL_ES_EMULATOR_WIN = Set-ConfigVariable OPENGL_ES_EMULATOR_WIN "C:\Imagination\Windows_x86_64"
 $PVR_SDK_HOME = Set-ConfigVariable PVR_SDK_HOME "https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/"
-$VULKAN_SDK_VERSION = Set-ConfigVariable VULKAN_SDK_VERSION 1.4.313.2
+$VULKAN_SDK_VERSION = Set-ConfigVariable VULKAN_SDK_VERSION 1.4.357.0
 
 if ($FEATURE_TESTS -eq "ON") {
   git lfs pull --include=tests/resources
