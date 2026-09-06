@@ -96,6 +96,7 @@ VulkanAppSDL::initialize(Args& args)
                                                  "KTX_VK_LT_SURFACE_COLOR_SPACE");
     if (css != nullptr) colorSpaceStr = css;
 #else
+    // iOS, etc. No way to provide CLI options or environment variables so ...
     hdr = true;
 #endif
 
@@ -113,7 +114,7 @@ VulkanAppSDL::initialize(Args& args)
             continue;
         }
 #if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
-        // So hdr can be disabled when debugging, if necessary.
+        // So hdr can be disabled when debugging ios, etc., if necessary.
         if (args[i].compare("++hdr") == 0) {
             hdr = false;
             args.erase(args.begin() + i--);
@@ -172,6 +173,13 @@ VulkanAppSDL::initialize(Args& args)
     // Set the application's own icon in place of the Windows default set by SDL.
     // Needs to be done here to avoid change being visible.
     setWindowsIcon(pswMainWindow);
+#endif
+#if SDL_PLATFORM_MACOS
+    // Prevent duplicate layer and library warnings which occur if the user has
+    // created a global SDK installation, i.e. run `install_vulkan.py` in the SDK.
+    // Must be set before vk::createInstance is called.
+    // "unsafe" refers to thread safety which is not an issue at this point in the app.
+    SDL_setenv_unsafe("VK_LOADER_SEARCH_ONLY_IN_BUNDLE", "1", 1 /*overwrite*/);
 #endif
 
     if (!initializeVulkan()) {
@@ -680,7 +688,6 @@ VulkanAppSDL::createInstance()
         instanceInfo.pNext = &dbgCreateInfo;
     }
 
-    //err = vkCreateInstance(&instanceInfo, NULL, &vkctx.instance);
     vk::Result cerr;
     cerr = vk::createInstance(&instanceInfo, nullptr, &vkctx.instance);
 
