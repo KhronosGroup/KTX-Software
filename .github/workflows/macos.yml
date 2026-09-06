@@ -186,7 +186,7 @@ jobs:
         uses: ssciwr/doxygen-install@v1
 
       - name: Install Graphviz
-        # As of Sept 2006, Brew no longer supports x86_64 so we can't install
+        # As of Sept 2026, Brew no longer supports x86_64 so we can't install
         # graphviz. x86_64 package will therefore be without the graphical bits.
         if: matrix.options.doc == 'ON' && matrix.arch != 'x86_64'
         uses: MarkCallow/setup-graphviz@v3
