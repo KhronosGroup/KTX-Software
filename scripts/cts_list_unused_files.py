@@ -10,11 +10,16 @@
 # `clitests/golden` or `clitests/input` subdirectories, and prints
 # unused/unreferenced files.
 #
-# You can generate the strace log file as such:
+# You can generate the strace log file as such (on Linux only):
 #   strace -f -e trace=openat -o files.trace su user -c 'ctest -j1'
 # Note:
+#   - This is only tested on Linux (MacOS does not have an `strace` equivalent)
 #   - Make sure to run CTest in single-threaded mode otherwise you will get
 #     extremely large trace files with a lot of "unfinished" syscalls.
+#   - Input files (i.e., in `input` folder) that are not referenced by strace
+#     are not necessrarily not needed. They could be used as input to other
+#     tools to generate the actual files that are referenced in tests.
+
 
 import argparse
 import os

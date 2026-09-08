@@ -22,8 +22,7 @@ if (NOT MSVC)
     -fno-strict-aliasing
     # Without this, GCC 15.2.0 outputs "error: writing 1 byte into a region of size 0" This is a known GCC false positive.
     # See GCC bug report here: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106757
-    -Wno-stringop-overflow
-    -Wno-unknown-warning-option  # so that clang shuts up about unknown warning flags
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-stringop-overflow>
   )
   target_compile_options(ert PRIVATE -fno-strict-aliasing)
 endif()
