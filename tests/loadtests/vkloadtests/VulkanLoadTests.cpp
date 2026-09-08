@@ -489,6 +489,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
       "KTX2: RGBA8 2D No KTXOrientation"
     },
     { Texture::create,
+      "--general-layout r8g8b8a8_srgb.ktx2",
+      "KTX2: RGBA8 2D No KTXOrientation, Using GENERAL Layout"
+    },
+    { Texture::create,
         "--linear-tiling r8g8b8a8_srgb.ktx2",
         "KTX2: RGBA8 2D No KTXOrientation, Using Linear Tiling"
     },

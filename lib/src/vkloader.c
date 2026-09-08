@@ -1748,6 +1748,12 @@ setImageLayout(
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
 
+    case VK_IMAGE_LAYOUT_GENERAL:
+        // Image may be used for arbitrary read/write access.
+        // Make sure any reads and writes to the image have finished.
+        imageMemoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+        break;
+
     default:
         /* Value not used by callers, so not supported. */
         assert(KTX_FALSE);
@@ -1797,6 +1803,12 @@ setImageLayout(
         }
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        break;
+
+    case VK_IMAGE_LAYOUT_GENERAL:
+        // Image may be used for arbitrary read/write access.
+        imageMemoryBarrier.dstAccessMask
+                                = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
         break;
 
     default:

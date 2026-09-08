@@ -44,6 +44,7 @@ class Texture : public VulkanLoadTestSample
     vk::Sampler sampler;
     vk::ImageView imageView;
     vk::ImageTiling tiling;
+    vk::ImageLayout finalLayout;
     UseSuballocator useSubAlloc;
     vk::ComponentMapping swizzle;
 
