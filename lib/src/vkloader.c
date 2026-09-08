@@ -797,9 +797,9 @@ linearTilingPadCallback(int miplevel, int face,
  *                                        field of the structure pointed at by @a vkTexture
  *                                        to reference allocated page(s).
  *
- * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ * @return  KTX\_SUCCESS on success, other KTX\_\* enum values on error.
  *
- * @exception KTX_INVALID_VALUE         An incomplete set of callbacks are provided in 
+ * @exception KTX_INVALID_VALUE         An incomplete set of callbacks is provided in
  *                                      subAllocatorCallbacks.
  * @exception KTX_INVALID_VALUE         @p This, @p vdi or @p vkTexture is @c NULL.
  * @exception KTX_INVALID_OPERATION     The ktxTexture contains neither images nor
@@ -815,6 +815,15 @@ linearTilingPadCallback(int miplevel, int face,
  *                                      format and @p tiling.
  * @exception KTX_OUT_OF_MEMORY         Sufficient memory could not be allocated on
  *                                      either the CPU or the Vulkan device.
+ * @exception KTX_UNSUPPORTED_FEATURE   @p finalLayout is not one of
+ *                                      @c VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+ *                                      @c VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+ *                                      @c VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+ *                                      @c VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+ *                                      @c VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL or
+ *                                      @c VK_IMAGE_LAYOUT_GENERAL. If you need to use an
+ *                                      unsupported layout please create an issue at
+ *                                      https://github.com/KhronosGroup/KTX-Software/issues.
  * @exception KTX_UNSUPPORTED_FEATURE   Attempting to sparsely bind KTX textures
  *                                      for the time being will report this error.
  *
@@ -915,6 +924,20 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
     vkFormat = ktxTexture_GetVkFormat(This);
     if (vkFormat == VK_FORMAT_UNDEFINED) {
         return KTX_INVALID_OPERATION;
+    }
+
+    // Early check to avoid a lot of wasted work including memory allocations.
+    switch (finalLayout) {
+      case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_GENERAL:
+        break;
+      default:
+        // setImageLayout does not support the requested finalLayout.
+        return KTX_UNSUPPORTED_FEATURE;
     }
 
     /* Get device properties for the requested image format */
@@ -1758,7 +1781,7 @@ setImageLayout(
         break;
 
     default:
-        /* Value not used by callers, so not supported. */
+        // Value not used by callers, so not supported.
         assert(KTX_FALSE);
     }
 
@@ -1815,7 +1838,7 @@ setImageLayout(
         break;
 
     default:
-        /* Value not used by callers, so not supported. */
+        // Shouldn't get here due to check in VkUploadEx_WithSuballocator.
         assert(KTX_FALSE);
     }
 
