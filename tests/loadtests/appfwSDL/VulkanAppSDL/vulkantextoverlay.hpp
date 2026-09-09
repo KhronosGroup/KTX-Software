@@ -16,7 +16,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "vulkantools.h"
 #include "vulkandebug.h"
 
