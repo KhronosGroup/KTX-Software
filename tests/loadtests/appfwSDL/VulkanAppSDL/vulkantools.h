@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
+#include "vulkan/vulkan.hpp"
 
 #include <math.h>
 #include <stdlib.h>
@@ -42,7 +42,7 @@
     VkResult res = (f);                                                                                 \
     if (res != VK_SUCCESS)                                                                              \
     {                                                                                                   \
-        std::cout << "Fatal : VkResult is \"" << vkTools::errorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+        std::cout << "Fatal : VkResult is \"" << vk::to_string((vk::Result)res) << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
         assert(res == VK_SUCCESS);                                                                      \
     }                                                                                                   \
 }
@@ -57,10 +57,10 @@ extern const char* appName();
     {                                                                         \
         std::stringstream msg;                                                \
         msg << "Fatal error. VkResult is \""                                  \
-            << vkTools::errorString(res) << "\" in " << __FILE__              \
+            << vk::to_string((vk::Result)res) << "\" in " << __FILE__         \
             << " at line " << __LINE__ << std::endl;                          \
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,                        \
-                                 appName(),                                      \
+                                 appName(),                                   \
                                  msg.str().c_str(),                           \
                                  NULL);                                       \
         assert(res == VK_SUCCESS);                                            \
@@ -77,8 +77,6 @@ namespace vkTools
     VkBool32 checkGlobalExtensionPresent(const char* extensionName);
     // Check if extension is present on the given device
     VkBool32 checkDeviceExtensionPresent(VkPhysicalDevice physicalDevice, const char* extensionName);
-    // Return string representation of a vulkan error string
-    std::string errorString(VkResult errorCode);
 
     // Selected a suitable supported depth format starting with 32 bit down to 16 bit
     // Returns false if none of the depth formats in the list is supported by the device
