@@ -63,18 +63,64 @@
     }                                                                       \
   }
 
-const std::vector<VkColorSpaceKHR> linearCS = {
+/* List of color spaces
+-    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
+-    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT = 1000104001,
+-    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT = 1000104002,
+-    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT = 1000104003,
+-    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT = 1000104004,
+-    VK_COLOR_SPACE_BT709_LINEAR_EXT = 1000104005,
+-    VK_COLOR_SPACE_BT709_NONLINEAR_EXT = 1000104006,
+-    VK_COLOR_SPACE_BT2020_LINEAR_EXT = 1000104007,
+-    VK_COLOR_SPACE_HDR10_ST2084_EXT = 1000104008,
+  // VK_COLOR_SPACE_DOLBYVISION_EXT is legacy, but no reason was given in the API XML
+-    VK_COLOR_SPACE_DOLBYVISION_EXT = 1000104009,
+-    VK_COLOR_SPACE_HDR10_HLG_EXT = 1000104010,
+-    VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
+-    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT = 1000104012,
+-    VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
+-    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
+-    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000,
+*/
+
+const std::vector<VkColorSpaceKHR> linearHDR_CS = {
+    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
+    //VK_COLOR_SPACE_EXTENDED_DISPLAY_P3_LINEAR_EXT // Why does Vulkan not have this?
+    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT  // At least on Apple, it is not clamping values
+};
+
+const std::vector<VkColorSpaceKHR> nonlinearHDR_CS = {
+    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT, //???
+    VK_COLOR_SPACE_HDR10_ST2084_EXT,  // ITU Rec 2100 PQ
+    VK_COLOR_SPACE_HDR10_HLG_EXT,     // ITU Rec 2100 HLG
+    VK_COLOR_SPACE_DOLBYVISION_EXT,   // PQ
+    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD // HDR but do not know if its linear or non-linear.
+};
+
+const std::vector<VkColorSpaceKHR> linearLDR_CS = {
     VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT,
     VK_COLOR_SPACE_BT2020_LINEAR_EXT,
     VK_COLOR_SPACE_BT709_LINEAR_EXT,
-    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT,
-    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT
+};
+
+const std::vector<VkColorSpaceKHR> nonlinearLDR_CS = {
+    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT,
+    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT,
+    VK_COLOR_SPACE_BT709_NONLINEAR_EXT,
+    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT,
+    VK_COLOR_SPACE_PASS_THROUGH_EXT   // Assuming most displays are non-linear and non-HDR
 };
 
 static bool isColorSpaceLinear(VkColorSpaceKHR colorSpace)
 {
-    std::vector<VkColorSpaceKHR>::const_iterator it = linearCS.begin();
-    for (; it < linearCS.end(); it++) {
+    std::vector<VkColorSpaceKHR>::const_iterator it = linearHDR_CS.begin();
+    for (; it < linearHDR_CS.end(); it++) {
+        if (*it == colorSpace)
+            return true;
+    }
+    it = linearLDR_CS.begin();
+    for (; it < linearLDR_CS.end(); it++) {
         if (*it == colorSpace)
             return true;
     }
