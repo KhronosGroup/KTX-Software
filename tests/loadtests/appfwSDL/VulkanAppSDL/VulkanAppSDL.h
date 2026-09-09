@@ -32,6 +32,8 @@ class VulkanAppSDL : public AppBaseSDL {
             : AppBaseSDL(name), w_width(width), w_height(height),
               presentSwapchainErrorWarned(false), acquireNextImageErrorWarned(false),
               validate(false), hdr(false),
+              defaultLdrColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear, false, false),
+              defaultHdrColorSpace(vk::ColorSpaceKHR::eExtendedSrgbLinearEXT, true, true),
               vkVersion(version),
               enableTextOverlay(enableTextOverlay),
               textOverlay(nullptr)
@@ -134,9 +136,24 @@ class VulkanAppSDL : public AppBaseSDL {
     bool acquireNextImageErrorWarned;
     bool validate;
     bool hdr;
-    // colorSpace is only used with --hdr and this space is never used with --hdr
-    // so serves to indicate it has not been set.
-    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+
+    struct csInfo {
+        vk::ColorSpaceKHR cs;
+        bool isHDR;
+        bool isLinear;
+
+        csInfo(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            set(_cs, hdr, linear);
+        }
+        void set(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            cs = _cs;
+            isHDR = hdr;
+            isLinear = linear;
+        }
+    };
+    csInfo defaultLdrColorSpace;
+    csInfo defaultHdrColorSpace;
+    csInfo colorSpace = defaultLdrColorSpace;
 
     std::vector<const char*> extensionNames;
 

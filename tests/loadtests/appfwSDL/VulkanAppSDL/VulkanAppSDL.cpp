@@ -74,17 +74,35 @@ VulkanAppSDL::~VulkanAppSDL()
 
 }
 
-
 bool
 VulkanAppSDL::initialize(Args& args)
 {
-    static const std::unordered_map<std::string, VkColorSpaceKHR> csValues {
-        {"adobergb", VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT}, // Not supported on Apple devices.
-        {"bt2020", VK_COLOR_SPACE_BT2020_LINEAR_EXT},
-        {"bt709", VK_COLOR_SPACE_BT709_LINEAR_EXT}, // Not supported on Apple devces.
-        {"display-p3", VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT},
-        {"extended-srgb", VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT},
+    // Currently this app supports only linear HDR and non-linear (sRGB) LDR
+    // color spaces. All others are commented out. As the app does not do
+    // primaries or transfer-function conversion and input data is all in
+    // BT709 primaries, in truth only sRGB and extended sRGB formats will
+    // give correct results. The other uncommented spaces will give
+    // approximately correct results. This infrastructure has been put in
+    // place to enable work with color spaces.
+    static const std::unordered_map<std::string, csInfo> csValues {
+        // LDR
+//        {"adobergb", {vk::ColorSpaceKHR::eAdobergbLinearEXT, false, true}}, // Not on Apple
+//        {"bt2020", {vk::ColorSpaceKHR::eBt2020LinearEXT, false, true}},
+//        {"bt709", {vk::ColorSpaceKHR::eBt709LinearEXT, false, true}},
+        {"adobergb-nl", {vk::ColorSpaceKHR::eAdobergbNonlinearEXT, false, true}}, // Not on Apple
+        {"bt709-nl", {vk::ColorSpaceKHR::eBt709NonlinearEXT, false, false}},
+        {"dci-p3-nl", {vk::ColorSpaceKHR::eDciP3NonlinearEXT, false, false}},
+        {"display-p3-nl", {vk::ColorSpaceKHR::eDisplayP3NonlinearEXT, false, false}},
+        {"srgb-nl", {vk::ColorSpaceKHR::eSrgbNonlinear, false, false}},
+        // HDR
+        {"display-p3", {vk::ColorSpaceKHR::eDisplayP3LinearEXT, true, true}},
+        {"extended-srgb", {vk::ColorSpaceKHR::eExtendedSrgbLinearEXT, true, true}},
+        //{"dolby", {vk::ColorSpaceKHR::eDolbyvisionEXT, true, false}}, // deprecated
+//        {"extended-srgb-nl", {vk::ColorSpaceKHR::eExtendedSrgbNonlinearEXT, true, false}},
+//        {"r2100-pq-nl", {vk::ColorSpaceKHR::eHdr10St2084EXT, true, false}},
+//        {"r2100-hlg-nl", {vk::ColorSpaceKHR::eHdr10HlgEXT, true, false}},
     };
+
     std::string colorSpaceStr;
 #if !SDL_PLATFORM_APPLE || SDL_PLATFORM_MACOS
     // Apple locked systems have no way to pass environment variables to bundled apps.
@@ -133,14 +151,42 @@ VulkanAppSDL::initialize(Args& args)
             i--;
         }
     }
+    csInfo defaultLdrColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear, false, false);
+    bool colorSpaceSet = false;
+    std::string specMethods = ", specified via --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
     if (colorSpaceStr.size() > 0) {
         const auto it = csValues.find(colorSpaceStr);
         if (it != csValues.end()) {
              colorSpace = it->second;
+             colorSpaceSet = true;
         } else {
             std::stringstream msg;
-            msg << "Invalid color space, " << colorSpaceStr
-                << ", given for --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
+            msg << "Unknown color space, " << colorSpaceStr
+                << specMethods;
+            (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                           msg.str().c_str(), NULL);
+            return false;
+        }
+    }
+
+    if (!colorSpaceSet && hdr) {
+        colorSpace = defaultHdrColorSpace;
+    }
+    if (colorSpaceSet) {
+        // TODO: redo these checks if non-linear HDR and linear LDR support is added to app.
+        if (hdr && !colorSpace.isHDR) {
+            std::stringstream msg;
+            msg << "HDR is set but color space, " << colorSpaceStr
+                << specMethods
+                << " is not an HDR color space.";
+            (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                           msg.str().c_str(), NULL);
+            return false;
+        } else if (!hdr && colorSpace.isHDR) {
+            std::stringstream msg;
+            msg << "HDR is not set but color space, " << colorSpaceStr
+                << specMethods
+                << " is an HDR color space.";
             (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
                                            msg.str().c_str(), NULL);
             return false;
@@ -629,13 +675,13 @@ VulkanAppSDL::createInstance()
             extensionNames.push_back(
                 VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
             );
+            vkctx.enabledInstanceExtensions.physicalDeviceProps2 = true;
         }
-        if (hdr) {
-            if (!strncmp(extension.extensionName,
-                            VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,
-                            VK_MAX_EXTENSION_NAME_SIZE)) {
-                extensionNames.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
-            }
+        if (!strncmp(extension.extensionName,
+                        VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,
+                        VK_MAX_EXTENSION_NAME_SIZE)) {
+            extensionNames.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
+            vkctx.enabledInstanceExtensions.swapchainColorSpace = true;
         }
 
 #if VK_KHR_portability_subset
@@ -645,6 +691,7 @@ VulkanAppSDL::createInstance()
             extensionNames.push_back(
                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME
             );
+            vkctx.enabledInstanceExtensions.portabilityEnumeration = true;
         }
 #endif
     }
@@ -729,10 +776,29 @@ VulkanAppSDL::createInstance()
                 if (k == instanceExtensionCount) {
                     // Not found
                     msg << "    " << extensionNames[j] << "\n";
+                    if (!strncmp(extensionNames[j],
+                                 VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+                                 VK_MAX_EXTENSION_NAME_SIZE)) {
+                        vkctx.enabledInstanceExtensions.physicalDeviceProps2 = false;
+                    }
+                    if (!strncmp(extensionNames[j],
+                                 VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME,
+                                 VK_MAX_EXTENSION_NAME_SIZE)) {
+                        vkctx.enabledInstanceExtensions.swapchainColorSpace = false;
+                    }
+#if VK_KHR_portability_subset
+                    if (!strncmp(extensionNames[j],
+                                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+                                 VK_MAX_EXTENSION_NAME_SIZE)) {
+                        vkctx.enabledInstanceExtensions.portabilityEnumeration = false;
+                    }
+#endif
                 }
             }
-            msg << "\nMake sure your layers path is set appropriately.";
             delete [] instanceExtensions;
+       } else if (cerr == vk::Result::eErrorLayerNotPresent) {
+           msg << "Cannot find validation layers."
+               << " Make sure your layers path is set appropriately.";
        } else {
             msg << "vkCreateInstance: unexpected failure, code = "
                 << cerr << ".\n\nDo you have a compatible Vulkan "
@@ -742,7 +808,6 @@ VulkanAppSDL::createInstance()
                                       msg.str().c_str(), NULL);
        return false;
     }
-
     return true;
 } // createInstance
 
@@ -819,22 +884,32 @@ VulkanAppSDL::setupDebugReporting()
 bool
 VulkanAppSDL::createSurface()
 {
+    if (!vkctx.enabledInstanceExtensions.swapchainColorSpace) {
+        if (colorSpace.cs != defaultLdrColorSpace.cs) {
+            std::string msg = "VulkanSwapchain::initSurface: ";
+            msg += "Implementation does not support ";
+            msg += VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME;
+            msg += " which is needed for " + to_string(colorSpace.cs);
+            msg += " Reverting to " + to_string(defaultLdrColorSpace.cs) + ".";
+            (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                           msg.c_str(), NULL);
+            hdr = false;
+            colorSpace = defaultLdrColorSpace;
+        }
+    }
+
     if (hdr) try {
-        if (colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) //colorSpace not set?
-            vkctx.swapchain.initSurface(pswMainWindow,
-                                VK_FORMAT_R16G16B16A16_SFLOAT,
-                                VulkanSwapchain::colorSpaceSelector::eAnyLinear);
-        else
-            vkctx.swapchain.initSurface(pswMainWindow,
-                                VK_FORMAT_R16G16B16A16_SFLOAT,
-                                VulkanSwapchain::colorSpaceSelector::eSpecific,
-                                colorSpace);
+        vkctx.swapchain.initSurface(pswMainWindow,
+                            VK_FORMAT_R16G16B16A16_SFLOAT,
+                            VulkanSwapchain::colorSpaceSelector::eSpecific,
+                            (VkColorSpaceKHR)colorSpace.cs);
     } catch(unsupported_surface_format&) {
         std::string msg = "VulkanSwapchain::initSurface: ";
-        msg += "No matching HDR surface format found. Reverting to SDR.";
+        msg += "No matching HDR surface format found. Reverting to LDR.";
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
                                        msg.c_str(), NULL);
         hdr = false;
+        colorSpace = defaultLdrColorSpace;
     } catch(std::runtime_error& e) {
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
                                        e.what(), NULL);
@@ -844,7 +919,15 @@ VulkanAppSDL::createSurface()
         vkctx.swapchain.initSurface(pswMainWindow,
                             VK_FORMAT_B8G8R8A8_SRGB,
                             VulkanSwapchain::colorSpaceSelector::eSpecific,
-                            VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+                            (VkColorSpaceKHR)colorSpace.cs);
+    } catch(unsupported_surface_format&) {
+        std::string msg = "VulkanSwapchain::initSurface: ";
+        msg += "No matching surface format found.";
+        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                       msg.c_str(), NULL);
+        // TODO: If cs not sRGB retry with sRGB.
+        // Possibly fix by passing argument to tell initSurface to fallback on failure.
+        return false;
     } catch(std::runtime_error& e) {
         (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
                                        e.what(), NULL);

@@ -67,6 +67,11 @@ struct VulkanContext {
     bool gpuFeatureAstc3d = false;
 
     struct {
+        bool physicalDeviceProps2 = false;
+        bool swapchainColorSpace = false;
+        bool portabilityEnumeration = false;
+    } enabledInstanceExtensions;
+    struct {
        // These extensions do not have corresponding device (gpu) features flags. These flags,
        // showing whether or not the corresponding extensions have been found and
        // enabled, are used to indicated presence of the functionality.
