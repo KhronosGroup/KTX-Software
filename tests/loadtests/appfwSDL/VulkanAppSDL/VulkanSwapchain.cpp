@@ -63,33 +63,13 @@
     }                                                                       \
   }
 
-/* List of color spaces
--    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
--    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT = 1000104001,
--    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT = 1000104002,
--    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT = 1000104003,
--    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT = 1000104004,
--    VK_COLOR_SPACE_BT709_LINEAR_EXT = 1000104005,
--    VK_COLOR_SPACE_BT709_NONLINEAR_EXT = 1000104006,
--    VK_COLOR_SPACE_BT2020_LINEAR_EXT = 1000104007,
--    VK_COLOR_SPACE_HDR10_ST2084_EXT = 1000104008,
-  // VK_COLOR_SPACE_DOLBYVISION_EXT is legacy, but no reason was given in the API XML
--    VK_COLOR_SPACE_DOLBYVISION_EXT = 1000104009,
--    VK_COLOR_SPACE_HDR10_HLG_EXT = 1000104010,
--    VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
--    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT = 1000104012,
--    VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
--    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
--    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000,
-*/
-
-const std::vector<VkColorSpaceKHR> linearHDR_CS = {
+const std::vector<VkColorSpaceKHR> linearHDRSpaces = {
     VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
     //VK_COLOR_SPACE_EXTENDED_DISPLAY_P3_LINEAR_EXT // Why does Vulkan not have this?
     VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT  // At least on Apple, it is not clamping values
 };
 
-const std::vector<VkColorSpaceKHR> nonlinearHDR_CS = {
+const std::vector<VkColorSpaceKHR> nonlinearHDRSpaces = {
     VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT, //???
     VK_COLOR_SPACE_HDR10_ST2084_EXT,  // ITU Rec 2100 PQ
     VK_COLOR_SPACE_HDR10_HLG_EXT,     // ITU Rec 2100 HLG
@@ -97,13 +77,13 @@ const std::vector<VkColorSpaceKHR> nonlinearHDR_CS = {
     VK_COLOR_SPACE_DISPLAY_NATIVE_AMD // HDR but do not know if its linear or non-linear.
 };
 
-const std::vector<VkColorSpaceKHR> linearLDR_CS = {
+const std::vector<VkColorSpaceKHR> linearLDRSpaces = {
     VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT,
     VK_COLOR_SPACE_BT2020_LINEAR_EXT,
     VK_COLOR_SPACE_BT709_LINEAR_EXT,
 };
 
-const std::vector<VkColorSpaceKHR> nonlinearLDR_CS = {
+const std::vector<VkColorSpaceKHR> nonlinearLDRSpaces = {
     VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
     VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT,
     VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT,
@@ -112,34 +92,22 @@ const std::vector<VkColorSpaceKHR> nonlinearLDR_CS = {
     VK_COLOR_SPACE_PASS_THROUGH_EXT   // Assuming most displays are non-linear and non-HDR
 };
 
-static bool isColorSpaceLinear(VkColorSpaceKHR colorSpace)
-{
-    std::vector<VkColorSpaceKHR>::const_iterator it = linearHDR_CS.begin();
-    for (; it < linearHDR_CS.end(); it++) {
-        if (*it == colorSpace)
-            return true;
-    }
-    it = linearLDR_CS.begin();
-    for (; it < linearLDR_CS.end(); it++) {
-        if (*it == colorSpace)
-            return true;
-    }
-    return false;
-}
-
-// Creates an os specific surface
-// Tries to find a graphics and a present queue
+// Create an OS specific surface.
 void
-VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
-                             colorSpaceSelector css, VkColorSpaceKHR reqColorSpace)
+VulkanSwapchain::createSurface(struct SDL_Window* window)
 {
-    U_ASSERT_ONLY VkResult err;
-
     if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
-        throw swapchain_init_surface_failed(msg);
+        throw std::runtime_error(msg);
     }
+}
+
+// Look for a graphics and a present queue
+void
+VulkanSwapchain::findGraphicsPresentQueue()
+{
+    U_ASSERT_ONLY VkResult err;
 
     // Get available queue family properties
     uint32_t queueCount;
@@ -194,17 +162,26 @@ VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
         || presentQueueIndex == UINT32_MAX)
     {
         vkDestroySurfaceKHR(instance, surface, nullptr);
-        throw swapchain_init_surface_failed("Could not find a graphics or presenting queue!");
+        throw std::runtime_error("Could not find a graphics or presenting queue!");
     }
 
     // TODO: Add support for separate graphics and presenting queue
     if (graphicsQueueIndex != presentQueueIndex)
     {
         vkDestroySurfaceKHR(instance, surface, nullptr);
-        throw swapchain_init_surface_failed("Separate graphics and present queues not yet supported!");
+        throw std::runtime_error("App does not yet support separate graphics and present queues!");
     }
 
     queueIndex = graphicsQueueIndex;
+}
+
+
+// Creates an os specific surface
+void
+VulkanSwapchain::initSurface(VkFormat reqFormat,
+                             colorSpaceSelector css, VkColorSpaceKHR reqColorSpace)
+{
+    U_ASSERT_ONLY VkResult err;
 
     // Get list of supported surface formats
     uint32_t formatCount;
@@ -232,30 +209,55 @@ VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
         uint32_t i;
         for (i = 0; i < formatCount; i++) {
             if (surfaceFormats[i].format == reqFormat) {
-                if (css == colorSpaceSelector::eSpecific) {
-                    if (surfaceFormats[i].colorSpace == reqColorSpace) {
-                        break;
-                    }
-                } else {
-                    bool colorSpaceIsLinear = isColorSpaceLinear(surfaceFormats[i].colorSpace);
-                    if (css == colorSpaceSelector::eAnyLinear && colorSpaceIsLinear) {
-                        break;
-                    }
-                    if (css == colorSpaceSelector::eAnyNonLinear && !colorSpaceIsLinear) {
-                        break;
+                bool matched = false;
+                // Auto selection is not currently used as the app would need to
+                // transform its color space to the selected space, something it
+                // currently can't do.
+                std::vector<VkColorSpaceKHR> const* matchingSpaces;
+                switch (css) {
+                  case colorSpaceSelector::eSpecific:
+                    if (surfaceFormats[i].colorSpace == reqColorSpace)
+                        matched = true;
+                    break;
+                  case colorSpaceSelector::eAnyHDRLinear:
+                    matchingSpaces = &linearHDRSpaces;
+                    break;
+                   case colorSpaceSelector::eAnyHDRNonlinear:
+                    matchingSpaces = &nonlinearHDRSpaces;
+                    break;
+                  case colorSpaceSelector::eAnyLDRLinear:
+                    matchingSpaces = &linearLDRSpaces;
+                    break;
+                   case colorSpaceSelector::eAnyLDRNonlinear:
+                    matchingSpaces = &nonlinearLDRSpaces;
+                    break;
+                }
+                if (!matched && css != colorSpaceSelector::eSpecific) {
+                    for (uint32_t si = 0; si < matchingSpaces->size(); si++) {
+                        if (surfaceFormats[si].colorSpace == (*matchingSpaces)[si]) {
+                            matched = true;
+                        }
                     }
                 }
+                if (matched)
+                    break;
             }
         }
         if (i == formatCount) {
             vkDestroySurfaceKHR(instance, surface, nullptr);
-            throw unsupported_surface_format();
+            std::string msg;
+            if (css == colorSpaceSelector::eSpecific) {
+                msg = "Requested color space, ";
+                msg += vk::to_string((vk::ColorSpaceKHR)reqColorSpace) + ", not supported.";
+            } else {
+                msg = "No matching color space found.";
+            }
+            throw unsupported_surface_format(msg);
         }
         colorFormat = surfaceFormats[i].format;
         colorSpace = surfaceFormats[i].colorSpace;
     }
 }
-
 
 // Connect to the instance and device and get all required function pointers
 bool
