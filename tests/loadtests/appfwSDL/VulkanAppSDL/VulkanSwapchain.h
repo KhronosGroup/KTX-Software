@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #if !defined(USE_FUNCPTRS_FOR_KHR_EXTS)
 #define USE_FUNCPTRS_FOR_KHR_EXTS 0
@@ -37,16 +37,16 @@ class VulkanSwapchain
     uint32_t queueIndex = UINT32_MAX;
 
     enum class colorSpaceSelector {
-        eAnyLinear,
-        eAnyNonLinear,
+        eAnyHDRLinear,
+        eAnyHDRNonlinear,
+        eAnyLDRLinear,
+        eAnyLDRNonlinear,
         eSpecific
     };
 
-    // Creates an OS specific surface.
-    // Looks for a graphics and a present queue
-    void initSurface(struct SDL_Window* window, VkFormat format,
-                     colorSpaceSelector css = colorSpaceSelector::eSpecific,
-                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+    // Create the swap chain and get images with given width and height
+    void create(uint32_t& width, uint32_t& height,
+                bool vsync = false);
 
     // Connect to device and get required device function pointers.
     bool connectDevice(VkDevice device);
@@ -55,9 +55,16 @@ class VulkanSwapchain
     bool connectInstance(VkInstance instance,
                          VkPhysicalDevice physicalDevice);
 
-    // Create the swap chain and get images with given width and height
-    void create(uint32_t& width, uint32_t& height,
-                bool vsync = false);
+
+    // Creates an OS specific surface.
+    void createSurface(struct SDL_Window* window);
+    // Looks for a graphics and a present queue.
+    void findGraphicsPresentQueue();
+    // Initializes the surface.
+    void initSurface(VkFormat format,
+                     colorSpaceSelector css = colorSpaceSelector::eSpecific,
+                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+
 
     // Acquires the next image in the swap chain
     VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore,
