@@ -103,6 +103,13 @@ VulkanSwapchain::createSurface(struct SDL_Window* window)
     }
 }
 
+void
+VulkanSwapchain::destroySurface()
+{
+    if (surface != nullptr)
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+}
+
 // Look for a graphics and a present queue
 void
 VulkanSwapchain::findGraphicsPresentQueue()
@@ -179,7 +186,9 @@ VulkanSwapchain::findGraphicsPresentQueue()
 // Creates an os specific surface
 void
 VulkanSwapchain::initSurface(VkFormat reqFormat,
-                             colorSpaceSelector css, VkColorSpaceKHR reqColorSpace)
+                             VkColorSpaceKHR reqColorSpace,
+                             bool destroySurfaceOnFailure,
+                             colorSpaceSelector css)
 {
     U_ASSERT_ONLY VkResult err;
 
@@ -244,7 +253,8 @@ VulkanSwapchain::initSurface(VkFormat reqFormat,
             }
         }
         if (i == formatCount) {
-            vkDestroySurfaceKHR(instance, surface, nullptr);
+            if (destroySurfaceOnFailure)
+                destroySurface();
             std::string msg;
             if (css == colorSpaceSelector::eSpecific) {
                 msg = "Requested color space, ";

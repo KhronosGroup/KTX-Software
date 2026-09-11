@@ -58,12 +58,15 @@ class VulkanSwapchain
 
     // Creates an OS specific surface.
     void createSurface(struct SDL_Window* window);
-    // Looks for a graphics and a present queue.
+    // Destroys the surface.
+    void destroySurface();
+   // Looks for a graphics and a present queue.
     void findGraphicsPresentQueue();
     // Initializes the surface.
     void initSurface(VkFormat format,
-                     colorSpaceSelector css = colorSpaceSelector::eSpecific,
-                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+                     bool destroySurfaceOnFailure = true,
+                     colorSpaceSelector css = colorSpaceSelector::eSpecific);
 
 
     // Acquires the next image in the swap chain
