@@ -222,7 +222,7 @@ VulkanSwapchain::initSurface(VkFormat reqFormat,
                 // Auto selection is not currently used as the app would need to
                 // transform its color space to the selected space, something it
                 // currently can't do.
-                std::vector<VkColorSpaceKHR> const* matchingSpaces;
+                std::vector<VkColorSpaceKHR> const* matchingSpaces = &linearHDRSpaces;
                 switch (css) {
                   case colorSpaceSelector::eSpecific:
                     if (surfaceFormats[i].colorSpace == reqColorSpace)
