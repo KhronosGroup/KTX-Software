@@ -907,34 +907,30 @@ VulkanAppSDL::createSurface()
         }
     }
 
-    if (hdr) try {
-        vkctx.swapchain.initSurface(VK_FORMAT_R16G16B16A16_SFLOAT,
-                            VulkanSwapchain::colorSpaceSelector::eSpecific,
-                            (VkColorSpaceKHR)colorSpace.cs);
-    } catch(unsupported_surface_format& e) {
-        std::string msg = e.what();
-        msg += " Reverting to LDR.";
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
-                                       msg.c_str(), NULL);
-        hdr = false;
-        colorSpace = defaultLdrColorSpace;
-    } catch(std::runtime_error& e) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
-                                       e.what(), NULL);
-        return false;
-    }
-    if (!hdr) try {
-        vkctx.swapchain.initSurface(VK_FORMAT_B8G8R8A8_SRGB,
-                            VulkanSwapchain::colorSpaceSelector::eSpecific,
-                            (VkColorSpaceKHR)colorSpace.cs);
-    } catch(unsupported_surface_format& e) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
-                                       e.what(), NULL);
-        return false;
-    } catch(std::runtime_error& e) {
-        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
-                                       e.what(), NULL);
-        return false;
+    for (;;) {
+        try {
+            vkctx.swapchain.initSurface(
+                        hdr ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_B8G8R8A8_SRGB,
+                        (VkColorSpaceKHR)colorSpace.cs,
+                        false);
+            break;
+        } catch(unsupported_surface_format& e) {
+            std::string msg = e.what();
+            if (hdr) {
+                msg += " Reverting to LDR.";
+                hdr = false;
+            } else if (colorSpace.cs != defaultLdrColorSpace.cs) {
+                msg += " Reverting to " + vk::to_string(defaultLdrColorSpace.cs);
+            }
+            (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
+                                           msg.c_str(), NULL);
+            if (colorSpace.cs != defaultLdrColorSpace.cs) {
+                colorSpace = defaultLdrColorSpace;
+            } else {
+                vkctx.swapchain.destroySurface();
+                return false;
+            }
+        }
     }
     return true;
 } // createSurface
