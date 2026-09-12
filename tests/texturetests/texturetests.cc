@@ -369,7 +369,7 @@ class ktxTextureTestBase : public ::testing::Test {
 
     ktx_size_t paddedImageDataSize;
     ktx_size_t& imageDataSize = helper.imageDataSize;
-    std::vector< std::vector < std::vector < std::vector<GLubyte>  > > >& imageData = helper.images;
+    std::vector< std::vector < std::vector < std::vector<component_type>  > > >& imageData = helper.images;
 
     std::vector<wthImageInfo>& images = helper.imageList;
 };
@@ -3453,6 +3453,14 @@ class ktxTexture2BCnEncodeDecodeTestBase
             << "ktxTexture_CreateFromMemory failed: " << ktxErrorString(result);
         ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
 
+        // Try to catch any test misconfiguration where component_type does not
+        // match the set GLFormat/VkFormat (e.g., GLubyte for HDR formats).
+        ASSERT_EQ(texture->_protected->_typeSize, sizeof(component_type))
+            << "The provided component_type that is used to generate the images "
+               "for this texture does not match the type size of the created texture. "
+               "E.g., are you setting component_type to GLubyte for an R16G16B16A16_SFLOAT format (or the like)? "
+               "This can lead to all sorts of extremely hard to debug issues!";
+
         VkFormat compressedFormat = VK_FORMAT_UNDEFINED; /* so that gtest stops complaining */
         khr_df_model_e expectedModel = KHR_DF_MODEL_UNSPECIFIED;
         ktx_uint32_t expectedDecompressedFormat = texture->vkFormat;
@@ -3677,11 +3685,14 @@ class ktxTexture2_BCnEncodeDecodeTestRGBA8_UNORM
 class ktxTexture2_BCnEncodeDecodeTestRGBA8_SRGB
     : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_SRGB8_ALPHA8> {};
 
+// Make sure the component_type is GLushort otherwise you will get UB where
+// the tests pass for some file(s) on some machine(s), and "randomly" fail on
+// others.
 class ktxTexture2_BCnEncodeDecodeTestRGB16_SFLOAT
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 3, GL_RGB16F> {};
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLushort, 3, GL_RGB16F> {};
 
 class ktxTexture2_BCnEncodeDecodeTestRGBA16_SFLOAT
-    : public ktxTexture2BCnEncodeDecodeTestBase<GLubyte, 4, GL_RGBA16F> {};
+    : public ktxTexture2BCnEncodeDecodeTestBase<GLushort, 4, GL_RGBA16F> {};
 
 ////////////////////////////////////////////
 // BCn encode & decode tests

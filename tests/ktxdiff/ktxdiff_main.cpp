@@ -47,7 +47,6 @@ template <class To, class From>
 int EXIT_CODE_ERROR = 2;
 int EXIT_CODE_MISMATCH = 1;
 int EXIT_CODE_MATCH = 0;
-float BASELINE_EPSILON = ((1.0f - 0.99951172f) * 10.0f);  // 1 minus largest float16 number less than 1
 
 template <typename... Args>
 void error(int return_code, fmt::format_string<Args...> fmt, Args&&... args) {
@@ -206,11 +205,13 @@ CompareResult compareUnorm16(const char* rawLhs, const char* rawRhs, std::size_t
 
 CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_t rawSize,
                               float tolerance, bool ignore_signed = false) {
+    // 1 minus largest float32 number less than 1
+    const float baseline_f32_epsilon = ((1.0f - 0.999999940395355225f) * 10.0f);
     const auto* lhs = reinterpret_cast<const float*>(rawLhs);
     const auto* rhs = reinterpret_cast<const float*>(rawRhs);
     const auto element_size = sizeof(float);
     const auto count = rawSize / element_size;
-    const auto baseline = BASELINE_EPSILON * tolerance;
+    const auto baseline = baseline_f32_epsilon * tolerance;
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto diff = std::abs(lhs[i] - rhs[i]);
@@ -247,11 +248,13 @@ CompareResult compareSFloat32(const char* rawLhs, const char* rawRhs, std::size_
  */
 CompareResult compareSFloat16(const char* rawLhs, const char* rawRhs, std::size_t rawSize,
                               float tolerance, bool ignore_signed = false) {
+    // 1 minus largest float16 number less than 1
+    const float baseline_f16_epsilon = ((1.0f - 0.99951172f) * 10.0f);
     const auto* lhs = reinterpret_cast<const uint16_t*>(rawLhs);
     const auto* rhs = reinterpret_cast<const uint16_t*>(rawRhs);
     const auto element_size = sizeof(uint16_t);
     const auto count = rawSize / element_size;
-    const auto baseline = BASELINE_EPSILON * tolerance;
+    const auto baseline = baseline_f16_epsilon * tolerance;
 
     for (std::size_t i = 0; i < count; ++i) {
         const auto lhsFloat = imageio::half_to_float(lhs[i]);
