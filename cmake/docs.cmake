@@ -128,6 +128,8 @@ function( CreateDocLibKTX )
         lib/libktx_mainpage.md
         lib/include
         lib/src/astc_codec.cpp
+        lib/src/bcn_decoder.cpp
+        lib/src/bcn_encoder.cpp
         lib/src/basis_encode.cpp
         lib/src/basis_transcode.cpp
         lib/src/miniz_wrapper.cpp

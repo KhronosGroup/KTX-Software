@@ -10,5 +10,5 @@ AccessModifierOffset: -2
 ColumnLimit: 100
 SortIncludes: false
 AlwaysBreakAfterDefinitionReturnType: TopLevel
-IndentPPDirectives: BeforeHash
+IndentPPDirectives: None
 ...

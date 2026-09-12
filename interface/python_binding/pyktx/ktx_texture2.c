@@ -78,6 +78,40 @@ KTX_error_code PY_ktxTexture2_CompressAstcEx(ktxTexture2 *texture,
     return err;
 }
 
+KTX_error_code PY_ktxTexture2_CompressBCnEx(ktxTexture2 *texture,
+                                            ktx_uint32_t threadCount,
+                                            ktx_uint32_t bcn,
+                                            ktx_uint32_t bcnCompressionQuality,
+                                            float bcnRDOQualityScalar,
+                                            ktx_uint32_t bcnRDODictSize,
+                                            float bcnRDOMaxSmoothBlockErrorScale,
+                                            float bcnRDOMaxSmoothBlockStdDev,
+                                            float bcnRDOMaxAllowedRMSIncreaseRatio,
+                                            ktx_bool_t bcnRDO,
+                                            ktx_bool_t bcnRDONoUltrasmoothBlockHandling,
+                                            ktx_bool_t bcnRDOTryOneMatch,
+                                            ktx_bool_t bcnRDOSkipZeroMSEBlocks,
+                                            ktx_bool_t bcnRDONoMultithreading) {
+  ktxBCnParams params = {
+      .structSize = sizeof(ktxBCnParams),
+      .threadCount = threadCount,
+      .bcn = bcn,
+      .bcnCompressionQuality = bcnCompressionQuality,
+      .bcnRDOQualityScalar = bcnRDOQualityScalar,
+      .bcnRDODictSize = bcnRDODictSize,
+      .bcnRDOMaxSmoothBlockErrorScale = bcnRDOMaxSmoothBlockErrorScale,
+      .bcnRDOMaxSmoothBlockStdDev = bcnRDOMaxSmoothBlockStdDev,
+      .bcnRDOMaxAllowedRMSIncreaseRatio = bcnRDOMaxAllowedRMSIncreaseRatio,
+      .bcnRDO = bcnRDO,
+      .bcnRDONoUltrasmoothBlockHandling = bcnRDONoUltrasmoothBlockHandling,
+      .bcnRDOTryOneMatch = bcnRDOTryOneMatch,
+      .bcnRDOSkipZeroMSEBlocks = bcnRDOSkipZeroMSEBlocks,
+      .bcnRDONoMultithreading = bcnRDONoMultithreading,
+  };
+  KTX_error_code result = ktxTexture2_CompressBCnEx(texture, &params);
+  return result;
+}
+
 KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
                                               int codec,
                                               ktx_bool_t verbose,

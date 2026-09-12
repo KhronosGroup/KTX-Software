@@ -487,7 +487,9 @@ if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
     add_subdirectory(external/fmt)
     set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 endif()
-if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
+
+# cxxopts is required for ktx tools CLIs and ktxdiff
+if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET cxxopts::cxxopts)
     add_subdirectory(external/cxxopts)
 endif()
 

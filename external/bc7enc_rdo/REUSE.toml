@@ -1,0 +1,9 @@
+version = 1
+SPDX-PackageName = "bc7enc_rdo"
+SPDX-PackageDownloadLocation = "https://github.com/richgel999/bc7enc_rdo"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2021 Richard Geldreich, Jr. <richgel99@gmail.com>"
+SPDX-License-Identifier = "MIT"

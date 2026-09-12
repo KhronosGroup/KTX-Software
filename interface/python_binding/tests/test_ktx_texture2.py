@@ -194,3 +194,30 @@ class TestKtxTexture2(unittest.TestCase):
         self.assertFalse(texture.premultipled_alpha)
         self.assertEqual(texture.num_layers, 7)
         self.assertFalse(texture.needs_transcoding)
+
+    def test_compress_bcn(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/r8g8b8a8_srgb_array_7_mip.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+        self.assertFalse(texture.is_compressed)
+        self.assertEqual(texture.num_layers, 7)
+        self.assertEqual(texture.transfer_function, KhrDfTransfer.SRGB)
+        texture.compress_bcn(KtxBCnParams(bcn=KtxBCnCompression.BC7,
+                                          bcn_compression_quality=KtxPackBCnQualityLevels.THOROUGH,
+                                          bcn_rdo=True))
+        self.assertTrue(texture.is_compressed)
+        self.assertEqual(texture.color_model, KhrDfModel.BC7)
+        self.assertEqual(texture.num_layers, 7)
+        self.assertEqual(texture.transfer_function, KhrDfTransfer.SRGB)
+
+    def test_decode_bcn(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/rgba8_srgb_bc7_rdo_zstd.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+        self.assertTrue(texture.is_compressed)
+        self.assertEqual(texture.color_model, KhrDfModel.BC7)
+        self.assertEqual(texture.transfer_function, KhrDfTransfer.SRGB)
+        self.assertFalse(texture.needs_transcoding)
+        texture.decode_bcn();
+        self.assertFalse(texture.is_compressed)
+        self.assertEqual(texture.color_model, KhrDfModel.RGBSDA)
+        self.assertEqual(texture.transfer_function, KhrDfTransfer.SRGB)
+        self.assertFalse(texture.needs_transcoding)
