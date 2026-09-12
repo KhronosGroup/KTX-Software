@@ -12,8 +12,12 @@
 #
 # You can generate the strace log file as such (on Linux only):
 #   strace -f -e trace=openat -o files.trace su user -c 'ctest -j1'
-# Note:
-#   - This is only tested on Linux (MacOS does not have an `strace` equivalent)
+#
+# Important notes:
+#   - This is only tested on Linux (MacOS does not have an `strace` equivalent.
+#     There are 3rd party strace-'equivalent' tools for MacOS but they still
+#     probably produce a different output than what this script is expected to
+#     handle).
 #   - Make sure to run CTest in single-threaded mode otherwise you will get
 #     extremely large trace files with a lot of "unfinished" syscalls.
 #   - Input files (i.e., in `input` folder) that are not referenced by strace
