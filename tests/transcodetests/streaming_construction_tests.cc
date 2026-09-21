@@ -285,7 +285,10 @@ TEST_P(StreamingShellTest, MetadataPrefixConstructsWithoutOverRead) {
         << "constructor touched bytes past the metadata prefix";
 
     EXPECT_EQ(shell->numLevels, m.levelCount);
-    EXPECT_EQ(shell->supercompressionScheme, m.supercompressionScheme);
+    // Both operands must be ktxSupercmpScheme: the raw uint32 from the file
+    // compared against the enum triggers C4389 under MSVC /W4 /WX.
+    EXPECT_EQ(shell->supercompressionScheme,
+              static_cast<ktxSupercmpScheme>(m.supercompressionScheme));
     EXPECT_EQ(shell->pData, nullptr) << "shell should carry no image data";
 
     ktxTexture_Destroy(ktxTexture(shell));
