@@ -21,7 +21,7 @@
 #define _LEVEL_PROCESSOR_H_
 
 #include <ktx.h>
-#include "basis_sgd.h"
+#include "basis_transcode.h"
 
 /*
  * A processor for the levels of one serialized Basis source.
@@ -34,10 +34,16 @@ struct ktxLevelProcessor {
     const ktxTexture2* source;
     // Target-layout prototype (NO_STORAGE), owned by the processor.
     ktxTexture2* prototype;
-    // Concrete target after automatic-selection mapping.
-    ktx_transcode_fmt_e outputFormat;
-    ktx_transcode_flags transcodeFlags;
-    alpha_content_e alphaContent;
+    // Per-level transcoding state shared with ktxTexture2_TranscodeBasis:
+    // resolved target, SGD image descriptions, decoded ETC1S palettes and
+    // tables. Owned by the processor.
+    ktxBasisLevelTranscoder* transcoder;
+    // Zstd sources only: decompression context reused across levels.
+    struct ZSTD_DCtx_s* dctx;
+    // Zstd and ZLIB sources only: buffer for a level's inflated data,
+    // reused across levels and grown when a larger level arrives.
+    ktx_uint8_t* inflatedData;
+    ktx_size_t inflatedDataCapacity;
 };
 
 #endif /* _LEVEL_PROCESSOR_H_ */

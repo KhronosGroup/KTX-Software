@@ -20,16 +20,18 @@
  * processes them one level at a time, so peak memory is O(one level)
  * instead of O(whole file).
  *
- * This file implements the processor object, its validation and the
+ * This file implements the processor object, its validation, the
  * target-layout queries, which delegate to a private prototype texture
  * created with KTX_TEXTURE_CREATE_NO_STORAGE — the same prototype
  * technique ktxTexture2_TranscodeBasis uses, minus the full-mip-chain
- * allocation. ktxLevelProcessor_ProcessLevel is a stub in this commit;
- * the codec work lands separately.
+ * allocation — and the adapter from a level's serialized payload to the
+ * per-level transcoder ktxTexture2_TranscodeBasis also uses, so both
+ * share every codec path.
  */
 
 #include <assert.h>
 #include <stdlib.h>
+#include <zstd.h>
 
 #include <KHR/khr_df.h>
 #include "dfdutils/dfd.h"
@@ -44,6 +46,7 @@
 
 /**
  * @memberof ktxLevelProcessor
+ * @ingroup reader
  * @~English
  * @brief Create a processor for an ETC1S/UASTC source and a chosen target.
  *
@@ -71,8 +74,10 @@
  *
  * Creating a processor also performs the transcoder's process-wide
  * initialization, shared with ktxTexture2_TranscodeBasis(), if it has not
- * been done yet. It is done once, not per processor, so a processor should
- * be reused for all the levels of a source rather than created per level.
+ * been done yet, and, for BasisLZ/ETC1S sources, decodes the endpoint and
+ * selector palettes and tables from the source's supercompression global
+ * data. Both are done once, so a processor should be reused for all the
+ * levels of a source rather than created per level.
  *
  * Video sources are recognized, as by ktxTexture2_TranscodeBasis(), from
  * the KTXanimData key in the source's key/value data. Only an array
@@ -115,7 +120,8 @@
  *                              library.
  * @exception KTX_FILE_DATA_ERROR
  *                              The source's DFD describes an invalid alpha
- *                              channel arrangement.
+ *                              channel arrangement or the layout of its
+ *                              supercompression global data is invalid.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to create the processor.
  */
 KTX_error_code
@@ -194,17 +200,28 @@ ktxLevelProcessor_CreateBasis(const ktxTexture2* source,
     }
 
     ktxLevelProcessor* processor =
-        (ktxLevelProcessor*)malloc(sizeof(ktxLevelProcessor));
+        (ktxLevelProcessor*)calloc(1, sizeof(ktxLevelProcessor));
     if (processor == nullptr) {
         ktxTexture_Destroy(ktxTexture(prototype));
         return KTX_OUT_OF_MEMORY;
     }
-
     processor->source = source;
     processor->prototype = prototype;
-    processor->outputFormat = outputFormat;
-    processor->transcodeFlags = transcodeFlags;
-    processor->alphaContent = alphaContent;
+
+    result = ktxBasisLevelTranscoder_create(source, prototype, outputFormat,
+                                            transcodeFlags, alphaContent,
+                                            &processor->transcoder);
+    if (result == KTX_SUCCESS
+        && source->supercompressionScheme == KTX_SS_ZSTD) {
+        processor->dctx = ZSTD_createDCtx();
+        if (processor->dctx == nullptr)
+            result = KTX_OUT_OF_MEMORY;
+    }
+    if (result != KTX_SUCCESS) {
+        ktxLevelProcessor_Destroy(processor);
+        return result;
+    }
+
     *newProcessor = processor;
     return KTX_SUCCESS;
 }
@@ -350,13 +367,9 @@ ktxLevelProcessor_GetImageOffset(const ktxLevelProcessor* processor,
 
 /**
  * @memberof ktxLevelProcessor
+ * @ingroup reader
  * @~English
  * @brief Process one complete level into a caller-provided buffer.
- *
- * @note Not yet implemented in this commit of the API skeleton; the codec
- * paths land in a follow-up commit of this PR series. Argument validation
- * matches the final contract so bindings can already be written against
- * it.
  *
  * @p src must hold exactly the serialized level payload described by
  * ktxTexture2_GetLevelFileInfo() for @p level — in whatever source
@@ -367,6 +380,14 @@ ktxLevelProcessor_GetImageOffset(const ktxLevelProcessor* processor,
  * ktxLevelProcessor_GetLevelSize() / GetImageSize() / GetImageOffset(),
  * with no inter-level padding. For non-video sources levels may be
  * processed in any order and a level may be processed more than once.
+ *
+ * The level is transcoded by the same code as in
+ * ktxTexture2_TranscodeBasis(), so the result is identical to the
+ * corresponding level of a whole-texture transcode to the same target.
+ * The payload of a Zstd or ZLIB supercompressed source is first inflated
+ * into a buffer the processor keeps for the following levels. A UASTC
+ * HDR 4x4 level processed to @c KTX_TTF_ASTC_HDR_4x4_RGBA is copied
+ * unchanged after inflation: its blocks are valid ASTC HDR 4x4 blocks.
  *
  * @param[in]  processor   pointer to the processor.
  * @param[in]  level       mip level to process.
@@ -392,10 +413,21 @@ ktxLevelProcessor_GetImageOffset(const ktxLevelProcessor* processor,
  *                              created.
  * @exception KTX_FILE_DATA_ERROR
  *                              The source's serialized Level Index is
- *                              corrupt.
- * @exception KTX_UNSUPPORTED_FEATURE
- *                              Processing is not yet implemented (this
- *                              commit only).
+ *                              corrupt, or @p src is not valid data for
+ *                              the level: too short for its images, image
+ *                              descriptions outside it, or not a valid
+ *                              Zstd frame.
+ * @exception KTX_DECOMPRESS_LENGTH_ERROR
+ *                              The inflated payload does not have the
+ *                              level's uncompressedByteLength.
+ * @exception KTX_DECOMPRESS_CHECKSUM_ERROR
+ *                              The Zstd frame checksum of @p src does not
+ *                              match.
+ * @exception KTX_TRANSCODE_FAILED
+ *                              The source's BasisLZ palettes or tables
+ *                              cannot be decoded, or the transcoder
+ *                              rejected an image of the level.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to inflate the payload.
  */
 KTX_error_code
 ktxLevelProcessor_ProcessLevel(ktxLevelProcessor* processor,
@@ -427,8 +459,43 @@ ktxLevelProcessor_ProcessLevel(ktxLevelProcessor* processor,
     if (dstCapacity < levelSize)
         return KTX_INVALID_VALUE;
 
-    // Codec paths follow in the next commit of this PR series.
-    return KTX_UNSUPPORTED_FEATURE;
+    const ktx_uint8_t* levelData = src;
+    ktx_size_t levelDataSize = srcSize;
+    const ktxTexture2* source = processor->source;
+    if (source->supercompressionScheme == KTX_SS_ZSTD
+        || source->supercompressionScheme == KTX_SS_ZLIB) {
+        // Only UASTC can be Zstd or ZLIB supercompressed and its inflated
+        // level is exactly the level's images. Check the Level Index
+        // before trusting its size for an allocation.
+        ktx_size_t expectedSize =
+            ktxTexture_calcLevelSize(ktxTexture(source), level,
+                                     KTX_FORMAT_VERSION_TWO);
+        if (fileInfo.uncompressedByteLength > expectedSize)
+            return KTX_FILE_DATA_ERROR;
+        ktx_size_t inflatedSize = (ktx_size_t)fileInfo.uncompressedByteLength;
+
+        if (inflatedSize > processor->inflatedDataCapacity) {
+            free(processor->inflatedData);
+            processor->inflatedData = (ktx_uint8_t*)malloc(inflatedSize);
+            if (processor->inflatedData == nullptr) {
+                processor->inflatedDataCapacity = 0;
+                return KTX_OUT_OF_MEMORY;
+            }
+            processor->inflatedDataCapacity = inflatedSize;
+        }
+        result = ktxTexture2_inflateLevelInt(source, level, src, srcSize,
+                                             processor->inflatedData,
+                                             inflatedSize, processor->dctx);
+        if (result != KTX_SUCCESS)
+            return result;
+        levelData = processor->inflatedData;
+        levelDataSize = inflatedSize;
+    }
+
+    return ktxBasisLevelTranscoder_transcodeLevel(processor->transcoder,
+                                                  level, levelData,
+                                                  levelDataSize, dst,
+                                                  dstCapacity);
 }
 
 /**
@@ -436,8 +503,9 @@ ktxLevelProcessor_ProcessLevel(ktxLevelProcessor* processor,
  * @~English
  * @brief Destroy a processor.
  *
- * Frees the processor and its private prototype. The borrowed source
- * texture is not affected. NULL is accepted and ignored.
+ * Frees the processor, its private prototype and the transcoding state
+ * and buffers it keeps between levels. The borrowed source texture is not
+ * affected. NULL is accepted and ignored.
  *
  * @param[in] processor pointer to the processor to destroy, or NULL.
  */
@@ -446,6 +514,9 @@ ktxLevelProcessor_Destroy(ktxLevelProcessor* processor)
 {
     if (processor == nullptr)
         return;
+    ktxBasisLevelTranscoder_destroy(processor->transcoder);
+    ZSTD_freeDCtx(processor->dctx);
+    free(processor->inflatedData);
     if (processor->prototype)
         ktxTexture_Destroy(ktxTexture(processor->prototype));
     free(processor);

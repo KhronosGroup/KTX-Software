@@ -353,6 +353,53 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
 }
 ~~~~~~~~~~~~~~~~
 
+## Transcoding a BasisLZ/ETC1S or UASTC-compressed Texture Level by Level
+
+A texture being streamed can be transcoded one level at a time as each
+level's data arrives, without the whole file in memory.
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+
+ktxTexture2* texture;
+ktxLevelProcessor* processor;
+KTX_error_code result;
+
+// Construct the texture from the start of the file only: the header, the
+// level index, the DFD, the key/value data and the supercompression global
+// data. Do not set KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT; the image data
+// arrives level by level.
+result = ktxTexture2_CreateFromMemory(fileStart, fileStartSize,
+                                      KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
+
+// Choose tf as for ktxTexture2_TranscodeBasis, above. Reuse the processor
+// for all the levels.
+result = ktxLevelProcessor_CreateBasis(texture, tf, 0, &processor);
+
+// Smallest level first, so something can be shown as early as possible.
+for (ktx_int32_t level = texture->numLevels - 1; level >= 0; level--) {
+    ktxLevelFileInfo levelInfo;
+    ktx_size_t levelSize;
+    ktx_uint8_t* levelData;
+
+    result = ktxTexture2_GetLevelFileInfo(texture, level, &levelInfo);
+    // Fetch levelInfo.byteLength bytes from levelInfo.byteOffset in the
+    // file into payload, e.g. with an HTTP Range request.
+
+    result = ktxLevelProcessor_GetLevelSize(processor, level, &levelSize);
+    levelData = malloc(levelSize);
+    result = ktxLevelProcessor_ProcessLevel(processor, level,
+                                            payload, levelInfo.byteLength,
+                                            levelData, levelSize);
+    // Upload the level. ktxLevelProcessor_GetImageOffset gives the offset
+    // in levelData of each layer, face or depth slice of the level.
+    free(levelData);
+}
+
+ktxLevelProcessor_Destroy(processor);
+ktxTexture2_Destroy(texture);
+~~~~~~~~~~~~~~~~
+
 ## Writing an ASTC-Compressed Texture
 
 ~~~~~~~~~~~~~~~~{.c}

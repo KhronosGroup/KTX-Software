@@ -62,6 +62,15 @@ ktx_uint32_t ktxTexture2_calcRequiredLevelAlignment(ktxTexture2* This);
 ktx_uint64_t ktxTexture2_levelFileOffset(ktxTexture2* This, ktx_uint32_t level);
 ktx_uint64_t ktxTexture2_levelDataOffset(ktxTexture2* This, ktx_uint32_t level);
 
+struct ZSTD_DCtx_s;
+KTX_error_code
+ktxTexture2_inflateLevelInt(const ktxTexture2* This, ktx_uint32_t level,
+                            const ktx_uint8_t* pDeflatedData,
+                            ktx_size_t deflatedByteLength,
+                            ktx_uint8_t* pInflatedData,
+                            ktx_size_t inflatedDataCapacity,
+                            struct ZSTD_DCtx_s* dctx);
+
 #ifdef __cplusplus
 }
 #endif

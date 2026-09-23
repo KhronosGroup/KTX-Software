@@ -3216,6 +3216,85 @@ cleanup:
     return result;
 }
 
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Inflate the Zstd or ZLIB supercompressed data of one level.
+ *
+ * The texture itself is not modified. Used where levels are inflated one
+ * at a time from data held by the caller, as by ktxLevelProcessor.
+ *
+ * @param[in] This              pointer to the ktxTexture2 object of interest.
+ * @param[in] level             the level whose data is to be inflated.
+ * @param[in] pDeflatedData     pointer to the level's supercompressed data.
+ * @param[in] deflatedByteLength size of the data at @p pDeflatedData.
+ * @param[in,out] pInflatedData pointer to a buffer in which to write the
+ *                              inflated data.
+ * @param[in] inflatedDataCapacity capacity of the buffer pointed at by
+ *                                @p pInflatedData.
+ * @param[in] dctx              Zstd decompression context to use when the
+ *                              texture is Zstd supercompressed. Ignored for
+ *                              ZLIB.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION The texture is not Zstd or ZLIB
+ *                                  supercompressed.
+ * @exception KTX_DECOMPRESS_LENGTH_ERROR The inflated size does not match
+ *                                        the level's uncompressedByteLength
+ *                                        or exceeds @p inflatedDataCapacity.
+ * @exception KTX_DECOMPRESS_CHECKSUM_ERROR The Zstd frame checksum does
+ *                                          not match.
+ * @exception KTX_FILE_DATA_ERROR The data is not a valid Zstd frame.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to inflate the data.
+ */
+KTX_error_code
+ktxTexture2_inflateLevelInt(const ktxTexture2* This, ktx_uint32_t level,
+                            const ktx_uint8_t* pDeflatedData,
+                            ktx_size_t deflatedByteLength,
+                            ktx_uint8_t* pInflatedData,
+                            ktx_size_t inflatedDataCapacity,
+                            struct ZSTD_DCtx_s* dctx)
+{
+    size_t levelByteLength;
+
+    if (This->supercompressionScheme == KTX_SS_ZSTD) {
+        levelByteLength = ZSTD_decompressDCtx(dctx, pInflatedData,
+                                              inflatedDataCapacity,
+                                              pDeflatedData,
+                                              deflatedByteLength);
+        if (ZSTD_isError(levelByteLength)) {
+            ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLength);
+            switch(error) {
+              case ZSTD_error_dstSize_tooSmall:
+                return KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+              case ZSTD_error_checksum_wrong:
+                return KTX_DECOMPRESS_CHECKSUM_ERROR;
+              case ZSTD_error_memory_allocation:
+                return KTX_OUT_OF_MEMORY;
+              default:
+                return KTX_FILE_DATA_ERROR;
+            }
+        }
+    } else if (This->supercompressionScheme == KTX_SS_ZLIB) {
+        levelByteLength = inflatedDataCapacity;
+        KTX_error_code result = ktxUncompressZLIBInt(pInflatedData,
+                                                     &levelByteLength,
+                                                     pDeflatedData,
+                                                     deflatedByteLength);
+        if (result != KTX_SUCCESS)
+            return result;
+    } else {
+        return KTX_INVALID_OPERATION;
+    }
+
+    if (This->_private->_levelIndex[level].uncompressedByteLength
+        != levelByteLength)
+        return KTX_DECOMPRESS_LENGTH_ERROR;
+
+    return KTX_SUCCESS;
+}
+
 #if !KTX_FEATURE_WRITE
 
 /*
