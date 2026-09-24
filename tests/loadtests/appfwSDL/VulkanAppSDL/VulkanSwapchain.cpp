@@ -63,10 +63,16 @@
     }                                                                       \
   }
 
+#if 0
+# Keep in case they may be useful in future.
 const std::vector<VkColorSpaceKHR> linearHDRSpaces = {
     VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
     //VK_COLOR_SPACE_EXTENDED_DISPLAY_P3_LINEAR_EXT // Why does Vulkan not have this?
-    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT  // At least on Apple, it is not clamping values
+    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT  // MoltenVK and KosmicKrisp (Apple) apparently map
+                                          // this to kCGColorSpaceLinearDisplayP3 which does
+                                          // not clamp values of 16F components so is effectively
+                                          // the same as kCGColorSpaceExtendedLinearDisplayP3 so
+                                          // is HDR.
 };
 
 const std::vector<VkColorSpaceKHR> nonlinearHDRSpaces = {
@@ -91,6 +97,7 @@ const std::vector<VkColorSpaceKHR> nonlinearLDRSpaces = {
     VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT,
     VK_COLOR_SPACE_PASS_THROUGH_EXT   // Assuming most displays are non-linear and non-HDR
 };
+#endif
 
 // Create an OS specific surface.
 void
@@ -186,9 +193,8 @@ VulkanSwapchain::findGraphicsPresentQueue()
 // Creates an os specific surface
 void
 VulkanSwapchain::initSurface(VkFormat reqFormat,
-                             VkColorSpaceKHR reqColorSpace,
-                             bool destroySurfaceOnFailure,
-                             colorSpaceSelector css)
+                             csInfo& reqColorSpace,
+                             bool destroySurfaceOnFailure)
 {
     U_ASSERT_ONLY VkResult err;
 
@@ -217,55 +223,20 @@ VulkanSwapchain::initSurface(VkFormat reqFormat,
         assert(formatCount >= 1);
         uint32_t i;
         for (i = 0; i < formatCount; i++) {
-            if (surfaceFormats[i].format == reqFormat) {
-                bool matched = false;
-                // Auto selection is not currently used as the app would need to
-                // transform its color space to the selected space, something it
-                // currently can't do.
-                std::vector<VkColorSpaceKHR> const* matchingSpaces = &linearHDRSpaces;
-                switch (css) {
-                  case colorSpaceSelector::eSpecific:
-                    if (surfaceFormats[i].colorSpace == reqColorSpace)
-                        matched = true;
+            if (surfaceFormats[i].format == reqFormat
+                && surfaceFormats[i].colorSpace == (VkColorSpaceKHR)reqColorSpace.cs)
                     break;
-                  case colorSpaceSelector::eAnyHDRLinear:
-                    matchingSpaces = &linearHDRSpaces;
-                    break;
-                   case colorSpaceSelector::eAnyHDRNonlinear:
-                    matchingSpaces = &nonlinearHDRSpaces;
-                    break;
-                  case colorSpaceSelector::eAnyLDRLinear:
-                    matchingSpaces = &linearLDRSpaces;
-                    break;
-                   case colorSpaceSelector::eAnyLDRNonlinear:
-                    matchingSpaces = &nonlinearLDRSpaces;
-                    break;
-                }
-                if (!matched && css != colorSpaceSelector::eSpecific) {
-                    for (uint32_t si = 0; si < matchingSpaces->size(); si++) {
-                        if (surfaceFormats[si].colorSpace == (*matchingSpaces)[si]) {
-                            matched = true;
-                        }
-                    }
-                }
-                if (matched)
-                    break;
-            }
         }
         if (i == formatCount) {
             if (destroySurfaceOnFailure)
                 destroySurface();
             std::string msg;
-            if (css == colorSpaceSelector::eSpecific) {
-                msg = "Requested color space, ";
-                msg += vk::to_string((vk::ColorSpaceKHR)reqColorSpace) + ", not supported.";
-            } else {
-                msg = "No matching color space found.";
-            }
+            msg = "Requested color space, ";
+            msg += vk::to_string(reqColorSpace.cs) + ", not supported.";
             throw unsupported_surface_format(msg);
         }
         colorFormat = surfaceFormats[i].format;
-        colorSpace = surfaceFormats[i].colorSpace;
+        colorSpace = reqColorSpace;
     }
 }
 
@@ -393,7 +364,7 @@ VulkanSwapchain::create(uint32_t& width, uint32_t& height,
     swapchainCI.surface = surface;
     swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
     swapchainCI.imageFormat = colorFormat;
-    swapchainCI.imageColorSpace = colorSpace;
+    swapchainCI.imageColorSpace = (VkColorSpaceKHR)colorSpace.cs;
     swapchainCI.imageExtent = { swapchainExtent.width, swapchainExtent.height };
     swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainCI.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
