@@ -84,7 +84,7 @@ VulkanAppSDL::initialize(Args& args)
     // give correct results. The other uncommented spaces will give
     // approximately correct results. This infrastructure has been put in
     // place to enable work with color spaces.
-    static const std::unordered_map<std::string, csInfo> csValues {
+    static const std::unordered_map<std::string, VulkanSwapchain::csInfo> csValues {
         // LDR
         {"adobergb", {vk::ColorSpaceKHR::eAdobergbLinearEXT, false, true}}, // Not on Apple
 //        {"bt2020", {vk::ColorSpaceKHR::eBt2020LinearEXT, false, true}},
@@ -95,6 +95,10 @@ VulkanAppSDL::initialize(Args& args)
         {"display-p3-nl", {vk::ColorSpaceKHR::eDisplayP3NonlinearEXT, false, false}},
         {"srgb-nl", {vk::ColorSpaceKHR::eSrgbNonlinear, false, false}},
         // HDR
+        // MoltenVK and KosmicKrisp (Apple) apparently map this to kCGColorSpaceLinearDisplayP3
+        // which does not clamp values of 16F components so is effectively the same as
+        // kCGColorSpaceExtendedLinearDisplayP3, which has no vk::ColorSpaceKHR equivalent,
+        // so is HDR.
         {"display-p3", {vk::ColorSpaceKHR::eDisplayP3LinearEXT, true, true}},
         {"extended-srgb", {vk::ColorSpaceKHR::eExtendedSrgbLinearEXT, true, true}},
         //{"dolby", {vk::ColorSpaceKHR::eDolbyvisionEXT, true, false}}, // deprecated
@@ -151,7 +155,6 @@ VulkanAppSDL::initialize(Args& args)
             i--;
         }
     }
-    csInfo defaultLdrColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear, false, false);
     bool colorSpaceSet = false;
     std::string specMethods = ", specified via --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
     if (colorSpaceStr.size() > 0) {
@@ -898,8 +901,8 @@ VulkanAppSDL::createSurface()
             std::string msg = "VulkanSwapchain::initSurface: ";
             msg += "Implementation does not support ";
             msg += VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME;
-            msg += " which is needed for " + to_string(colorSpace.cs);
-            msg += " Reverting to " + to_string(defaultLdrColorSpace.cs) + ".";
+            msg += " which is needed for " + vk::to_string(colorSpace.cs);
+            msg += " Reverting to " + vk::to_string(defaultLdrColorSpace.cs) + ".";
             (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, theApp->name(),
                                            msg.c_str(), NULL);
             hdr = false;
@@ -911,7 +914,7 @@ VulkanAppSDL::createSurface()
         try {
             vkctx.swapchain.initSurface(
                         hdr ? VK_FORMAT_R16G16B16A16_SFLOAT : VK_FORMAT_B8G8R8A8_SRGB,
-                        (VkColorSpaceKHR)colorSpace.cs,
+                        colorSpace,
                         false);
             break;
         } catch(unsupported_surface_format& e) {

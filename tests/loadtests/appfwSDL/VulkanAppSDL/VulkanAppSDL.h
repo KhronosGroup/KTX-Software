@@ -137,23 +137,9 @@ class VulkanAppSDL : public AppBaseSDL {
     bool validate;
     bool hdr;
 
-    struct csInfo {
-        vk::ColorSpaceKHR cs;
-        bool isHDR;
-        bool isLinear;
-
-        csInfo(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
-            set(_cs, hdr, linear);
-        }
-        void set(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
-            cs = _cs;
-            isHDR = hdr;
-            isLinear = linear;
-        }
-    };
-    csInfo defaultLdrColorSpace;
-    csInfo defaultHdrColorSpace;
-    csInfo colorSpace = defaultLdrColorSpace;
+    VulkanSwapchain::csInfo defaultLdrColorSpace;
+    VulkanSwapchain::csInfo defaultHdrColorSpace;
+    VulkanSwapchain::csInfo colorSpace = defaultLdrColorSpace;
 
     std::vector<const char*> extensionNames;
 

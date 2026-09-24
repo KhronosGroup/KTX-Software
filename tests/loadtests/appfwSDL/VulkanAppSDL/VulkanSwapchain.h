@@ -25,7 +25,24 @@ class VulkanSwapchain
 {
   public:
     VkFormat colorFormat;
-    VkColorSpaceKHR colorSpace;
+    struct csInfo {
+        vk::ColorSpaceKHR cs;
+        bool isHDR;
+        bool isLinear;
+
+        csInfo() {
+            set(vk::ColorSpaceKHR::eSrgbNonlinear, false, false);
+        }
+        csInfo(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            set(_cs, hdr, linear);
+        }
+        void set(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            cs = _cs;
+            isHDR = hdr;
+            isLinear = linear;
+        }
+    };
+    csInfo colorSpace;
 
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 
@@ -35,14 +52,6 @@ class VulkanSwapchain
 
     // Index of the detected graphics- and present-capable device queue.
     uint32_t queueIndex = UINT32_MAX;
-
-    enum class colorSpaceSelector {
-        eAnyHDRLinear,
-        eAnyHDRNonlinear,
-        eAnyLDRLinear,
-        eAnyLDRNonlinear,
-        eSpecific
-    };
 
     // Create the swap chain and get images with given width and height
     void create(uint32_t& width, uint32_t& height,
@@ -64,9 +73,8 @@ class VulkanSwapchain
     void findGraphicsPresentQueue();
     // Initializes the surface.
     void initSurface(VkFormat format,
-                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-                     bool destroySurfaceOnFailure = true,
-                     colorSpaceSelector css = colorSpaceSelector::eSpecific);
+                     csInfo& colorSpace,
+                     bool destroySurfaceOnFailure = true);
 
 
     // Acquires the next image in the swap chain
