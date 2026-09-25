@@ -291,6 +291,16 @@ namespace ktx
             return result;
         }
 
+        ktx_error_code_e decodeBCn()
+        {
+            ktx_error_code_e result;
+            result = ktxTexture2_DecodeBCn(*this);
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: Failed to decodeBCn: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
         // NOTE: WebGLTexture objects are completely opaque so the option of passing in the texture
         // to use is not viable.
         val glUpload()
@@ -399,6 +409,19 @@ namespace ktx
             result = ktxTexture2_CompressAstcEx(*this, &params);
             if (result != KTX_SUCCESS) {
                 std::cout << "ERROR: Failed to compressAstc: " << ktxErrorString(result) << std::endl;
+            }
+            return result;
+        }
+
+        ktx_error_code_e compressBCn(const ktxBCnParams& params_input)
+        {
+            ktx_error_code_e result = KTX_SUCCESS;
+            ktxBCnParams params = params_input;
+            params.structSize = sizeof(ktxBCnParams);
+            params.threadCount = 1;
+            result = ktxTexture2_CompressBCnEx(*this, &params);
+            if (result != KTX_SUCCESS) {
+                std::cout << "ERROR: Failed to compressBCn: " << ktxErrorString(result) << std::endl;
             }
             return result;
         }
@@ -677,7 +700,9 @@ interface texture {
                 CreateStorageEnum? storage);
 
     error_code compressAstc(ktxAstcParams params); // **
-    error_code decodeAstc(ktxAstcParams params);
+    error_code decodeAstc();
+    error_code compressBCn(ktxBCnParams params); // **
+    error_code decodeBCn();
     error_code compressBasis(ktxBasisParams params); // **
     texture createCopy();  // **
     error_code defateZLIB();   // **
@@ -1368,10 +1393,12 @@ EMSCRIPTEN_BINDINGS(ktx)
         .function("getImage", &ktx::texture::getImage)
         .function("glUpload", &ktx::texture::glUpload)
         .function("decodeAstc", &ktx::texture::decodeAstc)
+        .function("decodeBCn", &ktx::texture::decodeBCn)
         .function("transcodeBasis", &ktx::texture::transcodeBasis)
 #if KTX_FEATURE_WRITE
         .constructor<const ktxTextureCreateInfo&, ktxTextureCreateStorageEnum>()
         .function("compressAstc", &ktx::texture::compressAstc)
+        .function("compressBCn", &ktx::texture::compressBCn)
         .function("compressBasis", &ktx::texture::compressBasis)
         .function("deflateZstd", &ktx::texture::deflateZstd)
         .function("deflateZLIB", &ktx::texture::deflateZLIB)
@@ -1503,6 +1530,56 @@ EMSCRIPTEN_BINDINGS(ktx)
       .value("LEVEL_DEFAULT", KTX_PACK_UASTC_LEVEL_DEFAULT)
       .value("LEVEL_SLOWER", KTX_PACK_UASTC_LEVEL_SLOWER)
       .value("LEVEL_VERYSLOW", KTX_PACK_UASTC_LEVEL_VERYSLOW)
+    ;
+
+    enum_<ktx_bcn_compression_e>("bcn_compression")
+      .value("NONE", KTX_BCN_COMPRESSION_NONE)
+      .value("BC1", KTX_BCN_COMPRESSION_BC1)
+      .value("BC1A", KTX_BCN_COMPRESSION_BC1A)
+      .value("BC2", KTX_BCN_COMPRESSION_BC2)
+      .value("BC3", KTX_BCN_COMPRESSION_BC3)
+      .value("BC4", KTX_BCN_COMPRESSION_BC4)
+      .value("BC5", KTX_BCN_COMPRESSION_BC5)
+      .value("BC6HU", KTX_BCN_COMPRESSION_BC6HU)
+      .value("BC6HS", KTX_BCN_COMPRESSION_BC6HS)
+      .value("BC7", KTX_BCN_COMPRESSION_BC7)
+    ;
+
+    enum_<ktx_pack_bcn_quality_levels_e>("pack_bcn_quality_levels")
+      .value("FASTEST", KTX_PACK_BCN_QUALITY_LEVEL_FASTEST)
+      .value("FASTER", KTX_PACK_BCN_QUALITY_LEVEL_FASTER)
+      .value("FAST", KTX_PACK_BCN_QUALITY_LEVEL_FAST)
+      .value("MEDIUM", KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM)
+      .value("THOROUGH", KTX_PACK_BCN_QUALITY_LEVEL_THOROUGH)
+      .value("EXHAUSTIVE", KTX_PACK_BCN_QUALITY_LEVEL_EXHAUSTIVE)
+    ;
+
+    class_<ktxBCnParams>("bcnParams")
+      .constructor<>()
+      .property("structSize", &ktxBCnParams::structSize)
+      .property("threadCount", &ktxBCnParams::threadCount)
+      .property("bcn", +[](const ktxBCnParams& p) {
+        return p.bcn;
+      },
+      +[](ktxBCnParams& p, ktx_bcn_compression_e bcn) {
+        p.bcn = bcn;
+      })
+      .property("bcnCompressionQuality", +[](const ktxBCnParams& p) {
+        return p.bcnCompressionQuality;
+      },
+      +[](ktxBCnParams& p, ktx_pack_bcn_quality_levels_e bcnCompressionQuality) {
+        p.bcnCompressionQuality = bcnCompressionQuality;
+      })
+      .property("bcnRDOQualityScalar", &ktxBCnParams::bcnRDOQualityScalar)
+      .property("bcnRDODictSize", &ktxBCnParams::bcnRDODictSize)
+      .property("bcnRDOMaxSmoothBlockErrorScale", &ktxBCnParams::bcnRDOMaxSmoothBlockErrorScale)
+      .property("bcnRDOMaxSmoothBlockStdDev", &ktxBCnParams::bcnRDOMaxSmoothBlockStdDev)
+      .property("bcnRDOMaxAllowedRMSIncreaseRatio", &ktxBCnParams::bcnRDOMaxAllowedRMSIncreaseRatio)
+      .property("bcnRDO", &ktxBCnParams::bcnRDO)
+      .property("bcnRDONoUltrasmoothBlockHandling", &ktxBCnParams::bcnRDONoUltrasmoothBlockHandling)
+      .property("bcnRDOTryOneMatch", &ktxBCnParams::bcnRDOTryOneMatch)
+      .property("bcnRDOSkipZeroMSEBlocks", &ktxBCnParams::bcnRDOSkipZeroMSEBlocks)
+      .property("bcnRDONoMultithreading", &ktxBCnParams::bcnRDONoMultithreading)
     ;
 
     class_<ktxBasisParams>("basisParams")

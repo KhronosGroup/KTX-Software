@@ -39,7 +39,8 @@ static const char* const errorStrings[] = {
     "Feature not included in in-use library or not yet implemented.", /* KTX_UNSUPPORTED_FEATURE */
     "Library dependency (OpenGL or Vulkan) not linked into application.", /* KTX_LIBRARY_NOT_LINKED */
     "Decompressed byte count does not match expected byte size", /* KTX_DECOMPRESS_LENGTH_ERROR */
-    "Checksum mismatch when decompressing"            /* KTX_DECOMPRESS_CHECKSUM_ERROR */
+    "Checksum mismatch when decompressing",            /* KTX_DECOMPRESS_CHECKSUM_ERROR */
+    "Decompression failure",                           /* KTX_DECOMPRESS_FAILURE */
 };
 /* This will cause compilation to fail if number of messages and codes doesn't match */
 typedef int errorStrings_SIZE_ASSERT[sizeof(errorStrings) / sizeof(char*) - 1 == KTX_ERROR_MAX_ENUM];

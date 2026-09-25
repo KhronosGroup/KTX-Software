@@ -19,6 +19,7 @@ if os.name == 'nt':
 
 from .gl_internalformat import *
 from .ktx_astc_params import *
+from .ktx_bcn_params import *
 from .ktx_basis_params import *
 from .ktx_error_code import *
 from .ktx_hash_list import *

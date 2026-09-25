@@ -85,6 +85,7 @@ ffibuilder.cdef(
     bool ktxTexture_IsTranscodable(ktxTexture *);
     bool ktxTexture_NeedsTranscoding(ktxTexture *);
     int ktxTexture2_DecodeAstc(void *);
+    int ktxTexture2_DecodeBCn(void *);
     int ktxTexture2_TranscodeBasis(void *, int outputFormat, int transcodeFlags);
     int ktxTexture2_DeflateZstd(void *, uint32_t compressionLevel);
     uint32_t ktxTexture2_GetColorModel_e(void *);
@@ -164,6 +165,20 @@ ffibuilder.cdef(
                                       bool normalMap,
                                       bool perceptual,
                                       char *inputSwizzle);
+    int PY_ktxTexture2_CompressBCnEx(void *texture,
+                                     uint32_t threadCount,
+                                     uint32_t bcn,
+                                     uint32_t bcnCompressionQuality,
+                                     float bcnRDOQualityScalar,
+                                     uint32_t bcnRDODictSize,
+                                     float bcnRDOMaxSmoothBlockErrorScale,
+                                     float bcnRDOMaxSmoothBlockStdDev,
+                                     float bcnRDOMaxAllowedRMSIncreaseRatio,
+                                     bool bcnRDO,
+                                     bool bcnRDONoUltrasmoothBlockHandling,
+                                     bool bcnRDOTryOneMatch,
+                                     bool bcnRDOSkipZeroMSEBlocks,
+                                     bool bcnRDONoMultithreading);
     int PY_ktxTexture2_CompressBasisEx(void *texture,
                                        uint32_t codec,
                                        bool verbose,

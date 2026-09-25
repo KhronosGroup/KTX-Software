@@ -41,7 +41,7 @@ texture type is determined from the file contents.
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 
-ktxTexture* texture;
+ktxTexture* texture = NULL;
 KTX_error_code result;
 ktx_size_t offset;
 ktx_uint8_t* image;
@@ -73,7 +73,7 @@ ktxTexture_Destroy(texture);
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 
-ktxTexture* kTexture;
+ktxTexture* kTexture = NULL;
 KTX_error_code result;
 ktx_size_t offset;
 ktx_uint8_t* image;
@@ -111,7 +111,7 @@ ktxTexture_Destroy(kTexture);
 #include <vulkan/vulkan.h>    // From your Vulkan SDK.
 #include <ktxvulkan.h>
 
-ktxTexture* kTexture;
+ktxTexture* kTexture = NULL;
 KTX_error_code result;
 ktx_size_t offset;
 ktx_uint8_t* image;
@@ -126,14 +126,14 @@ ktxVulkanTexture texture;
 ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
                               vkctx.queue, vkctx.commandPool, nullptr);
 
-ktxresult = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
-                                           KTX_TEXTURE_CREATE_NO_FLAGS,
-                                           &kTexture);
+result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
+                                        KTX_TEXTURE_CREATE_NO_FLAGS,
+                                        &kTexture);
 
-ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
-                                  VK_IMAGE_TILING_OPTIMAL,
-                                  VK_IMAGE_USAGE_SAMPLED_BIT,
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+result = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
+                               VK_IMAGE_TILING_OPTIMAL,
+                               VK_IMAGE_USAGE_SAMPLED_BIT,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 ktxTexture_Destroy(kTexture);
 ktxVulkanDeviceInfo_Destruct(&vdi);
@@ -168,18 +168,18 @@ if (KTX_SUCCESS == ktxHashList_FindValue(&kTexture->kvDataHead,
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
+#include <vulkan/vulkan.h>              // From your Vulkan SDK
 
-ktxTexture2* texture;                   // For KTX2
-//ktxTexture1* texture;                 // For KTX
+ktxTexture2* texture = NULL;            // For KTX2
+//ktxTexture1* texture = NULL;          // For KTX
 ktxTextureCreateInfo createInfo;
 KTX_error_code result;
 ktx_uint32_t level, layer, faceSlice;
 FILE* src;
 ktx_size_t srcSize;
 
-createInfo.glInternalformat = GL_RGB8;   // Ignored if creating a ktxTexture2.
-createInfo.vkFormat = VK_FORMAT_R8G8B8_UNORM;   // Ignored if creating a ktxTexture1.
+createInfo.glInternalformat = GL_RGB8;         // Ignored if creating a ktxTexture2.
+createInfo.vkFormat = VK_FORMAT_R8G8B8_UNORM;  // Ignored if creating a ktxTexture1.
 createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
 createInfo.baseDepth = 16;
@@ -207,7 +207,7 @@ result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
 // Repeat for the other 15 slices of the base level and all other levels
 // up to createInfo.numLevels.
 
-ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx");
+result = ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx");
 ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
@@ -216,34 +216,34 @@ ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 
-ktxTexture* texture;
+ktxTexture* texture = NULL;
 KTX_error_code result;
-ktx_size_t offset;
-ktx_uint8_t* image;
-ktx_uint32_t level, layer, faceSlice;
 
 result = ktxTexture_CreateFromNamedFile("mytex3d.ktx",
                                         KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
                                         &texture);
 // The file is closed after all the data has been read.
 
-// It is the responsibilty of the application to make sure its
-// modifications are valid.
+// It is the responsibilty of the application to make sure its modifications
+// are valid.
 texture->generateMipmaps = KTX_TRUE;
 
-ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
+result = ktxTexture_WriteToNamedFile(texture, "mytex3d.ktx");
 ktxTexture_Destroy(texture);
 ~~~~~~~~~~~~~~~~
 
 ## Writing a Basis-compressed Universal Texture
 
-Basis compression supports two universal texture formats: _BasisLZ/ETC1S_ and _UASTC_. The latter gives higher quality at a larger file size. Textures can be compressed to either format using `ktxTexture2_CompressBasisEx` as shown in this example. 
+Basis compression supports two universal texture formats: _BasisLZ/ETC1S_ and
+_UASTC_. The latter gives higher quality at a larger file size. Textures can be
+compressed to either format using `ktxTexture2_CompressBasisEx` as shown in this
+example:
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
+#include <vulkan/vulkan.h>              // From your Vulkan SDK
 
-ktxTexture2* texture;
+ktxTexture2* texture = NULL;
 ktxTextureCreateInfo createInfo;
 KTX_error_code result;
 ktx_uint32_t level, layer, faceSlice;
@@ -286,15 +286,16 @@ params.compressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
 // For UASTC
 params.uastc = KTX_TRUE;
 // Set other BasisLZ/ETC1S or UASTC params to change default quality settings.
-result = ktxtexture2_CompressBasisEx(texture, &params);
+result = ktxTexture2_CompressBasisEx(texture, &params);
 
-ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
+result = ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
 ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
 There is a shortcut that can be used when compressing to BasisLZ/ETC1S. Remove
 the declaration and initialization of `params` in the previous example and
-replace `ktxtexture2_CompressBasisEx` with
+replace @ref ktxTexture2::ktxTexture2_CompressBasisEx
+with @ref ktxTexture2::ktxTexture2_CompressBasis as follows:
 
 ~~~~~~~~~~~~~~~~{.c}
 // Quality range is 1 - 255. 0 gets the default quality, currently 128.
@@ -303,14 +304,12 @@ int quality = 0;
 result = ktxTexture2_CompressBasis(texture, quality);
 ~~~~~~~~~~~~~~~~
 
-
-
 ## Transcoding a BasisLZ/ETC1S or UASTC-compressed Texture
 
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
 
-ktxTexture2* texture;
+ktxTexture2* texture = NULL;
 KTX_error_code result;
 
 result = ktxTexture_CreateFromNamedFile("mytex3d_basis.ktx2",
@@ -343,8 +342,8 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
     else if (deviceFeatures.textureCompressionBC)
         tf = KTX_TTF_BC3_RGBA;
     else {
-        message << "Vulkan implementation does not support any available transcode target.";
-        throw std::runtime_error(message.str());
+        printf("Vulkan implementation does not support any available transcode target.");
+        // return error or throw exception (if C++) ...
     }
 
     result = ktxTexture2_TranscodeBasis(texture, tf, 0);
@@ -355,20 +354,26 @@ if (ktxTexture2_NeedsTranscoding(texture)) {
 
 ## Writing an ASTC-Compressed Texture
 
+The following example showcases how to use libktx to generate an ASTC-compressed
+texture using @ref ktxTexture2::ktxTexture2_CompressAstcEx.
+
+You can also use Basis Universal's @ref ktxTexture2::ktxTexture2\_TranscodeBasis
+to transcode UASTC, BasisLZ/ETC1S, or other supported codecs to ASTC but the
+difference here is that this directly encodes to a target ASTC format without
+any intermediate steps (i.e., transcoding) that are likely to introduce more
+artifacts.
+
 ~~~~~~~~~~~~~~~~{.c}
 #include <ktx.h>
-#include <vulkan/vulkan_core.h>         // From your Vulkan SDK
+#include <vulkan/vulkan.h>              // From your Vulkan SDK
 
-ktxTexture2* texture;
+ktxTexture2* texture = NULL;
 ktxTextureCreateInfo createInfo;
-KTX_error_code result;
-ktx_uint32_t level, layer, faceSlice;
-FILE* src;
-ktx_size_t srcSize;
-ktxAstcParams params = {0};
+KTX_error_code result;                  // Stores libktx success/error results
+ktxAstcParams params = {0};             // Make sure to 0-initialize this struct
 params.structSize = sizeof(params);
 
-createInfo.glInternalformat = 0;  //Ignored as we'll create a KTX2 texture.
+createInfo.glInternalformat = 0;  // Ignored as we'll create a KTX2 texture.
 createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
 createInfo.baseWidth = 2048;
 createInfo.baseHeight = 1024;
@@ -384,35 +389,180 @@ createInfo.generateMipmaps = KTX_FALSE;
 result = ktxTexture2_Create(&createInfo,
                             KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                             &texture);
+if (result != KTX_SUCCESS) {
+    // error handling ...
+}
 
-src = // Open the file for the baseLevel image, slice 0 and
-      // read it into memory.
-srcSize = // Query size of the file.
-level = 0;
-layer = 0;
-faceSlice = 0;                           
-result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
-                                       level, layer, faceSlice,
-                                       src, srcSize);
-// Repeat for the other 15 slices of the base level and all other levels
-// up to createInfo.numLevels.
+// Set uncompressed image data for each mip level, each array layer, and each
+// face/depth slice
+for (uint32_t level = 0; level < texture->numLevels; ++level) {
+    // Compute the width/height/depth for this MIP level
+    const uint32_t width = MAX(texture->baseWidth >> level, 1u);
+    const uint32_t height = MAX(texture->baseHeight >> level, 1u);
+    const uint32_t depth = MAX(texture->baseDepth >> level, 1u);
+    // Query/Compute the size of this level image
+    const ktx_size_t srcSize = 0;
+    for (uint32_t layer = 0; layer < texture->numLayers; ++layer) {
+        for (uint32_t face = 0; face < texture->numFaces; ++face) {
+            for (uint32_t depthSlice = 0; depthSlice < depth; ++depthSlice) {
+                // Read file for this layer and face/slice (or generate from
+                // base level image)
+                ktx_uint8_t* src = NULL;
+                // Set uncompressed image data. Adding face and depth slice
+                // indices is fine because they are mutually exclusive (if one
+                // is > 0 the other is guaranteed to be 0)
+                result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                                       level, layer,
+                                                       face + depthSlice,
+                                                       src, srcSize);
+                if (result != KTX_SUCCESS) {
+                    // error handling and ktx texture cleanup ...
+                }
+            }
+        }
+    }
+}
 
+// Compress the whole previously set uncompressed data into ASTC
 params.threadCount = 1;
 params.blockDimension = KTX_PACK_ASTC_BLOCK_DIMENSION_6x6;
 params.mode = KTX_PACK_ASTC_ENCODER_MODE_LDR;
 params.qualityLevel = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
-result = ktxtexture2_CompressAstcEx(texture, &params);
+result = ktxTexture2_CompressAstcEx(texture, &params);
+if (result != KTX_SUCCESS) {
+    // error handling and ktx texture cleanup ...
+}
 
-ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
+result = ktxTexture_WriteToNamedFile(ktxTexture(texture), "mytex3d.ktx2");
+if (result != KTX_SUCCESS) {
+    // error handling and ktx texture cleanup ...
+}
+
 ktxTexture_Destroy(ktxTexture(texture));
 ~~~~~~~~~~~~~~~~
 
 There is a shortcut that can be used when the only `params` field you want to
 modify is the `qualityLevel`. Remove the declaration and initialization of
-`params` in the previous example and replace `ktxtexture2_CompressAstcEx` with
+`params` in the previous example and replace
+@ref ktxTexture2::ktxTexture2_CompressAstcEx with
+@ref ktxTexture2::ktxTexture2_CompressAstc as follows:
 
 ~~~~~~~~~~~~~~~~{.c}
 // Quality range is 0 - 100. 0 is fastest/lowest. 100 is slowest/highest.
 int quality = KTX_PACK_ASTC_QUALITY_LEVEL_MEDIUM;
 result = ktxTexture2_CompressAstc(texture, quality);
 ~~~~~~~~~~~~~~~~
+
+## Writing a BCn-Compressed Texture
+
+The following example showcases how to use libktx to generate a BCn-compressed
+(i.e., BC1, BC3, BC4, BC5, BC6HU, BC6HS, or BC7) texture using @ref
+ktxTexture2::ktxTexture2\_CompressBCnEx.
+
+You can also use Basis Universal's @ref ktxTexture2::ktxTexture2\_TranscodeBasis
+to transcode UASTC (or other supported codecs) to BCn but the difference here is
+that this directly encodes to a target BCn format without any intermediate steps
+(i.e., transcoding) that are very likely to introduce more artifacts.
+
+This example is kept as simple as possible. There are a lot of other parameters
+that are only activated depending on the target BCn scheme and whether rate
+distortion optimization (RDO) is enabled. The discussion about RDO parameter
+details is too involved for this example (see member parameters descriptions
+in @ref ktxBCnParams struct).
+
+~~~~~~~~~~~~~~~~{.c}
+#include <ktx.h>
+#include <vulkan/vulkan.h>              // From your Vulkan SDK
+
+ktxTexture2* texture = NULL;            // KTX2 texture handle
+ktxTextureCreateInfo createInfo;
+KTX_error_code result;                  // Stores libktx success/error results
+ktxBCnParams params = {0};              // Make sure to 0-initialize this struct
+
+// Fill up texture creation struct. Notice that the supplied vkFormat must be
+// an uncompressed format that matches the target BCn that is set later. In this
+// example, BC7 expects RGBA input.
+createInfo.glInternalformat = 0;  // Ignored as we'll create a KTX2 texture.
+createInfo.vkFormat = VK_FORMAT_R8G8B8A8_SRGB;
+createInfo.baseWidth = 1024;
+createInfo.baseHeight = 1024;
+createInfo.baseDepth = 1;
+createInfo.numDimensions = 1;
+// Note: it is not necessary to provide a full mipmap pyramid.
+createInfo.numLevels = log2(createInfo.baseWidth) + 1;
+createInfo.numLayers = 1;
+createInfo.numFaces = 1;
+createInfo.isArray = KTX_FALSE;
+createInfo.generateMipmaps = KTX_FALSE;
+
+result = ktxTexture2_Create(&createInfo,
+                            KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                            &texture);
+if (result != KTX_SUCCESS) {
+    // error handling ...
+}
+
+// Set uncompressed image data for each mip level, each array layer, and each
+// face/depth slice
+for (uint32_t level = 0; level < texture->numLevels; ++level) {
+    // Compute the width/height/depth for this MIP level
+    const uint32_t width = MAX(texture->baseWidth >> level, 1u);
+    const uint32_t height = MAX(texture->baseHeight >> level, 1u);
+    const uint32_t depth = MAX(texture->baseDepth >> level, 1u);
+    // Query/Compute the size of this level image
+    const ktx_size_t srcSize = 0;
+    for (uint32_t layer = 0; layer < texture->numLayers; ++layer) {
+        for (uint32_t face = 0; face < texture->numFaces; ++face) {
+            for (uint32_t depthSlice = 0; depthSlice < depth; ++depthSlice) {
+                // Read file for this layer and face/slice (or generate from
+                // base level image)
+                ktx_uint8_t* src = NULL;
+                // Set uncompressed image data. Adding face and depth slice
+                // indices is fine because they are mutually exclusive (if one
+                // is > 0 the other is guaranteed to be 0)
+                result = ktxTexture_SetImageFromMemory(ktxTexture(texture),
+                                                       level, layer,
+                                                       face + depthSlice,
+                                                       src, srcSize);
+                if (result != KTX_SUCCESS) {
+                    // error handling and ktx texture cleanup ...
+                }
+            }
+        }
+    }
+}
+
+// Now that uncompressed image data is set, compress to BCn:
+params.structSize = sizeof(params);
+params.bcn = KTX_BCN_COMPRESSION_BC7;
+params.bcnCompressionQuality = KTX_PACK_BCN_QUALITY_LEVEL_MEDIUM;
+
+// See ktxTexture2::ktxTexture2_CompressBCnEx
+result = ktxTexture2_CompressBCnEx(texture, &params);
+if (result != KTX_SUCCESS) {
+    // error handling and ktx texture cleanup ...
+}
+
+// You may also apply another compression layer (supercompression) to further
+// reduce filesize (up-to ~50% if RDO is set) at the expense of little CPU
+// overhead when loading the texture:
+result = ktxTexture2_DeflateZstd(texture, 22 /* ZSTD level [0, 22] */);
+if (result != KTX_SUCCESS) {
+    // error handling and ktx texture cleanup ...
+}
+
+result = ktxTexture_WriteToNamedFile(ktxTexture(texture), "bc7_texture.ktx2");
+if (result != KTX_SUCCESS) {
+    // error handling and ktx texture cleanup ...
+}
+
+// Don't forget to destroy the texture (this will clean-up all allocated
+// resources)
+ktxTexture_Destroy(ktxTexture(texture));
+~~~~~~~~~~~~~~~~
+
+You may notice that there are `ktxTexture2` alternatives for the above
+textures that take `ktxTexture2*`. These can also be used instead of the
+last ones. Both fall down to calling the same approriate function on the
+supplied KTX texture (either ktxTexture1 or ktxTexture2). This is achieved
+via virtual table pointer in ktxTexture C struct.

@@ -5,6 +5,7 @@ from .khr_df_model import KhrDfModel
 from .khr_df_primaries import KhrDfPrimaries
 from .khr_df_transfer import KhrDfTransfer
 from .ktx_astc_params import KtxAstcParams
+from .ktx_bcn_params import KtxBCnParams
 from .ktx_basis_params import KtxBasisParams
 from .ktx_error_code import KtxErrorCode, KtxError
 from .ktx_supercmp_scheme import KtxSupercmpScheme
@@ -126,6 +127,35 @@ class KtxTexture2(KtxTexture):
         if int(error) != KtxErrorCode.SUCCESS:
             raise KtxError('ktxTexture2_compressAstcEx', KtxErrorCode(error))
 
+    def compress_bcn(self, params: KtxBCnParams) -> None:
+        """
+        Encode and compress a ktx texture with uncompressed images to BCn.
+
+        The images are encoded to BCn block-compressed format. The encoded
+        images replace the original images and the texture's fields including
+        the dfd are modified to reflect the new state.
+
+        Such textures can be directly uploaded to a GPU via a graphics API.
+        """
+
+        error = lib.PY_ktxTexture2_CompressBCnEx(self._ptr,
+                                                 params.thread_count,
+                                                 params.bcn,
+                                                 params.bcn_compression_quality,
+                                                 params.bcn_rdo_quality_scalar,
+                                                 params.bcn_rdo_dict_size,
+                                                 params.bcn_rdo_max_smooth_block_error_scale,
+                                                 params.bcn_rdo_max_smooth_block_std_dev,
+                                                 params.bcn_rdo_max_allowed_rms_increase_ratio,
+                                                 params.bcn_rdo,
+                                                 params.bcn_rdo_no_ultrasmooth_block_handling,
+                                                 params.bcn_rdo_try_one_match,
+                                                 params.bcn_rdo_skip_zero_mse_blocks,
+                                                 params.bcn_rdo_no_multithreading)
+
+        if int(error) != KtxErrorCode.SUCCESS:
+            raise KtxError('ktxTexture2_compressBCnEx', KtxErrorCode(error))
+
     def compress_basis(self, params: Union[int, KtxBasisParams]) -> None:
         """
         Supercompress a KTX2 texture with uncompressed images.
@@ -194,6 +224,47 @@ class KtxTexture2(KtxTexture):
         error = lib.ktxTexture2_DecodeAstc(self._ptr);
         if int(error) != KtxErrorCode.SUCCESS:
             raise KtxError('ktx2_DecodeAstc', KtxErrorCode(error))
+
+    def decode_bcn(self) -> None:
+        """
+        Decode a ktx2 texture object, if it is BCn encoded.
+
+        All BCn formats are supported (BC1, BC2, BC3, BC4, BC5, BC6HU, BC6HS, or
+        BC7).
+        
+        The decompressed format is determined from corresponding BCn format and
+        the input transfer function:
+        - For BC1:
+            VK_FORMAT_R8G8B8_[UNORM|SRGB]
+        - For BC2, BC3, and BC7:
+            VK_FORMAT_R8G8B8A8_[UNORM|SRGB]
+        - For BC4:
+            VK_FORMAT_R8_[UNORM|SNORM]
+        - For BC5:
+            VK_FORMAT_R8G8_[UNORM|SNORM]
+        - For BC6HU, BC6HS:
+            VK_FORMAT_R16G16B16_SFLOAT
+        
+        UNORM vs. SRGB is determined depending on the original transfer function
+        value in the DFD.
+        
+        UNORM vs. SNORM is determined based on the original VkFormat.
+        
+        The images are decompressed from BCn block-compressed format. The
+        decompressed images replace the original images and the texture's fields
+        including the DFD are modified to reflect the new state.
+        
+        Such textures can be directly uploaded to the GPU as raw (decompressed)
+        formats.
+        
+        Decoding into non-multiple-of-4 texture dimensions is also supported
+        (decoded blocks that fall out of the texture's dimensions are simply
+        discarded).
+        """
+
+        error = lib.ktxTexture2_DecodeBCn(self._ptr);
+        if int(error) != KtxErrorCode.SUCCESS:
+            raise KtxError('ktx2_DecodeBCn', KtxErrorCode(error))
 
     def deflate_zstd(self, compression_level: int) -> None:
         """

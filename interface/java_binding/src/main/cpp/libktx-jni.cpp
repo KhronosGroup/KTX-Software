@@ -64,6 +64,20 @@ jfieldID KtxAstcParams_normalMap_field; // "Z"
 jfieldID KtxAstcParams_perceptual_field; // "Z"
 jfieldID KtxAstcParams_inputSwizzle_field; // "[C"
 
+jfieldID KtxBCnParams_threadCount_field; // "I"
+jfieldID KtxBCnParams_bcn_field; // "I"
+jfieldID KtxBCnParams_bcnCompressionQuality_field; // "I"
+jfieldID KtxBCnParams_bcnRDOQualityScalar_field; // "F"
+jfieldID KtxBCnParams_bcnRDODictSize_field; // "I"
+jfieldID KtxBCnParams_bcnRDOMaxSmoothBlockErrorScale_field; // "F"
+jfieldID KtxBCnParams_bcnRDOMaxSmoothBlockStdDev_field; // "F"
+jfieldID KtxBCnParams_bcnRDOMaxAllowedRMSIncreaseRatio_field; // "F"
+jfieldID KtxBCnParams_bcnRDO_field; // "Z"
+jfieldID KtxBCnParams_bcnRDONoUltrasmoothBlockHandling_field; // "Z"
+jfieldID KtxBCnParams_bcnRDOTryOneMatch_field; // "Z"
+jfieldID KtxBCnParams_bcnRDOSkipZeroMSEBlocks_field; // "Z"
+jfieldID KtxBCnParams_bcnRDONoMultithreading_field; // "Z"
+
 jfieldID KtxBasisParams_codec_field; // "I"
 jfieldID KtxBasisParams_verbose_field; // "Z"
 jfieldID KtxBasisParams_noSSE_field; // "Z"
@@ -166,6 +180,22 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *)
     if (!initField(env, cls, KtxAstcParams_normalMap_field, "normalMap", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxAstcParams_perceptual_field, "perceptual", "Z")) return JNI_ERR;
     if (!initField(env, cls, KtxAstcParams_inputSwizzle_field, "inputSwizzle", "[C")) return JNI_ERR;
+
+    // Obtain the fieldIDs of the KtxBCnParams class
+    if (!initClass(env, cls, "org/khronos/ktx/KtxBCnParams")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_threadCount_field, "threadCount", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcn_field, "bcn", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnCompressionQuality_field, "bcnCompressionQuality", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOQualityScalar_field, "bcnRDOQualityScalar", "F")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDODictSize_field, "bcnRDODictSize", "I")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOMaxSmoothBlockErrorScale_field, "bcnRDOMaxSmoothBlockErrorScale", "F")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOMaxSmoothBlockStdDev_field, "bcnRDOMaxSmoothBlockStdDev", "F")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOMaxAllowedRMSIncreaseRatio_field, "bcnRDOMaxAllowedRMSIncreaseRatio", "F")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDO_field, "bcnRDO", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDONoUltrasmoothBlockHandling_field, "bcnRDONoUltrasmoothBlockHandling", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOTryOneMatch_field, "bcnRDOTryOneMatch", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDOSkipZeroMSEBlocks_field, "bcnRDOSkipZeroMSEBlocks", "Z")) return JNI_ERR;
+    if (!initField(env, cls, KtxBCnParams_bcnRDONoMultithreading_field, "bcnRDONoMultithreading", "Z")) return JNI_ERR;
 
     // Obtain the fieldIDs of the KtxBasisParams class
     if (!initClass(env, cls, "org/khronos/ktx/KtxBasisParams")) return JNI_ERR;
@@ -299,6 +329,25 @@ bool copy_ktx_astc_params(JNIEnv *env, jobject params, ktxAstcParams &out)
       out.inputSwizzle[i] = static_cast<char>(inputSwizzleValues[i]);
     }
     env->ReleaseCharArrayElements(inputSwizzleArray, inputSwizzleValues, JNI_ABORT);
+    return true;
+}
+
+bool copy_ktx_bcn_params(JNIEnv *env, jobject params, ktxBCnParams &out)
+{
+    out.structSize = sizeof(ktxBCnParams);
+    out.threadCount = env->GetIntField(params, KtxBCnParams_threadCount_field);
+    out.bcn = env->GetIntField(params, KtxBCnParams_bcn_field);
+    out.bcnCompressionQuality = env->GetIntField(params, KtxBCnParams_bcnCompressionQuality_field);
+    out.bcnRDOQualityScalar = env->GetFloatField(params, KtxBCnParams_bcnRDOQualityScalar_field);
+    out.bcnRDODictSize = env->GetIntField(params, KtxBCnParams_bcnRDODictSize_field);
+    out.bcnRDOMaxSmoothBlockErrorScale = env->GetFloatField(params, KtxBCnParams_bcnRDOMaxSmoothBlockErrorScale_field);
+    out.bcnRDOMaxSmoothBlockStdDev = env->GetFloatField(params, KtxBCnParams_bcnRDOMaxSmoothBlockStdDev_field);
+    out.bcnRDOMaxAllowedRMSIncreaseRatio = env->GetFloatField(params, KtxBCnParams_bcnRDOMaxAllowedRMSIncreaseRatio_field);
+    out.bcnRDO = env->GetBooleanField(params, KtxBCnParams_bcnRDO_field);
+    out.bcnRDONoUltrasmoothBlockHandling = env->GetBooleanField(params, KtxBCnParams_bcnRDONoUltrasmoothBlockHandling_field);
+    out.bcnRDOTryOneMatch = env->GetBooleanField(params, KtxBCnParams_bcnRDOTryOneMatch_field);
+    out.bcnRDOSkipZeroMSEBlocks = env->GetBooleanField(params, KtxBCnParams_bcnRDOSkipZeroMSEBlocks_field);
+    out.bcnRDONoMultithreading = env->GetBooleanField(params, KtxBCnParams_bcnRDONoMultithreading_field);
     return true;
 }
 

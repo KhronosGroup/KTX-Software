@@ -2,9 +2,8 @@
 # Copyright 2022-2023 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 
-
 add_executable(ktxdiff
-        ktxdiff_main.cpp
+    ktxdiff_main.cpp
 )
 
 target_compile_features(
@@ -37,6 +36,7 @@ PRIVATE
     ${ASTCENC_LIB_TARGET}
     fmt::fmt
     objUtil
+    cxxopts::cxxopts
 )
 
 target_compile_definitions(
