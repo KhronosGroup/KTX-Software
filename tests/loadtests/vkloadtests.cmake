@@ -2,18 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Find Vulkan package
+set(vk_components validation)
 if(APPLE)
-    # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
-    # the iOS frameworks and to set Vulkan_SDK_Base, used later in this
-    # file. Therefore ensure to make that env. var. available to CMake and
-    # Xcode. Special care is needed to ensure it is available to the CMake
-    # and Xcode GUIs.
-    if(NOT APPLE_LOCKED_OS)
-        set( kosmickrisp KosmicKrisp )
+    if(APPLE_LOCKED_OS)
+        # KosmicKrisp does not yet support iOS, etc.
+        list(APPEND vk_components MoltenVK)
+    else()
+        list(APPEND vk_components KosmicKrisp)
     endif()
-#    set(CMAKE_FIND_DEBUG_MODE TRUE)
-    find_package( Vulkan REQUIRED COMPONENTS MoltenVK ${kosmickrisp} validation )
-#    set(CMAKE_FIND_DEBUG_MODE FALSE)
+endif()
+# N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
+# the iOS frameworks and to set Vulkan_SDK_Base, used later in this
+# file. Therefore ensure to make that env. var. available to CMake and
+# Xcode. Special care is needed to ensure it is available to the CMake
+# and Xcode GUIs.
+#set(CMAKE_FIND_DEBUG_MODE TRUE)
+find_package( Vulkan REQUIRED COMPONENTS ${vk_components} )
+#set(CMAKE_FIND_DEBUG_MODE FALSE)
+
+if(APPLE)
     # Derive some other useful variables from those provided by find_package
     if(APPLE_LOCKED_OS)
         set( Vulkan_SHARE_VULKAN ${Vulkan_SDK_Base}/${CMAKE_SYSTEM_NAME}/share/vulkan )
@@ -37,8 +44,6 @@ if(APPLE)
         )
         set( Vulkan_SHARE_VULKAN appfwSDL/VulkanAppSDL/mac/vulkan )
     endif()
-else()
-    find_package( Vulkan REQUIRED )
 endif()
 
 #cmake_print_variables(
@@ -46,6 +51,8 @@ endif()
 #    Vulkan_LIBRARY_REAL_PATH_NAME
 #    Vulkan_LIBRARY_REAL_FILE_NAME
 #    Vulkan_LIBRARY_SONAME_FILE_NAME
+#    Vulkan_KosmicKrisp_LIBRARY
+#    Vulkan_MoltenVK_LIBRARY
 #)
 
 include(compile_shader.cmake)
@@ -207,7 +214,7 @@ source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/k
 source_group( "Resources" FILES ${Vulkan_SHARE_VULKAN} )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
-# explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
+# explicitly set wantsExtendedDynamicRangeContent on macOS.
 #if(APPLE_MAC_OS)
 #    target_sources(
 #        vkloadtests
@@ -216,6 +223,7 @@ source_group( "Resources" FILES ${Vulkan_SHARE_VULKAN} )
 #    )
 #endif()
 if(APPLE_LOCKED_OS)
+    # To work around a MoltenVK bug
     target_sources(
         vkloadtests
     PUBLIC
@@ -375,7 +383,7 @@ if(APPLE)
         # hand the Vulkan and MoltenVK frameworks in the iOS SDK are not
         # signed. hence it is set there.
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_KosmicKrisp_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH @executable_path/../Frameworks
         )
