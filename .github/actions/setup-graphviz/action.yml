@@ -4,16 +4,13 @@
 name: Set up Graphviz
 description: 'Install Graphviz (including dot)'
 
+# Examples in case of future need.
 # Define inputs that callers can provide
 #inputs:
-#  node-version:
-#    description: 'Node.js version to install'
+#  graphviz_version:
+#    description: 'Graphviz version to install'
 #    required: false
-#    default: '24'
-#  working-directory:
-#    description: 'Directory containing package.json'
-#    required: false
-#    default: '.'
+#    default: '2.43'
 
 # Define outputs to pass data back to the caller
 #outputs:
@@ -21,9 +18,6 @@ description: 'Install Graphviz (including dot)'
 # cache-hit:
 #    description: 'Whether npm cache was hit'
 #    value: ${{ steps.npm-cache.outputs.cache-hit }}
-
-#permissions:
-#  contents: read
 
 # The composite run steps
 runs:

@@ -194,7 +194,7 @@ jobs:
 
     - name: Install Graphviz
       if: matrix.options.doc == 'ON'
-      uses: MarkCallow/setup-graphviz@v3
+      uses: ./.github/actions/setup-graphviz
 
     - name: Install AzureSignTool
       if: matrix.check_mkvk != 'ONLY'
