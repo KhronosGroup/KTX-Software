@@ -52,5 +52,5 @@ runs:
 
     - name: "Check Graphviz installation"
       #if: ${{ inputs.graphviz == 'true' }}
-      #shell: bash
+      shell: bash
       run: dot -V
