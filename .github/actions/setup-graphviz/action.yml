@@ -2,7 +2,7 @@
 # Copyright 2024 RasterGrid Kft.
 # SPDX-License-Identifier: Apache-2.0
 name: Set up Graphviz
-description: 'Install graphviz (including dot)
+description: 'Install Graphviz (including dot)'
 
 # Define inputs that callers can provide
 #inputs:
