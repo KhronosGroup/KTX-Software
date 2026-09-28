@@ -28,6 +28,7 @@ description: 'Install Graphviz (including dot)'
 # The composite run steps
 runs:
   using: 'composite'
+  steps:
     - name: "Install Graphviz (Linux)"
       #if: ${{ inputs.graphviz == 'true' && runner.os == 'Linux' }}
       if: ${{ runner.os == 'Linux' }}
