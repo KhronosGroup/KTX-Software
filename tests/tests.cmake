@@ -6,8 +6,6 @@
 include(FetchContent)
 FetchContent_Declare(
     googletest
-#    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-#    URL https://github.com/google/googletest/archive/refs/tags/v1.18.0.zip
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG        v1.18.0
 )
@@ -18,7 +16,7 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-function(override_googletest_output_dirs target)
+function(override_gtest_output_dirs target)
 set_target_properties(${target}
     # CMake sets these properties based on ${CMAKE_BINARY_DIR}
     # instead of following the CMAKE_*_OUTPUT_DIRECTORY settings.
@@ -32,17 +30,8 @@ set_target_properties(${target}
         COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
     )
 endfunction()
-override_googletest_output_dirs(gtest)
-override_googletest_output_dirs(gtest_main)
-
-#if(WIN32)
-#    add_custom_command (
-#        OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gtest.dll
-#        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_RUNTIME_DLLS:GTest::gtest_main>" ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-#        #COMMAND_EXPAND_LISTS
-#    )
-#endif()
-#add_subdirectory(gtest)
+override_gtest_output_dirs(gtest)
+override_gtest_output_dirs(gtest_main)
 
 find_package(Threads)
 
