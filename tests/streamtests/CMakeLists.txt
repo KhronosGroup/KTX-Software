@@ -22,7 +22,7 @@ PRIVATE
 
 target_link_libraries(
     streamtests
-    gtest
+    GTest::gtest_main
     ktx
     "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
