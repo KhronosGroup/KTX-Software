@@ -142,4 +142,3 @@ gtest_discover_tests(texturetests
     DISCOVERY_TIMEOUT 20
     EXTRA_ARGS "${PROJECT_SOURCE_DIR}/tests/resources/" ${KTX_DIFF_PATH}
 )
-
