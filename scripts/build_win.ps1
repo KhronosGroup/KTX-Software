@@ -68,11 +68,16 @@ $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
 $PY_USE_VENV = Set-ConfigVariable PY_USE_VENV "OFF"
 $WERROR = Set-ConfigVariable WERROR "OFF"
-if ($ARCH -eq 'x64') {
-  $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR `
-    "c:/Imagination` Technologies/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Windows_x86_64"
-} else {
-  $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR ""
+if ($FEATURE_LOADTESTS -match "OpenGL") {
+  $defaultOpenGLESEmulator = "c:/Imagination/Windows_x86_64"
+  $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR $defaultOpenGLESEmulator
+  if ($OPENGL_ES_EMULATOR) {
+    $config_gles_emulator=1
+    if ($OPENGL_ES_EMULATOR -eq $defaultOpenGLESEmulator -and $ARCH -ne 'x64') {
+      $config_gles_emulator=0
+      echo "$defaultOpenGLESEmulator OpenGL ES emulator only runs on x86_64. Disabling build of OpenGL ES loadtests."
+    }
+  }
 }
 $CODE_SIGN_KEY_VAULT = Set-ConfigVariable CODE_SIGN_KEY_VAULT ""
 $CODE_SIGN_TIMESTAMP_URL = Set-ConfigVariable CODE_SIGN_TIMESTAMP_URL ""
@@ -83,8 +88,6 @@ $AZURE_KEY_VAULT_CERTIFICATE = Set-ConfigVariable AZURE_KEY_VAULT_CERTIFICATE ""
 $AZURE_KEY_VAULT_CLIENT_ID = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_ID ""
 $AZURE_KEY_VAULT_CLIENT_SECRET = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_SECRET ""
 $AZURE_KEY_VAULT_TENANT_ID = Set-ConfigVariable AZURE_KEY_VAULT_TENANT_ID ""
-
-if ($FEATURE_LOADTESTS -match 'OpenGL')  { $need_gles_emulator=1 }
 
 if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"
@@ -150,7 +153,7 @@ if ($CODE_SIGN_KEY_VAULT -eq "Azure") {
     "-D", "LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT=$LOCAL_KEY_VAULT_CERTIFICATE_THUMBPRINT"
   )
 } `
-if ($need_gles_emulator) {
+if ($config_gles_emulator) {
   $cmake_args += @("-D", "OPENGL_ES_EMULATOR=$OPENGL_ES_EMULATOR")
 }
 
