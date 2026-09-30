@@ -367,3 +367,46 @@ jobs:
           body_path: ${{env.REL_DESC_FILE}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  fuzz:
+    # libFuzzer needs Clang and a build instrumented for it, so this is a job
+    # of its own rather than part of the ASan job. See tests/fuzz/README.md.
+    name: Fuzz (Clang, ASan+UBSan)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+      FUZZ_BUILD_DIR: build/fuzz
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # libktx derives its version from the tags.
+          fetch-depth: 0
+
+      - name: Fetch the seed files from LFS
+        run: git lfs pull --include="tests/resources/ktx,tests/resources/ktx2"
+
+      - name: Build the fuzz target
+        run: |
+          cmake -S tests/fuzz -B $FUZZ_BUILD_DIR \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake --build $FUZZ_BUILD_DIR --target ktx_read_fuzzer --parallel
+
+      - name: Fuzz for 10 minutes
+        run: |
+          mkdir -p $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds $FUZZ_BUILD_DIR/findings
+          # Files up to 64 KiB, the maximum input length below.
+          find tests/resources/ktx tests/resources/ktx2 -name '*.ktx*' -size -65k \
+            -exec cp {} $FUZZ_BUILD_DIR/seeds/ \;
+          $FUZZ_BUILD_DIR/ktx_read_fuzzer -dict=tests/fuzz/ktx.dict -max_len=65536 \
+            -max_total_time=600 -timeout=30 -rss_limit_mb=2560 -print_final_stats=1 \
+            -artifact_prefix=$FUZZ_BUILD_DIR/findings/ \
+            $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds
+
+      - name: Upload findings
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-findings
+          path: ${{ env.FUZZ_BUILD_DIR }}/findings/
