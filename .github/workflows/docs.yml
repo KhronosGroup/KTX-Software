@@ -38,6 +38,7 @@ on:
       - .github/workflows/check-mkvk.yml
       - .github/workflows/check-reuse.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/linux.yml
       - .github/workflows/macos.yml
       - .github/workflows/mingw.yml
