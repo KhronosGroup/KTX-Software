@@ -31,6 +31,7 @@ on:
       - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/linux.yml
       - .github/workflows/macos.yml
       - .github/workflows/manual.yml
