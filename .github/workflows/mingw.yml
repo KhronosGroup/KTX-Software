@@ -83,19 +83,32 @@ jobs:
       run: cmake --build build --config Debug -j $(nproc)
 #    - name: Build Mingw x64 Release
 #      run: cmake --build build --config Release -j $(nproc)
-    - name: Enable Core Dumps
+    - name: Get Core Dump Path
       shell: pwsh
       run: |
-        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "LocalDumps"
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpFolder" -Value "%LOCALAPPDATA%\CrashDumps" -PropertyType ExpandString
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpCount" -Value 10 -PropertyType DWord
+        Get-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+#        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "LocalDumps"
+#        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpFolder" -Value "%LOCALAPPDATA%\CrashDumps" -PropertyType ExpandString
+#        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpCount" -Value 10 -PropertyType DWord
     - name: Extract test list to attempt to locate run failure
+      id: extract_test_list
       run: |
         D:/a/KTX-Software/KTX-Software/build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:foo.json'
         ls "$LOCALAPPDATA\CrashDumps"
     - name: Test Mingw build
+      id: teststep
       run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
-#    - name: Upload test log
-#      shell: pwsh
-#      if: ${{ failure() }}
-#      run: scripts/on_failure.ps1
+
+    - name: Upload generated CTS output files if CTS tests fail
+      if: failure() steps.teststep.outcome == 'failure'
+      uses: actions/upload-artifact@v7
+      with:
+        name: cts_failure_artifacts_commit_sha_${{ github.sha }}
+        path: tests/cts/clitests/output
+
+#    - name: Upload core dump if extracting test list fails
+#      if: failure() && steps.extract_test_list.outcome == 'failure'
+#      uses: actions/upload-artifact@v7
+#      with:
+#        name: extract_test_core_dump_sha_${{ github.sha }}
+#        path: ${{ env.LOCALAPPDATA }}/*.dmp
