@@ -1,0 +1,39 @@
+# Copyright 2026 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# libFuzzer dictionary for KTX and KTX2 files.
+
+# File identifiers.
+ktx1_identifier="\xABKTX 11\xBB\x0D\x0A\x1A\x0A"
+ktx2_identifier="\xABKTX 20\xBB\x0D\x0A\x1A\x0A"
+ktx1_endianness="\x01\x02\x03\x04"
+
+# Key/value data keys defined by the KTX specifications.
+kvd_orientation="KTXorientation"
+kvd_writer="KTXwriter"
+kvd_writer_sc_params="KTXwriterScParams"
+kvd_swizzle="KTXswizzle"
+kvd_gl_format="KTXglFormat"
+kvd_dxgi_format="KTXdxgiFormat__"
+kvd_metal_pixel_format="KTXmetalPixelFormat"
+kvd_anim_data="KTXanimData"
+kvd_astc_decode_mode="KTXastcDecodeMode"
+kvd_cubemap_incomplete="KTXcubemapIncomplete"
+orientation_rd="rd"
+orientation_ruo="ruo"
+
+# Supercompression schemes (u32): none, BasisLZ, Zstandard, ZLIB.
+sc_none="\x00\x00\x00\x00"
+sc_basis_lz="\x01\x00\x00\x00"
+sc_zstd="\x02\x00\x00\x00"
+sc_zlib="\x03\x00\x00\x00"
+
+# Data format descriptor: basic block header (vendor 0, type 0, version 1.3)
+# and the ETC1S and UASTC color models.
+dfd_basic_header="\x00\x00\x00\x00\x02\x00"
+dfd_model_etc1s="\xa3"
+dfd_model_uastc="\xa6"
+
+# Zstandard frame magic and a ZLIB header.
+zstd_magic="\x28\xb5\x2f\xfd"
+zlib_header="\x78\x9c"
