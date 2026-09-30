@@ -83,6 +83,8 @@ jobs:
       run: cmake --build build --config Debug -j $(nproc)
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release -j $(nproc)
+    - name: Extract test list to attempt to locate run failure
+      run: D:/a/KTX-Software/KTX-Software/build/Release/unittests.exe --gtest_list_tests '--gtest_output=json:foo.json'
     - name: Test Mingw build
       run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
 #    - name: Upload test log
