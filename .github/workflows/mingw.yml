@@ -114,7 +114,9 @@ jobs:
 
     - name: ls DumpFolder if extracting test list fails
       if: failure() && steps.extract_test_list.outcome == 'failure'
-      run: if [ -d "$LOCALAPPDATA\CrashDumps" ]; then ls "$LOCALAPPDATA\CrashDumps"; else echo "No $LOCALAPPDATA\CrashDumps"; fi
+      run: |
+        crashdumps=$(cygpath $LOCALAPPDATA)/CrashDumps
+        if [ -d "$crashdumps" ]; then ls "$crashdumps"; else echo "No $crashdumps"; fi
 
 #    - name: Upload core dump if extracting test list fails
 #      if: failure() && steps.extract_test_list.outcome == 'failure'
