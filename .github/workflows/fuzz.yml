@@ -1,0 +1,91 @@
+# Copyright 2026 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+name: Fuzz libktx
+
+# Seems no way to avoid duplicating this on logic in each .yml file.
+# See https://github.com/actions/starter-workflows/issues/245.
+on:
+  # Trigger the workflow on a pull request,
+  pull_request:
+
+  push:
+    # And on pushes to main, which will occur when a PR is merged.
+    branches:
+      - main
+    # Also trigger on push of release tags to any branch. Useful
+    # for testing release builds before merging to main.
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    paths-ignore:
+      - .appveyor.yml
+      - .github/workflows/android.yml
+      - .github/workflows/check-determinism.yml
+      - .github/workflows/check-libktx-only.yml
+      - .github/workflows/check-mkvk.yml
+      - .github/workflows/check-reuse.yml
+      - .github/workflows/docs.yml
+      - .github/workflows/formatting.yml
+      - .github/workflows/linux.yml
+      - .github/workflows/mingw.yml
+      - .github/workflows/macos.yml
+      - .github/workflows/publish-pyktx.yml
+      - .github/workflows/manual.yml
+      - .github/workflows/web.yml
+      - .github/workflows/windows.yml
+      - .travis.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - LICENSE.md
+      - LICENSES
+      - RELEASE_NOTES.md
+      - REUSE.toml
+      - install-gitconfig*
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  fuzz:
+    # libFuzzer needs Clang and a build instrumented for it, so this is a
+    # workflow of its own rather than part of the ASan job in linux.yml.
+    # See tests/fuzz/README.md.
+    name: Fuzz (Clang, ASan+UBSan)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GIT_LFS_SKIP_SMUDGE: 1
+      FUZZ_BUILD_DIR: build/fuzz
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # libktx derives its version from the tags.
+          fetch-depth: 0
+
+      - name: Fetch the seed files from LFS
+        run: git lfs pull --include="tests/resources/ktx,tests/resources/ktx2"
+
+      - name: Build the fuzz target
+        run: |
+          cmake -S tests/fuzz -B $FUZZ_BUILD_DIR \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake --build $FUZZ_BUILD_DIR --target ktx_read_fuzzer --parallel
+
+      - name: Fuzz for 10 minutes
+        run: |
+          mkdir -p $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds $FUZZ_BUILD_DIR/findings
+          # Files up to 64 KiB, the maximum input length below.
+          find tests/resources/ktx tests/resources/ktx2 -name '*.ktx*' -size -65k \
+            -exec cp {} $FUZZ_BUILD_DIR/seeds/ \;
+          $FUZZ_BUILD_DIR/ktx_read_fuzzer -dict=tests/fuzz/ktx.dict -max_len=65536 \
+            -max_total_time=600 -timeout=30 -rss_limit_mb=2560 -print_final_stats=1 \
+            -artifact_prefix=$FUZZ_BUILD_DIR/findings/ \
+            $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds
+
+      - name: Upload findings
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-findings
+          path: ${{ env.FUZZ_BUILD_DIR }}/findings/
