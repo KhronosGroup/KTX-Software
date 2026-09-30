@@ -83,8 +83,16 @@ jobs:
       run: cmake --build build --config Debug -j $(nproc)
 #    - name: Build Mingw x64 Release
 #      run: cmake --build build --config Release -j $(nproc)
+    - name: Enable Core Dumps
+      shell: pwsh
+      run: |
+        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "LocalDumps"
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpFolder" -Value "%LOCALAPPDATA%\CrashDumps" -PropertyType ExpandString
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpCount" -Value 10 -PropertyType DWord
     - name: Extract test list to attempt to locate run failure
-      run: D:/a/KTX-Software/KTX-Software/build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:foo.json'
+      run: |
+        D:/a/KTX-Software/KTX-Software/build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:foo.json'
+        ls "$LOCALAPPDATA\CrashDumps"
     - name: Test Mingw build
       run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
 #    - name: Upload test log
