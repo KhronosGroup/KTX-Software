@@ -549,6 +549,8 @@ cleanup:
  * @~English
  * @brief Construct a ktxTexture by copying a source ktxTexture.
  *
+ * See ktxTexture2_CreateCopy() for what is copied.
+ *
  * @param[in] This pointer to a ktxTexture2-sized block of memory to
  *                 initialize.
  * @param[in] orig pointer to the source texture to copy.
@@ -556,6 +558,11 @@ cleanup:
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ * @exception KTX_FILE_UNEXPECTED_EOF
+ *                              The image data of @p orig had to be loaded
+ *                              and its source does not have all of it.
+ *                              Loading can also fail with the other errors
+ *                              of ktxTexture2_LoadImageData().
  */
 KTX_error_code
 ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
@@ -576,8 +583,13 @@ ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
     if (!This->_protected)
         return KTX_OUT_OF_MEMORY;
     // Must come before memcpy of _protected so as to close an active stream.
-    if (!orig->pData && ktxTexture_isActiveStream((ktxTexture*)orig))
-        ktxTexture2_LoadImageData(orig, NULL, 0);
+    // When the data cannot be loaded the stream stays active, and the copy
+    // must not get it: destroying both textures would destruct it twice.
+    if (!orig->pData && ktxTexture_isActiveStream((ktxTexture*)orig)) {
+        result = ktxTexture2_LoadImageData(orig, NULL, 0);
+        if (result != KTX_SUCCESS)
+            goto cleanup;
+    }
     memcpy(This->_protected, orig->_protected, sizeof(ktxTexture_protected));
 
     ktx_size_t privateSize = sizeof(ktxTexture2_private)
@@ -624,12 +636,18 @@ ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
     // since this constructor will be mostly be used when transcoding
     // supercompressed images, it is probably not too big a deal to make
     // a copy of the data.
-    This->pData = (ktx_uint8_t*)malloc(This->dataSize);
-    if (This->pData == NULL) {
-        result = KTX_OUT_OF_MEMORY;
-        goto cleanup;
+    //
+    // A texture without image data, created with
+    // KTX_TEXTURE_CREATE_NO_STORAGE or whose data was loaded into a buffer
+    // of the caller, gives a copy without image data.
+    if (orig->pData != NULL) {
+        This->pData = (ktx_uint8_t*)malloc(This->dataSize);
+        if (This->pData == NULL) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
+        memcpy(This->pData, orig->pData, orig->dataSize);
     }
-    memcpy(This->pData, orig->pData, orig->dataSize);
     return KTX_SUCCESS;
 
 cleanup:
@@ -1406,6 +1424,13 @@ ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
  * The address of the newly created ktxTexture2 is written to the location
  * pointed at by @p newTex.
  *
+ * If @p orig was created from a KTX source without its image data being
+ * loaded, the image data is first loaded into @p orig, as by
+ * ktxTexture2_LoadImageData(), and the copy fails if that fails. A texture
+ * without image data, created with @c KTX_TEXTURE_CREATE_NO_STORAGE or
+ * whose data was loaded into a buffer provided by the caller, gives a copy
+ * without image data.
+ *
  * @param[in]     orig   pointer to the texture to copy.
  * @param[in,out] newTex pointer to a location in which store the address of
  *                       the newly created texture.
@@ -1413,6 +1438,11 @@ ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
  * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
  *
  * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture data.
+ * @exception KTX_FILE_UNEXPECTED_EOF
+ *                              The image data of @p orig had to be loaded
+ *                              and its source does not have all of it.
+ *                              Loading can also fail with the other errors
+ *                              of ktxTexture2_LoadImageData().
  */
  KTX_error_code
  ktxTexture2_CreateCopy(ktxTexture2* orig, ktxTexture2** newTex)
@@ -2668,6 +2698,9 @@ typedef enum {
  * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
  * all be updated after successful inflation to reflect the inflated data.
  *
+ * If the load fails, an internally allocated buffer is freed, so the
+ * texture is left without image data.
+ *
  * @param[in] This pointer to the ktxTexture object of interest.
  * @param[in] pBuffer pointer to the buffer in which to load the image data.
  * @param[in] bufSize size of the buffer pointed at by @p pBuffer.
@@ -2729,8 +2762,10 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
     if (doInflate) {
         // Create buffer to hold deflated data.
         pDeflatedData = malloc(This->dataSize);
-        if (pDeflatedData == NULL)
-            return KTX_OUT_OF_MEMORY;
+        if (pDeflatedData == NULL) {
+            result = KTX_OUT_OF_MEMORY;
+            goto cleanup;
+        }
         pReadBuf = pDeflatedData;
     } else {
         pReadBuf = pDest;
@@ -2758,13 +2793,8 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
             result = ktxTexture2_inflateZLIBInt(This, pDeflatedData, pDest,
                                                 outputDataCapacity);
         }
-        if (result != KTX_SUCCESS) {
-            if (pBuffer == NULL) {
-                free(This->pData);
-                This->pData = 0;
-            }
+        if (result != KTX_SUCCESS)
             goto cleanup;
-        }
     }
 
     if (IS_BIG_ENDIAN) {
@@ -2799,6 +2829,12 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
 
 cleanup:
     free(pDeflatedData);
+    // Leave the texture as it was, without image data and with its stream,
+    // when the load fails.
+    if (result != KTX_SUCCESS && pBuffer == NULL) {
+        free(This->pData);
+        This->pData = NULL;
+    }
 
     return result;
 }
@@ -2817,6 +2853,9 @@ cleanup:
  *
  * The texture's levelIndex, dataSize, DFD  and supercompressionScheme will
  * all be updated after successful inflation to reflect the inflated data.
+ *
+ * If the load fails, an internally allocated buffer is freed, so the
+ * texture is left without image data.
  *
  * @param[in] This pointer to the ktxTexture object of interest.
  * @param[in] pBuffer pointer to the buffer in which to load the image data.
@@ -2851,6 +2890,9 @@ ktxTexture2_LoadImageData(ktxTexture2* This,
  *
  * The data is loaded into the provided buffer or to an internally allocated
  * buffer, if @p pBuffer is @c NULL.
+ *
+ * If the load fails, an internally allocated buffer is freed, so the
+ * texture is left without image data.
  *
  * @param[in] This pointer to the ktxTexture object of interest.
  * @param[in] pBuffer pointer to the buffer in which to load the image data.
