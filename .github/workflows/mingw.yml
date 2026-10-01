@@ -101,7 +101,7 @@ jobs:
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
-      run: D:/a/KTX-Software/KTX-Software/build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:foo.json'
+      run: build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:$TMP/foo.json'
 
     - name: Test Mingw build
       id: teststep
@@ -117,7 +117,7 @@ jobs:
     - name: ls DumpFolder if extracting test list fails
       if: failure() && steps.extract_test_list.outcome == 'failure'
       run: |
-        localappdata==$(cygpath $LOCALAPPDATA)
+        localappdata=$(cygpath $LOCALAPPDATA)
         crashdumps=$localappdata/CrashDumps
         ls $localappdata
         if [ -d "$crashdumps" ]; then ls "$crashdumps"; else echo "No $crashdumps"; fi
