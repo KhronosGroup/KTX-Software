@@ -48,7 +48,7 @@ on:
 
 jobs:
   mingw:
-    runs-on: windows-11-arm
+    runs-on: windows-latest
     defaults:
       run:
         shell: bash
