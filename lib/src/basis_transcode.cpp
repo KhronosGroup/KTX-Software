@@ -481,6 +481,76 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
  }
 
 /**
+ * @internal
+ * @~English
+ * @brief Return the position of a block in a PVRTC1 image's block order.
+ *
+ * PVRTC1 blocks are in Morton order, y in the low bit, over the square
+ * part of the image's block grid, followed by the remaining bits of the
+ * longer side. This is the order basisu writes them in.
+ *
+ * @param[in] blocksX  width of the image's block grid, a power of 2.
+ * @param[in] blocksY  height of the image's block grid, a power of 2.
+ * @param[in] x        the block's column.
+ * @param[in] y        the block's row.
+ */
+static uint32_t
+pvrtc1BlockIndex(uint32_t blocksX, uint32_t blocksY, uint32_t x, uint32_t y)
+{
+    const uint32_t minBlocks = MIN(blocksX, blocksY);
+    uint32_t index = 0;
+    uint32_t shift = 0;
+
+    for (uint32_t bit = 1; bit < minBlocks; bit <<= 1, shift += 2) {
+        if (y & bit)
+            index |= 1U << shift;
+        if (x & bit)
+            index |= 2U << shift;
+    }
+    if (blocksX > blocksY)
+        index |= (x / minBlocks) << shift;
+    else if (blocksY > blocksX)
+        index |= (y / minBlocks) << shift;
+    return index;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Fill a PVRTC1 image that covers fewer than 2x2 blocks out to 2x2.
+ *
+ * A PVRTC1 image occupies at least 2x2 blocks and the texture's layout
+ * reserves that much, but basisu transcodes only the blocks the image
+ * covers, in the block order of that smaller grid, and leaves the rest of
+ * the image unwritten. It computes the blocks as if the image wrapped
+ * onto itself so tiling them over the 2x2 grid, in its block order, gives
+ * the image basisu intended and leaves no byte of it unwritten.
+ *
+ * @param[in,out] image    pointer to the transcoded image.
+ * @param[in]     blocksX  width of the image's block grid, a power of 2.
+ * @param[in]     blocksY  height of the image's block grid, a power of 2.
+ */
+static void
+padPvrtc1Image(ktx_uint8_t* image, uint32_t blocksX, uint32_t blocksY)
+{
+    const uint32_t blockSize = 8; // Bytes in a PVRTC1 4bpp block.
+    const uint32_t paddedX = MAX(2U, blocksX);
+    const uint32_t paddedY = MAX(2U, blocksY);
+    const std::vector<ktx_uint8_t> blocks(image,
+                                          image + blocksX * blocksY * blockSize);
+
+    for (uint32_t y = 0; y < paddedY; y++) {
+        for (uint32_t x = 0; x < paddedX; x++) {
+            uint32_t src = pvrtc1BlockIndex(blocksX, blocksY,
+                                            x % blocksX, y % blocksY);
+            uint32_t dst = pvrtc1BlockIndex(paddedX, paddedY, x, y);
+            memcpy(image + dst * blockSize, blocks.data() + src * blockSize,
+                   blockSize);
+        }
+    }
+}
+
+/**
  * @memberof ktxTexture2
  * @private
  * @ingroup reader
@@ -710,6 +780,12 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
                 result = KTX_TRANSCODE_FAILED;
                 goto cleanup;
             }
+            if ((outputFormat == KTX_TTF_PVRTC1_4_RGB
+                 || outputFormat == KTX_TTF_PVRTC1_4_RGBA)
+                && (levelBlocksX < 2 || levelBlocksY < 2)) {
+                padPvrtc1Image(pXcodedData + writeOffset,
+                               levelBlocksX, levelBlocksY);
+            }
 
             writeOffset += levelImageSizeOut;
             writeOffsetBlocks = writeOffset / outputBlockByteLength;
@@ -797,6 +873,12 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                           -1  // channel1
                           );
             if (!status) return KTX_TRANSCODE_FAILED;
+            if ((outputFormat == KTX_TTF_PVRTC1_4_RGB
+                 || outputFormat == KTX_TTF_PVRTC1_4_RGBA)
+                && (levelBlocksX < 2 || levelBlocksY < 2)) {
+                padPvrtc1Image(pXcodedData + writeOffset,
+                               levelBlocksX, levelBlocksY);
+            }
             writeOffset += levelImageSizeOut;
             writeOffsetBlocks = writeOffset / outputBlockByteLength;
             levelImageOffsetIn += levelImageSizeIn;

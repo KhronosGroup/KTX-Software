@@ -315,6 +315,138 @@ TEST(TranscodeUastcHdr6x6i, RoundTrip2D) {
 TEST(TranscodeUastcHdr6x6i, RoundTrip3DMipLevels) {
     roundTripUastcHdr6x6i(3);
 }
+
+//////////////////////////////
+// PVRTC1 levels smaller than 8x8
+//////////////////////////////
+
+// A PVRTC1 image occupies at least 2x2 blocks but basisu transcodes only the
+// blocks the image covers, in the block order of that smaller grid. The rest
+// of the 2x2 blocks the level's layout reserves must not be left unwritten:
+// they hold copies of the transcoded blocks tiled over the 2x2 grid, which is
+// how basisu treats the image when it computes the blocks.
+
+// PVRTC1 block order: Morton order, y in the low bit, over the square part of
+// the block grid, followed by the remaining bits of the longer side.
+static ktx_uint32_t
+pvrtc1BlockIndex(ktx_uint32_t blocksX, ktx_uint32_t blocksY,
+                 ktx_uint32_t x, ktx_uint32_t y) {
+    const ktx_uint32_t minBlocks = std::min(blocksX, blocksY);
+    ktx_uint32_t index = 0;
+    ktx_uint32_t shift = 0;
+    for (ktx_uint32_t bit = 1; bit < minBlocks; bit <<= 1, shift += 2) {
+        if (y & bit)
+            index |= 1u << shift;
+        if (x & bit)
+            index |= 2u << shift;
+    }
+    if (blocksX > blocksY)
+        index |= (x / minBlocks) << shift;
+    else if (blocksY > blocksX)
+        index |= (y / minBlocks) << shift;
+    return index;
+}
+
+static void
+checkSmallPvrtc1Levels(ktx_basis_codec_e codec, ktx_uint32_t baseWidth,
+                       ktx_uint32_t baseHeight) {
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    createInfo.baseWidth = baseWidth;
+    createInfo.baseHeight = baseHeight;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = 6; // Down to 1x1 for 32x16 and 16x32.
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    createInfo.isArray = KTX_FALSE;
+    createInfo.generateMipmaps = KTX_FALSE;
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result = ktxTexture2_Create(&createInfo,
+                                              KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                                              &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    std::unique_ptr<ktxTexture2, void(*)(ktxTexture2*)> texture_raii(
+        texture, [](ktxTexture2* t) { ktxTexture_Destroy(ktxTexture(t)); });
+
+    // Opaque, with a red left half and a blue right half so that the blocks
+    // of a level 2 blocks wide differ.
+    for (ktx_uint32_t level = 0; level < createInfo.numLevels; level++) {
+        const ktx_uint32_t width = std::max(1u, baseWidth >> level);
+        const ktx_uint32_t height = std::max(1u, baseHeight >> level);
+        std::vector<ktx_uint8_t> pixels((size_t)width * height * 4);
+        for (ktx_uint32_t y = 0; y < height; y++) {
+            for (ktx_uint32_t x = 0; x < width; x++) {
+                const size_t i = ((size_t)y * width + x) * 4;
+                const bool left = x < (width + 1) / 2;
+                pixels[i + 0] = left ? 224 : (ktx_uint8_t)(16 * level);
+                pixels[i + 1] = (ktx_uint8_t)(255 * y / height);
+                pixels[i + 2] = left ? (ktx_uint8_t)(16 * level) : 224;
+                pixels[i + 3] = 255;
+            }
+        }
+        result = ktxTexture_SetImageFromMemory(ktxTexture(texture), level, 0,
+                                               0, pixels.data(), pixels.size());
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    }
+
+    ktxBasisParams cparams = {};
+    cparams.structSize = sizeof(cparams);
+    cparams.threadCount = 1;
+    cparams.codec = codec;
+    result = ktxTexture2_CompressBasisEx(texture, &cparams);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_PVRTC1_4_RGB, 0);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+    const ktx_size_t blockSize = 8;
+    for (ktx_uint32_t level = 0; level < createInfo.numLevels; level++) {
+        const ktx_uint32_t blocksX = (std::max(1u, baseWidth >> level) + 3) / 4;
+        const ktx_uint32_t blocksY = (std::max(1u, baseHeight >> level) + 3) / 4;
+        if (blocksX >= 2 && blocksY >= 2)
+            continue;
+        const ktx_uint32_t paddedX = std::max(2u, blocksX);
+        const ktx_uint32_t paddedY = std::max(2u, blocksY);
+        ASSERT_EQ(ktxTexture_GetImageSize(ktxTexture(texture), level),
+                  paddedX * paddedY * blockSize);
+        ktx_size_t offset;
+        result = ktxTexture_GetImageOffset(ktxTexture(texture), level, 0, 0,
+                                           &offset);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        const ktx_uint8_t* image = texture->pData + offset;
+        for (ktx_uint32_t y = 0; y < paddedY; y++) {
+            for (ktx_uint32_t x = 0; x < paddedX; x++) {
+                const ktx_uint32_t block
+                    = pvrtc1BlockIndex(paddedX, paddedY, x, y);
+                const ktx_uint32_t tile
+                    = pvrtc1BlockIndex(paddedX, paddedY,
+                                       x % blocksX, y % blocksY);
+                EXPECT_EQ(std::memcmp(image + block * blockSize,
+                                      image + tile * blockSize, blockSize), 0)
+                    << "level " << level << " block (" << x << ", " << y << ")";
+            }
+        }
+        if (blocksX == 2) {
+            // The red and blue halves are in different blocks.
+            EXPECT_NE(std::memcmp(image + pvrtc1BlockIndex(2, 2, 0, 0) * blockSize,
+                                  image + pvrtc1BlockIndex(2, 2, 1, 0) * blockSize,
+                                  blockSize), 0)
+                << "level " << level;
+        }
+    }
+}
+
+TEST(TranscodePvrtc1, SmallEtc1sLevelsAreFilled) {
+    checkSmallPvrtc1Levels(KTX_BASIS_CODEC_ETC1S, 32, 16);
+    checkSmallPvrtc1Levels(KTX_BASIS_CODEC_ETC1S, 16, 32);
+}
+
+TEST(TranscodePvrtc1, SmallUastcLevelsAreFilled) {
+    checkSmallPvrtc1Levels(KTX_BASIS_CODEC_UASTC_LDR_4x4, 32, 16);
+    checkSmallPvrtc1Levels(KTX_BASIS_CODEC_UASTC_LDR_4x4, 16, 32);
+}
 }  // namespace
 
 int main(int argc, char **argv) {
