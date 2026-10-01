@@ -100,8 +100,7 @@ jobs:
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
-#      run: build/Debug/unittests.exe --gtest_list_tests '--gtest_output=json:$TMP/foo.json'
-      run: build/Debug/unittests.exe
+      run: build/Debug/unittests.exe --gtest_list_tests
 
     - name: Test Mingw build
       id: teststep
