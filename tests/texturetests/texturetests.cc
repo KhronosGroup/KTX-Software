@@ -1641,19 +1641,8 @@ TEST_F(ktxTexture2_CreateCopyTest, CopiesTextureCreatedWithNoStorage) {
     ktxTexture_unique_ptr copyTexture_raii{nullptr, ktxTexture_Deleter};
     KTX_error_code result;
 
-    ktxTextureCreateInfo createInfo;
-    createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
-    createInfo.baseWidth = 16;
-    createInfo.baseHeight = 16;
-    createInfo.baseDepth = 1;
-    createInfo.numDimensions = 2;
-    createInfo.numLevels = 5;
-    createInfo.numLayers = 1;
-    createInfo.numFaces = 1;
-    createInfo.isArray = KTX_FALSE;
-    createInfo.generateMipmaps = KTX_FALSE;
     ktxTexture2* texture = nullptr;
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE,
+    result = ktxTexture2_Create(&texinfo, KTX_TEXTURE_CREATE_NO_STORAGE,
                                 &texture);
     texture_raii.reset((ktxTexture*)texture);
     ASSERT_EQ(result, KTX_SUCCESS);
@@ -1665,7 +1654,7 @@ TEST_F(ktxTexture2_CreateCopyTest, CopiesTextureCreatedWithNoStorage) {
     EXPECT_EQ(result, KTX_SUCCESS);
     ASSERT_TRUE(copyTexture != NULL) << "ktxTexture2_CreateCopy failed: "
                                      << ktxErrorString(result);
-    EXPECT_EQ(copyTexture->numLevels, 5u);
+    EXPECT_EQ(compareTexture(copyTexture), true);
     EXPECT_TRUE(copyTexture->pData == NULL);
 }
 
