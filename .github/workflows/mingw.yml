@@ -74,7 +74,6 @@ jobs:
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/resources
 
-#        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "LocalDumps"
     - name: Enable Core Dumps
       shell: pwsh
       run: |
@@ -121,6 +120,9 @@ jobs:
         crashdumps=$localappdata/CrashDumps
         ls $localappdata
         if [ -d "$crashdumps" ]; then ls "$crashdumps"; else echo "No $crashdumps"; fi
+        if [ -d "$localappdata/Microsoft/Windows/WER" ]; then ls "$localappdata/Microsoft/Windows/WER"; else echo "No $localappdata/Microsoft/Windows/WER"; fi
+        if [ -d "$localappdata/Microsoft/Windows/WER/ReportArchive" ]; then ls "$localappdata/Microsoft/Windows/WER/ReportArchive"; else echo "No $localappdata/Microsoft/Windows/WER/ReportArchive"; fi
+        if [ -d "/c/ProgramData/Microsoft/Windows/WER/ReportArchive" ]; then ls "/c/ProgramData/Microsoft/Windows/WER/ReportArchive"; else echo "No /c/ProgramData/Microsoft/Windows/WER/ReportArchive"; fi
 
 #    - name: Upload core dump if extracting test list fails
 #      if: failure() && steps.extract_test_list.outcome == 'failure'
