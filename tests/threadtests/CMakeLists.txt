@@ -29,7 +29,7 @@ PRIVATE
 
 target_link_libraries(
     threadtests
-    GTest::gtest_main
+    GTest::gtest
     ktx
     "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}

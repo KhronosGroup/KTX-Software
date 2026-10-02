@@ -93,6 +93,7 @@ SYSTEM PRIVATE
 
 target_link_libraries(
     unittests
+    GTest::gtest
     GTest::gtest_main
     ktx
     fmt::fmt
@@ -125,7 +126,7 @@ PRIVATE
 
 target_link_libraries(
     texturetests
-    GTest::gtest_main
+    GTest::gtest
     ktx
     "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}
