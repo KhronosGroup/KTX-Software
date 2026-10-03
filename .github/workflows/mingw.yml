@@ -103,6 +103,7 @@ jobs:
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
+      shell: pwsh
       run: |
         $dumproot = "$env:GITHUB_WORKSPACE\crashdumps"
         New-Item -ItemType Directory -Force -Path $dumpRoot | Out-Null
