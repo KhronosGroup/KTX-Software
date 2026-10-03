@@ -107,7 +107,7 @@ jobs:
       run: |
         $dumproot = "$env:GITHUB_WORKSPACE\crashdumps"
         New-Item -ItemType Directory -Force -Path $dumpRoot | Out-Null
-        procdump -accepteula -e -ma -x $dumproot -- build/Debug/unittests.exe --gtest_list_tests
+        procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
 
     - name: Test Mingw build
       id: teststep
@@ -136,5 +136,5 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: extract_test_core_dump_sha_${{ github.sha }}
-        path: ${{ env.LOCALAPPDATA }}/crashdumps/**
-#        path: ${{ env.GITHUB_WORKSPACE }}/*.dmp
+        path: ${{ env.GITHUB_WORKSPACE }}/crashdumps/**
+#        path: ${{ env.LOCALAPPDATA }}/*.dmp
