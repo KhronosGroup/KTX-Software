@@ -108,8 +108,7 @@ jobs:
         dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
         mkdir $dumproot
         #procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
-        build/Debug/unittests.exe --gtest_list_tests
-        echo "status = $?"
+        build/Debug/unittests.exe --gtest_list_tests || echo "status = $?"
 
     - name: Test Mingw build
       id: teststep
