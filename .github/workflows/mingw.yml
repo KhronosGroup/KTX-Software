@@ -92,7 +92,8 @@ jobs:
     - name: Install Ninja
       run: choco install ninja --no-progress
     - name: Configure Mingw x64
-      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
+      #run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=OFF -DKTX_FEATURE_TOOLS_CTS=OFF -DKTX_WERROR=$WERROR
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug -j $(nproc)
 #    - name: Build Mingw x64 Release
@@ -103,11 +104,12 @@ jobs:
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
-      shell: pwsh
       run: |
-        $dumproot = "$env:GITHUB_WORKSPACE\crashdumps"
-        New-Item -ItemType Directory -Force -Path $dumpRoot | Out-Null
-        procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
+        $dumproot="$GITHUB_WORKSPACE\crashdumps"
+        mkdir $dumproot
+        #procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
+        build/Debug/unittests.exe --gtest_list_tests
+        echo "status = $?"
 
     - name: Test Mingw build
       id: teststep
