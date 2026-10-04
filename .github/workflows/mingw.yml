@@ -100,16 +100,16 @@ jobs:
 #    - name: Build Mingw x64 Release
 #      run: cmake --build build --config Release -j $(nproc)
 
-    - name: Install procdump
-      run: choco install procdump -y
+#    - name: Install procdump
+#      run: choco install procdump -y
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
       run: |
-        dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
-        mkdir $dumproot
-        procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
-        #build/Debug/unittests.exe --gtest_list_tests || echo "status = $?"
+        #dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
+        #mkdir $dumproot
+        #procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
+        build/Debug/unittests.exe --gtest_list_tests --gtest_catch_exceptions=0"
 
     - name: Test Mingw build
       id: teststep
