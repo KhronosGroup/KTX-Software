@@ -105,7 +105,7 @@ jobs:
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
       run: |
-        $dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
+        dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
         mkdir $dumproot
         #procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
         build/Debug/unittests.exe --gtest_list_tests
