@@ -142,7 +142,6 @@ endif()
 
 # CMAKE_CXX_COMPILER_ID is not set until after project() so all this must be after.
 # Although MSVC added support for '-fsanitize', it hasn't been tested yet.
-cmake_print_variables(CMAKE_CXX_COMPILER_ID)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
     #   - to enable AddressSanitizer (Asan), set to "address"
