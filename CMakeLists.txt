@@ -47,15 +47,6 @@ option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS subm
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
 
-# Although MSVC added support for '-fsanitize', it hasn't been tested yet
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
-    #   - to enable AddressSanitizer (Asan), set to "address"
-    #   - to enable ThreadSanitizer (Tsan), set to "thread"
-    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
-    set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
-endif()
-
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
@@ -147,6 +138,17 @@ endif()
 # Uses IOS, so included after project to avoid modifying it.
 if(KTX_GENERATE_VK_FILES)
     include(cmake/mkvk.cmake)
+endif()
+
+# CMAKE_CXX_COMPILER_ID is not set until after project() so all this must be after.
+# Although MSVC added support for '-fsanitize', it hasn't been tested yet.
+cmake_print_variables(CMAKE_CXX_COMPILER_ID)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
+    #   - to enable AddressSanitizer (Asan), set to "address"
+    #   - to enable ThreadSanitizer (Tsan), set to "thread"
+    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
+    set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
 endif()
 
 # EMSCRIPTEN is not set until project so all these must be after.
