@@ -9,19 +9,24 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG        v1.18.0
 )
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON)
-set(BUILD_GMOCK OFF)
 FetchContent_MakeAvailable(googletest)
 
+# Building gtest as a shared lib on Windows can cause all sorts of
+# extremely-hard-to-debug issues that, for instance, only manifest in certain
+# shells (e.g., segfault on Git Bash but nothing on Powershell).
+# Just build statically and avoid the headache
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_GMOCK OFF)
 include(GoogleTest)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 
 function(override_gtest_output_dirs target)
 set_target_properties(${target}
     # CMake sets these properties based on ${CMAKE_BINARY_DIR}
     # instead of following the CMAKE_*_OUTPUT_DIRECTORY settings.
-    # To avoid issues with finding the gtest dlls, override to
-    # our global settings.
+    # To avoid creating yet another `bin` directory (and issues with
+    # finding the gtest dlls should we decide to build them), override
+    # to our global settings.
     PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
