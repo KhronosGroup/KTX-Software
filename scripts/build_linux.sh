@@ -115,7 +115,7 @@ cmake_args+=(\
   "-D" "BASISU_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SSE=$SUPPORT_SSE" \
   "-D" "KTX_WERROR=$WERROR" \
-  "-D" "SANITIZE=$SANITIZE"
+  "-D" "KTX_SANITIZE=$SANITIZE"
 )
 if [ "$FEATURE_PY" = "ON" ]; then
   cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")

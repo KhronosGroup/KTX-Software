@@ -47,15 +47,6 @@ option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS subm
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
 
-# Although MSVC added support for '-fsanitize', it hasn't been tested yet
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
-    #   - to enable AddressSanitizer (Asan), set to "address"
-    #   - to enable ThreadSanitizer (Tsan), set to "thread"
-    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
-    set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
-endif()
-
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
     set(KTX_FEATURE_TOOLS_CTS "OFF")
@@ -144,6 +135,16 @@ if (CPU_ARCHITECTURE STREQUAL x86)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
 endif()
 
+# CMAKE_CXX_COMPILER_ID is not set until after project() so this must be after.
+# Although MSVC added support for '-fsanitize', it hasn't been tested yet
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # KTX_SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
+    #   - to enable AddressSanitizer (Asan), set to "address"
+    #   - to enable ThreadSanitizer (Tsan), set to "thread"
+    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
+    set(KTX_SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
+endif()
+
 # Uses IOS, so included after project to avoid modifying it.
 if(KTX_GENERATE_VK_FILES)
     include(cmake/mkvk.cmake)
@@ -199,12 +200,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Cl
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
     # Optional sanitizer (only Debug builds because with Release you will get a wall of warnings)
-    if (SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options (-fsanitize=${SANITIZE})
-        add_link_options (-fsanitize=${SANITIZE})
+    if (KTX_SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options (-fsanitize=${KTX_SANITIZE})
+        add_link_options (-fsanitize=${KTX_SANITIZE})
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             # finds writes past size of std::vector (won't be detected without this)
-            add_compile_definitions (_GLIBCXX_SANITIZE_VECTOR=1)
+            add_compile_definitions (_GLIBCXX_KTX_SANITIZE_VECTOR=1)
         endif ()
         # This has to be added to all (i.e., not using the target_compile_options variant)
         add_compile_options (-fno-omit-frame-pointer -fPIC)
