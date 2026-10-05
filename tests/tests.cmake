@@ -9,7 +9,6 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG        v1.18.0
 )
-FetchContent_MakeAvailable(googletest)
 
 # Building gtest as a shared lib on Windows can cause all sorts of
 # extremely-hard-to-debug issues that, for instance, only manifest in certain
@@ -17,6 +16,7 @@ FetchContent_MakeAvailable(googletest)
 # Just build statically and avoid the headache
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_GMOCK OFF)
+FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
 
