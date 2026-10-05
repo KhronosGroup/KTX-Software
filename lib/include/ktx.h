@@ -858,7 +858,7 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
  * to be changed to explicitly handle large files by
  * using the 64-bit stream functions.
  */
-#if defined(_MSC_VER) && defined(_WIN64)
+#if (defined(_MSC_VER) && defined(_WIN64)) || defined(__MINGW32__)
   typedef __int64 ktx_off_t;
 #else
   typedef   off_t ktx_off_t;
