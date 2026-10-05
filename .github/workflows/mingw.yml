@@ -108,7 +108,6 @@ jobs:
 
     - name: Extract test list to attempt to locate run failure
       id: extract_test_list
-      shell: pwsh
       run: |
         #dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
         #mkdir $dumproot
