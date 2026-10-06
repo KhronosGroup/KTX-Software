@@ -48,7 +48,6 @@ on:
 
 jobs:
   mingw:
-    runs-on: windows-latest
     defaults:
       run:
         shell: bash
@@ -58,6 +57,12 @@ jobs:
       # pulled later as necessary
       GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
+
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v6
@@ -77,19 +82,6 @@ jobs:
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/resources
 
-    - name: Enable Core Dumps
-      shell: pwsh
-      run: |
-        Get-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -ErrorAction Ignore
-        Get-Item -Path "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug" -ErrorAction Ignore
-        Get-ItemProperty -Path "HKLM:SOFTWARE\Microsoft\Windows NT\CurrentVersion\AeDebug" -Name "Auto" -ErrorAction Ignore
-        echo "Setting Dump properties."
-        # x86_64 runners have this, arm runner does not.
-        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "LocalDumps" -ErrorAction Ignore
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpFolder" -Value "%LOCALAPPDATA%\CrashDumps" -PropertyType ExpandString
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpCount" -Value 10 -PropertyType DWord
-        Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" -Name "DumpFolder" -ErrorAction Ignore
-
     - name: Fetch CTS Submodule
       run: git submodule update --init --recursive tests/cts
 
@@ -98,21 +90,12 @@ jobs:
     #  run: choco install ninja --no-progress
 
     - name: Configure Mingw x64
-      #run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
-      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=OFF -DKTX_FEATURE_TOOLS_CTS=OFF -DKTX_WERROR=$WERROR
+      run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
 
     - name: Build Mingw x64 Debug
       run: cmake --build build --config Debug -j $(nproc)
-#    - name: Build Mingw x64 Release
-#      run: cmake --build build --config Release -j $(nproc)
-
-    - name: Extract test list to attempt to locate run failure
-      id: extract_test_list
-      run: |
-        #dumproot="$(cygpath $GITHUB_WORKSPACE)/crashdumps"
-        #mkdir $dumproot
-        #procdump -accepteula -e -ma -x $dumproot build/Debug/unittests.exe --gtest_list_tests
-        build/Debug/unittests.exe --gtest_list_tests --gtest_catch_exceptions=0
+    - name: Build Mingw x64 Release
+      run: cmake --build build --config Release -j $(nproc)
 
     - name: Test Mingw build
       id: teststep
@@ -125,21 +108,3 @@ jobs:
         name: cts_failure_artifacts_commit_sha_${{ github.sha }}
         path: tests/cts/clitests/output
 
-    - name: ls DumpFolder if extracting test list fails
-      if: failure() && steps.extract_test_list.outcome == 'failure'
-      run: |
-        localappdata=$(cygpath $LOCALAPPDATA)
-        crashdumps=$localappdata/CrashDumps
-        ls $localappdata
-        if [ -d "$crashdumps" ]; then ls "$crashdumps"; else echo "No $crashdumps"; fi
-        if [ -d "$localappdata/Microsoft/Windows/WER" ]; then ls "$localappdata/Microsoft/Windows/WER"; else echo "No $localappdata/Microsoft/Windows/WER"; fi
-        if [ -d "$localappdata/Microsoft/Windows/WER/ReportArchive" ]; then ls "$localappdata/Microsoft/Windows/WER/ReportArchive"; else echo "No $localappdata/Microsoft/Windows/WER/ReportArchive"; fi
-        if [ -d "/c/ProgramData/Microsoft/Windows/WER/ReportArchive" ]; then ls "/c/ProgramData/Microsoft/Windows/WER/ReportArchive"; else echo "No /c/ProgramData/Microsoft/Windows/WER/ReportArchive"; fi
-
-    - name: Upload core dump if extracting test list fails
-      if: failure() && steps.extract_test_list.outcome == 'failure'
-      uses: actions/upload-artifact@v7
-      with:
-        name: extract_test_core_dump_sha_${{ github.sha }}
-        path: ${{ env.GITHUB_WORKSPACE }}/crashdumps/**
-#        path: ${{ env.LOCALAPPDATA }}/*.dmp

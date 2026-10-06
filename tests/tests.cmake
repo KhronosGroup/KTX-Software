@@ -13,7 +13,9 @@ FetchContent_Declare(
 # Building gtest as a shared lib on Windows can cause all sorts of
 # extremely-hard-to-debug issues that, for instance, only manifest in certain
 # shells (e.g., segfault on Git Bash but nothing on Powershell).
-# Just build statically and avoid the headache
+# Just build statically and avoid the headache. N.B. BUILD_SHARED_LIBS OFF
+# must be set before FetchContent_MakeAvailable() is called, otherwise it
+# will be ignored.
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_GMOCK OFF)
 FetchContent_MakeAvailable(googletest)
