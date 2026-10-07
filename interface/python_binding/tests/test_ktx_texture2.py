@@ -103,6 +103,47 @@ class TestKtxTexture2(unittest.TestCase):
         self.assertEqual(texture.is_compressed, True)
         self.assertEqual(texture.supercompression_scheme, KtxSupercmpScheme.NONE)
 
+    def test_compress_basis_pre_swizzle(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/r8g8b8a8_srgb_array_7_mip.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+        texture.kv_data.add_kv_pair('KTXswizzle', b'bgra')
+
+        texture.compress_basis(KtxBasisParams(codec=KtxBasisCodec.UASTC_LDR_4x4, pre_swizzle=True))
+
+        # libktx removes the swizzle metadata once it has applied it.
+        self.assertIsNone(texture.kv_data.find_value('KTXswizzle'))
+
+    def test_compress_basis_pre_swizzle_with_input_swizzle(self):
+        test_ktx_file = os.path.join(__test_images__, 'ktx2/r8g8b8a8_srgb_array_7_mip.ktx2')
+        texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
+
+        with self.assertRaises(KtxError) as context:
+            texture.compress_basis(KtxBasisParams(codec=KtxBasisCodec.UASTC_LDR_4x4,
+                                                  pre_swizzle=True,
+                                                  input_swizzle=b'rgba'))
+        self.assertEqual(context.exception.code, KtxErrorCode.INVALID_OPERATION)
+
+    def test_compress_basis_uastc_rdo_dict_size(self):
+        info = KtxTextureCreateInfo(
+            gl_internal_format=None,  # ignored
+            base_width=64,
+            base_height=64,
+            base_depth=1,
+            vk_format=VkFormat.VK_FORMAT_R8G8B8A8_UNORM)
+        # An image on which RDO changes some blocks.
+        image = bytes(c for y in range(64) for x in range(64) for c in (x * 4, y * 4, (x * y) % 256, 255))
+
+        data = []
+        for dict_size in [64, 65536]:
+            texture = KtxTexture2.create(info, KtxTextureCreateStorage.ALLOC)
+            texture.set_image_from_memory(0, 0, 0, image)
+            texture.compress_basis(KtxBasisParams(codec=KtxBasisCodec.UASTC_LDR_4x4,
+                                                  uastc_rdo=True,
+                                                  uastc_rdo_dict_size=dict_size))
+            data.append(texture.data()[:])
+
+        self.assertNotEqual(data[0], data[1])
+
     def test_compress_basis_hdr(self):
         test_ktx_file = os.path.join(__test_images__, 'ktx2/Desk_small_zstd_15.ktx2')
         texture = KtxTexture2.create_from_named_file(test_ktx_file, KtxTextureCreateFlagBits.LOAD_IMAGE_DATA_BIT)
