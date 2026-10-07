@@ -9,7 +9,9 @@ This Python package provides a Pythonic interface to _libktx_. It uses CFFI to g
 
 ## Usage
 
-**You must have _libktx_ installed on your system to use pyktx ordinarily. If not
+The Linux and macOS wheels on PyPI include _libktx_.
+
+**Otherwise you must have _libktx_ installed on your system to use pyktx. If not
 installed in the default location, you can configure where _libktx_ is installed
 using the `LIBKTX_INCLUDE_DIR` and `LIBKTX_LIB_DIR` environment variables.**
 
