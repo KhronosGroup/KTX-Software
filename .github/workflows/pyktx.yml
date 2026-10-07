@@ -100,7 +100,7 @@ jobs:
           package-dir: interface/python_binding
           output-dir: wheelhouse
         env:
-          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-* cp314t-*
           CIBW_ARCHS: native
           CIBW_BEFORE_ALL: >
             cmake -S . -B build-pyktx -DCMAKE_BUILD_TYPE=Release
@@ -112,7 +112,12 @@ jobs:
             DFDUTILS_INCLUDE_DIR=$(pwd)/external/dfdutils
             LIBKTX_LIB_DIR=$(pwd)/build-pyktx/Release
           CIBW_ENVIRONMENT_PASS_LINUX: LIBKTX_VERSION
-          CIBW_TEST_COMMAND: python -m unittest discover -v -s {project}/interface/python_binding/tests
+          # On free-threaded Python, also check importing pyktx does not
+          # enable the GIL.
+          CIBW_TEST_COMMAND: >
+            python -m unittest discover -v -s {project}/interface/python_binding/tests &&
+            python -c "import sys, sysconfig, pyktx;
+            assert not sysconfig.get_config_var('Py_GIL_DISABLED') or not sys._is_gil_enabled()"
 
       - name: Upload artifact pyktx
         uses: actions/upload-artifact@v7
