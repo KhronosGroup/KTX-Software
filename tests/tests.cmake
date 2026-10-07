@@ -3,9 +3,43 @@
 
 # gtest based unit-tests
 
-include(GoogleTest)
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        v1.18.0
+)
 
-add_subdirectory(gtest)
+# Building gtest as a shared lib on Windows can cause all sorts of
+# extremely-hard-to-debug issues that, for instance, only manifest in certain
+# shells (e.g., segfault on Git Bash but nothing on Powershell).
+# Just build statically and avoid the headache. N.B. BUILD_SHARED_LIBS OFF
+# must be set before FetchContent_MakeAvailable() is called, otherwise it
+# will be ignored.
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_GMOCK OFF)
+FetchContent_MakeAvailable(googletest)
+include(GoogleTest)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})
+
+function(override_gtest_output_dirs target)
+set_target_properties(${target}
+    # CMake sets these properties based on ${CMAKE_BINARY_DIR}
+    # instead of following the CMAKE_*_OUTPUT_DIRECTORY settings.
+    # To avoid creating yet another `bin` directory (and issues with
+    # finding the gtest dlls should we decide to build them), override
+    # to our global settings.
+    PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+        PDB_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+endfunction()
+override_gtest_output_dirs(gtest)
+override_gtest_output_dirs(gtest_main)
+
 find_package(Threads)
 
 # This setting is critical when cross compiling and on Apple
@@ -47,7 +81,7 @@ set_test_properties(unittests)
 set_code_sign(unittests)
 
 target_compile_features( unittests PUBLIC cxx_std_20 )
- 
+
 target_include_directories(
     unittests
 PRIVATE
@@ -66,7 +100,8 @@ SYSTEM PRIVATE
 
 target_link_libraries(
     unittests
-    gtest
+    GTest::gtest
+    GTest::gtest_main
     ktx
     fmt::fmt
     ${CMAKE_THREAD_LIBS_INIT}
@@ -98,7 +133,7 @@ PRIVATE
 
 target_link_libraries(
     texturetests
-    gtest
+    GTest::gtest
     ktx
     "$<${is_stdformat_unsupported}:fmt::fmt>"
     ${CMAKE_THREAD_LIBS_INIT}

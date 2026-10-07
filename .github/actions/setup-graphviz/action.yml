@@ -1,0 +1,50 @@
+# Copyright 2024 The Khronos Group Inc.
+# Copyright 2024 RasterGrid Kft.
+# SPDX-License-Identifier: Apache-2.0
+name: Set up Graphviz
+description: 'Install Graphviz (including dot)'
+
+# Examples in case of future need.
+# Define inputs that callers can provide
+#inputs:
+#  graphviz_version:
+#    description: 'Graphviz version to install'
+#    required: false
+#    default: '2.43'
+
+# Define outputs to pass data back to the caller
+#outputs:
+#
+# cache-hit:
+#    description: 'Whether npm cache was hit'
+#    value: ${{ steps.npm-cache.outputs.cache-hit }}
+
+# The composite run steps
+runs:
+  using: 'composite'
+  steps:
+    - name: "Install Graphviz (Linux)"
+      #if: ${{ inputs.graphviz == 'true' && runner.os == 'Linux' }}
+      if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes graphviz
+
+    - name: "Install Graphviz (macOS)"
+      if: ${{ runner.os == 'macOS' }}
+      shell: bash
+      run: brew install graphviz
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: "1"
+
+    - name: "Install Graphviz (Windows)"
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: |
+        choco install graphviz --yes --no-progress
+
+    - name: "Check Graphviz installation"
+      #if: ${{ inputs.graphviz == 'true' }}
+      shell: bash
+      run: dot -V

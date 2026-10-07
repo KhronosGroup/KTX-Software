@@ -48,7 +48,6 @@ on:
 
 jobs:
   mingw:
-    runs-on: windows-latest
     defaults:
       run:
         shell: bash
@@ -59,33 +58,53 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: 1
       WERROR: ON
 
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
     - uses: actions/checkout@v6
       with:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
+
     - name: GCC Version
       run: gcc --version # If this fails MINGW is not setup correctly
+
     - name: Force update provoking tag
       # Work around https://github.com/actions/checkout/issues/290.
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+
     - name: Pull test images from Git LFS
       run: git lfs pull --include=tests/resources
+
     - name: Fetch CTS Submodule
       run: git submodule update --init --recursive tests/cts
-    - name: Install Ninja
-      run: choco install ninja --no-progress
-    - name: Configure Mingw x64
+
+    # Ninja is installed on current windows-latest.
+    #- name: Install Ninja
+    #  run: choco install ninja --no-progress
+
+    - name: Configure MinGW x64
       run: cmake -B build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DKTX_FEATURE_TOOLS=TRUE -DKTX_FEATURE_TOOLS_CTS=TRUE -DKTX_WERROR=$WERROR
-    - name: Build Mingw x64 Debug
+
+    - name: Build MinGW x64 Debug
       run: cmake --build build --config Debug -j $(nproc)
-    - name: Build Mingw x64 Release
+    - name: Build MinGW x64 Release
       run: cmake --build build --config Release -j $(nproc)
-    - name: Test Mingw build
+
+    - name: Test MinGW build
+      id: teststep
       run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
-#    - name: Upload test log
-#      shell: pwsh
-#      if: ${{ failure() }}
-#      run: scripts/on_failure.ps1
+
+    - name: Upload generated CTS output files if CTS tests fail
+      if: failure() && steps.teststep.outcome == 'failure'
+      uses: actions/upload-artifact@v7
+      with:
+        name: cts_failure_artifacts_commit_sha_${{ github.sha }}
+        path: tests/cts/clitests/output
+

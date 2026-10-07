@@ -1,7 +1,0 @@
-# Copyright 2024 The Khronos Group Inc.
-# SPDX-License-Identifier: Apache-2.0
----
-# Disable clang-format in this directory
-DisableFormat: true
-SortIncludes: false
-...

@@ -189,7 +189,7 @@ jobs:
         # As of Sept 2026, Brew no longer supports x86_64 so we can't install
         # graphviz. x86_64 package will therefore be without the graphical bits.
         if: matrix.options.doc == 'ON' && matrix.arch != 'x86_64'
-        uses: MarkCallow/setup-graphviz@v3
+        uses: ./.github/actions/setup-graphviz
 
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python

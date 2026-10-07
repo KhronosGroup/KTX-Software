@@ -48,7 +48,8 @@ $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
 $OPENCL_SDK_HOME = Set-ConfigVariable OPENCL_SDK_HOME "https://github.com/intel/llvm/releases/download/2021-09"
 $OPENCL_SDK_NAME = Set-ConfigVariable OPENCL_SDK_NAME "win-oclcpuexp-2021.12.9.0.24_rel"
-$OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR "C:/Imagination/Windows_x86_64"
+$defaultOpenGLESEmulator = "C:/Imagination/Windows_x86_64"
+$OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR $defaultOpenGLESEmulator
 $OPENGL_ES_EMULATOR_WIN = Set-ConfigVariable OPENGL_ES_EMULATOR_WIN "C:\Imagination\Windows_x86_64"
 $PVR_SDK_HOME = Set-ConfigVariable PVR_SDK_HOME "https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/"
 $VULKAN_SDK_VERSION = Set-ConfigVariable VULKAN_SDK_VERSION 1.4.313.2
@@ -59,26 +60,35 @@ if ($FEATURE_TESTS -eq "ON") {
 
 if ($FEATURE_LOADTESTS -and $FEATURE_LOADTESTS -ne "OFF") {
   if ($FEATURE_LOADTESTS -match "OpenGL") {
-    echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
-    $null = md $OPENGL_ES_EMULATOR_WIN
-    pushd $OPENGL_ES_EMULATOR_WIN
-    # Must use `curl.exe` as `curl` is an alias for the totally different
-    # Invoke-WebRequest command which is difficult to use for downloads.
-    # curl writes its progress meter to stderr which means PS prints the
-    # output with a bright red background so sadly we turn off the meter
-    # (-s, --silent) then turn actual error messages back on (-S --show-error).
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.dll
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.lib
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.dll
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.lib
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dll
-    curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.lib
-    popd
+    if ($OPENGL_ES_EMULATOR -eq $defaultOpenGLESEmulator) {
+      if ($ARCH -eq "x64") {
+        # Imagination only provides pre-compiled libraries for x64.
+        echo "Download PowerVR OpenGL ES Emulator libraries (latest version)."
+        $null = md $OPENGL_ES_EMULATOR_WIN
+        pushd $OPENGL_ES_EMULATOR_WIN
+        # Must use `curl.exe` as `curl` is an alias for the totally different
+        # Invoke-WebRequest command which is difficult to use for downloads.
+        # curl writes its progress meter to stderr which means PS prints the
+        # output with a bright red background so sadly we turn off the meter
+        # (-s, --silent) then turn actual error messages back on (-S --show-error).
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.dll
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libGLES_CM.lib
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.dll
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libGLESv2.lib
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.dll
+        curl.exe -s -S -L -O $PVR_SDK_HOME/libEGL.lib
+        popd
+      } else {
+        echo "Precompiled PowerVR OpenGL ES emulator binaries are only available for x86_64 processors."
+      }
+    } else {
+      echo "Do not know from where to download the OpenGL ES emulator for $OPENGL_ES_EMULATOR."
+    }
   }
   if ($FEATURE_LOADTESTS -match "Vulkan") {
     $message = "Install VulkanSDK for $localArch"
     # Grumble, grumble, ...
-    if ($localArch -eq "X64") {
+    if ($localArch -eq "x64") {
       $vsdk_platform = "windows"
     } else {
       $vsdk_platform = "warm"
