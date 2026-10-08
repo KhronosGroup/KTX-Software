@@ -205,7 +205,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Cl
         add_link_options (-fsanitize=${KTX_SANITIZE})
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             # finds writes past size of std::vector (won't be detected without this)
-            add_compile_definitions (_GLIBCXX_KTX_SANITIZE_VECTOR=1)
+            add_compile_definitions (_GLIBCXX_SANITIZE_VECTOR=1)
         endif ()
         # This has to be added to all (i.e., not using the target_compile_options variant)
         add_compile_options (-fno-omit-frame-pointer -fPIC)
