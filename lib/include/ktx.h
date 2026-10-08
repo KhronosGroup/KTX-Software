@@ -844,21 +844,7 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
 * ktxStream
 *===========================================================*/
 
-/*
- * This is unsigned to allow ktxmemstreams to use the
- * full amount of memory available. Platforms will
- * limit the size of ktxfilestreams to, e.g, MAX_LONG
- * on 32-bit and ktxfilestreams raises errors if
- * offset values exceed the limits. This choice may
- * need to be revisited if we ever start needing -ve
- * offsets.
- *
- * Should the 2GB file size handling limit on 32-bit
- * platforms become a problem, ktxfilestream will have
- * to be changed to explicitly handle large files by
- * using the 64-bit stream functions.
- */
-#if defined(_MSC_VER) && defined(_WIN64)
+#if (defined(_MSC_VER) && defined(_WIN64)) || defined(__MINGW32__)
   typedef __int64 ktx_off_t;
 #else
   typedef   off_t ktx_off_t;
