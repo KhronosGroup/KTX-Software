@@ -193,6 +193,10 @@ jobs:
 
       VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
 
+      # For the ARM runner. Force download of a binary nuget, which will work with
+      # mono, instead of a script.
+      VCPKG_FORCE_DOWNLOADED_BINARIES: 1
+
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
       SANITIZE: ${{ matrix.options.sanitize || '' }}
@@ -306,9 +310,6 @@ jobs:
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
-          # For the ARM runner. Force download of a binary nuget, which will work with
-          # mono, instead of a script.
-          #VCPKG_FORCE_DOWNLOADED_BINARIES: 1
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
