@@ -67,9 +67,8 @@ struct FileMap {
     ktx_uint64_t lastMetaByte = 0;
 };
 
-FileMap parseFileMap(const std::vector<ktx_uint8_t>& file) {
-    FileMap m;
-    EXPECT_GE(file.size(), 80u);
+void parseFileMap(const std::vector<ktx_uint8_t>& file, FileMap& m) {
+    ASSERT_GE(file.size(), 80u);
     ktx_uint32_t dfdOffset, dfdLength, kvdOffset, kvdLength;
     ktx_uint64_t sgdOffset, sgdLength;
     std::memcpy(&m.levelCount, file.data() + 40, 4);
@@ -81,6 +80,8 @@ FileMap parseFileMap(const std::vector<ktx_uint8_t>& file) {
     std::memcpy(&sgdOffset, file.data() + 64, 8);
     std::memcpy(&sgdLength, file.data() + 72, 8);
 
+    ASSERT_GT(m.levelCount, 0u);
+    ASSERT_LE(m.levelCount, (file.size() - 80) / 24);
     ktx_uint64_t minOffset = UINT64_MAX;
     m.levels.resize(m.levelCount);
     for (ktx_uint32_t l = 0; l < m.levelCount; l++) {
@@ -95,8 +96,8 @@ FileMap parseFileMap(const std::vector<ktx_uint8_t>& file) {
     if (sgdLength)
         last = std::max(last, sgdOffset + sgdLength);
     m.lastMetaByte = last;
-    EXPECT_GE(m.prefixLen, m.lastMetaByte);
-    return m;
+    ASSERT_GE(m.prefixLen, m.lastMetaByte);
+    ASSERT_LE(m.prefixLen, file.size());
 }
 
 //////////////////////////////
@@ -273,7 +274,8 @@ class StreamingShellTest : public ::testing::TestWithParam<Variant> {};
 TEST_P(StreamingShellTest, MetadataPrefixConstructsWithoutOverRead) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     BoundedStreamState state = {file.data(), (ktx_size_t)m.prefixLen, 0, false};
     ktxStream stream = makeBoundedStream(&state);
@@ -300,9 +302,12 @@ TEST_P(StreamingShellTest, MetadataPrefixConstructsWithoutOverRead) {
 TEST_P(StreamingShellTest, MetadataPrefixConstructsAgainstGuardPage) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
-    const size_t page = (size_t)sysconf(_SC_PAGESIZE);
+    const long pageSize = sysconf(_SC_PAGESIZE);
+    ASSERT_GT(pageSize, 0);
+    const size_t page = static_cast<size_t>(pageSize);
     const size_t dataPages = ((size_t)m.prefixLen + page - 1) / page;
     ktx_uint8_t* base = static_cast<ktx_uint8_t*>(
         mmap(nullptr, (dataPages + 1) * page, PROT_READ | PROT_WRITE,
@@ -318,7 +323,7 @@ TEST_P(StreamingShellTest, MetadataPrefixConstructsAgainstGuardPage) {
     EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
     if (shell)
         ktxTexture_Destroy(ktxTexture(shell));
-    munmap(base, (dataPages + 1) * page);
+    EXPECT_EQ(munmap(base, (dataPages + 1) * page), 0);
 }
 #endif
 
@@ -329,7 +334,8 @@ TEST_P(StreamingShellTest, MetadataPrefixConstructsAgainstGuardPage) {
 TEST_P(StreamingShellTest, LoadBitOnMetadataPrefixFailsCleanly) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     BoundedStreamState state = {file.data(), (ktx_size_t)m.prefixLen, 0, false};
     ktxStream stream = makeBoundedStream(&state);
@@ -341,10 +347,27 @@ TEST_P(StreamingShellTest, LoadBitOnMetadataPrefixFailsCleanly) {
     EXPECT_EQ(texture, nullptr);
 }
 
+TEST_P(StreamingShellTest, RejectsMipLevelCountBeyondBitWidth) {
+    std::vector<ktx_uint8_t> file = fileFor(GetParam());
+    ASSERT_GE(file.size(), 80u);
+    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
+        SCOPED_TRACE(count);
+        std::memcpy(file.data() + 40, &count, sizeof(count));
+        ktxTexture2* texture = nullptr;
+        EXPECT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), 0,
+                                               &texture),
+                  KTX_FILE_DATA_ERROR);
+        EXPECT_EQ(texture, nullptr);
+        if (texture)
+            ktxTexture_Destroy(ktxTexture(texture));
+    }
+}
+
 TEST_P(StreamingShellTest, LateLoadImageDataOnShellFailsCleanly) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     BoundedStreamState state = {file.data(), (ktx_size_t)m.prefixLen, 0, false};
     ktxStream stream = makeBoundedStream(&state);
@@ -365,7 +388,8 @@ TEST_P(StreamingShellTest, LateLoadImageDataOnShellFailsCleanly) {
 TEST_P(StreamingShellTest, TruncatedMetadataFailsCleanly) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     // One byte into the last metadata section: mid-SGD for BasisLZ,
     // mid-KVD for the UASTC variants.
@@ -382,7 +406,8 @@ TEST_P(StreamingShellTest, TruncatedMetadataFailsCleanly) {
 TEST_P(StreamingShellTest, PrefixShortByOneByte) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     // With scheme 0, alignment padding sits between the last metadata
     // section and the first level, so a prefix one byte short may still
@@ -410,7 +435,8 @@ TEST_P(StreamingShellTest, PrefixShortByOneByte) {
 TEST_P(StreamingShellTest, GetLevelFileInfoMatchesSerializedIndex) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     BoundedStreamState state = {file.data(), (ktx_size_t)m.prefixLen, 0, false};
     ktxStream stream = makeBoundedStream(&state);
@@ -441,7 +467,8 @@ TEST_P(StreamingShellTest, GetLevelFileInfoAvailableBeforeFullLoad) {
     // image data is actually loaded.
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     ktxTexture2* texture = nullptr;
     KTX_error_code result =
@@ -484,7 +511,8 @@ TEST_P(StreamingShellTest, GetLevelFileInfoAfterLoadBitIsInvalid) {
 TEST(GetLevelFileInfo, InvalidArguments) {
     const std::vector<ktx_uint8_t>& file = fileFor(Variant::UastcRaw);
     ASSERT_FALSE(file.empty());
-    const FileMap m = parseFileMap(file);
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
 
     ktxTexture2* texture = nullptr;
     KTX_error_code result =

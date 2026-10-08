@@ -23,6 +23,7 @@
  * by Mark Callow, HI Corporation.
  */
 #include <assert.h>
+#include <limits.h>
 #include <string.h>
 
 #include "ktx.h"
@@ -156,7 +157,8 @@ KTX_error_code  ktxCheckHeader1_(KTX_header* pHeader,
 
     /* This test works for arrays too because height or depth will be 0. */
     max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
+    if (pHeader->numberOfMipLevels > sizeof(max_dim) * CHAR_BIT
+        || max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
     {
         /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
         return KTX_FILE_DATA_ERROR;
@@ -293,7 +295,8 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
 
     // This test works for arrays too because height or depth will be 0.
     max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->levelCount - 1)))
+    if (pHeader->levelCount > sizeof(max_dim) * CHAR_BIT
+        || max_dim < ((ktx_uint32_t)1 << (pHeader->levelCount - 1)))
     {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         return KTX_FILE_DATA_ERROR;

@@ -138,6 +138,38 @@ TEST_F(CheckHeader1Test, DisallowsInvalidEndianness) {
     EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_FILE_DATA_ERROR);
 }
 
+TEST_F(CheckHeader1Test, ValidatesMipLevelCountBeforeShifting) {
+    KTX_supplemental_info suppInfo;
+    testHeader.pixelWidth = 0x80000000u;
+    testHeader.numberOfMipLevels = 32;
+    EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_SUCCESS);
+
+    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
+        SCOPED_TRACE(count);
+        testHeader.numberOfMipLevels = count;
+        EXPECT_EQ(ktxCheckHeader1_(&testHeader, &suppInfo), KTX_FILE_DATA_ERROR);
+    }
+}
+
+TEST(CheckHeader2Test, ValidatesMipLevelCountBeforeShifting) {
+    KTX_header2 header = {};
+    const ktx_uint8_t identifier[] = KTX2_IDENTIFIER_REF;
+    memcpy(header.identifier, identifier, sizeof(identifier));
+    header.vkFormat = 37; // VK_FORMAT_R8G8B8A8_UNORM
+    header.typeSize = 1;
+    header.pixelWidth = 0x80000000u;
+    header.faceCount = 1;
+    header.levelCount = 32;
+    KTX_supplemental_info suppInfo;
+    EXPECT_EQ(ktxCheckHeader2_(&header, &suppInfo), KTX_SUCCESS);
+
+    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
+        SCOPED_TRACE(count);
+        header.levelCount = count;
+        EXPECT_EQ(ktxCheckHeader2_(&header, &suppInfo), KTX_FILE_DATA_ERROR);
+    }
+}
+
 //////////////////////////////
 // MemStreamTest
 //////////////////////////////

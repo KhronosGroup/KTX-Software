@@ -178,6 +178,16 @@ TEST(LevelProcessor, LayoutQueriesMatchTranscodeBasisOutput) {
     EXPECT_EQ(ktxLevelProcessor_GetImageOffset(processor, source->numLevels,
                                                0, 0, &value),
               KTX_INVALID_VALUE);
+    for (ktx_uint32_t level : {32u, UINT32_MAX}) {
+        SCOPED_TRACE(level);
+        EXPECT_EQ(ktxLevelProcessor_GetLevelSize(processor, level, &value),
+                  KTX_INVALID_VALUE);
+        EXPECT_EQ(ktxLevelProcessor_GetImageSize(processor, level, &value),
+                  KTX_INVALID_VALUE);
+        EXPECT_EQ(ktxLevelProcessor_GetImageOffset(processor, level, 0, 0,
+                                                   &value),
+                  KTX_INVALID_VALUE);
+    }
     EXPECT_EQ(ktxLevelProcessor_GetImageOffset(processor, 0,
                                                source->numLayers, 0, &value),
               KTX_INVALID_VALUE);
