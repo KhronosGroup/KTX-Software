@@ -287,17 +287,20 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-      - name: Overwrite /usr/bin/mono
-        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
-        # prevents vcpkg from trying and failing, to run it in mono. This is
-        # my ugliest hack in 45 years of software development.
-        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
+#      - name: Overwrite /usr/bin/mono
+#        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
+#        # prevents vcpkg from trying and failing, to run it in mono. This is
+#        # my ugliest hack in 45 years of software development.
+#        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
+#        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
         env:
           USERNAME: KhronosGroup
+          # For the ARM runner. Force download of a binary nuget, which will work with
+          # mono, instead of a script.
+          VCPKG_FORCE_DOWNLOADED_BINARIES: 1
         shell: bash
         # `vcpkg fetch nuget` fetches nuget and outputs the location of
         # the fetched command. It is a .exe that runs in the mono VM.
