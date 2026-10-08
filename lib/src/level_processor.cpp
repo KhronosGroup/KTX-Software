@@ -78,7 +78,10 @@
  * the KTXanimData key in the source's key/value data, so the source must
  * have been constructed with its key/value data parsed (i.e. without
  * KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT or KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)
- * for the video check to apply.
+ * when the source contains key/value data. A source with unparsed key/value
+ * data is rejected with KTX_INVALID_OPERATION because its video status is
+ * unknown. These flags do not prevent processor creation when the source
+ * has no key/value data.
  *
  * @param[in]  source         pointer to the Basis-compressed source texture.
  * @param[in]  outputFormat   a value from the ktx_texture_transcode_fmt_e
@@ -98,7 +101,8 @@
  *                              global data its scheme requires, has no
  *                              serialized-source state (it was created
  *                              with ktxTexture2_Create() or its image data
- *                              has been loaded), or @p outputFormat is
+ *                              has been loaded), has unparsed key/value
+ *                              data, or @p outputFormat is
  *                              PVRTC1 and the source does not have
  *                              power-of-two dimensions.
  * @exception KTX_UNSUPPORTED_FEATURE
@@ -136,6 +140,11 @@ ktxLevelProcessor_CreateBasis(const ktxTexture2* source,
     // ktxTexture2_GetLevelFileInfo). Image data cannot start at file
     // offset 0, so a zero base marks a texture without that state.
     if (source->_private->_firstLevelFileOffset == 0)
+        return KTX_INVALID_OPERATION;
+
+    // SKIP/RAW KVD leaves isVideo false even if KTXanimData is present.
+    // Require known video status before accepting an independent-level source.
+    if (!source->_private->_kvDataIsParsed)
         return KTX_INVALID_OPERATION;
 
     // ETC1S video needs inter-frame transcoder state; agreed follow-up.

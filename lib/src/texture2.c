@@ -422,6 +422,7 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
         return KTX_OUT_OF_MEMORY;
     }
     memset(This->_private, 0, privateSize);
+    This->_private->_kvDataIsParsed = KTX_TRUE;
     return KTX_SUCCESS;
 }
 
@@ -1021,6 +1022,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
+
+    private->_kvDataIsParsed = pHeader->keyValueData.byteLength == 0
+        || !(createFlags & (KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT
+                          | KTX_TEXTURE_CREATE_RAW_KVDATA_BIT));
 
     if (pHeader->supercompressionGlobalData.byteLength > 0) {
         switch (This->supercompressionScheme) {

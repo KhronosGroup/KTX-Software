@@ -9,7 +9,9 @@
 // implementation.
 
 #include <string.h>
+#include "gl_format.h"
 #include "ktx.h"
+#include "ktxint.h"
 #include "gtest/gtest.h"
 
 #include <algorithm>
@@ -33,16 +35,16 @@ ProcessorRaii makeRaii(ktxLevelProcessor* processor) {
     return ProcessorRaii(processor, ktxLevelProcessor_Destroy);
 }
 
-// 2D array with a full mip chain: exercises multi-image levels in the
-// layout queries. Encoded to ETC1S so SGD handling is included.
-std::vector<ktx_uint8_t> encodeEtc1sArray() {
+// 2D array with a full mip chain, or a two-frame video with one level.
+// Encoded to ETC1S so SGD handling is included.
+std::vector<ktx_uint8_t> encodeEtc1sArray(bool video = false) {
     ktxTextureCreateInfo createInfo = {};
     createInfo.vkFormat = 43;  // VK_FORMAT_R8G8B8A8_SRGB
     createInfo.baseWidth = 32;
     createInfo.baseHeight = 32;
     createInfo.baseDepth = 1;
     createInfo.numDimensions = 2;
-    createInfo.numLevels = 6;
+    createInfo.numLevels = video ? 1 : 6;
     createInfo.numLayers = 2;
     createInfo.numFaces = 1;
     createInfo.isArray = KTX_TRUE;
@@ -56,6 +58,16 @@ std::vector<ktx_uint8_t> encodeEtc1sArray() {
     if (result != KTX_SUCCESS)
         return {};
     TextureRaii texture_raii = makeRaii(texture);
+
+    if (video) {
+        texture->isVideo = KTX_TRUE;
+        const ktx_uint32_t animData[] = {1, 30, 0};
+        result = ktxHashList_AddKVPair(&texture->kvDataHead, KTX_ANIMDATA_KEY,
+                                      sizeof(animData), animData);
+        EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        if (result != KTX_SUCCESS)
+            return {};
+    }
 
     for (ktx_uint32_t level = 0; level < createInfo.numLevels; level++) {
         const ktx_uint32_t width = std::max(1u, createInfo.baseWidth >> level);
@@ -97,6 +109,124 @@ const std::vector<ktx_uint8_t>& etc1sArrayFile() {
     static const std::vector<ktx_uint8_t> file = encodeEtc1sArray();
     return file;
 }
+
+const std::vector<ktx_uint8_t>& etc1sVideoFile() {
+    static const std::vector<ktx_uint8_t> file = encodeEtc1sArray(true);
+    return file;
+}
+
+class LevelProcessorKvd
+    : public ::testing::TestWithParam<ktxTextureCreateFlags> {};
+
+TEST_P(LevelProcessorKvd, RejectsVideoWithEveryKvdMode) {
+    const std::vector<ktx_uint8_t>& file = etc1sVideoFile();
+    ASSERT_FALSE(file.empty());
+
+    const ktxTextureCreateFlags flags = GetParam();
+    ktxTexture2* source = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), flags,
+                                          &source),
+              KTX_SUCCESS);
+    TextureRaii source_raii = makeRaii(source);
+    // Only parsed KVD initializes isVideo; the other modes cannot establish
+    // whether this source requires inter-frame transcoder state.
+    EXPECT_EQ(source->isVideo, flags == 0 ? KTX_TRUE : KTX_FALSE);
+
+    ktxLevelProcessor* processor = nullptr;
+    EXPECT_EQ(ktxLevelProcessor_CreateBasis(source, KTX_TTF_BC7_RGBA, 0,
+                                           &processor),
+              flags == 0 ? KTX_UNSUPPORTED_FEATURE : KTX_INVALID_OPERATION);
+    ProcessorRaii processor_raii = makeRaii(processor);
+    EXPECT_EQ(processor, nullptr);
+}
+
+TEST_P(LevelProcessorKvd, RequiresParsedNonemptyKvd) {
+    const std::vector<ktx_uint8_t>& file = etc1sArrayFile();
+    ASSERT_FALSE(file.empty());
+
+    const ktxTextureCreateFlags flags = GetParam();
+    ktxTexture2* source = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), flags,
+                                          &source),
+              KTX_SUCCESS);
+    TextureRaii source_raii = makeRaii(source);
+    EXPECT_FALSE(source->isVideo);
+
+    ktxLevelProcessor* processor = nullptr;
+    EXPECT_EQ(ktxLevelProcessor_CreateBasis(source, KTX_TTF_BC7_RGBA, 0,
+                                           &processor),
+              flags == 0 ? KTX_SUCCESS : KTX_INVALID_OPERATION);
+    ProcessorRaii processor_raii = makeRaii(processor);
+    EXPECT_EQ(processor != nullptr, flags == 0);
+}
+
+// The writer adds KTXwriter metadata automatically. Remove the KVD and its
+// padding, then relocate the SGD and level offsets to make a metadata-free
+// version of the same encoded array.
+void removeKvd(std::vector<ktx_uint8_t>& file) {
+    KTX_header2 header;
+    ASSERT_GE(file.size(), sizeof(header));
+    std::memcpy(&header, file.data(), sizeof(header));
+    const size_t kvdOffset = header.keyValueData.byteOffset;
+    const size_t oldSgdOffset = header.supercompressionGlobalData.byteOffset;
+    const size_t newSgdOffset = (kvdOffset + 7) & ~size_t(7);
+    ASSERT_GT(header.keyValueData.byteLength, 0u);
+    ASSERT_GE(kvdOffset, sizeof(header)
+                           + header.levelCount * sizeof(ktxLevelIndexEntry));
+    ASSERT_GE(oldSgdOffset, newSgdOffset);
+    ASSERT_LE(oldSgdOffset, file.size());
+    const size_t removed = oldSgdOffset - newSgdOffset;
+    file.erase(file.begin() + newSgdOffset, file.begin() + oldSgdOffset);
+    std::fill(file.begin() + kvdOffset, file.begin() + newSgdOffset, 0);
+    header.keyValueData = {};
+    header.supercompressionGlobalData.byteOffset = newSgdOffset;
+    std::memcpy(file.data(), &header, sizeof(header));
+    for (ktx_uint32_t level = 0; level < header.levelCount; ++level) {
+        const size_t indexOffset = sizeof(header)
+                                 + level * sizeof(ktxLevelIndexEntry);
+        ktxLevelIndexEntry entry;
+        std::memcpy(&entry, file.data() + indexOffset, sizeof(entry));
+        ASSERT_GE(entry.byteOffset, oldSgdOffset);
+        entry.byteOffset -= removed;
+        std::memcpy(file.data() + indexOffset, &entry, sizeof(entry));
+    }
+}
+
+TEST_P(LevelProcessorKvd, AcceptsSourceWithoutKvd) {
+    std::vector<ktx_uint8_t> file = etc1sArrayFile();
+    ASSERT_FALSE(file.empty());
+    ASSERT_NO_FATAL_FAILURE(removeKvd(file));
+
+    ktxTexture2* source = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), GetParam(),
+                                          &source),
+              KTX_SUCCESS);
+    TextureRaii source_raii = makeRaii(source);
+    EXPECT_FALSE(source->isVideo);
+
+    ktxLevelProcessor* processor = nullptr;
+    ASSERT_EQ(ktxLevelProcessor_CreateBasis(source, KTX_TTF_BC7_RGBA, 0,
+                                           &processor),
+              KTX_SUCCESS);
+    ProcessorRaii processor_raii = makeRaii(processor);
+    EXPECT_NE(processor, nullptr);
+
+    ktxTexture2* reference = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(
+                  file.data(), file.size(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                  &reference),
+              KTX_SUCCESS);
+    TextureRaii reference_raii = makeRaii(reference);
+    EXPECT_EQ(ktxTexture2_TranscodeBasis(reference, KTX_TTF_BC7_RGBA, 0),
+              KTX_SUCCESS);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    KvdModes, LevelProcessorKvd,
+    ::testing::Values(0u, KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT,
+                      KTX_TEXTURE_CREATE_RAW_KVDATA_BIT,
+                      KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT
+                        | KTX_TEXTURE_CREATE_RAW_KVDATA_BIT));
 
 TEST(LevelProcessor, LayoutQueriesMatchTranscodeBasisOutput) {
     const std::vector<ktx_uint8_t>& file = etc1sArrayFile();
