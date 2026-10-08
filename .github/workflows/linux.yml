@@ -291,20 +291,18 @@ jobs:
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
-#      - name: Overwrite /usr/bin/mono
-#        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
-#        # prevents vcpkg from trying and failing, to run it in mono. This is
-#        # my ugliest hack in 45 years of software development.
-#        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-#        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
-
       - name: Remove /usr/bin/nuget
+        # The aarch64 runner has a system install of nuget. Remove it because
+        # a) vcpkg finds it first as it is in /usr/bin, b) it is a script not
+        # a .net executable so, as vcpkg always attempts to run nuget via the
+        # mono .net VM, requires a gross hack to avoid this and c) it doesn't
+        # work properly with the vcpkg cache. Packages aren't found when
+        # queried yet attempts to push built packages get an already pushed
+        # error. Instead force vcpkg to download and use its own nuget binary
+        # by setting VCPKG_FORCE_DOWNLOADED_BINARIES in the environment.
         if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
         # Don't know how it was installed so just brute-force remove it.
-        run: |
-          echo "ls /usr/bin/nuget"
-          ls /usr/bin/nuget
-          sudo rm /usr/bin/nuget
+        run: sudo rm /usr/bin/nuget
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'
