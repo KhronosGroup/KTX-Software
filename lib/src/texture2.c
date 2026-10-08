@@ -569,6 +569,15 @@ ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
 {
     KTX_error_code result;
 
+    // Load before taking any snapshot: inflation changes dataSize and the
+    // supercompression state. A successful load also closes the stream so
+    // the copy cannot share an active stream with orig.
+    if (!orig->pData && ktxTexture_isActiveStream((ktxTexture*)orig)) {
+        result = ktxTexture2_LoadImageData(orig, NULL, 0);
+        if (result != KTX_SUCCESS)
+            return result;
+    }
+
     memcpy(This, orig, sizeof(ktxTexture2));
     // Zero all the pointers to make error handling easier
     This->_protected = NULL;
@@ -582,14 +591,6 @@ ktxTexture2_constructCopy(ktxTexture2* This, ktxTexture2* orig)
                     (ktxTexture_protected*)malloc(sizeof(ktxTexture_protected));
     if (!This->_protected)
         return KTX_OUT_OF_MEMORY;
-    // Must come before memcpy of _protected so as to close an active stream.
-    // When the data cannot be loaded the stream stays active, and the copy
-    // must not get it: destroying both textures would destruct it twice.
-    if (!orig->pData && ktxTexture_isActiveStream((ktxTexture*)orig)) {
-        result = ktxTexture2_LoadImageData(orig, NULL, 0);
-        if (result != KTX_SUCCESS)
-            goto cleanup;
-    }
     memcpy(This->_protected, orig->_protected, sizeof(ktxTexture_protected));
 
     ktx_size_t privateSize = sizeof(ktxTexture2_private)

@@ -599,6 +599,9 @@ class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4,
 class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_CreateCopySupercompressedTest
+    : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>,
+      public ::testing::WithParamInterface<ktxSupercmpScheme> { };
 
 /////////////////////////////////////////
 // ktxTexture_Create tests
@@ -1575,6 +1578,76 @@ TEST_F(ktxTexture2_CreateCopyTest, CreateCopy) {
                          privateSize), 0);
     }
 }
+
+TEST_P(ktxTexture2_CreateCopySupercompressedTest, CopiesDeferredImageData) {
+    ASSERT_NE(ktxMemFile, nullptr);
+    ktxTexture2* encoded = nullptr;
+    auto result = ktxTexture2_CreateFromMemory(
+        ktxMemFile.get(), ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &encoded);
+    ktxTexture_unique_ptr encoded_raii{ktxTexture(encoded), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    const ktx_size_t expectedSize = encoded->dataSize;
+    const std::vector<ktx_uint8_t> expectedData(encoded->pData,
+                                               encoded->pData + expectedSize);
+    const std::vector<ktx_uint32_t> expectedDfd(
+        encoded->pDfd, encoded->pDfd + *encoded->pDfd / sizeof(ktx_uint32_t));
+    std::vector<ktx_size_t> expectedOffsets(encoded->numLevels);
+    for (ktx_uint32_t level = 0; level < encoded->numLevels; level++) {
+        ASSERT_EQ(ktxTexture2_GetImageOffset(encoded, level, 0, 0,
+                                             &expectedOffsets[level]),
+                  KTX_SUCCESS);
+    }
+    result = GetParam() == KTX_SS_ZSTD ? ktxTexture2_DeflateZstd(encoded, 3)
+                                      : ktxTexture2_DeflateZLIB(encoded, 6);
+    ASSERT_EQ(result, KTX_SUCCESS);
+    // Ensure that allocating the compressed size cannot hold the copy.
+    ASSERT_LT(encoded->dataSize, expectedSize);
+
+    ktx_uint8_t* file = nullptr;
+    ktx_size_t fileSize = 0;
+    result = ktxTexture2_WriteToMemory(encoded, &file, &fileSize);
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> file_raii{file, std::free};
+    ASSERT_EQ(result, KTX_SUCCESS);
+
+    ktxTexture2* source = nullptr;
+    result = ktxTexture2_CreateFromMemory(file, fileSize, 0, &source);
+    ktxTexture_unique_ptr source_raii{ktxTexture(source), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_EQ(source->pData, nullptr);
+    ASSERT_EQ(source->supercompressionScheme, GetParam());
+
+    ktxTexture2* copy = nullptr;
+    result = ktxTexture2_CreateCopy(source, &copy);
+    ktxTexture_unique_ptr copy_raii{ktxTexture(copy), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_NE(copy, nullptr);
+    EXPECT_EQ(source->supercompressionScheme, KTX_SS_NONE);
+    EXPECT_EQ(copy->supercompressionScheme, KTX_SS_NONE);
+    EXPECT_EQ(copy->vkFormat, source->vkFormat);
+    EXPECT_EQ(source->dataSize, expectedSize);
+    ASSERT_EQ(copy->dataSize, expectedSize);
+    ASSERT_NE(copy->pData, nullptr);
+    EXPECT_NE(copy->pData, source->pData);
+    ASSERT_EQ(*copy->pDfd, expectedDfd.front());
+    EXPECT_EQ(memcmp(copy->pDfd, expectedDfd.data(), *copy->pDfd), 0);
+    ASSERT_EQ(copy->numLevels, expectedOffsets.size());
+    for (ktx_uint32_t level = 0; level < copy->numLevels; level++) {
+        ktx_size_t offset = 0;
+        ASSERT_EQ(ktxTexture2_GetImageOffset(copy, level, 0, 0, &offset),
+                  KTX_SUCCESS);
+        EXPECT_EQ(offset, expectedOffsets[level]);
+    }
+    source_raii.reset();
+    EXPECT_EQ(memcmp(copy->pData, expectedData.data(), expectedSize), 0);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Supercompression, ktxTexture2_CreateCopySupercompressedTest,
+    ::testing::Values(KTX_SS_ZSTD, KTX_SS_ZLIB),
+    [](const ::testing::TestParamInfo<ktxSupercmpScheme>& info) {
+        return info.param == KTX_SS_ZSTD ? "Zstd" : "Zlib";
+    });
 
 TEST_F(ktxTexture2_CreateCopyTest, FailsWhenImageDataCannotBeLoaded) {
     ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
