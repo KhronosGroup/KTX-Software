@@ -25,6 +25,7 @@ on:
       - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/linux.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
