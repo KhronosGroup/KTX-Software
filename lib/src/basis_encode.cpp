@@ -721,11 +721,11 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
 
             ktxHashListEntry_GetValue(swizzleEntry,
                                       &swizzleLen, (void**)&swizzleStr);
-            // Remove the swizzle as it is no longer needed.
-            ktxHashList_DeleteEntry(&This->kvDataHead, swizzleEntry);
             // Do it this way in case there is no NUL terminator.
-            swizzleString.resize(swizzleLen);
             swizzleString.assign(swizzleStr, swizzleLen);
+            // Remove the swizzle as it is no longer needed. This frees
+            // swizzleStr too.
+            ktxHashList_DeleteEntry(&This->kvDataHead, swizzleEntry);
         }
     }
 
