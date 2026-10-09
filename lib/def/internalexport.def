@@ -19,6 +19,7 @@ EXPORTS
     isProhibitedFormat
     isValidFormat
     ktxCheckHeader1_
+    ktxCheckHeader2_
     ktxMemStream_construct
     ktxMemStream_construct_ro
     ktxMemStream_destruct

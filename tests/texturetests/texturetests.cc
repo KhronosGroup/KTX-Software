@@ -1211,6 +1211,33 @@ TEST(ktxTexture2_invalidCreateInfoParams, InvalidWidth) {
     EXPECT_EQ(result, KTX_INVALID_VALUE);
 }
 
+TEST(ktxTexture_Create, RejectsMipLevelCountBeyondBitWidth) {
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.glInternalformat = GL_RGBA8;
+    createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    createInfo.baseWidth = 16;
+    createInfo.baseHeight = 16;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
+        SCOPED_TRACE(count);
+        createInfo.numLevels = count;
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                        KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_Create(&createInfo,
+                                   KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture1/2 ktxTexture_GetRowPitch vs. ktxTexture_GetImageSize
 ////////////////////////////////////////

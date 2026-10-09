@@ -1181,6 +1181,32 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
                            ktx_uint32_t layer, ktx_uint32_t faceSlice,
                            ktx_size_t* pOffset);
 
+/**
+ * @~English
+ * @brief Location and size of one mip level within a serialized KTX2 source.
+ *
+ * The values describe the level's stored (possibly supercompressed) payload
+ * exactly as recorded in the serialized file's Level Index, with
+ * @c byteOffset converted to an absolute file offset. They are what a
+ * streaming consumer needs to fetch a level's bytes, e.g. with an HTTP
+ * Range request, without parsing the container itself.
+ *
+ * @sa ktxTexture2_GetLevelFileInfo()
+ */
+typedef struct ktxLevelFileInfo {
+    ktx_uint64_t byteOffset; /*!< Absolute offset of the level's first byte
+                                  in the serialized KTX2 source. */
+    ktx_uint64_t byteLength; /*!< Number of stored bytes belonging to the
+                                  level. */
+    ktx_uint64_t uncompressedByteLength;
+                             /*!< The uncompressedByteLength value from the
+                                  serialized KTX2 Level Index. */
+} ktxLevelFileInfo;
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxTexture2_GetLevelFileInfo(const ktxTexture2* This, ktx_uint32_t level,
+                             ktxLevelFileInfo* pInfo);
+
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture2_GetNumComponents(ktxTexture2* This);
 
@@ -1830,6 +1856,72 @@ typedef ktx_uint32_t ktx_transcode_flags;
 KTX_API KTX_error_code KTX_APIENTRY
 ktxTexture2_TranscodeBasis(ktxTexture2* This, ktx_transcode_fmt_e fmt,
                            ktx_transcode_flags transcodeFlags);
+
+/**
+ * @class ktxLevelProcessor
+ * @~English
+ * @brief Opaque handle to a per-level processor for a serialized KTX2
+ *        source.
+ *
+ * The streaming counterpart of ktxTexture2_TranscodeBasis(): created for a
+ * Basis-compressed source texture that retains its serialized-source
+ * state — typically a metadata-only texture constructed from the
+ * serialized file prefix, without loading image data — and a chosen
+ * transcode target, it processes the source's mip levels one at a time from
+ * caller-provided payload bytes (see ktxTexture2_GetLevelFileInfo()) into
+ * caller-provided destination buffers, and answers layout queries about
+ * the processed output.
+ *
+ * The processor borrows the source texture: the source must remain alive
+ * and unmodified until ktxLevelProcessor_Destroy(). A processor is not
+ * safe for concurrent use; separate instances may be used concurrently.
+ */
+typedef struct ktxLevelProcessor ktxLevelProcessor;
+
+/*
+ * Create a processor for an ETC1S/UASTC source and a chosen target.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLevelProcessor_CreateBasis(const ktxTexture2* source,
+                              ktx_transcode_fmt_e outputFormat,
+                              ktx_transcode_flags transcodeFlags,
+                              ktxLevelProcessor** newProcessor);
+
+/*
+ * The resolved output format (e.g. BC1_OR_3 resolved to BC1 or BC3, sRGB
+ * variant applied).
+ */
+KTX_API ktx_uint32_t KTX_APIENTRY
+ktxLevelProcessor_GetOutputVkFormat(const ktxLevelProcessor* processor);
+
+/*
+ * Target-layout queries. All delegate to an internal NO_STORAGE prototype
+ * texture after argument validation, so bindings never have to treat a
+ * size of 0 as an implicit error.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLevelProcessor_GetLevelSize(const ktxLevelProcessor* processor,
+                               ktx_uint32_t level, ktx_size_t* pSize);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLevelProcessor_GetImageSize(const ktxLevelProcessor* processor,
+                               ktx_uint32_t level, ktx_size_t* pSize);
+
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLevelProcessor_GetImageOffset(const ktxLevelProcessor* processor,
+                                 ktx_uint32_t level, ktx_uint32_t layer,
+                                 ktx_uint32_t faceSlice, ktx_size_t* pOffset);
+
+/*
+ * Process one complete level into a caller-provided buffer.
+ */
+KTX_API KTX_error_code KTX_APIENTRY
+ktxLevelProcessor_ProcessLevel(ktxLevelProcessor* processor, ktx_uint32_t level,
+                               const ktx_uint8_t* src, ktx_size_t srcSize,
+                               ktx_uint8_t* dst, ktx_size_t dstCapacity);
+
+KTX_API void KTX_APIENTRY
+ktxLevelProcessor_Destroy(ktxLevelProcessor* processor);
 
 /*
  * Returns a string corresponding to a KTX error code.

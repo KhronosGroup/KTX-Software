@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_executable( transcodetests
+    level_processor_tests.cc
+    streaming_construction_tests.cc
     transcodetests.cc
     ../tests.cmake
 )
@@ -42,9 +44,15 @@ gtest_discover_tests( transcodetests
 )
 
 if(WIN32)
+    # The BasisU C binding is always built as a static library so its
+    # declarations must not be marked dllimport. Do that with KTX_BASISU_API,
+    # not KHRONOS_STATIC: the latter also empties KTX_API in ktx.h, leaving
+    # imported data such as KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL unresolvable
+    # when linking the shared libktx. When libktx itself is static it defines
+    # KHRONOS_STATIC publicly and ktx.h is correct without our help.
     target_compile_definitions(
         transcodetests
     PRIVATE
-        $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KHRONOS_STATIC>
+        $<$<STREQUAL:"${BASISU_CBIND_LIBTYPE}","STATIC">:KTX_BASISU_API=>
     )
 endif()

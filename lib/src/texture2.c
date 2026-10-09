@@ -422,6 +422,7 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
         return KTX_OUT_OF_MEMORY;
     }
     memset(This->_private, 0, privateSize);
+    This->_private->_kvDataIsParsed = KTX_TRUE;
     return KTX_SUCCESS;
 }
 
@@ -1021,6 +1022,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
+
+    private->_kvDataIsParsed = pHeader->keyValueData.byteLength == 0
+        || !(createFlags & (KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT
+                          | KTX_TEXTURE_CREATE_RAW_KVDATA_BIT));
 
     if (pHeader->supercompressionGlobalData.byteLength > 0) {
         switch (This->supercompressionScheme) {
@@ -1968,6 +1973,75 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
         imageSize = ktxTexture2_GetImageSize(This, level);
         *pOffset += faceSlice * imageSize;
     }
+    return KTX_SUCCESS;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
+ * @brief Retrieve a level's location and size within the serialized source.
+ *
+ * Reports where a mip level's stored (possibly supercompressed) payload
+ * lives in the serialized KTX2 source the texture was created from, as an
+ * absolute file offset and byte length, together with the level's
+ * uncompressedByteLength from the serialized Level Index. A streaming
+ * consumer can use the values to fetch a level's bytes, e.g. with an HTTP
+ * Range request, without parsing the container itself.
+ *
+ * The information reflects the source as serialized, so it is available
+ * only while the texture retains its serialized-source state: a texture
+ * created from a stream, memory or file whose image data has not been
+ * loaded. For a texture created with ktxTexture2_Create(), or once image
+ * data has been fully loaded (e.g. with
+ * KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT or ktxTexture2_LoadImageData()),
+ * the serialized layout is considered discarded and
+ * KTX_INVALID_OPERATION is returned.
+ *
+ * @param[in]  This  pointer to the ktxTexture2 object of interest.
+ * @param[in]  level mip level of interest.
+ * @param[out] pInfo pointer to location to store the level information.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p pInfo is NULL or @p level is
+ *                              not less than This->numLevels.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture has no serialized source: it was
+ *                              created with ktxTexture2_Create() or its
+ *                              image data has been fully loaded.
+ * @exception KTX_FILE_DATA_ERROR
+ *                              The serialized Level Index is corrupt: the
+ *                              level's offset cannot be converted to an
+ *                              absolute file offset.
+ */
+KTX_error_code
+ktxTexture2_GetLevelFileInfo(const ktxTexture2* This, ktx_uint32_t level,
+                             ktxLevelFileInfo* pInfo)
+{
+    if (This == NULL || This->_private == NULL || pInfo == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (level >= This->numLevels)
+        return KTX_INVALID_VALUE;
+
+    // Image data cannot start at file offset 0 (the identifier and header
+    // precede it), so a zero base reliably marks a texture without
+    // serialized-source state: created via ktxTexture2_Create or already
+    // fully loaded.
+    if (This->_private->_firstLevelFileOffset == 0)
+        return KTX_INVALID_OPERATION;
+
+    const ktxLevelIndexEntry* entry = &This->_private->_levelIndex[level];
+
+    // In-memory offsets are rebased relative to the start of image data;
+    // guard the conversion back to absolute against a corrupt index.
+    if (entry->byteOffset > UINT64_MAX - This->_private->_firstLevelFileOffset)
+        return KTX_FILE_DATA_ERROR;
+
+    pInfo->byteOffset =
+        entry->byteOffset + This->_private->_firstLevelFileOffset;
+    pInfo->byteLength = entry->byteLength;
+    pInfo->uncompressedByteLength = entry->uncompressedByteLength;
     return KTX_SUCCESS;
 }
 
