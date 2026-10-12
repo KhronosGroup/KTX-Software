@@ -2412,6 +2412,64 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
 }
 
 /////////////////////////////////////////
+// ktxTexture2_Deflate tests
+////////////////////////////////////////
+
+class ktxTexture2_DeflateTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+TEST_F(ktxTexture2_DeflateTest, DeflateZstd) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        result = ktxTexture2_DeflateZstd(texture, 22);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        // Applying another supercompression scheme should return Invalid
+        // operation without leaking
+        result = ktxTexture2_DeflateZstd(texture, 22);
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
+}
+
+TEST_F(ktxTexture2_DeflateTest, DeflateZLIB) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        result = ktxTexture2_DeflateZLIB(texture, 9);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        // Applying another supercompression scheme should return Invalid
+        // operation without leaking
+        result = ktxTexture2_DeflateZLIB(texture, 9);
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
+}
+
+/////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
 
