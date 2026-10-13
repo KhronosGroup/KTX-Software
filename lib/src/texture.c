@@ -622,7 +622,8 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
  *          return these for other causes or may return additional errors.
  *
  * @exception KTX_FILE_DATA_ERROR   Mip level sizes are increasing not
- *                                  decreasing
+ *                                  decreasing, or an image extends past
+ *                                  the end of the image data.
  * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
  *
  */
@@ -670,6 +671,12 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
             ktx_size_t offset;
 
             ktxTexture_GetImageOffset(This, miplevel, 0, face, &offset);
+            /* The sizes come from the format and extents, not the data. */
+            if (offset > This->dataSize
+                || faceLodSize > This->dataSize - offset) {
+                result = KTX_FILE_DATA_ERROR;
+                break;
+            }
             result = iterCb(miplevel, face,
                             width, height, depth,
                             faceLodSize, This->pData + offset, userdata);
