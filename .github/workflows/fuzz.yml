@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Fuzz libktx
 
-# Seems no way to avoid duplicating this on logic in each .yml file.
+# Seems no way to avoid duplicating this logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
 on:
   # Trigger the workflow on a pull request,
@@ -73,6 +73,7 @@ jobs:
           cmake --build $FUZZ_BUILD_DIR --target ktx_read_fuzzer --parallel
 
       - name: Fuzz for 10 minutes
+        id: fuzz10
         run: |
           mkdir -p $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds $FUZZ_BUILD_DIR/findings
           # Files up to 64 KiB, the maximum input length below.
@@ -84,7 +85,7 @@ jobs:
             $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds
 
       - name: Upload findings
-        if: failure()
+        if: failure() && steps.fuzz10.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
           name: fuzz-findings
