@@ -48,4 +48,6 @@ add_executable(ktx_read_fuzzer
 )
 target_compile_features(ktx_read_fuzzer PRIVATE cxx_std_17)
 target_link_libraries(ktx_read_fuzzer PRIVATE ktx_read)
+# -fsanitize=fuzzer links Clang's libFuzzer runtime, which provides main() and
+# calls LLVMFuzzerTestOneInput, so there is no library to add for it.
 target_link_options(ktx_read_fuzzer PRIVATE -fsanitize=fuzzer)
