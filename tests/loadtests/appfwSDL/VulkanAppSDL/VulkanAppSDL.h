@@ -141,6 +141,8 @@ class VulkanAppSDL : public AppBaseSDL {
     VulkanSwapchain::csInfo defaultHdrColorSpace;
     VulkanSwapchain::csInfo colorSpace = defaultLdrColorSpace;
 
+    vk::DriverId requestedDriver = vk::DriverId::eMesaKosmickrisp;
+
     std::vector<const char*> extensionNames;
 
     VkCommandBuffer setupCmdBuffer;

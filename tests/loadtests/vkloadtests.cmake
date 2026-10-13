@@ -8,7 +8,9 @@ if(APPLE)
         # KosmicKrisp does not yet support iOS, etc.
         list(APPEND vk_components MoltenVK)
     else()
-        list(APPEND vk_components KosmicKrisp)
+        # KosmicKrisp only supports macOS 26+ so the bundle needs both in case
+        # of running on an earlier macOS.
+        list(APPEND vk_components KosmicKrisp MoltenVK)
     endif()
 endif()
 # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
@@ -383,7 +385,7 @@ if(APPLE)
         # hand the Vulkan and MoltenVK frameworks in the iOS SDK are not
         # signed. hence it is set there.
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_KosmicKrisp_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_KosmicKrisp_LIBRARY};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH @executable_path/../Frameworks
         )

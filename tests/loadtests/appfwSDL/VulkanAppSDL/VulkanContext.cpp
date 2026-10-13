@@ -434,6 +434,7 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
 void
 VulkanContext::setGpu(vk::PhysicalDevice _gpu) {
         gpu = _gpu;
+
         // Store features and properties so apps can query them.
         gpu.getFeatures2(&gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>());
         // Make a copy so we can reuse the gpuFeaturesChain for enabling features.
@@ -444,7 +445,7 @@ VulkanContext::setGpu(vk::PhysicalDevice _gpu) {
 #if VK_EXT_texture_compression_astc_3d
         gpuFeatureAstc3d = gpuAstc3dFeatures.textureCompressionASTC_3D;
 #endif
-        // There is no single portaibility feature we can check in gpuPortabilityFeatures
+        // There is no single portability feature we can check in gpuPortabilityFeatures
         // to determine presence. Instead enabledDeviceExtensions.portability is set if
         // the extension is found when extensions are enumerated.
 
