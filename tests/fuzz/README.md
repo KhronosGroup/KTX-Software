@@ -10,7 +10,7 @@ file: `ktxTexture_CreateFromMemory`, `ktxTexture_LoadImageData`, then for KTX2
 image data libktx reports and iterating the levels of data that is not
 supercompressed. Textures that declare more than 64 MiB of image data, stored
 or inflated, or more than 16 Mi texels are skipped before their data is loaded,
-so that huge headers do not end the run with out-of-memory reports.
+so that huge files do not end the run with out-of-memory reports.
 
 The targets are a separate CMake project that adds `lib/` as a sub-project,
 like `tests/use-ktx`. libktx is built with `-fsanitize=fuzzer-no-link` and the
