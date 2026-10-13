@@ -107,6 +107,11 @@ VulkanAppSDL::initialize(Args& args)
 //        {"r2100-hlg-nl", {vk::ColorSpaceKHR::eHdr10HlgEXT, true, false}},
     };
 
+    static const std::unordered_map<std::string, vk::DriverId> selectableDrivers {
+        { "kk", vk::DriverId::eMesaKosmickrisp },
+        { "mvk", vk::DriverId::eMoltenvk }
+    };
+
     std::string colorSpaceStr;
 #if !SDL_PLATFORM_APPLE || SDL_PLATFORM_MACOS
     // Apple locked systems have no way to pass environment variables to bundled apps.
@@ -153,6 +158,28 @@ VulkanAppSDL::initialize(Args& args)
             colorSpaceStr = args[i+1];
             args.erase(args.begin() + i, args.begin() + i + 2);
             i--;
+            continue;
+        }
+        if (args[i].compare("--driver") == 0) {
+            if (args.size() < i + 2) {
+                (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                               "Missing driver name for --driver", NULL);
+                return false;
+            }
+            const auto it = selectableDrivers.find(args[i+1]);
+            if (it != selectableDrivers.end()) {
+                requestedDriver = it->second;
+            } else {
+                std::stringstream msg;
+                msg << "Unrecognized driver name, " << args[i+1]
+                    << " specified for --driver";
+                (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
+                                               msg.str().c_str(), NULL);
+                return false;
+            }
+            args.erase(args.begin() + i, args.begin() + i + 2);
+            i--;
+            continue;
         }
     }
     bool colorSpaceSet = false;
@@ -563,7 +590,6 @@ VulkanAppSDL::submitFrame()
 //  Vulkan Initialization
 //----------------------------------------------------------------------
 
-
 bool
 VulkanAppSDL::initializeVulkan()
 {
@@ -826,20 +852,38 @@ VulkanAppSDL::findGpu()
                                                   (vk::PhysicalDevice*)nullptr);
     assert(err == vk::Result::eSuccess);
 
-    if (gpuCount > 0) {
-        std::vector<vk::PhysicalDevice> gpus;
-        gpus.resize(gpuCount);
-        err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
-        assert(err == vk::Result::eSuccess);
-        // For now just grab the first physical device */
-        vkctx.setGpu(gpus[0]);
-        // Store features and properties so apps can query them.
-    } else {
-        std::string msg;
+    if (gpuCount == 0) {
         ERROR_RETURN(
             "vkEnumeratePhysicalDevices reported zero accessible devices.\n\n"
             "Do you have a compatible Vulkan installable client driver (ICD) "
             "installed?");
+    }
+
+    std::vector<vk::PhysicalDevice> gpus;
+    gpus.resize(gpuCount);
+    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
+    assert(err == vk::Result::eSuccess);
+    if (SDL_PLATFORM_MACOS && gpuCount > 1) {
+        // KosmicKrisp only advertises a VkPhysicalDevice when running on an OS
+        // it supports, if this block has been entered, KosmicKrisp is supported.
+        vk::PhysicalDevice chosenGpu = nullptr;
+        for (vk::PhysicalDevice gpu : gpus) {
+            gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
+            if (vkctx.gpuDriverProperties.driverID == requestedDriver) {
+                chosenGpu = gpu;
+                break;
+            }
+        }
+        if (!chosenGpu) {
+            std::string msg = "VulkanAppSDL::findGpu: Requested driver ";
+            msg += vk::to_string(requestedDriver);
+            msg += " not found in Vulkan Instance";
+            ERROR_RETURN(msg.c_str());
+        }
+        vkctx.setGpu(chosenGpu);
+    } else {
+        // For non-macos with multiple gpu's, for now grab the first available.
+        vkctx.setGpu(gpus[0]);
     }
 
     return true;
@@ -1101,7 +1145,6 @@ VulkanAppSDL::createDevice()
                                        msg.str().c_str(), NULL);
         return false;
     }
-    vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
 
     const vk::CommandPoolCreateInfo cmdPoolInfo(
         vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
