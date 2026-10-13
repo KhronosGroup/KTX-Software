@@ -61,7 +61,7 @@ jobs:
           generator: Ninja
           arch: x86_64
           compiler: clang
-          vulkan_sdk_version: '1.3.290'
+          vulkan_sdk_version: '1.4.363'
           options: {
             config: Debug,
             doc: OFF, jni: OFF, loadtests: OpenGL, py: OFF, tools: OFF, tools_cts: OFF,
@@ -72,7 +72,7 @@ jobs:
           generator: Ninja
           arch: x86_64
           compiler: clang
-          vulkan_sdk_version: '1.3.290'
+          vulkan_sdk_version: '1.4.363'
           options: {
             config: Release,
             doc: OFF, jni: OFF, loadtests: OpenGL, py: OFF, tools: OFF, tools_cts: OFF,
