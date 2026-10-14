@@ -186,7 +186,9 @@ ktxTexture_construct(ktxTexture* This,
     if (createInfo->numLevels > 1) {
         GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight),
                              createInfo->baseDepth);
-        if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
+        /* Check > 32 first. Shifting by 32 or more is undefined. */
+        if (This->numLevels > 32 ||
+            max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
             result = KTX_INVALID_OPERATION;
