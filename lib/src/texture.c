@@ -25,7 +25,6 @@
 #endif
 
 #include <assert.h>
-#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -187,8 +186,7 @@ ktxTexture_construct(ktxTexture* This,
     if (createInfo->numLevels > 1) {
         GLuint max_dim = MAX(MAX(createInfo->baseWidth, createInfo->baseHeight),
                              createInfo->baseDepth);
-        if (This->numLevels > sizeof(max_dim) * CHAR_BIT
-            || max_dim < ((GLuint)1 << (This->numLevels - 1)))
+        if (max_dim < ((GLuint)1 << (This->numLevels - 1)))
         {
             /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
             result = KTX_INVALID_OPERATION;

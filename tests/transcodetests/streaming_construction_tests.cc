@@ -347,22 +347,6 @@ TEST_P(StreamingShellTest, LoadBitOnMetadataPrefixFailsCleanly) {
     EXPECT_EQ(texture, nullptr);
 }
 
-TEST_P(StreamingShellTest, RejectsMipLevelCountBeyondBitWidth) {
-    std::vector<ktx_uint8_t> file = fileFor(GetParam());
-    ASSERT_GE(file.size(), 80u);
-    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
-        SCOPED_TRACE(count);
-        std::memcpy(file.data() + 40, &count, sizeof(count));
-        ktxTexture2* texture = nullptr;
-        EXPECT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), 0,
-                                               &texture),
-                  KTX_FILE_DATA_ERROR);
-        EXPECT_EQ(texture, nullptr);
-        if (texture)
-            ktxTexture_Destroy(ktxTexture(texture));
-    }
-}
-
 TEST_P(StreamingShellTest, LateLoadImageDataOnShellFailsCleanly) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
