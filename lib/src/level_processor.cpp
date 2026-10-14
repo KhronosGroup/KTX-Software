@@ -75,13 +75,14 @@
  * be reused for all the levels of a source rather than created per level.
  *
  * Video sources are recognized, as by ktxTexture2_TranscodeBasis(), from
- * the KTXanimData key in the source's key/value data, so the source must
- * have been constructed with its key/value data parsed (i.e. without
- * KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT or KTX_TEXTURE_CREATE_RAW_KVDATA_BIT)
- * when the source contains key/value data. A source with unparsed key/value
- * data is rejected with KTX_INVALID_OPERATION because its video status is
- * unknown. These flags do not prevent processor creation when the source
- * has no key/value data.
+ * the KTXanimData key in the source's key/value data. Only an array
+ * texture can be a video, so an array source that has key/value data must
+ * have been constructed with that data parsed, i.e. without
+ * KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT or KTX_TEXTURE_CREATE_RAW_KVDATA_BIT.
+ * An array source with key/value data constructed with either flag is
+ * rejected with KTX_INVALID_OPERATION because whether it is a video is
+ * unknown. The flags do not prevent processor creation for a source that
+ * is not an array or has no key/value data.
  *
  * @param[in]  source         pointer to the Basis-compressed source texture.
  * @param[in]  outputFormat   a value from the ktx_texture_transcode_fmt_e
@@ -101,10 +102,10 @@
  *                              global data its scheme requires, has no
  *                              serialized-source state (it was created
  *                              with ktxTexture2_Create() or its image data
- *                              has been loaded), has unparsed key/value
- *                              data, or @p outputFormat is
- *                              PVRTC1 and the source does not have
- *                              power-of-two dimensions.
+ *                              has been loaded), is an array with
+ *                              key/value data that was not parsed, or
+ *                              @p outputFormat is PVRTC1 and the source
+ *                              does not have power-of-two dimensions.
  * @exception KTX_UNSUPPORTED_FEATURE
  *                              The source is a video texture (not supported
  *                              in the initial version), a currently
@@ -143,8 +144,9 @@ ktxLevelProcessor_CreateBasis(const ktxTexture2* source,
         return KTX_INVALID_OPERATION;
 
     // SKIP/RAW KVD leaves isVideo false even if KTXanimData is present.
-    // Require known video status before accepting an independent-level source.
-    if (!source->_private->_kvDataIsParsed)
+    // Only an array can be a video (KTXanimData on any other texture is
+    // invalid), so only an array source needs known video status.
+    if (source->isArray && !source->_private->_kvDataIsParsed)
         return KTX_INVALID_OPERATION;
 
     // ETC1S video needs inter-frame transcoder state; agreed follow-up.

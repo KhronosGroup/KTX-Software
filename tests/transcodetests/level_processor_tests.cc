@@ -35,9 +35,14 @@ ProcessorRaii makeRaii(ktxLevelProcessor* processor) {
     return ProcessorRaii(processor, ktxLevelProcessor_Destroy);
 }
 
-// 2D array with a full mip chain, or a two-frame video with one level.
-// Encoded to ETC1S so SGD handling is included.
-std::vector<ktx_uint8_t> encodeEtc1sArray(bool video = false) {
+enum class Etc1sLayout { Array, Video, NonArray };
+
+// 2D array with a full mip chain, two-frame video with one level, or 2D
+// texture that is not an array with a full mip chain. Encoded to ETC1S so
+// SGD handling is included.
+std::vector<ktx_uint8_t> encodeEtc1s(Etc1sLayout layout) {
+    const bool video = layout == Etc1sLayout::Video;
+    const bool isArray = layout != Etc1sLayout::NonArray;
     ktxTextureCreateInfo createInfo = {};
     createInfo.vkFormat = 43;  // VK_FORMAT_R8G8B8A8_SRGB
     createInfo.baseWidth = 32;
@@ -45,9 +50,9 @@ std::vector<ktx_uint8_t> encodeEtc1sArray(bool video = false) {
     createInfo.baseDepth = 1;
     createInfo.numDimensions = 2;
     createInfo.numLevels = video ? 1 : 6;
-    createInfo.numLayers = 2;
+    createInfo.numLayers = isArray ? 2 : 1;
     createInfo.numFaces = 1;
-    createInfo.isArray = KTX_TRUE;
+    createInfo.isArray = isArray ? KTX_TRUE : KTX_FALSE;
     createInfo.generateMipmaps = KTX_FALSE;
 
     ktxTexture2* texture = nullptr;
@@ -106,12 +111,20 @@ std::vector<ktx_uint8_t> encodeEtc1sArray(bool video = false) {
 }
 
 const std::vector<ktx_uint8_t>& etc1sArrayFile() {
-    static const std::vector<ktx_uint8_t> file = encodeEtc1sArray();
+    static const std::vector<ktx_uint8_t> file =
+        encodeEtc1s(Etc1sLayout::Array);
     return file;
 }
 
 const std::vector<ktx_uint8_t>& etc1sVideoFile() {
-    static const std::vector<ktx_uint8_t> file = encodeEtc1sArray(true);
+    static const std::vector<ktx_uint8_t> file =
+        encodeEtc1s(Etc1sLayout::Video);
+    return file;
+}
+
+const std::vector<ktx_uint8_t>& etc1sNonArrayFile() {
+    static const std::vector<ktx_uint8_t> file =
+        encodeEtc1s(Etc1sLayout::NonArray);
     return file;
 }
 
@@ -219,6 +232,60 @@ TEST_P(LevelProcessorKvd, AcceptsSourceWithoutKvd) {
     TextureRaii reference_raii = makeRaii(reference);
     EXPECT_EQ(ktxTexture2_TranscodeBasis(reference, KTX_TTF_BC7_RGBA, 0),
               KTX_SUCCESS);
+}
+
+// Only an array can be a video, so whether a source that is not an array
+// is a video is known whatever the KVD mode. Such a source written by
+// libktx, which always adds KTXwriter, is accepted in every mode.
+TEST_P(LevelProcessorKvd, AcceptsNonArraySourceWithEveryKvdMode) {
+    const std::vector<ktx_uint8_t>& file = etc1sNonArrayFile();
+    ASSERT_FALSE(file.empty());
+    KTX_header2 header;
+    ASSERT_GE(file.size(), sizeof(header));
+    std::memcpy(&header, file.data(), sizeof(header));
+    ASSERT_GT(header.keyValueData.byteLength, 0u);
+
+    ktxTexture2* source = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(file.data(), file.size(), GetParam(),
+                                          &source),
+              KTX_SUCCESS);
+    TextureRaii source_raii = makeRaii(source);
+    ASSERT_FALSE(source->isArray);
+    EXPECT_FALSE(source->isVideo);
+
+    ktxLevelProcessor* processor = nullptr;
+    ASSERT_EQ(ktxLevelProcessor_CreateBasis(source, KTX_TTF_BC7_RGBA, 0,
+                                           &processor),
+              KTX_SUCCESS);
+    ProcessorRaii processor_raii = makeRaii(processor);
+    ASSERT_NE(processor, nullptr);
+
+    // The layout queries answer as for any other source.
+    ktxTexture2* reference = nullptr;
+    ASSERT_EQ(ktxTexture2_CreateFromMemory(
+                  file.data(), file.size(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                  &reference),
+              KTX_SUCCESS);
+    TextureRaii reference_raii = makeRaii(reference);
+    ASSERT_EQ(ktxTexture2_TranscodeBasis(reference, KTX_TTF_BC7_RGBA, 0),
+              KTX_SUCCESS);
+    EXPECT_EQ(ktxLevelProcessor_GetOutputVkFormat(processor),
+              reference->vkFormat);
+    for (ktx_uint32_t level = 0; level < source->numLevels; level++) {
+        SCOPED_TRACE(level);
+        ktx_size_t size = 0;
+        ASSERT_EQ(ktxLevelProcessor_GetLevelSize(processor, level, &size),
+                  KTX_SUCCESS);
+        EXPECT_EQ(size, ktxTexture2_GetImageSize(reference, level));
+        ASSERT_EQ(ktxLevelProcessor_GetImageSize(processor, level, &size),
+                  KTX_SUCCESS);
+        EXPECT_EQ(size, ktxTexture2_GetImageSize(reference, level));
+        ktx_size_t offset = 1;
+        ASSERT_EQ(ktxLevelProcessor_GetImageOffset(processor, level, 0, 0,
+                                                   &offset),
+                  KTX_SUCCESS);
+        EXPECT_EQ(offset, 0u);
+    }
 }
 
 INSTANTIATE_TEST_SUITE_P(
