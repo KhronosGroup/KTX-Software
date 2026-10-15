@@ -19,6 +19,7 @@
  */
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <inttypes.h>
 #include <stdio.h>
@@ -393,9 +394,11 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     createInfo.pDfd = nullptr;
 
     KTX_error_code result;
-    ktxTexture2* prototype;
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &prototype);
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> prototype_raii{nullptr,
+                                                                                ktxTexture2_Destroy};
+    ktxTexture2* prototype = nullptr;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+    prototype_raii.reset(prototype);
 
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY); // The only run time error
@@ -408,12 +411,10 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             result = ktxTexture2_LoadImageData(This, NULL, 0);
             if (result != KTX_SUCCESS)
             {
-                ktxTexture2_Destroy(prototype);
                 return result;
             }
         } else {
             // No data to transcode.
-            ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
     }
@@ -476,7 +477,6 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             This->_private->_supercompressionGlobalData = NULL;
         }
     }
-    ktxTexture2_Destroy(prototype);
     return result;
  }
 
@@ -552,7 +552,6 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 {
     DECLARE_PRIVATE(priv, This);
     DECLARE_PRIVATE(protoPriv, prototype);
-    KTX_error_code result = KTX_SUCCESS;
 
     assert(This->supercompressionScheme == KTX_SS_BASIS_LZ);
 
@@ -570,7 +569,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // level to largest or when randomly accessing them (t.b.c). The last array
     // entry contains the total number of images, for calculating the offsets
     // of the endpoints, etc.
-    uint32_t* firstImages = new uint32_t[This->numLevels+1];
+    std::unique_ptr<uint32_t[]> firstImages = std::make_unique<uint32_t[]>(This->numLevels+1);
 
     // Temporary invariant value
     uint32_t layersFaces = This->numLayers * This->numFaces;
@@ -584,13 +583,9 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     uint32_t& imageCount = firstImages[This->numLevels];
 
     if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
-        // Compiler will not allow `goto cleanup;` because "jump bypasses variable initialization."
-        // The static initializations below this and before the loop are presumably the issue
-        // as the compiler is, presumably, inserting code to destruct those at the end of the
-        // function.
-        delete[] firstImages;
         return KTX_FILE_DATA_ERROR;
     }
+
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
@@ -707,8 +702,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
                       0  // output_rows_in_pixels
                       );
             if (!status) {
-                result = KTX_TRANSCODE_FAILED;
-                goto cleanup;
+                return KTX_TRANSCODE_FAILED;
             }
 
             writeOffset += levelImageSizeOut;
@@ -716,11 +710,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
         } // end images loop
     } // level loop
 
-    result = KTX_SUCCESS;
-
-cleanup:
-    delete[] firstImages;
-    return result;
+    return KTX_SUCCESS;
 }
 
 static KTX_error_code
