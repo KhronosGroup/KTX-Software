@@ -69,6 +69,9 @@ namespace fs = std::filesystem;
   using namespace fmt;
 #endif
 
+fs::path ktxdiffPath;
+fs::path ktx2Path;
+
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
 gcd(uint32_t a, uint32_t b) {
@@ -1176,6 +1179,58 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
         EXPECT_EQ(paddedImageDataSize, ktxTexture_GetDataSize(texture));
         EXPECT_EQ(helper.compareTexture2Images(buf.get()), true);
     }
+}
+
+TEST(ktxTexture2_LoadImageData, InsufficientDstBufferLength) {
+    KTX_error_code result;
+    fs::path missing_alpha_slice = ktx2Path;
+    missing_alpha_slice.replace_filename(u8"invalid_zstd_level0_padding.ktx2");
+
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture2* texture = nullptr;
+
+    result = ktxTexture2_CreateFromNamedFile(
+        reinterpret_cast<const char*>(missing_alpha_slice.u8string().c_str()),
+        KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
+    texture_raii.reset((ktxTexture*)texture);
+
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture2_CreateFromNamedFile failed: "
+                                 << ktxErrorString(result);
+
+    // 436 is the exact length of all levels inflated + padded MINUS the padding
+    // for level 0. On older libktx version, ktxTexture2_LoadImageData returned
+    // successfully!
+    auto buff = make_unique<uint8_t[]>(436);
+    result = ktxTexture2_LoadImageData(texture, buff.get(), 436);
+    EXPECT_EQ(result, KTX_INVALID_VALUE);
+}
+
+TEST(ktxTexture2_GetDataSizeUncompressed, CompareWithGetDataSizeAfterInflate) {
+    KTX_error_code result;
+    fs::path missing_alpha_slice = ktx2Path;
+    missing_alpha_slice.replace_filename(u8"invalid_zstd_level0_padding.ktx2");
+
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture2* texture = nullptr;
+
+    result = ktxTexture2_CreateFromNamedFile(
+        reinterpret_cast<const char*>(missing_alpha_slice.u8string().c_str()),
+        KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
+    texture_raii.reset((ktxTexture*)texture);
+
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture2_CreateFromNamedFile failed: "
+                                 << ktxErrorString(result);
+
+    const ktx_size_t reported_uncompressed_size = ktxTexture2_GetDataSizeUncompressed(texture);
+
+    auto buff = make_unique<uint8_t[]>(436);
+    result = ktxTexture2_LoadImageData(texture, NULL, 0);
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+    ASSERT_EQ(reported_uncompressed_size, texture->dataSize);
 }
 
 /////////////////////////////////////////
@@ -3117,9 +3172,6 @@ TEST(UnicodeFileNames, CreateFrom) {
 //------------------------------------------------------------
 // Template for base fixture for ASTC encode and decode tests.
 //------------------------------------------------------------
-
-fs::path ktxdiffPath;
-fs::path ktx2Path;
 
 template<typename component_type, ktx_uint32_t numComponents,
          GLenum internalformat>
