@@ -2518,8 +2518,9 @@ TEST(ktxTexture2_TranscodeBasis, MissingAlphaSlices) {
     ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
     ktxTexture2* texture = nullptr;
 
-    result = ktxTexture2_CreateFromNamedFile(missing_alpha_slice.c_str(),
-                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+    result = ktxTexture2_CreateFromNamedFile(
+        reinterpret_cast<const char*>(missing_alpha_slice.u8string().c_str()),
+        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
     texture_raii.reset((ktxTexture*)texture);
 
     EXPECT_EQ(result, KTX_SUCCESS);
