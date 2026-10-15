@@ -883,6 +883,7 @@ VulkanAppSDL::findGpu()
         vkctx.setGpu(chosenGpu);
     } else {
         // For non-macos with multiple gpu's, for now grab the first available.
+        vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
         vkctx.setGpu(gpus[0]);
     }
 
