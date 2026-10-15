@@ -33,6 +33,8 @@ extern "C" {
 typedef struct ktxTexture2_private {
     ktx_uint8_t* _supercompressionGlobalData;
     ktx_uint32_t _requiredLevelAlignment;
+    ktx_bool_t _kvDataIsParsed; /*!< True if the source's KVD was parsed or
+                                   absent, so isVideo is meaningful. */
     ktx_uint64_t _sgdByteLength;
     ktx_uint64_t _firstLevelFileOffset; /*!< Always 0, unless the texture was
                                          created from a stream and the image

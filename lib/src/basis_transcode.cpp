@@ -31,6 +31,7 @@
 #include "vkformat_enum.h"
 #include "vk_format.h"
 #include "basis_sgd.h"
+#include "basis_transcode.h"
 #if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wunused-value"
@@ -97,91 +98,62 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
 }
 
 /**
- * @memberof ktxTexture2
- * @ingroup reader
+ * @internal
  * @~English
- * @brief Transcode a KTX2 texture with BasisLZ/ETC1S or UASTC images.
- *
- * If the texture contains BasisLZ supercompressed images, Inflates them
- * back to ETC1S then transcodes them to the specified block-compressed
- * format. If the texture contains UASTC images, inflates them, if they have been
- * supercompressed with zstd, then transcodes then to the specified format, The
- * transcoded images replace the original images and the texture's fields including
- * the DFD are modified to reflect the new format.
- *
- * These types of textures must be transcoded to a desired target
- * GPU-compatible format before they can be uploaded to a GPU via a
- * graphics API.
- *
- * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
- * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
- * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC6HU, @c KTX_TTF_BC7_RGBA,
- * @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA, @c KTX_TTF_PVRTC2_4_RGB,
- * @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
- * @c KTX_TTF_ASTC_HDR_4x4_RGBA, @c KTX_TTF_ASTC_HDR_6x6_RGBA
- * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, @c KTX_TTF_ETC and
- * @c KTX_TTF_BC1_OR_3. Only UASTC HDR formats can be transcoded to the
- * ASTC HDR and BC6HU formats and only UASTC LDR 4x4 can be transcoded to the others.
- *
- * @c KTX_TTF_ETC automatically selects between @c KTX_TTF_ETC1_RGB and
- * @c KTX_TTF_ETC2_RGBA according to whether an alpha channel is available. @c KTX_TTF_BC1_OR_3
- * does likewise between @c KTX_TTF_BC1_RGB and @c KTX_TTF_BC3_RGBA. Note that if
- * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
- * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
- *
- * Transcoding to ATC & FXT1 formats is not supported by libktx as there
- * are no equivalent Vulkan formats.
- *
- * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
- * @c KTX_TTF_RGB565, @c KTX_TTF_BGR565, @c KTX_TTF_RGBA4444,
- * @c KTX_TTF_RGB_HALF,   @c KTX_TTF_RGB_9E5 and @c KTX_TTF_RGBA_HALF.
- * Only UASTC HDR formats can be transcoded to the last three and only
- * UASTC LDR 4x4 can be transcoded to the others.
- *
- * The following @p transcodeFlags are available:
- * @c KTX_TF_PVRTC_DECODE_TO_NEXT_POW2,
- * @c KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS,
- * @c KTX_TF_NO_ETC1S_CHROMA_FILTERING and @c KTX_TF_HIGH_QUALITY.
- * The last only applies when transcoding from UASTC to BC1, BC3,
- * ETC2\_EAC\_R11 or ETC2\_EAC\_RG11.
- *
- * @sa ktxTexture2_CompressBasis().
- *
- * @param[in]   This         pointer to the ktxTexture2 object of interest.
- * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
- *                           specifying the target format.
- * @param[in]   transcodeFlags  bitfield of flags modifying the transcode
- *                              operation. @sa ktx_texture_transcode_flags_e.
- *
- * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
- *
- * @exception KTX_FILE_DATA_ERROR
- *                              Supercompression global data is corrupted.
- * @exception KTX_INVALID_OPERATION
- *                              The texture's format is not transcodable (not
- *                              ETC1S/BasisLZ or UASTC).
- * @exception KTX_INVALID_OPERATION
- *                              Supercompression global data is missing, i.e.,
- *                              the texture object is invalid.
- * @exception KTX_INVALID_OPERATION
- *                              Image data is missing, i.e., the texture object
- *                              is invalid.
- * @exception KTX_INVALID_OPERATION
- *                              @p outputFormat is PVRTC1 but the texture does
- *                              does not have power-of-two dimensions.
- * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
- * @exception KTX_TRANSCODE_FAILED
- *                              Something went wrong during transcoding.
- * @exception KTX_UNSUPPORTED_FEATURE
- *                              KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was requested
- *                              or the specified transcode target has not been
- *                              included in the library being used.
- * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
+ * @brief Map a source DFD color model to the transcoder's texture format.
  */
- KTX_error_code
- ktxTexture2_TranscodeBasis(ktxTexture2* This,
-                            ktx_transcode_fmt_e outputFormat,
-                            ktx_transcode_flags transcodeFlags)
+static basis_tex_format
+colorModel2basisTexFormat(khr_df_model_e colorModel)
+{
+    if (colorModel == KHR_DF_MODEL_UASTC)
+        return basis_tex_format::cUASTC_LDR_4x4;
+    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4)
+        return basis_tex_format::cUASTC_HDR_4x4;
+    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6)
+        return basis_tex_format::cUASTC_HDR_6x6_INTERMEDIATE;
+    else
+        return basis_tex_format::cETC1S;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Perform the transcoder's global initialization once per process.
+ *
+ * Shared by ktxTexture2_TranscodeBasis and ktxLevelProcessor_CreateBasis so
+ * the initialization is done once, not per texture or per processor.
+ */
+void
+ktxInitBasisTranscoder(void)
+{
+    // Transcoder global initialization. Requires ~9 milliseconds when compiled
+    // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
+    // tables it computes can easily be moved to be compiled in.
+
+    // By deliberate choice basisu_transcoder_init() does not have its own mutex.
+    // See https://github.com/BinomialLLC/basis_universal/issues/416.
+    static std::atomic<bool> transcoderInitialized(false);
+    static std::mutex init_mutex;
+
+    if (!transcoderInitialized.load(std::memory_order_acquire)) {
+        std::lock_guard<std::mutex> lock(init_mutex);
+        if (!transcoderInitialized.load(std::memory_order_relaxed)) {
+            basisu_transcoder_init();
+            transcoderInitialized.store(true, std::memory_order_release);
+        }
+    }
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Check that a texture is a transcodable Basis source.
+ *
+ * Factored out of ktxTexture2_TranscodeBasis so ktxLevelProcessor_CreateBasis
+ * applies the same gate. See the declaration in basis_transcode.h.
+ */
+KTX_error_code
+ktxTexture2_validateBasisSource(const ktxTexture2* This)
 {
     uint32_t* BDB = This->pDfd + 1;
     khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
@@ -200,31 +172,32 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             return KTX_INVALID_OPERATION;
     }
 
-    // Early exit for redundant transcode from UASTC4x4 to ASTC4x4
-    if (colorModel   == KHR_DF_MODEL_UASTC_HDR_4x4 &&
-        outputFormat == KTX_TTF_ASTC_HDR_4x4_RGBA) {
-        // Create the new DFD before modifying the texture so a failure
-        // leaves the texture unchanged instead of freeing its DFD and
-        // relabelling its vkFormat first.
-        uint32_t* newDfd = vk2dfd(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK);
-        if (!newDfd)
-            return KTX_OUT_OF_MEMORY;
-        // Fix up the current texture
-        free(This->pDfd);
-        This->pDfd = newDfd;
-        This->vkFormat = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
-        return KTX_SUCCESS;
-    }
+    return KTX_SUCCESS;
+}
 
-    if (transcodeFlags & KTX_TF_PVRTC_DECODE_TO_NEXT_POW2) {
-         debug_printf("ktxTexture_TranscodeBasis: KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
-         return KTX_UNSUPPORTED_FEATURE;
-    }
+/**
+ * @internal
+ * @~English
+ * @brief Resolve a transcode target against a Basis-compressed source.
+ *
+ * Factored out of ktxTexture2_TranscodeBasis so the streaming
+ * ktxLevelProcessor resolves targets identically. See the declaration in
+ * basis_transcode.h for the contract.
+ */
+KTX_error_code
+ktxTexture2_resolveBasisTargetFormat(const ktxTexture2* This,
+                                     ktx_transcode_fmt_e* pOutputFormat,
+                                     VkFormat* pVkFormat,
+                                     alpha_content_e* pAlphaContent)
+{
+    uint32_t* BDB = This->pDfd + 1;
+    khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    ktx_transcode_fmt_e outputFormat = *pOutputFormat;
 
     if (outputFormat == KTX_TTF_PVRTC1_4_RGB
         || outputFormat == KTX_TTF_PVRTC1_4_RGBA) {
          if ((!isPow2(This->baseWidth)) || (!isPow2(This->baseHeight))) {
-             debug_printf("ktxTexture_TranscodeBasis: PVRTC1 only supports power of 2 dimensions\n");
+             debug_printf("ktxTexture2_resolveBasisTargetFormat: PVRTC1 only supports power of 2 dimensions\n");
              return KTX_INVALID_OPERATION;
         }
     }
@@ -359,20 +332,144 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         return KTX_INVALID_VALUE;
     }
 
-    basis_tex_format textureFormat;
-    if (colorModel == KHR_DF_MODEL_UASTC)
-        textureFormat = basis_tex_format::cUASTC_LDR_4x4;
-    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_4x4)
-        textureFormat = basis_tex_format::cUASTC_HDR_4x4;        
-    else if (colorModel == KHR_DF_MODEL_UASTC_HDR_6x6)
-        textureFormat = basis_tex_format::cUASTC_HDR_6x6_INTERMEDIATE;
-    else
-        textureFormat = basis_tex_format::cETC1S;
-    
+    basis_tex_format textureFormat = colorModel2basisTexFormat(colorModel);
+
     if (!basis_is_format_supported(ktx2transcoderFormat(outputFormat),
                                    textureFormat)) {
         return KTX_UNSUPPORTED_FEATURE;
     }
+
+    *pOutputFormat = outputFormat;
+    *pVkFormat = vkFormat;
+    *pAlphaContent = alphaContent;
+    return KTX_SUCCESS;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @ingroup reader
+ * @~English
+ * @brief Transcode a KTX2 texture with BasisLZ/ETC1S or UASTC images.
+ *
+ * If the texture contains BasisLZ supercompressed images, Inflates them
+ * back to ETC1S then transcodes them to the specified block-compressed
+ * format. If the texture contains UASTC images, inflates them, if they have been
+ * supercompressed with zstd, then transcodes then to the specified format, The
+ * transcoded images replace the original images and the texture's fields including
+ * the DFD are modified to reflect the new format.
+ *
+ * These types of textures must be transcoded to a desired target
+ * GPU-compatible format before they can be uploaded to a GPU via a
+ * graphics API.
+ *
+ * The following block compressed transcode targets are available: @c KTX_TTF_ETC1_RGB,
+ * @c KTX_TTF_ETC2_RGBA, @c KTX_TTF_BC1_RGB, @c KTX_TTF_BC3_RGBA,
+ * @c KTX_TTF_BC4_R, @c KTX_TTF_BC5_RG, @c KTX_TTF_BC6HU, @c KTX_TTF_BC7_RGBA,
+ * @c KTX_TTF_PVRTC1_4_RGB, @c KTX_TTF_PVRTC1_4_RGBA, @c KTX_TTF_PVRTC2_4_RGB,
+ * @c KTX_TTF_PVRTC2_4_RGBA, @c KTX_TTF_ASTC_4x4_RGBA,
+ * @c KTX_TTF_ASTC_HDR_4x4_RGBA, @c KTX_TTF_ASTC_HDR_6x6_RGBA
+ * @c KTX_TTF_ETC2_EAC_R11, @c KTX_TTF_ETC2_EAC_RG11, @c KTX_TTF_ETC and
+ * @c KTX_TTF_BC1_OR_3. Only UASTC HDR formats can be transcoded to the
+ * ASTC HDR and BC6HU formats and only UASTC LDR 4x4 can be transcoded to the others.
+ *
+ * @c KTX_TTF_ETC automatically selects between @c KTX_TTF_ETC1_RGB and
+ * @c KTX_TTF_ETC2_RGBA according to whether an alpha channel is available. @c KTX_TTF_BC1_OR_3
+ * does likewise between @c KTX_TTF_BC1_RGB and @c KTX_TTF_BC3_RGBA. Note that if
+ * @c KTX_TTF_PVRTC1_4_RGBA or @c KTX_TTF_PVRTC2_4_RGBA is specified and there is no alpha
+ * channel @c KTX_TTF_PVRTC1_4_RGB or @c KTX_TTF_PVRTC2_4_RGB respectively will be selected.
+ *
+ * Transcoding to ATC & FXT1 formats is not supported by libktx as there
+ * are no equivalent Vulkan formats.
+ *
+ * The following uncompressed transcode targets are also available: @c KTX_TTF_RGBA32,
+ * @c KTX_TTF_RGB565, @c KTX_TTF_BGR565, @c KTX_TTF_RGBA4444,
+ * @c KTX_TTF_RGB_HALF,   @c KTX_TTF_RGB_9E5 and @c KTX_TTF_RGBA_HALF.
+ * Only UASTC HDR formats can be transcoded to the last three and only
+ * UASTC LDR 4x4 can be transcoded to the others.
+ *
+ * The following @p transcodeFlags are available:
+ * @c KTX_TF_PVRTC_DECODE_TO_NEXT_POW2,
+ * @c KTX_TF_TRANSCODE_ALPHA_DATA_TO_OPAQUE_FORMATS,
+ * @c KTX_TF_NO_ETC1S_CHROMA_FILTERING and @c KTX_TF_HIGH_QUALITY.
+ * The last only applies when transcoding from UASTC to BC1, BC3,
+ * ETC2\_EAC\_R11 or ETC2\_EAC\_RG11.
+ *
+ * @sa ktxTexture2_CompressBasis().
+ *
+ * @param[in]   This         pointer to the ktxTexture2 object of interest.
+ * @param[in]   outputFormat a value from the ktx_texture_transcode_fmt_e enum
+ *                           specifying the target format.
+ * @param[in]   transcodeFlags  bitfield of flags modifying the transcode
+ *                              operation. @sa ktx_texture_transcode_flags_e.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_DATA_ERROR
+ *                              Supercompression global data is corrupted.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture's format is not transcodable (not
+ *                              ETC1S/BasisLZ or UASTC).
+ * @exception KTX_INVALID_OPERATION
+ *                              Supercompression global data is missing, i.e.,
+ *                              the texture object is invalid.
+ * @exception KTX_INVALID_OPERATION
+ *                              Image data is missing, i.e., the texture object
+ *                              is invalid.
+ * @exception KTX_INVALID_OPERATION
+ *                              @p outputFormat is PVRTC1 but the texture does
+ *                              does not have power-of-two dimensions.
+ * @exception KTX_INVALID_VALUE @p outputFormat is invalid.
+ * @exception KTX_TRANSCODE_FAILED
+ *                              Something went wrong during transcoding.
+ * @exception KTX_UNSUPPORTED_FEATURE
+ *                              KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 was requested
+ *                              or the specified transcode target has not been
+ *                              included in the library being used.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to carry out transcoding.
+ */
+ KTX_error_code
+ ktxTexture2_TranscodeBasis(ktxTexture2* This,
+                            ktx_transcode_fmt_e outputFormat,
+                            ktx_transcode_flags transcodeFlags)
+{
+    KTX_error_code result = ktxTexture2_validateBasisSource(This);
+    if (result != KTX_SUCCESS)
+        return result;
+
+    uint32_t* BDB = This->pDfd + 1;
+    khr_df_model_e colorModel = (khr_df_model_e)KHR_DFDVAL(BDB, MODEL);
+    DECLARE_PRIVATE(priv, This);
+
+    // Early exit for redundant transcode from UASTC4x4 to ASTC4x4
+    if (colorModel   == KHR_DF_MODEL_UASTC_HDR_4x4 &&
+        outputFormat == KTX_TTF_ASTC_HDR_4x4_RGBA) {
+        // Create the new DFD before modifying the texture so a failure
+        // leaves the texture unchanged instead of freeing its DFD and
+        // relabelling its vkFormat first.
+        uint32_t* newDfd = vk2dfd(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK);
+        if (!newDfd)
+            return KTX_OUT_OF_MEMORY;
+        // Fix up the current texture
+        free(This->pDfd);
+        This->pDfd = newDfd;
+        This->vkFormat = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
+        return KTX_SUCCESS;
+    }
+
+    if (transcodeFlags & KTX_TF_PVRTC_DECODE_TO_NEXT_POW2) {
+         debug_printf("ktxTexture_TranscodeBasis: KTX_TF_PVRTC_DECODE_TO_NEXT_POW2 currently unsupported\n");
+         return KTX_UNSUPPORTED_FEATURE;
+    }
+
+    VkFormat vkFormat;
+    alpha_content_e alphaContent;
+    result =
+        ktxTexture2_resolveBasisTargetFormat(This, &outputFormat, &vkFormat,
+                                             &alphaContent);
+    if (result != KTX_SUCCESS)
+        return result;
+
+    basis_tex_format textureFormat = colorModel2basisTexFormat(colorModel);
 
 
     // Create a prototype texture to use for calculating sizes in the target
@@ -392,7 +489,6 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     createInfo.numLevels = This->numLevels;
     createInfo.pDfd = nullptr;
 
-    KTX_error_code result;
     ktxTexture2* prototype;
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
                                 &prototype);
@@ -418,22 +514,7 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
         }
     }
 
-    // Transcoder global initialization. Requires ~9 milliseconds when compiled
-    // and executed natively on a Core i7 2.2 GHz. If this is too slow, the
-    // tables it computes can easily be moved to be compiled in.
-
-    // By deliberate choice basisu_transcoder_init() does not have its own mutex.
-    // See https://github.com/BinomialLLC/basis_universal/issues/416.
-    static std::atomic<bool> transcoderInitialized(false);
-    static std::mutex init_mutex;
-
-    if (!transcoderInitialized.load(std::memory_order_acquire)) {
-        std::lock_guard<std::mutex> lock(init_mutex);
-        if (!transcoderInitialized.load(std::memory_order_relaxed)) {
-            basisu_transcoder_init();
-            transcoderInitialized.store(true, std::memory_order_release);
-        }
-    }
+    ktxInitBasisTranscoder();
 
     if (textureFormat == basis_tex_format::cETC1S) {
         result = ktxTexture2_transcodeLzEtc1s(This, alphaContent,
