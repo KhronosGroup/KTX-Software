@@ -555,6 +555,10 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 
     assert(This->supercompressionScheme == KTX_SS_BASIS_LZ);
 
+    if (priv._sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+        debug_printf("ktxTexture_TranscodeBasis: supercompression global data too short");
+        return KTX_FILE_DATA_ERROR;
+    }
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
