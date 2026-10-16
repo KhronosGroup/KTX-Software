@@ -863,7 +863,12 @@ VulkanAppSDL::findGpu()
     gpus.resize(gpuCount);
     err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
     assert(err == vk::Result::eSuccess);
-    if (SDL_PLATFORM_MACOS && gpuCount > 1) {
+#if (SDL_PLATFORM_MACOS)
+    bool macOS = true;
+#else
+    bool macOS = false;
+#endif
+    if (macOS && gpuCount > 1) {
         // KosmicKrisp only advertises a VkPhysicalDevice when running on an OS
         // it supports, if this block has been entered, KosmicKrisp is supported.
         vk::PhysicalDevice chosenGpu = nullptr;
@@ -883,8 +888,8 @@ VulkanAppSDL::findGpu()
         vkctx.setGpu(chosenGpu);
     } else {
         // For non-macos with multiple gpu's, for now grab the first available.
-        vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
         vkctx.setGpu(gpus[0]);
+        vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
     }
 
     return true;
