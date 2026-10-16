@@ -599,13 +599,19 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
-    bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
-                        bgdh.endpointsByteLength,
-                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
-                        bgdh.selectorsByteLength);
+    if (!bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
+                             bgdh.endpointsByteLength,
+                             bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
+                             bgdh.selectorsByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid endpoint or selector palettes");
+        return KTX_TRANSCODE_FAILED;
+    }
 
-    bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
-                      bgdh.tablesByteLength);
+    if (!bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
+                           bgdh.tablesByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid Huffman tables");
+        return KTX_TRANSCODE_FAILED;
+    }
 
     // Find matching VkFormat and calculate output sizes.
 
