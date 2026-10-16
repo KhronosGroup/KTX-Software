@@ -707,6 +707,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     ktxStream* stream;
     struct BDFD* pBDFD;
     ktx_size_t levelIndexSize;
+    ktx_size_t fileSize;
 
     assert(pHeader != NULL && pStream != NULL);
 
@@ -773,6 +774,31 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     result = stream->read(stream, &private->_levelIndex, levelIndexSize);
     if (result != KTX_SUCCESS)
         goto cleanup;
+
+    // Check that the data the header and level index declare is within the
+    // file, before memory is allocated for it.
+    result = stream->getsize(stream, &fileSize);
+    if (result != KTX_SUCCESS)
+        goto cleanup;
+    if ((ktx_uint64_t)pHeader->dataFormatDescriptor.byteOffset
+            + pHeader->dataFormatDescriptor.byteLength > fileSize ||
+        (ktx_uint64_t)pHeader->keyValueData.byteOffset
+            + pHeader->keyValueData.byteLength > fileSize ||
+        pHeader->supercompressionGlobalData.byteOffset > fileSize ||
+        pHeader->supercompressionGlobalData.byteLength
+            > fileSize - pHeader->supercompressionGlobalData.byteOffset) {
+        result = KTX_FILE_UNEXPECTED_EOF;
+        goto cleanup;
+    }
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        if (private->_levelIndex[level].byteOffset > fileSize ||
+            private->_levelIndex[level].byteLength
+                    > fileSize - private->_levelIndex[level].byteOffset) {
+            result = KTX_FILE_UNEXPECTED_EOF;
+            goto cleanup;
+        }
+    }
+
     // Rebase index to start of data and save file offset.
     private->_firstLevelFileOffset
                     = private->_levelIndex[This->numLevels-1].byteOffset;
