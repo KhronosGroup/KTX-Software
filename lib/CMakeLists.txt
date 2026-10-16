@@ -640,6 +640,14 @@ if(NOT ${universal_build})
         set(ASTCENC_ISA_SSE2 OFF)
     endif()
 
+    # On MinGW and on Debug, ASTC encoding tests "randomly" crashout at the end
+    # of execution if ISA is set to SSE. To avoid these extremely hard-to-debug
+    # issues, just disable SIMD on MinGW with Debug builds (this was tested with
+    # g++ 15.2.0).
+    if (MINGW AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(ASTCENC_ISA_NONE ON)
+    endif()
+
     # "" in the CACHE sets causes use of the existing documentation string.
     if(${ASTCENC_ISA_NONE})
         set(ASTCENC_LIB_TARGET astcenc-none-static)
