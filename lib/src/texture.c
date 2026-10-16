@@ -360,13 +360,17 @@ ktxTexture_CreateFromStream(ktxStream* pStream,
     ktxTexture* tex;
 
     result = ktxDetermineFileType_(pStream, &fileType, &header);
-    if (result != KTX_SUCCESS)
+    if (result != KTX_SUCCESS) {
+        pStream->destruct(pStream);
         return result;
+    }
 
     if (fileType == KTX1) {
         ktxTexture1* tex1 = (ktxTexture1*)malloc(sizeof(ktxTexture1));
-        if (tex1 == NULL)
+        if (tex1 == NULL) {
+            pStream->destruct(pStream);
             return KTX_OUT_OF_MEMORY;
+        }
         memset(tex1, 0, sizeof(ktxTexture1));
         result = ktxTexture1_constructFromStreamAndHeader(tex1, pStream,
                                                           &header.ktx,
@@ -374,8 +378,10 @@ ktxTexture_CreateFromStream(ktxStream* pStream,
         tex = ktxTexture(tex1);
     } else {
         ktxTexture2* tex2 = (ktxTexture2*)malloc(sizeof(ktxTexture2));
-        if (tex2 == NULL)
+        if (tex2 == NULL) {
+            pStream->destruct(pStream);
             return KTX_OUT_OF_MEMORY;
+        }
         memset(tex2, 0, sizeof(ktxTexture2));
         result = ktxTexture2_constructFromStreamAndHeader(tex2, pStream,
                                                           &header.ktx2,
