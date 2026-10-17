@@ -92,8 +92,11 @@ jobs:
     - name: Build Mingw x64 Release
       run: cmake --build build --config Release -j $(nproc)
 
+      # For Debug builds, make sure to set -DASTCENC_ISA_NONE=ON because SIMD-enbled ASTCENC builds may cause
+      # random crashouts at unload time that are very hard to debug!
     - name: Test Mingw build
-      run: ctest --output-on-failure --test-dir build -C Debug -j $(nproc)
+      run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
+
 #    - name: Upload test log
 #      shell: pwsh
 #      if: ${{ failure() }}
