@@ -2229,14 +2229,13 @@ ktxTexture2_GetDataSizeUncompressed(ktxTexture2* This)
             uncompressedLevelAlignment =
                 ktxTexture2_calcPostInflationLevelAlignment(This);
 
-            for (ktx_int32_t level = This->numLevels - 1; level >= 1; level--) {
+            for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
                 ktx_size_t uncompressedLevelSize;
                 uncompressedLevelSize = levelIndex[level].uncompressedByteLength;
                 uncompressedLevelSize = _KTX_PADN(uncompressedLevelAlignment,
                                                   uncompressedLevelSize);
                 uncompressedSize += uncompressedLevelSize;
             }
-            uncompressedSize += levelIndex[0].uncompressedByteLength;
             return uncompressedSize;
       }
       case KTX_SS_BEGIN_VENDOR_RANGE:
@@ -2912,7 +2911,7 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
                 result = KTX_DECOMPRESS_CHECKSUM_ERROR;
                 goto cleanup;
               case ZSTD_error_memory_allocation:
-                result =  KTX_OUT_OF_MEMORY;
+                result = KTX_OUT_OF_MEMORY;
                 goto cleanup;
              default:
                 result = KTX_FILE_DATA_ERROR;
@@ -2932,6 +2931,15 @@ ktxTexture2_inflateZstdInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
               = _KTX_PADN(uncompressedLevelAlignment, levelByteLength);
         inflatedByteLength += paddedLevelByteLength;
         levelOffset += paddedLevelByteLength;
+
+        // It could be that the remaing buffer capacity is sufficient for
+        // ZSTD_decompressDCtx but NOT for the padded data!
+        if (inflatedDataCapacity < paddedLevelByteLength) {
+            result = KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+            goto cleanup;
+        }
+
+        // The check above insures that this substraction is safe (inflatedDataCapacity is size_t)
         inflatedDataCapacity -= paddedLevelByteLength;
     }
 
@@ -3016,6 +3024,15 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
               = _KTX_PADN(uncompressedLevelAlignment, levelByteLength);
         inflatedByteLength += paddedLevelByteLength;
         levelOffset += paddedLevelByteLength;
+
+        // It could be that the remaining buffer capacity is sufficient for
+        // ktxUncompressZLIBInt but NOT for the padded data!
+        if (inflatedDataCapacity < paddedLevelByteLength) {
+            free(nindex);
+            return KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+        }
+
+        // The check above insures that this substraction is safe (inflatedDataCapacity is size_t)
         inflatedDataCapacity -= paddedLevelByteLength;
     }
 
