@@ -360,13 +360,17 @@ ktxTexture_CreateFromStream(ktxStream* pStream,
     ktxTexture* tex;
 
     result = ktxDetermineFileType_(pStream, &fileType, &header);
-    if (result != KTX_SUCCESS)
+    if (result != KTX_SUCCESS) {
+        pStream->destruct(pStream);
         return result;
+    }
 
     if (fileType == KTX1) {
         ktxTexture1* tex1 = (ktxTexture1*)malloc(sizeof(ktxTexture1));
-        if (tex1 == NULL)
+        if (tex1 == NULL) {
+            pStream->destruct(pStream);
             return KTX_OUT_OF_MEMORY;
+        }
         memset(tex1, 0, sizeof(ktxTexture1));
         result = ktxTexture1_constructFromStreamAndHeader(tex1, pStream,
                                                           &header.ktx,
@@ -374,8 +378,10 @@ ktxTexture_CreateFromStream(ktxStream* pStream,
         tex = ktxTexture(tex1);
     } else {
         ktxTexture2* tex2 = (ktxTexture2*)malloc(sizeof(ktxTexture2));
-        if (tex2 == NULL)
+        if (tex2 == NULL) {
+            pStream->destruct(pStream);
             return KTX_OUT_OF_MEMORY;
+        }
         memset(tex2, 0, sizeof(ktxTexture2));
         result = ktxTexture2_constructFromStreamAndHeader(tex2, pStream,
                                                           &header.ktx2,
@@ -616,7 +622,8 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
  *          return these for other causes or may return additional errors.
  *
  * @exception KTX_FILE_DATA_ERROR   Mip level sizes are increasing not
- *                                  decreasing
+ *                                  decreasing, or an image extends past
+ *                                  the end of the image data.
  * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
  *
  */
@@ -664,6 +671,12 @@ ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
             ktx_size_t offset;
 
             ktxTexture_GetImageOffset(This, miplevel, 0, face, &offset);
+            /* The sizes come from the format and extents, not the data. */
+            if (offset > This->dataSize
+                || faceLodSize > This->dataSize - offset) {
+                result = KTX_FILE_DATA_ERROR;
+                break;
+            }
             result = iterCb(miplevel, face,
                             width, height, depth,
                             faceLodSize, This->pData + offset, userdata);

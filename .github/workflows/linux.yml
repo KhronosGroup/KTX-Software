@@ -193,6 +193,27 @@ jobs:
 
       VCPKG_INSTALL_OPTIONS: ${{ matrix.vcpkg_install_options && matrix.vcpkg_install_options || '' }}
 
+      # The ubuntu-22.04 runners have a system install of nuget 6.6.1.2 in
+      # /usr/bin which vcpkg uses instead of fetching its own. Later runners
+      # do not. This works fine on x86_64 runners but not on aarch64 runners.
+      # It is a script not a .net executable so, as vcpkg always attempts to
+      # run nuget via the mono .net VM, it fails with "'/usr/bin/nuget': File
+      # does not contain a valid CIL image." With a monstrous hack to
+      # workaround this and have /usr/bin/nuget run, vcpkg caching no longer
+      # works properly. (It did when the hack was first put in place.)
+      # Packages aren't found when queried yet attempts to push built packages
+      # get an "already pushed" error.
+      #
+      # Setting this variable forces vcpkg to ignore the system nuget and to
+      # download and use its own nuget binary.
+      #
+      # N.B. Setting this just for the "Add Nuget sources" step, where the
+      # fetch is done, is insufficient. It is definitely needed for the
+      # "script" step and maybe others so set it globally. Having it set
+      # for x86_64 too, guarantees a consistent nuget known to work with
+      # vcpkg binary caching.
+      VCPKG_FORCE_DOWNLOADED_BINARIES: 1
+
       VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
 
       SANITIZE: ${{ matrix.options.sanitize || '' }}
@@ -286,13 +307,6 @@ jobs:
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
             core.exportVariable('VCPKG_EXE', process.env.VCPKG_INSTALLATION_ROOT + '/vcpkg' || '');
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
-
-      - name: Overwrite /usr/bin/mono
-        # nuget downloaded by vcpkg fetch on aarch64 is a shell script. This
-        # prevents vcpkg from trying and failing, to run it in mono. This is
-        # my ugliest hack in 45 years of software development.
-        if: matrix.options.loadtests != 'OFF' && matrix.arch == 'aarch64'
-        run: sudo sh -c "mv /usr/bin/mono /usr/bin/mono-real && echo '#! /usr/bin/env bash\nif [ \"\$1\" = \"/usr/bin/nuget\" ]; then \$*; else /usr/bin/mono-real \$*; fi' > /usr/bin/mono && chmod 755 /usr/bin/mono"
 
       - name: Add NuGet sources for vcpkg binary caching
         if: matrix.options.loadtests != 'OFF'

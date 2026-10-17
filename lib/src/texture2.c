@@ -276,7 +276,8 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     uint32_t descriptorSize = pDfd[0] - sizeof(uint32_t);
     while(descriptorSize > KHR_DFD_SIZEFOR_DESCRIPTORBLOCKSIZE) {
         uint32_t descriptorBlockSize = KHR_DFDVAL(pBdb, DESCRIPTORBLOCKSIZE);
-        if (descriptorBlockSize <= descriptorSize) {
+        // A zero-sized block would never advance the loop.
+        if (descriptorBlockSize != 0 && descriptorBlockSize <= descriptorSize) {
             descriptorSize -= descriptorBlockSize;
             pBdb += descriptorBlockSize / sizeof(uint32_t);
         } else {

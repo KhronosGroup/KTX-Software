@@ -69,6 +69,9 @@ namespace fs = std::filesystem;
   using namespace fmt;
 #endif
 
+fs::path ktxdiffPath;
+fs::path ktx2Path;
+
 // Recursive function to return the greatest common divisor of a and b.
 static uint32_t
 gcd(uint32_t a, uint32_t b) {
@@ -315,7 +318,7 @@ class ktxTextureTestBase : public ::testing::Test {
         texture->kvData = kvData;
         texture->kvDataLen = kvDataLen;
 
-        ktx_uint8_t* pKtxMemFile;
+        ktx_uint8_t* pKtxMemFile = nullptr;
         errorCode = ktxTexture_WriteToMemory(texture, &pKtxMemFile,
                                              &ktxMemFileLen);
         ktxMemFile.reset(pKtxMemFile);
@@ -525,7 +528,7 @@ class ktxTexture1WriteTestBase : public ::testing::Test {
 
         EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-        ktx_uint8_t* ktxMemFile;
+        ktx_uint8_t* ktxMemFile = nullptr;
         result = ktxTexture1_WriteToMemory(texture, &ktxMemFile, &ktxMemFileLen);
         ktxMemFile_raii.reset(ktxMemFile);
 
@@ -724,7 +727,7 @@ TEST_F(ktxTexture1_CreateTest, CreateEmptySetImagesWriteToMemory) {
     ASSERT_TRUE(result == KTX_SUCCESS);
     EXPECT_EQ(helper.compareTexture1Images(texture->pData), true);
 
-    ktx_uint8_t* pTestMemFile;
+    ktx_uint8_t* pTestMemFile = nullptr;
     EXPECT_EQ(ktxTexture1_WriteToMemory(texture, &pTestMemFile, &testMemFileLen),
               KTX_SUCCESS);
     testMemFile.reset(pTestMemFile);
@@ -2412,6 +2415,64 @@ TEST_F(ktxTexture2ReadTestRGBA8, Read3DMipmap) {
 }
 
 /////////////////////////////////////////
+// ktxTexture2_Deflate tests
+////////////////////////////////////////
+
+class ktxTexture2_DeflateTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+TEST_F(ktxTexture2_DeflateTest, DeflateZstd) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        result = ktxTexture2_DeflateZstd(texture, 22);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        // Applying another supercompression scheme should return Invalid
+        // operation without leaking
+        result = ktxTexture2_DeflateZstd(texture, 22);
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
+}
+
+TEST_F(ktxTexture2_DeflateTest, DeflateZLIB) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+        result = ktxTexture2_DeflateZLIB(texture, 9);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        // Applying another supercompression scheme should return Invalid
+        // operation without leaking
+        result = ktxTexture2_DeflateZLIB(texture, 9);
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
+}
+
+/////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
 
@@ -2447,6 +2508,29 @@ TEST_F(ktxTexture2_BasisCompressTest, Compress) {
         result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
         EXPECT_EQ(result, KTX_SUCCESS);
     }
+}
+
+TEST(ktxTexture2_TranscodeBasis, MissingAlphaSlices) {
+    KTX_error_code result;
+    fs::path missing_alpha_slice = ktx2Path;
+    missing_alpha_slice.replace_filename(u8"invalid_blze_alpha_slice_missing.ktx2");
+
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture2* texture = nullptr;
+
+    result = ktxTexture2_CreateFromNamedFile(
+        reinterpret_cast<const char*>(missing_alpha_slice.u8string().c_str()),
+        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
+    texture_raii.reset((ktxTexture*)texture);
+
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture2_CreateFromNamedFile failed: "
+                                 << ktxErrorString(result);
+    ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+    // This should error out and not leak
+    result = ktxTexture2_TranscodeBasis(texture, KTX_TTF_BC1_RGB, 0);
+    EXPECT_EQ(result, KTX_FILE_DATA_ERROR);
 }
 
 class ktxTexture2_GetNumComponentsTestR8 : public ktxTexture2TestBase<GLubyte, 1, GL_R8> { };
@@ -2758,7 +2842,7 @@ TEST_F(ktxTexture2_MetadataTest, EmptyValue) {
         EXPECT_EQ(result, KTX_SUCCESS);
 
         ktx_size_t newMemFileLen;
-        ktx_uint8_t* newMemFile;
+        ktx_uint8_t* newMemFile = nullptr;
         result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
                                           &newMemFileLen);
         newMemFile_raii.reset(newMemFile);
@@ -2811,7 +2895,7 @@ TEST_F(ktxTexture2_MetadataTest, NoMetadata) {
 
         ktx_size_t newMemFileLen;
         ::__disableWriterMetadata__ = KTX_TRUE;
-        ktx_uint8_t* newMemFile;
+        ktx_uint8_t* newMemFile = nullptr;
         result = ktxTexture_WriteToMemory(ktxTexture(texture), &newMemFile,
                                           &newMemFileLen);
         newMemFile_raii.reset(newMemFile);
@@ -2858,7 +2942,7 @@ TEST_F(ktxTexture2_MetadataTest, NoLibVersionDupOnMultipleWrites) {
         std::vector<std::unique_ptr<ktx_uint8_t, decltype(std::free)*>> newMemFiles;
         newMemFiles.reserve(iterations);
         for (uint32_t i = 0; i < iterations; i++) {
-            ktx_uint8_t* newMemFile;
+            ktx_uint8_t* newMemFile = nullptr;
             result = ktxTexture_WriteToMemory(ktxTexture(texture),
                                               &newMemFile,
                                               &newMemFileLens[i]);
@@ -2947,7 +3031,7 @@ TEST_F(ktxTexture2_MetadataTest, LibVersionUpdatedCorrectly) {
 
 
         ktx_size_t newMemFileLen;
-        ktx_uint8_t* newMemFile;
+        ktx_uint8_t* newMemFile = nullptr;
         result = ktxTexture_WriteToMemory(ktxTexture(texture),
                                           &newMemFile,
                                           &newMemFileLen);
@@ -3059,9 +3143,6 @@ TEST(UnicodeFileNames, CreateFrom) {
 //------------------------------------------------------------
 // Template for base fixture for ASTC encode and decode tests.
 //------------------------------------------------------------
-
-fs::path ktxdiffPath;
-fs::path ktx2Path;
 
 template<typename component_type, ktx_uint32_t numComponents,
          GLenum internalformat>
@@ -3406,7 +3487,7 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
 }  // namespace
 
 
-GTEST_API_ int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
