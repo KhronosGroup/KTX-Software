@@ -696,14 +696,11 @@ PRIVATE
     $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,17.0.3>>:_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR>
 )
 
-# On MinGW and on Debug, ASTC encoding tests "randomly" crashout at the end
-# of execution if ISA is set to SSE. To avoid these extremely hard-to-debug
-# issues, just disable SIMD on MinGW with Debug builds (this was tested with
-# g++ 15.2.0).
-#
-# Since this may just be related to a particular compiler version, just warn
-# the user on MinGW if ASTCENC SIMD is enbled (we use a custom target PRE_BUILD
-# hook because on multi-generator builds the build type is known at build time).
+# On MinGW Debug builds, ASTC encoding tests "randomly" crashout at the end
+# of execution if ASTC is built with SIMD enabled. To avoid these extremely
+# hard-to-debug issues, just warn the user on MinGW Debug if ASTCENC SIMD is
+# enabled (we use a custom target PRE_BUILD hook because on multi-generator
+# builds the build type is usually known at build time).
 if (MINGW AND NOT ASTCENC_ISA_NONE)
     add_custom_command(TARGET ktx PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo
