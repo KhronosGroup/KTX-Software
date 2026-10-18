@@ -1356,6 +1356,32 @@ TEST_F(ktxTexture2_LoadImageDataTest, LoadImageDataExternal) {
     }
 }
 
+TEST(ktxTexture2_GetDataSizeUncompressed, CompareWithGetDataSizeAfterInflate) {
+    KTX_error_code result;
+    fs::path missing_alpha_slice = ktx2Path;
+    missing_alpha_slice.replace_filename(u8"invalid_zstd_level0_padding.ktx2");
+
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture2* texture = nullptr;
+
+    result = ktxTexture2_CreateFromNamedFile(
+        reinterpret_cast<const char*>(missing_alpha_slice.u8string().c_str()),
+        KTX_TEXTURE_CREATE_NO_FLAGS, &texture);
+    texture_raii.reset((ktxTexture*)texture);
+
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture != NULL) << "ktxTexture2_CreateFromNamedFile failed: "
+                                 << ktxErrorString(result);
+
+    const ktx_size_t reported_uncompressed_size = ktxTexture2_GetDataSizeUncompressed(texture);
+
+    result = ktxTexture2_LoadImageData(texture, NULL, 0);
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture->pData != NULL) << "Image data not loaded";
+
+    ASSERT_EQ(reported_uncompressed_size, texture->dataSize);
+}
+
 /////////////////////////////////////////
 // ktxTexture2 invalid creation params tests.
 ////////////////////////////////////////
