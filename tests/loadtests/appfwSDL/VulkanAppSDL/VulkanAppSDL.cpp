@@ -371,23 +371,37 @@ VulkanAppSDL::windowResized()
 }
 
 void
-VulkanAppSDL::resizeWindow(int, int)
+VulkanAppSDL::resizeWindow(int width, int height)
 {
     VkSurfaceCapabilitiesKHR surface_properties;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkctx.gpu, vkctx.swapchain.getSurface(),
                                               &surface_properties);
+#if 0
+    std::cerr << "width = " << width << ", height = " << height
+              << ", surface properties width = " << surface_properties.currentExtent.width
+              << ", surface properties height = " << surface_properties.currentExtent.height
+              << std::endl;
+#endif
+    uint32_t nw, nh;
+    nw = surface_properties.currentExtent.width;
+    // Observed on Ubuntu 24.04 with Wayland using Intel open-source
+    // Mesa driver on first resize event. Driver bug?
+    if (nw == UINT32_MAX) nw = width;
+    nh = surface_properties.currentExtent.width;
+    if (nh == UINT32_MAX) nh = height;
 
 	// Only re-create the swapchain if the dimensions have changed.
-	if (surface_properties.currentExtent.width == w_width &&
-	    surface_properties.currentExtent.height == w_height)
+	if (nw == w_width && nh == w_height)
 	{
 		return;
 	}
 
     // Set width & height from surface properties not passed arguments so this can be
     // called from places other than the resize event handler.
-    w_width = surface_properties.currentExtent.width;
-    w_height = surface_properties.currentExtent.height;
+    //w_width = surface_properties.currentExtent.width;
+    //w_height = surface_properties.currentExtent.height;
+    w_width = nw;
+    w_height = nh;
 
     // In-flight rendering must be complete before any images can be deleted.
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
