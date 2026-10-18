@@ -883,9 +883,9 @@ TEST_F(ktxTexture1_IterateLoadLevelFacesTest, IterateImages) {
 // ktxTexture2_IterateLoadLevelFaces supercompression tests
 ////////////////////////////////////////
 
-// ktxTexture2_IterateLoadLevelFaces was incorrectly handling retrieving
-// the decompressed size from ktxUncompressZLIBInt leading failure of a
-// check the the size matched the uncompressedByteLengh of the level in
+// ktxTexture2_IterateLoadLevelFaces was incorrectly handling retrieval
+// of the inflated size from ktxUncompressZLIBInt leading to failure of a
+// check that the size matches the uncompressedByteLengh of the level in
 // the level index. This test is to prevent regressions.
 
 // A one byte level deflates to more than one byte so the compressed and
