@@ -2493,9 +2493,9 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
         if (This->supercompressionScheme == KTX_SS_ZSTD) {
             levelSize =
                 ZSTD_decompressDCtx(dctx, uncompressedDataBuf,
-                                  uncompressedDataSize,
-                                  dataBuf,
-                                  levelSize);
+                                    uncompressedDataSize,
+                                    dataBuf,
+                                    levelSize);
             if (ZSTD_isError(levelSize)) {
                 ZSTD_ErrorCode error = ZSTD_getErrorCode(levelSize);
                 switch(error) {
@@ -2521,10 +2521,12 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
             //nindex[level].uncompressedByteLength = nindex[level].byteLength =
                                                                 //levelByteLength;
         } else if (This->supercompressionScheme == KTX_SS_ZLIB) {
+            ktx_size_t sizeInOut = uncompressedDataSize;
             result = ktxUncompressZLIBInt(uncompressedDataBuf,
-                                            &uncompressedDataSize,
-                                            dataBuf,
-                                            levelSize);
+                                          &sizeInOut,
+                                          dataBuf,
+                                          levelSize);
+            levelSize = sizeInOut;
             if (result != KTX_SUCCESS)
                 return result;
         }
