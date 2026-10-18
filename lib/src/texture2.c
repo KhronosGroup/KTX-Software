@@ -776,26 +776,24 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         goto cleanup;
 
     // Check that the data the header and level index declare is within the
-    // file, before memory is allocated for it.
-    result = stream->getsize(stream, &fileSize);
-    if (result != KTX_SUCCESS)
-        goto cleanup;
-    if ((ktx_uint64_t)pHeader->dataFormatDescriptor.byteOffset
-            + pHeader->dataFormatDescriptor.byteLength > fileSize ||
-        (ktx_uint64_t)pHeader->keyValueData.byteOffset
-            + pHeader->keyValueData.byteLength > fileSize ||
-        pHeader->supercompressionGlobalData.byteOffset > fileSize ||
-        pHeader->supercompressionGlobalData.byteLength
-            > fileSize - pHeader->supercompressionGlobalData.byteOffset) {
-        result = KTX_FILE_UNEXPECTED_EOF;
-        goto cleanup;
-    }
-    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
-        if (private->_levelIndex[level].byteOffset > fileSize ||
-            private->_levelIndex[level].byteLength
-                    > fileSize - private->_levelIndex[level].byteOffset) {
+    // file, before memory is allocated for it. The size of a pipe, such as
+    // stdin, is not known. Skip the check then; the reads still fail at EOF.
+    if (stream->getsize(stream, &fileSize) == KTX_SUCCESS) {
+        const ktxIndexEntry32* dfd = &pHeader->dataFormatDescriptor;
+        const ktxIndexEntry32* kvd = &pHeader->keyValueData;
+        const ktxIndexEntry64* sgd = &pHeader->supercompressionGlobalData;
+        if ((ktx_uint64_t)dfd->byteOffset + dfd->byteLength > fileSize ||
+            (ktx_uint64_t)kvd->byteOffset + kvd->byteLength > fileSize ||
+            sgd->byteOffset > fileSize || sgd->byteLength > fileSize - sgd->byteOffset) {
             result = KTX_FILE_UNEXPECTED_EOF;
             goto cleanup;
+        }
+        for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+            const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
+            if (entry->byteOffset > fileSize || entry->byteLength > fileSize - entry->byteOffset) {
+                result = KTX_FILE_UNEXPECTED_EOF;
+                goto cleanup;
+            }
         }
     }
 
