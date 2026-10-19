@@ -28,6 +28,7 @@ on:
       - .github/workflows/linux.yml
       - .github/workflows/macos.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/pyktx.yml
       - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .github/workflows/windows.yml
