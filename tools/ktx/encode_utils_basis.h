@@ -541,8 +541,9 @@ struct OptionsEncodeBasis : public ktxBasisParams {
         if (args[kUastcQuality].count()) {
             validateUASTCOrUASTCHDR4x4Arg(report, kUastcQuality);
             uint32_t level = captureCodecOption<uint32_t>(args, kUastcQuality);
-            level = std::clamp<uint32_t>(level, 0, KTX_PACK_UASTC_MAX_LEVEL);
-            uastcFlags = (unsigned int)~KTX_PACK_UASTC_LEVEL_MASK;
+            level = std::clamp<uint32_t>(level, 0u, KTX_PACK_UASTC_MAX_LEVEL);
+            // keep non-level flags as they are (i.e., clear level bits)
+            uastcFlags &= ~static_cast<uint32_t>(KTX_PACK_UASTC_LEVEL_MASK);
             uastcFlags |= level;
             uastcHDRQuality = level;
         }

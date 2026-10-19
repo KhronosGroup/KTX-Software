@@ -251,7 +251,7 @@ TEST_F(MultithreadedEncode, EncodeASTC) {
 
 }  // namespace
 
-GTEST_API_ int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {
