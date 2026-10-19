@@ -707,6 +707,7 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     ktxStream* stream;
     struct BDFD* pBDFD;
     ktx_size_t levelIndexSize;
+    ktx_size_t fileSize;
 
     assert(pHeader != NULL && pStream != NULL);
 
@@ -773,6 +774,29 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     result = stream->read(stream, &private->_levelIndex, levelIndexSize);
     if (result != KTX_SUCCESS)
         goto cleanup;
+
+    // Check that the data the header and level index declare is within the
+    // file, before memory is allocated for it. The size of a pipe, such as
+    // stdin, is not known. Skip the check then; the reads still fail at EOF.
+    if (stream->getsize(stream, &fileSize) == KTX_SUCCESS) {
+        const ktxIndexEntry32* dfd = &pHeader->dataFormatDescriptor;
+        const ktxIndexEntry32* kvd = &pHeader->keyValueData;
+        const ktxIndexEntry64* sgd = &pHeader->supercompressionGlobalData;
+        if ((ktx_uint64_t)dfd->byteOffset + dfd->byteLength > fileSize ||
+            (ktx_uint64_t)kvd->byteOffset + kvd->byteLength > fileSize ||
+            sgd->byteOffset > fileSize || sgd->byteLength > fileSize - sgd->byteOffset) {
+            result = KTX_FILE_UNEXPECTED_EOF;
+            goto cleanup;
+        }
+        for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+            const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
+            if (entry->byteOffset > fileSize || entry->byteLength > fileSize - entry->byteOffset) {
+                result = KTX_FILE_UNEXPECTED_EOF;
+                goto cleanup;
+            }
+        }
+    }
+
     // Rebase index to start of data and save file offset.
     private->_firstLevelFileOffset
                     = private->_levelIndex[This->numLevels-1].byteOffset;
