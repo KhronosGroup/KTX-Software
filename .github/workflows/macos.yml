@@ -28,6 +28,7 @@ on:
       - .github/workflows/linux.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/pyktx.yml
       - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .github/workflows/windows.yml
@@ -331,8 +332,10 @@ jobs:
         with:
           draft: true
           prerelease: true
+          # pyktx wheels for this platform come from pyktx.yml, with
+          # libktx bundled.
           files: |
               ${{env.BUILD_DIR}}/KTX-Software-*-*
-              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
+              ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
