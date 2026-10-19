@@ -540,24 +540,28 @@ static bool basisuEncoderInitialized = false;
 
 #if BASISU_SUPPORT_SSE
 // basisu reads the process-wide g_cpu_supports_sse41 while it compresses.
-// Compressions that keep SSE share the lock and run in parallel. A noSSE
-// compression holds it exclusively while the flag is cleared, and the flag
-// is restored on every return.
+// A compression that wants the flag as it is shares the lock and runs in
+// parallel. One that needs it changed holds the lock exclusively while it is
+// changed, and the flag is restored on every return.
 static std::shared_mutex sseFlagMutex;
 
 class SSEFlagGuard {
   public:
-    explicit SSEFlagGuard(bool noSSE) : noSSE(noSSE) {
-        if (noSSE) {
-            sseFlagMutex.lock();
-            prevSSESupport = g_cpu_supports_sse41;
-            g_cpu_supports_sse41 = false;
-        } else {
-            sseFlagMutex.lock_shared();
-        }
+    explicit SSEFlagGuard(bool noSSE) {
+        sseFlagMutex.lock_shared();
+        // No one changes the flag while the lock is shared. SSE can't be
+        // turned on when the CPU lacks SSE 4.1.
+        bool useSSE = !noSSE && g_cpu_supports_sse41;
+        if (useSSE == g_cpu_supports_sse41)
+            return;
+        sseFlagMutex.unlock_shared();
+        sseFlagMutex.lock();
+        exclusive = true;
+        prevSSESupport = g_cpu_supports_sse41;
+        g_cpu_supports_sse41 = useSSE;
     }
     ~SSEFlagGuard() {
-        if (noSSE) {
+        if (exclusive) {
             g_cpu_supports_sse41 = prevSSESupport;
             sseFlagMutex.unlock();
         } else {
@@ -568,7 +572,7 @@ class SSEFlagGuard {
     SSEFlagGuard& operator=(const SSEFlagGuard&) = delete;
 
   private:
-    bool noSSE;
+    bool exclusive = false;
     bool prevSSESupport = false;
 };
 #endif
