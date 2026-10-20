@@ -41,9 +41,12 @@ runs:
     - name: "Install Graphviz (Windows)"
       if: ${{ runner.os == 'Windows' }}
       shell: pwsh
+      # choco or GitHub's networks have proved to be unreliable.
       run: |
-        choco install graphviz --yes --no-progress
-
+        for(($tries = 0), ($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
+            choco upgrade graphviz --yes --no-progress --limit-output
+            $exitCode = $LASTEXITCODE
+        }
     - name: "Check Graphviz installation"
       #if: ${{ inputs.graphviz == 'true' }}
       shell: bash
