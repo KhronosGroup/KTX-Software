@@ -44,7 +44,6 @@ runs:
       # choco or GitHub's networks have proved to be unreliable.
       run: |
         for(($tries = 0), ($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
-            echo "tries = $tries"
             choco upgrade graphviz --yes --no-progress --limit-output
             $exitCode = $LASTEXITCODE
         }
