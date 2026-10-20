@@ -45,7 +45,7 @@ runs:
       run: |
         for(($tries = 0), ($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
             echo "tries = $tries"
-            choco list --yes --no-progress --limit-output
+            choco upgrade graphviz --yes --no-progress --limit-output
             $exitCode = $LASTEXITCODE
         }
     - name: "Check Graphviz installation"
