@@ -374,9 +374,11 @@ jobs:
       with:
         draft: true
         prerelease: true
+        # pyktx wheels for this platform come from pyktx.yml, with
+        # libktx bundled.
         files: |
             ${{env.BUILD_DIR}}/KTX-Software-*.exe*
-            ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
+            ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

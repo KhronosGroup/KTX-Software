@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 name: pyktx Wheels
 
-# Build pyktx wheels for Linux and macOS with cibuildwheel. libktx is
-# built first, then auditwheel (Linux) or delocate (macOS) copies it into
-# each wheel so the wheels work without a separate libktx install. The
-# Linux wheels have manylinux and musllinux tags which PyPI accepts.
+# Build pyktx wheels for Linux, macOS and Windows with cibuildwheel.
+# libktx is built first, then auditwheel (Linux), delocate (macOS) or
+# delvewheel (Windows) copies it into each wheel so the wheels work without
+# a separate libktx install. The Linux wheels have manylinux and musllinux
+# tags which PyPI accepts.
 
 # Seems no way to avoid duplicating this on logic in each .yml file.
 # See https://github.com/actions/starter-workflows/issues/245.
@@ -64,8 +65,16 @@ jobs:
             # Most Intel Macs predate AVX2, the ASTC encoder's default.
             # Same as scripts/build_macos.sh.
             cmake_options: -DASTCENC_ISA_SSE41=ON
+          # Same toolset as the Windows release packages.
+          - os: windows-latest
+            cmake_options: -T ClangCL
+          - os: windows-11-arm
+            cmake_options: -T ClangCL
     name: pyktx wheels ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     env:
       # Only the images used by the pyktx tests are pulled, below.
       GIT_LFS_SKIP_SMUDGE: 1
@@ -106,15 +115,30 @@ jobs:
             cmake -S . -B build-pyktx -DCMAKE_BUILD_TYPE=Release
             -DKTX_FEATURE_TESTS=OFF -DKTX_FEATURE_TOOLS=OFF
             -DKTX_FEATURE_LOADTEST_APPS=OFF ${{ matrix.cmake_options }} &&
-            cmake --build build-pyktx --parallel 4
+            cmake --build build-pyktx --config Release --parallel 4
           CIBW_ENVIRONMENT: >
             LIBKTX_INCLUDE_DIR=$(pwd)/lib/include
             DFDUTILS_INCLUDE_DIR=$(pwd)/external/dfdutils
             LIBKTX_LIB_DIR=$(pwd)/build-pyktx/Release
+          CIBW_ENVIRONMENT_WINDOWS: >
+            LIBKTX_INCLUDE_DIR='${{ github.workspace }}\lib\include'
+            DFDUTILS_INCLUDE_DIR='${{ github.workspace }}\external\dfdutils'
+            LIBKTX_IMPORT_DIR='${{ github.workspace }}\build-pyktx\lib\Release'
+            LIBKTX_LIB_DIR='${{ github.workspace }}\build-pyktx\Release'
           CIBW_ENVIRONMENT_PASS_LINUX: LIBKTX_VERSION
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+            delvewheel repair --add-path "${{ github.workspace }}\build-pyktx\Release"
+            -w {dest_dir} {wheel}
           # On free-threaded Python, also check importing pyktx does not
           # enable the GIL.
           CIBW_TEST_COMMAND: >
+            python -m unittest discover -v -s {project}/interface/python_binding/tests &&
+            python -c "import sys, sysconfig, pyktx;
+            assert not sysconfig.get_config_var('Py_GIL_DISABLED') or not sys._is_gil_enabled()"
+          # Unset LIBKTX_LIB_DIR so the tests use the bundled ktx.dll.
+          CIBW_TEST_COMMAND_WINDOWS: >
+            set "LIBKTX_LIB_DIR=" &&
             python -m unittest discover -v -s {project}/interface/python_binding/tests &&
             python -c "import sys, sysconfig, pyktx;
             assert not sysconfig.get_config_var('Py_GIL_DISABLED') or not sys._is_gil_enabled()"
