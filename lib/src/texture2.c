@@ -2485,14 +2485,15 @@ ktxTexture2_checkLevelsInStream(ktxTexture2* This)
 
     if (prtctd->_stream.getsize(&prtctd->_stream, &streamSize) != KTX_SUCCESS)
         return KTX_SUCCESS;
-    // The level index was rebased to the start of the image data.
-    if (private->_firstLevelFileOffset > streamSize)
-        return KTX_FILE_UNEXPECTED_EOF;
-    ktx_uint64_t available = streamSize - private->_firstLevelFileOffset;
     for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
         const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
-        if (entry->byteOffset > available
-            || entry->byteLength > available - entry->byteOffset)
+        // The constructor rebased the index to the offset of the smallest
+        // level. Adding that back restores the offset in the file, also for
+        // a level stored before the smallest one, whose rebased offset
+        // wrapped around.
+        ktx_uint64_t offset = entry->byteOffset
+                            + private->_firstLevelFileOffset;
+        if (offset > streamSize || entry->byteLength > streamSize - offset)
             return KTX_FILE_UNEXPECTED_EOF;
     }
     return KTX_SUCCESS;
