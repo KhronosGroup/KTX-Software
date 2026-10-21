@@ -776,9 +776,12 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
 
-    // Check that the data the header and level index declare is within the
-    // file, before memory is allocated for it. The size of a pipe, such as
-    // stdin, is not known. Skip the check then; the reads still fail at EOF.
+    // Check that the metadata the header declares is within the file, before
+    // memory is allocated for it. The size of a pipe, such as stdin, is not
+    // known. Skip the check then; the reads still fail at EOF. The image data
+    // is checked when it is loaded (ktxTexture2_checkLevelsInStream), so that
+    // a texture can be created from the start of a file, up to the end of
+    // its supercompression global data, without its image data.
     if (stream->getsize(stream, &fileSize) == KTX_SUCCESS) {
         const ktxIndexEntry32* dfd = &pHeader->dataFormatDescriptor;
         const ktxIndexEntry32* kvd = &pHeader->keyValueData;
@@ -788,13 +791,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             sgd->byteOffset > fileSize || sgd->byteLength > fileSize - sgd->byteOffset) {
             result = KTX_FILE_UNEXPECTED_EOF;
             goto cleanup;
-        }
-        for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
-            const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
-            if (entry->byteOffset > fileSize || entry->byteLength > fileSize - entry->byteOffset) {
-                result = KTX_FILE_UNEXPECTED_EOF;
-                goto cleanup;
-            }
         }
     }
 
@@ -2464,6 +2460,45 @@ ktxTexture2_IterateLevels(ktxTexture2* This, PFNKTXITERCB iterCb, void* userdata
 }
 
 /**
+ * @internal
+ * @~English
+ * @brief Check that the image data the level index declares is within the
+ *        source stream, before memory is allocated for it.
+ *
+ * The size of a pipe, such as stdin, is not known. The check is skipped
+ * then; the reads still fail at EOF.
+ *
+ * @param[in] This pointer to the ktxTexture2 object of interest.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_UNEXPECTED_EOF
+ *                              The data of a level extends past the end of
+ *                              the source.
+ */
+static KTX_error_code
+ktxTexture2_checkLevelsInStream(ktxTexture2* This)
+{
+    DECLARE_PROTECTED(ktxTexture);
+    DECLARE_PRIVATE(ktxTexture2);
+    ktx_size_t streamSize;
+
+    if (prtctd->_stream.getsize(&prtctd->_stream, &streamSize) != KTX_SUCCESS)
+        return KTX_SUCCESS;
+    // The level index was rebased to the start of the image data.
+    if (private->_firstLevelFileOffset > streamSize)
+        return KTX_FILE_UNEXPECTED_EOF;
+    ktx_uint64_t available = streamSize - private->_firstLevelFileOffset;
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
+        if (entry->byteOffset > available
+            || entry->byteLength > available - entry->byteOffset)
+            return KTX_FILE_UNEXPECTED_EOF;
+    }
+    return KTX_SUCCESS;
+}
+
+/**
  * @memberof ktxTexture2
  * @~English
  * @brief Iterate over the images in a ktxTexture2 object while loading the
@@ -2538,6 +2573,10 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
     if (prtctd->_stream.data.file == NULL)
         // This Texture not created from a stream or images are already loaded.
         return KTX_INVALID_OPERATION;
+
+    result = ktxTexture2_checkLevelsInStream(This);
+    if (result != KTX_SUCCESS)
+        return result;
 
     levelIndex = This->_private->_levelIndex;
 
@@ -2767,6 +2806,10 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
     if (prtctd->_stream.data.file == NULL)
         // This Texture not created from a stream or images already loaded;
         return KTX_INVALID_OPERATION;
+
+    result = ktxTexture2_checkLevelsInStream(This);
+    if (result != KTX_SUCCESS)
+        return result;
 
     if (inflateHandling == LOADDATA_INFLATE_ON_LOAD) {
         outputDataCapacity = ktxTexture2_GetDataSizeUncompressed(This);

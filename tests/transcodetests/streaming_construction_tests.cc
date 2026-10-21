@@ -369,6 +369,53 @@ TEST_P(StreamingShellTest, LateLoadImageDataOnShellFailsCleanly) {
     ktxTexture_Destroy(ktxTexture(shell));
 }
 
+KTX_error_code iterateNothing(int, int, int, int, int, ktx_uint64_t, void*,
+                              void*) {
+    return KTX_SUCCESS;
+}
+
+// The image data is checked against the source when it is loaded, not when
+// the texture is created, so that a texture can be created from the start
+// of a file. A level that claims more data than the whole file holds is
+// still refused before memory is allocated for it.
+TEST_P(StreamingShellTest, LevelBeyondTheSourceFailsWhenLoaded) {
+    std::vector<ktx_uint8_t> file = fileFor(GetParam());
+    ASSERT_FALSE(file.empty());
+    FileMap m;
+    ASSERT_NO_FATAL_FAILURE(parseFileMap(file, m));
+
+    // Claim 1 TiB for level 0. Without supercompression its byteLength must
+    // equal its uncompressedByteLength.
+    const ktx_uint64_t huge = 1ull << 40;
+    std::memcpy(file.data() + 80 + 8, &huge, sizeof(huge));
+    if (m.supercompressionScheme == KTX_SS_NONE)
+        std::memcpy(file.data() + 80 + 16, &huge, sizeof(huge));
+
+    ktxTexture2* texture = nullptr;
+    KTX_error_code result = ktxTexture2_CreateFromMemory(
+        file.data(), file.size(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &texture);
+    EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << ktxErrorString(result);
+    EXPECT_EQ(texture, nullptr);
+    if (texture)
+        ktxTexture_Destroy(ktxTexture(texture));
+
+    texture = nullptr;
+    result = ktxTexture2_CreateFromMemory(file.data(), file.size(), 0,
+                                          &texture);
+    ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    result = ktxTexture2_LoadImageData(texture, nullptr, 0);
+    EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << ktxErrorString(result);
+    EXPECT_EQ(texture->pData, nullptr);
+    // BasisLZ data cannot be iterated level by level from the source.
+    if (m.supercompressionScheme != KTX_SS_BASIS_LZ) {
+        result = ktxTexture_IterateLoadLevelFaces(ktxTexture(texture),
+                                                  iterateNothing, nullptr);
+        EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << ktxErrorString(result);
+    }
+    ktxTexture_Destroy(ktxTexture(texture));
+}
+
 TEST_P(StreamingShellTest, TruncatedMetadataFailsCleanly) {
     const std::vector<ktx_uint8_t>& file = fileFor(GetParam());
     ASSERT_FALSE(file.empty());
