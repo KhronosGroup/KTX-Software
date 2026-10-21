@@ -92,11 +92,9 @@ jobs:
           else
             option=
           fi
-          # Omit linux packages since PyPI won't accept them and, at the
-          # moment, we don't have a workflow to build manylinux wheels, which
-          # it will accept. It's non-trivial to implement that. See
-          # https://github.com/pypa/manylinux?tab=readme-ov-file#docker-images
-          scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*linux.*)' --output-dir dist
+          # Omit any wheel with a plain linux tag as PyPI won't accept it.
+          # The manylinux and musllinux wheels from pyktx.yml are accepted.
+          scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*-linux_)' --output-dir dist
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -130,7 +128,7 @@ jobs:
           else
             option=
           fi
-          scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*linux.*)' --output-dir dist
+          scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*-linux_)' --output-dir dist
       - name: Publish distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

@@ -21,6 +21,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <cstring> // std::memcpy
+#include <shared_mutex>
 #include <zstd.h>
 #include <KHR/khr_df.h>
 
@@ -537,6 +538,45 @@ ktxTexture2_rewriteDfd4UastcHDR6x6i(ktxTexture2* This, alpha_content_e alphaCont
 
 static bool basisuEncoderInitialized = false;
 
+#if BASISU_SUPPORT_SSE
+// basisu reads the process-wide g_cpu_supports_sse41 while it compresses.
+// A compression that wants the flag as it is shares the lock and runs in
+// parallel. One that needs it changed holds the lock exclusively while it is
+// changed, and the flag is restored on every return.
+static std::shared_mutex sseFlagMutex;
+
+class SSEFlagGuard {
+  public:
+    explicit SSEFlagGuard(bool noSSE) {
+        sseFlagMutex.lock_shared();
+        // No one changes the flag while the lock is shared. SSE can't be
+        // turned on when the CPU lacks SSE 4.1.
+        bool useSSE = !noSSE && g_cpu_supports_sse41;
+        if (useSSE == g_cpu_supports_sse41)
+            return;
+        sseFlagMutex.unlock_shared();
+        sseFlagMutex.lock();
+        exclusive = true;
+        prevSSESupport = g_cpu_supports_sse41;
+        g_cpu_supports_sse41 = useSSE;
+    }
+    ~SSEFlagGuard() {
+        if (exclusive) {
+            g_cpu_supports_sse41 = prevSSESupport;
+            sseFlagMutex.unlock();
+        } else {
+            sseFlagMutex.unlock_shared();
+        }
+    }
+    SSEFlagGuard(const SSEFlagGuard&) = delete;
+    SSEFlagGuard& operator=(const SSEFlagGuard&) = delete;
+
+  private:
+    bool exclusive = false;
+    bool prevSSESupport = false;
+};
+#endif
+
 /**
  * @memberof ktxTexture2
  * @ingroup writer
@@ -868,9 +908,7 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     cparams.m_pJob_pool = &jpool;
 
 #if BASISU_SUPPORT_SSE
-    bool prevSSESupport = g_cpu_supports_sse41;
-    if (params->noSSE)
-        g_cpu_supports_sse41 = false;
+    SSEFlagGuard sseFlagGuard(params->noSSE);
 #endif
 
     // This is more robust to future changes than setting the parameters individually.
@@ -1076,10 +1114,6 @@ ktxTexture2_CompressBasisEx(ktxTexture2* This, ktxBasisParams* params)
     // Compression successful. Now we have to unpick the basis output and
     // copy the info and images to This texture.
     //
-
-#if BASISU_SUPPORT_SSE
-    g_cpu_supports_sse41 = prevSSESupport;
-#endif
 
     const uint8_vec& bf = c.get_output_basis_file();
     const basis_file_header& bfh = *reinterpret_cast<const basis_file_header*>(bf.data());
