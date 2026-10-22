@@ -233,7 +233,7 @@ jobs:
         run: |
           dnf install -y epel-release
           dnf module enable -y maven:3.8
-          dnf install -y --enablerepo=powertools bison flex graphviz git-lfs \
+          dnf install -y --enablerepo=powertools bison graphviz git-lfs \
             java-17-openjdk-devel maven maven-openjdk17 rpm-build
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
           # The system python3 is too old for pyktx's requirements and EL8's
@@ -244,8 +244,9 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # EL8's Doxygen 1.8.14 is too old for the docs' layout file, and
-      # Doxygen publishes no aarch64 Linux binary, so build the version
-      # docs.yml installs.
+      # Doxygen's Linux binary needs glibc 2.34 and has no aarch64 build,
+      # so build the version docs.yml installs. EL8's flex 2.6.1 can't
+      # build it, so build flex 2.6.4 first.
       - name: Cache Doxygen (manylinux)
         if: matrix.container
         id: cache-doxygen
@@ -257,11 +258,16 @@ jobs:
       - name: Build Doxygen (manylinux)
         if: matrix.container && steps.cache-doxygen.outputs.cache-hit != 'true'
         run: |
+          curl -sSL https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz | tar xz
+          # flex 2.6.4 needs _GNU_SOURCE for reallocarray with GCC 14.
+          (cd flex-2.6.4 && ./configure --prefix=/tmp/flex --disable-nls \
+            CFLAGS="-O2 -D_GNU_SOURCE" && make -j$(nproc) && make install)
           curl -sSL https://github.com/doxygen/doxygen/releases/download/Release_1_18_0/doxygen-1.18.0.src.tar.gz | tar xz
           cmake -S doxygen-1.18.0 -B doxygen-build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/doxygen
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/doxygen \
+            -DFLEX_EXECUTABLE=/tmp/flex/bin/flex
           cmake --build doxygen-build --target install
-          rm -rf doxygen-1.18.0 doxygen-build
+          rm -rf flex-2.6.4 /tmp/flex doxygen-1.18.0 doxygen-build
 
       - name: Set compiler
         if: matrix.compiler
