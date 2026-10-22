@@ -1235,6 +1235,19 @@ ktxTexture2_LoadDeflatedImageData(ktxTexture2* This,
                                   ktx_uint8_t* pBuffer, ktx_size_t bufSize);
 
 /*
+ * These two write images to a KTX v2 texture directly.
+ */
+KTX_API KTX_error_code
+ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               const ktx_uint8_t* src, ktx_size_t srcSize);
+
+KTX_API KTX_error_code
+ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
+                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                    FILE* src, ktx_size_t srcSize);
+
+/*
  * These four write a ktxTexture2 object to a KTX v2 file.
  */
 KTX_API KTX_error_code KTX_APIENTRY
