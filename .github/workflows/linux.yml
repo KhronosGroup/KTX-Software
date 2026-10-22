@@ -188,6 +188,9 @@ jobs:
       SUPPORT_OPENCL: ${{ matrix.options.opencl && matrix.options.opencl || 'OFF' }}
       SUPPORT_SSE: ${{ matrix.options.sse && matrix.options.sse || 'OFF' }}
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
+      # GNUInstallDirs picks lib64 on RHEL-based manylinux. Keep the packages'
+      # lib directory the same as when they were built on Ubuntu.
+      INSTALL_LIBDIR: ${{ matrix.container && 'lib' || '' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
       # CC Handled by job step
       # CXX Handled by job step
