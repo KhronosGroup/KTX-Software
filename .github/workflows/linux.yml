@@ -97,28 +97,29 @@ jobs:
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
             sse: ON, opencl: OFF
           }
+        # The packages are built in manylinux_2_28 so they need only glibc
+        # 2.28 and run on older distributions. The load tests aren't
+        # packaged so they aren't built here. Other jobs build them.
         - name: Package (x86_64)
-          os: ubuntu-22.04
+          os: ubuntu-latest
+          container: quay.io/pypa/manylinux_2_28_x86_64
           generator: Ninja
           arch: x86_64
           compiler: gcc
-          vk_sdk_ver: '1.4.313'
-          #vcpkg_install_options: --debug
           options: {
             config: Release,
-            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            doc: ON, jni: ON, loadtests: OFF, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: ON, opencl: OFF
           }
         - name: Package (aarch64)
-          os: ubuntu-22.04-arm
+          os: ubuntu-24.04-arm
+          container: quay.io/pypa/manylinux_2_28_aarch64
           generator: Ninja
           arch: aarch64
           compiler: gcc
-          vk_sdk_ver: '1.4.313'
-          #vcpkg_install_options: --debug
           options: {
             config: Release,
-            doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
+            doc: ON, jni: ON, loadtests: OFF, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
         # Can't run OpenCL on Actions because the runner CPU reports as
@@ -160,6 +161,7 @@ jobs:
 
     name: ${{ matrix.name && matrix.name || format('{0} SSE,OpenCL:{1},{2}', matrix.os, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     env:
       # To avoid bandwidth charges skip downloading source and golden images
       # for texturetests etc., loadtests and legacy tool tests. They will be
@@ -186,6 +188,9 @@ jobs:
       SUPPORT_OPENCL: ${{ matrix.options.opencl && matrix.options.opencl || 'OFF' }}
       SUPPORT_SSE: ${{ matrix.options.sse && matrix.options.sse || 'OFF' }}
       PY_USE_VENV: ${{ matrix.options.py.use_venv && matrix.options.py_use_venv || 'OFF' }}
+      # GNUInstallDirs picks lib64 on RHEL-based manylinux. Keep the packages'
+      # lib directory the same as when they were built on Ubuntu.
+      INSTALL_LIBDIR: ${{ matrix.container && 'lib' || '' }}
       WERROR: ${{ matrix.options.werror && matrix.options.werror || 'ON' }}
       # CC Handled by job step
       # CXX Handled by job step
@@ -226,6 +231,50 @@ jobs:
           # included (used for version creation)
           fetch-depth: 0
 
+      - name: Install build tools (manylinux)
+        if: matrix.container
+        run: |
+          dnf install -y epel-release
+          dnf module enable -y maven:3.8
+          dnf install -y --enablerepo=powertools bison graphviz git-lfs \
+            java-17-openjdk-devel maven maven-openjdk17 rpm-build
+          # The git-lfs package sets up root's ~/.gitconfig, but in a job
+          # container HOME is /github/home.
+          git lfs install
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
+          # The system python3 is too old for pyktx's requirements and EL8's
+          # ninja too old for Doxygen's build, so use Python 3.12 and its ninja.
+          /opt/python/cp312-cp312/bin/pip install ninja
+          echo "/opt/python/cp312-cp312/bin" >> $GITHUB_PATH
+          echo "/opt/doxygen/bin" >> $GITHUB_PATH
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # EL8's Doxygen 1.8.14 is too old for the docs' layout file, and
+      # Doxygen's Linux binary needs glibc 2.34 and has no aarch64 build,
+      # so build the version docs.yml installs. EL8's flex 2.6.1 can't
+      # build it, so build flex 2.6.4 first.
+      - name: Cache Doxygen (manylinux)
+        if: matrix.container
+        id: cache-doxygen
+        uses: actions/cache@v6
+        with:
+          path: /opt/doxygen
+          key: doxygen-1.18.0-${{ matrix.container }}
+
+      - name: Build Doxygen (manylinux)
+        if: matrix.container && steps.cache-doxygen.outputs.cache-hit != 'true'
+        run: |
+          curl -sSL https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz | tar xz
+          # flex 2.6.4 needs _GNU_SOURCE for reallocarray with GCC 14.
+          (cd flex-2.6.4 && ./configure --prefix=/tmp/flex --disable-nls \
+            CFLAGS="-O2 -D_GNU_SOURCE" && make -j$(nproc) && make install)
+          curl -sSL https://github.com/doxygen/doxygen/releases/download/Release_1_18_0/doxygen-1.18.0.src.tar.gz | tar xz
+          cmake -S doxygen-1.18.0 -B doxygen-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/doxygen \
+            -DFLEX_EXECUTABLE=/tmp/flex/bin/flex
+          cmake --build doxygen-build --target install
+          rm -rf flex-2.6.4 /tmp/flex doxygen-1.18.0 doxygen-build
+
       - name: Set compiler
         if: matrix.compiler
         run: |
@@ -246,12 +295,14 @@ jobs:
         run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
       - name: before_install
+        if: ${{ !matrix.container }}
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
           echo -n "CMake version on the runner is " && cmake --version
           sudo apt-get update
 
       - name: install
+        if: ${{ !matrix.container }}
         run: |
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
