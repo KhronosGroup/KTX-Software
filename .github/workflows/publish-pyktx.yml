@@ -93,7 +93,8 @@ jobs:
             option=
           fi
           # Omit any wheel with a plain linux tag as PyPI won't accept it.
-          # The manylinux and musllinux wheels from pyktx.yml are accepted.
+          # pyktx.yml builds only manylinux and musllinux wheels, but releases
+          # from before it, such as v5.0.0-rc2, have plain linux wheels.
           scripts/download_release_assets.sh $option --filter '(?:^pyktx)(?!.*-linux_)' --output-dir dist
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
