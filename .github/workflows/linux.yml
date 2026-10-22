@@ -232,12 +232,34 @@ jobs:
         if: matrix.container
         run: |
           dnf install -y epel-release
-          dnf install -y --enablerepo=powertools doxygen graphviz git-lfs \
-            java-17-openjdk-devel ninja-build rpm-build
+          dnf module enable -y maven:3.8
+          dnf install -y --enablerepo=powertools bison flex graphviz git-lfs \
+            java-17-openjdk-devel maven maven-openjdk17 ninja-build rpm-build
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
           # The system python3 is too old for pyktx's requirements.
           echo "/opt/python/cp312-cp312/bin" >> $GITHUB_PATH
+          echo "/opt/doxygen/bin" >> $GITHUB_PATH
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # EL8's Doxygen 1.8.14 is too old for the docs' layout file, and
+      # Doxygen publishes no aarch64 Linux binary, so build the version
+      # docs.yml installs.
+      - name: Cache Doxygen (manylinux)
+        if: matrix.container
+        id: cache-doxygen
+        uses: actions/cache@v6
+        with:
+          path: /opt/doxygen
+          key: doxygen-1.18.0-${{ matrix.container }}
+
+      - name: Build Doxygen (manylinux)
+        if: matrix.container && steps.cache-doxygen.outputs.cache-hit != 'true'
+        run: |
+          curl -sSL https://github.com/doxygen/doxygen/releases/download/Release_1_18_0/doxygen-1.18.0.src.tar.gz | tar xz
+          cmake -S doxygen-1.18.0 -B doxygen-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/doxygen
+          cmake --build doxygen-build --target install
+          rm -rf doxygen-1.18.0 doxygen-build
 
       - name: Set compiler
         if: matrix.compiler
