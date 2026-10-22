@@ -234,9 +234,11 @@ jobs:
           dnf install -y epel-release
           dnf module enable -y maven:3.8
           dnf install -y --enablerepo=powertools bison flex graphviz git-lfs \
-            java-17-openjdk-devel maven maven-openjdk17 ninja-build rpm-build
+            java-17-openjdk-devel maven maven-openjdk17 rpm-build
           echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk" >> $GITHUB_ENV
-          # The system python3 is too old for pyktx's requirements.
+          # The system python3 is too old for pyktx's requirements and EL8's
+          # ninja too old for Doxygen's build, so use Python 3.12 and its ninja.
+          /opt/python/cp312-cp312/bin/pip install ninja
           echo "/opt/python/cp312-cp312/bin" >> $GITHUB_PATH
           echo "/opt/doxygen/bin" >> $GITHUB_PATH
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
