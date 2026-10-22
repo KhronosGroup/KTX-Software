@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/walcht/bc7enc_rdo.git
+	branch = restructure-for-bcn-encoder-decoder
+	commit = 2268ddf4f1ee63496d28c614794fa97e076f0f3c
+	parent = d9b6e638a233c10e68c70cfe3515c785bdbff3f4
+	method = merge
+	cmdver = 0.4.9

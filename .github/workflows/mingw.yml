@@ -95,6 +95,7 @@ jobs:
 
     - name: Build MinGW x64 Debug
       run: cmake --build build --config Debug -j $(nproc)
+
     - name: Build MinGW x64 Release
       run: cmake --build build --config Release -j $(nproc)
 

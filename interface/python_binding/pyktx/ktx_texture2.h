@@ -33,6 +33,21 @@ KTX_error_code PY_ktxTexture2_CompressAstcEx(ktxTexture2 *texture,
                                              ktx_bool_t perceptual,
                                              char *inputSwizzle);
 
+KTX_error_code PY_ktxTexture2_CompressBCnEx(ktxTexture2 *texture,
+                                             ktx_uint32_t threadCount,
+                                             ktx_uint32_t bcn,
+                                             ktx_uint32_t bcnCompressionQuality,
+                                             float bcnRDOQualityScalar,
+                                             ktx_uint32_t bcnRDODictSize,
+                                             float bcnRDOMaxSmoothBlockErrorScale,
+                                             float bcnRDOMaxSmoothBlockStdDev,
+                                             float bcnRDOMaxAllowedRMSIncreaseRatio,
+                                             ktx_bool_t bcnRDO,
+                                             ktx_bool_t bcnRDONoUltrasmoothBlockHandling,
+                                             ktx_bool_t bcnRDOTryOneMatch,
+                                             ktx_bool_t bcnRDOSkipZeroMSEBlocks,
+                                             ktx_bool_t bcnRDONoMultithreading);
+
 KTX_error_code PY_ktxTexture2_CompressBasisEx(ktxTexture2 *texture,
                                               int codec,
                                               ktx_bool_t verbose,

@@ -135,4 +135,9 @@ template <typename Options>
 constexpr void fillOptionsCodecAstc(Options &options) {
     fillOptionsCodec<decltype(options), ktxAstcParams>(options);
 }
+
+template <typename Options>
+constexpr void fillOptionsCodecBCn(Options &options) {
+    options.ktxBCnParams::threadCount = options.OptionsEncodeCommon::threadCount;
+}
 } // namespace ktx

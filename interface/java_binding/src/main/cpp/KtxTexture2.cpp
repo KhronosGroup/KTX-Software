@@ -158,6 +158,56 @@ extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressAstc(
     return ktxTexture2_CompressAstc(texture, static_cast<uint32_t>(quality));
 }
 
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_decodeAstc(JNIEnv *env,
+                                                                              jobject thiz)
+{
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL)
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_DecodeAstc(texture);
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBCnEx(JNIEnv *env,
+                                                                                jobject thiz,
+                                                                                jobject jparams)
+{
+    if (jparams == NULL)
+    {
+      ThrowByName(env, "java/lang/NullPointerException", "Parameter 'jparams' is null for compressBCnEx");
+      return 0;
+    }
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL)
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+
+    ktxBCnParams params = {};
+    if (!copy_ktx_bcn_params(env, jparams, params))
+    {
+        // Exception is already pending
+        return 0;
+    }
+
+    return ktxTexture2_CompressBCnEx(texture, &params);
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_decodeBCn(JNIEnv *env,
+                                                                                jobject thiz)
+{
+    ktxTexture2 *texture = get_ktx2_texture(env, thiz);
+    if (texture == NULL)
+    {
+      ThrowDestroyed(env);
+      return 0;
+    }
+    return ktxTexture2_DecodeBCn(texture);
+}
+
 extern "C" JNIEXPORT jint JNICALL Java_org_khronos_ktx_KtxTexture2_compressBasisEx(JNIEnv *env,
                                                                                 jobject thiz,
                                                                                 jobject jparams)
