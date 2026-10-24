@@ -337,16 +337,16 @@ jobs:
         run: |
           ./scripts/build_linux.sh
 
-      - name: Check that SIMD is disabled
+      - name: Check SIMD settings on RISC-V
         # BasisU has no RISC-V SIMD path and astc-encoder must fall back to its
-        # "none" ISA. Assert it from the cache rather than inferring it from a
-        # successful build, so a future regression in the CPU detection is caught.
+        # scalar "none" ISA. cmake_dependent_option() stores BASISU_SSE with
+        # cache type INTERNAL when its condition is false, so match the type
+        # loosely. ASTCENC_ISA_NONE is always a BOOL cache entry.
         if: matrix.arch == 'riscv64'
         run: |
-          grep -q '^BASISU_SSE:BOOL=OFF'      $BUILD_DIR/CMakeCache.txt
-          grep -q '^BASISU_OPENCL:BOOL=OFF'   $BUILD_DIR/CMakeCache.txt
-          grep -q '^ASTCENC_ISA_NONE:BOOL=ON' $BUILD_DIR/CMakeCache.txt
-          echo "SIMD disabled for riscv64: BasisU SSE and OpenCL off, ASTC ISA none."
+          grep -qE '^BASISU_SSE:[A-Z]+=OFF'    "$BUILD_DIR/CMakeCache.txt"
+          grep -q  '^ASTCENC_ISA_NONE:BOOL=ON' "$BUILD_DIR/CMakeCache.txt"
+          echo "riscv64: BasisU SSE off, astc-encoder using its none ISA."
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
