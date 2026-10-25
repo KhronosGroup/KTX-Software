@@ -107,10 +107,12 @@ VulkanAppSDL::initialize(Args& args)
 //        {"r2100-hlg-nl", {vk::ColorSpaceKHR::eHdr10HlgEXT, true, false}},
     };
 
+#if SDL_PLATFORM_APPLE
     static const std::unordered_map<std::string, vk::DriverId> selectableDrivers {
         { "kk", vk::DriverId::eMesaKosmickrisp },
         { "mvk", vk::DriverId::eMoltenvk }
     };
+#endif
 
     std::string colorSpaceStr;
 #if !SDL_PLATFORM_APPLE || SDL_PLATFORM_MACOS
@@ -160,6 +162,7 @@ VulkanAppSDL::initialize(Args& args)
             i--;
             continue;
         }
+#if SDL_PLATFORM_APPLE
         if (args[i].compare("--driver") == 0) {
             if (args.size() < i + 2) {
                 (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, szName,
@@ -181,6 +184,7 @@ VulkanAppSDL::initialize(Args& args)
             i--;
             continue;
         }
+#endif
     }
     bool colorSpaceSet = false;
     std::string specMethods = ", specified via --cs or KTX_VK_LT_SURFACE_COLOR_SPACE";
@@ -370,39 +374,50 @@ VulkanAppSDL::windowResized()
     // Derived class can override as necessary.
 }
 
+#define GUARD_UNSET_SURFACE_SIZE 1
+#define LOG_RESIZE 0
 void
 VulkanAppSDL::resizeWindow(int width, int height)
 {
     VkSurfaceCapabilitiesKHR surface_properties;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkctx.gpu, vkctx.swapchain.getSurface(),
                                               &surface_properties);
-#if 0
+#if LOG_RESIZE
     std::cerr << "width = " << width << ", height = " << height
               << ", surface properties width = " << surface_properties.currentExtent.width
               << ", surface properties height = " << surface_properties.currentExtent.height
               << std::endl;
 #endif
     uint32_t nw, nh;
+    // Set width & height from surface properties not passed
+    // arguments so this can be called from places other than
+    // the resize event handler.
     nw = surface_properties.currentExtent.width;
-    // Observed on Ubuntu 24.04 with Wayland using Intel open-source
-    // Mesa driver on first resize event. Driver bug?
+    nh = surface_properties.currentExtent.height;
+#if GUARD_UNSET_SURFACE_SIZE
+    // Observed on Ubuntu 24.04 with SDL_VIDEODRIVER=wayland, or if built
+    // without the SDL x11 feature, using Intel open-source Mesa driver,
+    // seemingly on every resize event. The first resize event has the size
+    // of a maximized window. The window is also drawn without decorations,
+    // a problem also suffered by gl3loadtests.
     if (nw == UINT32_MAX) nw = width;
-    nh = surface_properties.currentExtent.width;
     if (nh == UINT32_MAX) nh = height;
-
+#else
+    // Keep compilers happy
+    (void)width;
+    (void)height;
+#endif
 	// Only re-create the swapchain if the dimensions have changed.
-	if (nw == w_width && nh == w_height)
-	{
+	if (nw == w_width && nh == w_height) {
 		return;
 	}
 
-    // Set width & height from surface properties not passed arguments so this can be
-    // called from places other than the resize event handler.
-    //w_width = surface_properties.currentExtent.width;
-    //w_height = surface_properties.currentExtent.height;
     w_width = nw;
     w_height = nh;
-
+#if LOG_RESIZE
+    std::cerr << "Recreating swapchain: w_width = " << w_width
+              << ", w_height = " << w_height << std::endl;
+#endif
     // In-flight rendering must be complete before any images can be deleted.
     VK_CHECK_RESULT(vkQueueWaitIdle(vkctx.queue));
 
@@ -877,12 +892,8 @@ VulkanAppSDL::findGpu()
     gpus.resize(gpuCount);
     err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
     assert(err == vk::Result::eSuccess);
-#if (SDL_PLATFORM_MACOS)
-    bool macOS = true;
-#else
-    bool macOS = false;
-#endif
-    if (macOS && gpuCount > 1) {
+#if (SDL_PLATFORM_APPLE)
+    if (gpuCount > 1) {
         // KosmicKrisp only advertises a VkPhysicalDevice when running on an OS
         // it supports, if this block has been entered, KosmicKrisp is supported.
         vk::PhysicalDevice chosenGpu = nullptr;
@@ -900,11 +911,14 @@ VulkanAppSDL::findGpu()
             ERROR_RETURN(msg.c_str());
         }
         vkctx.setGpu(chosenGpu);
-    } else {
+    } else
+#else
+    {
         // For non-macos with multiple gpu's, for now grab the first available.
         vkctx.setGpu(gpus[0]);
         vkctx.gpu.getProperties2(&vkctx.gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>());
     }
+#endif
 
     return true;
 } // findGpu

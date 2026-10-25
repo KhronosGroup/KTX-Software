@@ -141,7 +141,14 @@ class VulkanAppSDL : public AppBaseSDL {
     VulkanSwapchain::csInfo defaultHdrColorSpace;
     VulkanSwapchain::csInfo colorSpace = defaultLdrColorSpace;
 
+#if SDL_PLATFORM_APPLE
+  #if VK_HEADER_VERSION >= 357
+    // This Id was not available in headers much before this.
     vk::DriverId requestedDriver = vk::DriverId::eMesaKosmickrisp;
+  #else
+    vk::DriverId requestedDriver = vk::DriverId::eMoltenVK;
+  #endif
+#endif
 
     std::vector<const char*> extensionNames;
 
