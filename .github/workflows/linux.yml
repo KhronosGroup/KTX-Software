@@ -340,13 +340,15 @@ jobs:
       - name: Check SIMD settings on RISC-V
         # BasisU has no RISC-V SIMD path and astc-encoder must fall back to its
         # scalar "none" ISA. cmake_dependent_option() stores BASISU_SSE with
-        # cache type INTERNAL when its condition is false, so match the type
-        # loosely. ASTCENC_ISA_NONE is always a BOOL cache entry.
+        # cache type INTERNAL when its condition is false, so accept any type.
         if: matrix.arch == 'riscv64'
         run: |
-          grep -qE '^BASISU_SSE:[A-Z]+=OFF'    "$BUILD_DIR/CMakeCache.txt"
-          grep -q  '^ASTCENC_ISA_NONE:BOOL=ON' "$BUILD_DIR/CMakeCache.txt"
-          echo "riscv64: BasisU SSE off, astc-encoder using its none ISA."
+          c=$BUILD_DIR/CMakeCache.txt
+          grep -q '^BASISU_SSE:' "$c" || { echo "BASISU_SSE: missing"; exit 1; }
+          grep -q '^BASISU_SSE:[A-Z]*=OFF' "$c" || { echo "BASISU_SSE: expected OFF, got $(grep '^BASISU_SSE:' "$c" | cut -d: -f2)"; exit 1; }
+          grep -q '^ASTCENC_ISA_NONE:' "$c" || { echo "ASTCENC_ISA_NONE: missing"; exit 1; }
+          grep -q '^ASTCENC_ISA_NONE:[A-Z]*=ON' "$c" || { echo "ASTCENC_ISA_NONE: expected ON, got $(grep '^ASTCENC_ISA_NONE:' "$c" | cut -d: -f2)"; exit 1; }
+          grep -E '^(BASISU_SSE|ASTCENC_ISA_NONE):' "$c"
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
