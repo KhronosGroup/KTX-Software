@@ -809,6 +809,19 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
 
+    // Level 0 is the last level in the data and dataSize ends with it, so no
+    // level may end after it. An overflowing level 0 end fails for level 0.
+    ktx_uint64_t dataEnd = private->_levelIndex[0].byteOffset
+                           + private->_levelIndex[0].byteLength;
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        if (private->_levelIndex[level].byteOffset > dataEnd ||
+            private->_levelIndex[level].byteLength
+                    > dataEnd - private->_levelIndex[level].byteOffset) {
+            result = KTX_FILE_DATA_ERROR;
+            goto cleanup;
+        }
+    }
+
     // Read DFD
     if (pHeader->dataFormatDescriptor.byteOffset == 0 || pHeader->dataFormatDescriptor.byteLength < 16) {
         // Missing or too small DFD
