@@ -823,12 +823,12 @@ Texture::keyPressed(uint32_t keyCode)
 }
 
 void
-Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
+Texture::getOverlayText(VulkanTextOverlay *textOverlay, float xOffset, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                         xOffset, yOffset, VulkanTextOverlay::alignLeft);
 }
 
 const char*

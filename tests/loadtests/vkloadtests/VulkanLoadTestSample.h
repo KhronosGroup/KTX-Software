@@ -56,7 +56,7 @@ class VulkanLoadTestSample : public LoadTestSample {
     virtual void run(uint32_t msTicks) = 0;
 
     virtual void getOverlayText(VulkanTextOverlay* /*textOverlay*/,
-                                float /*yoffset*/) { }
+                                float /*xOffset*/, float /*yoffset*/) { }
     virtual const char* customizeTitle(const char* const title) {
         return title;
     }
