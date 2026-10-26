@@ -295,6 +295,8 @@ jobs:
         run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
       - name: before_install
+        # YAML reads a leading ! as a tag, so a condition that starts with !
+        # needs ${{ }} even in an if.
         if: ${{ !matrix.container }}
         run: |
           echo -n "Running on the following GitHub Actions CI runner: " && uname -a
