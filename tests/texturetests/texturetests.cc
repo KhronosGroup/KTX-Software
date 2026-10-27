@@ -1147,6 +1147,109 @@ TEST_F(ktxTexture2_IterateLevelFacesTest, IterateImages) {
     }
 }
 
+TEST_F(ktxTexture2_IterateLevelsTest, InvalidSuperCompressionScheme) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    struct cb {
+        static KTX_error_code
+        iterCallback(int, int, int, int, int, ktx_uint64_t, void*, void*)
+        {
+          return KTX_SUCCESS;
+        }
+    };
+
+    if (ktxMemFile != NULL) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                             &texture);
+        texture_raii.reset(ktxTexture(texture));
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture2_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        EXPECT_EQ(ktxTexture2_DeflateZstd(texture, 10), KTX_SUCCESS);
+        ASSERT_EQ(texture->supercompressionScheme, KTX_SS_ZSTD);
+        // This used to SEGFAULT (or cause memory corruption)
+        EXPECT_EQ(ktxTexture2_IterateLevelFaces(texture, cb::iterCallback, NULL),
+                  KTX_INVALID_OPERATION);
+    }
+}
+
+/////////////////////////////////////////
+// ktxTexture2_IterateLoadLevelFaces tests
+////////////////////////////////////////
+
+TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZSTD) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+    ktxTexture2_IterateLoadLevelFacesTest* fixture = this;
+
+    if (ktxMemFile != NULL) {
+        ktxTexture2* texture = nullptr;
+        ktx_uint8_t* data = nullptr;
+        ktx_size_t data_size = 0;
+
+        // Load texture, deflate it using ZSTD, then re-write it to a memory buffer
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                             &texture);
+        texture_raii.reset(ktxTexture(texture));
+        ASSERT_EQ(result, KTX_SUCCESS);
+        ASSERT_EQ(ktxTexture2_DeflateZstd(texture, 22), KTX_SUCCESS);
+        ASSERT_EQ(texture->supercompressionScheme, KTX_SS_ZSTD);
+        ASSERT_EQ(ktxTexture2_WriteToMemory(texture, &data, &data_size), KTX_SUCCESS);
+        texture_raii.reset(nullptr);
+
+        // Re-load the just-written ZSTD-compressed texture
+        ASSERT_EQ(ktxTexture2_CreateFromMemory(data, data_size,
+                  KTX_TEXTURE_CREATE_NO_FLAGS, &texture), KTX_SUCCESS);
+        texture_raii.reset(ktxTexture(texture));
+
+        // Compare data returned by IterateLoadLevelFaces to the original buffer images
+        // This used to return: KTX_FILE_DATA_ERROR
+        ASSERT_EQ(ktxTexture2_IterateLoadLevelFaces(texture, iterCallback, fixture),
+                  KTX_SUCCESS);
+        ASSERT_EQ(iterCbCalls, mipLevels)
+                  << "No. of calls to iterCallback differs from number of mip levels";
+    }
+}
+
+TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZlib) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+    ktxTexture2_IterateLoadLevelFacesTest* fixture = this;
+
+    if (ktxMemFile != NULL) {
+        ktxTexture2* texture = nullptr;
+        ktx_uint8_t* data = nullptr;
+        ktx_size_t data_size = 0;
+
+        // Load texture, deflate it using Zlib, then re-write it to a memory buffer
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                             &texture);
+        texture_raii.reset(ktxTexture(texture));
+        ASSERT_EQ(result, KTX_SUCCESS);
+        ASSERT_EQ(ktxTexture2_DeflateZLIB(texture, 9), KTX_SUCCESS);
+        ASSERT_EQ(texture->supercompressionScheme, KTX_SS_ZLIB);
+        ASSERT_EQ(ktxTexture2_WriteToMemory(texture, &data, &data_size), KTX_SUCCESS);
+        texture_raii.reset(nullptr);
+
+        // Reload the just-written Zlib-compressed texture
+        ASSERT_EQ(ktxTexture2_CreateFromMemory(data, data_size,
+                  KTX_TEXTURE_CREATE_NO_FLAGS, &texture), KTX_SUCCESS);
+        texture_raii.reset(ktxTexture(texture));
+
+        // Compare data returned by IterateLoadLevelFaces to the original buffer images
+        // This used to return: KTX_FILE_DATA_ERROR
+        ASSERT_EQ(ktxTexture2_IterateLoadLevelFaces(texture, iterCallback, fixture),
+                  KTX_SUCCESS);
+        ASSERT_EQ(iterCbCalls, mipLevels)
+                  << "No. of calls to iterCallback differs from number of mip levels";
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture_IterateLevels tests
 ////////////////////////////////////////
