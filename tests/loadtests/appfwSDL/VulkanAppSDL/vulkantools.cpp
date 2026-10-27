@@ -180,6 +180,12 @@ namespace vkTools
                 imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
                 break;
 
+        case VK_IMAGE_LAYOUT_GENERAL:
+            // Image may be used for arbitrary read/write access.
+            // Make sure any reads and writes to the image have finished.
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+            break;
+
         default:
             assert(0); // Attempt to use unhandled case.
         }
@@ -222,6 +228,12 @@ namespace vkTools
                 imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
             }
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            break;
+
+        case VK_IMAGE_LAYOUT_GENERAL:
+            // Image may be used for arbitrary read/write access.
+            imageMemoryBarrier.dstAccessMask
+                                    = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
             break;
 
         default:

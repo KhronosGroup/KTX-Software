@@ -44,7 +44,7 @@ struct VulkanContext {
 #endif
 #if VK_EXT_texture_compression_astc_3d
      vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT& gpuAstc3dFeatures =
-         gpuFeaturesChain.get<vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT();
+     gpuFeaturesChain.get<vk::PhysicalDeviceTextureCompressionASTC3DFeaturesEXT>();
 #endif
 #if VK_KHR_portability_subset
     vk::PhysicalDevicePortabilitySubsetFeaturesKHR& gpuPortabilityFeatures =

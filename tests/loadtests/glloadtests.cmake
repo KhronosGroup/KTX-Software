@@ -23,6 +23,14 @@ function( create_gl_target target version sources common_resources ktx_file_sour
         ${EXE_FLAG}
         glloadtests.cmake
         ${sources}
+    )
+    # Resource files will not be copied to their destination (app bundle or
+    # directory specified by the RESOURCE option of the install(TARGETS)
+    # command) unless they appear in both the target's RESOURCE and SOURCES
+    # properties. Add them to SOURCES this way so we can mark them private
+    # though I'm not sure there is any benefit to doing so.
+    target_sources( ${target}
+    PRIVATE
         ${resources}
     )
 

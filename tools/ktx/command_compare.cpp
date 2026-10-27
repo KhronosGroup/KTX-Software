@@ -731,7 +731,7 @@ public:
                 assert(imageByteOffset == texelBlockPair.second.getTexelBlockByteOffset());
                 printIndent(0, "    Image byte offset: 0x{:x}\n", imageByteOffset);
 
-                auto printDiff = [=](const char* textHeader, const std::string firstValue, const std::string secondValue) {
+                auto printDiff = [&](const char* textHeader, const std::string firstValue, const std::string secondValue) {
                     if (firstValue == secondValue) {
                         printIndent(0, "    {}: {}\n", textHeader, firstValue);
                     } else {

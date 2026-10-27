@@ -8,6 +8,7 @@
 #include "platform_utils.h"
 #include "sbufstream.h"
 #include "validate.h"
+#include "vkformat_enum.h"
 
 #include <exception>
 #include <filesystem>
@@ -16,7 +17,10 @@
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
+#include <GL/glcorearb.h>
+
 extern "C" const char* glInternalformatString(GLenum);
+extern "C" uint32_t* vk2dfd(enum VkFormat format);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -59,13 +63,21 @@ Convert another texture file type to a KTX2 file
     @c textureCompressionASTC_HDR feature. Using these formats, Vulkan
     implementations will render both HDR and LDR blocks within the images. With
     the alternative mapping to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK they will render
-    HDR blocks in the error color.
+    HDR blocks in the error color. @c GL_COMPRESSED_SRGB8_ALPHA8_ASTC_\*_KHR
+    formats are mapped to @c VK_FORMAT_ASTC_\*_SRGB_BLOCK formats.
 
 @section ktx\_convert\_options OPTIONS
     The following options are available:
     <dl>
         <dt>-t, \--input-type &lt;type&gt;</dt>
         <dd>Type of input file. Currently @b type must be @c ktx. Case insensitive.</dd>
+        <dt>-l,\--map-astc-rgba-to-ldr</dt>
+        <dd>Map @c GL_COMPRESSED_RGBA_ASTC_\*_KHR formats  to
+            to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK  (LDR) formats instead. of the
+            default @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK. Ignored if the input file
+            payload is not @c GL_COMPRESSED_RGBA_ASTC_\*_KHR. Use only when
+            sure the input file has no HDR blocks.
+        </dd>
         <dt>-d, \--drop-bad-orientation</dt>
         <dd>Some in-the-wild KTX v1 files have orientation metadata with the key
             "KTXOrientation" instead of KTXorientaion. By default such metadata is
@@ -96,6 +108,17 @@ public:
         : OutputStream(filepath, report) { }
 #endif
 
+    void write(ktxTexture2* texture, Reporter& report) {
+        StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
+        const auto ret = ktxTexture2_WriteToStream(texture, stream.stream());
+        if (KTX_SUCCESS != ret) {
+            if (!isStdout())
+                std::filesystem::remove(DecodeUTF8Path(filepath).c_str());
+            report.fatal(rc::IO_FAILURE, "Failed to write KTX file \"{}\": KTX error: {}.",
+                         filepath, ktxErrorString(ret));
+        }
+    }
+
     void writeKTX2(ktxTexture1* texture, Reporter& report) {
         StreambufStream<std::streambuf*> stream(activeStream->rdbuf(), std::ios::out | std::ios::binary);
         const auto ret = ktxTexture1_WriteKTX2ToStream(texture, stream.stream());
@@ -112,18 +135,25 @@ class CommandConvert : public Command {
     enum class input_type_e { ktx, dds };
 
     struct OptionsConvert {
+        inline static const char* kMapAstcRGBAToLDR = "map-astc-rgba-to-ldr";
         inline static const char* kDropBadOrientation = "drop-bad-orientation";
         inline static const char* kInputType = "input-type";
 
         bool dropBadOrientation = false;
+        bool mapAstcRGBAToLDR = false;
         std::optional<input_type_e> inputType;
 
         void init(cxxopts::Options& opts) {
             const std::string kDropBadOrientationFlags = std::string("d,") + kDropBadOrientation;
+            const std::string kMapAstcRGBAToLDRFlags = std::string("l,") + kMapAstcRGBAToLDR;
             const std::string kInputTypeFlags = std::string("t,") + kInputType;
             opts.add_options()
                 (kInputTypeFlags, "Specify the type of input file. Currently must be ktx.",
                   cxxopts::value<std::string>(), "<type>")
+                (kMapAstcRGBAToLDRFlags, "Map GL_COMPRESSED_RGBA_ASTC_*_KHR formats to"
+                                    " VK_FORMAT_ASTC_*_UNORM_BLOCK (LDR) formats. By default"
+                                    " they will be mapped to VK_FORMAT_ASTC_*_SFLOAT_BLOCK"
+                                    " (HDR) formats.")
                 (kDropBadOrientationFlags, "Drop bad orientation metadata, such as \"KTXOrientation\","
                     " instead of fixing it.");
         }
@@ -152,6 +182,7 @@ class CommandConvert : public Command {
                 report.fatal_usage("--{} <type> must be specified", kInputType);
 
             dropBadOrientation = args[kDropBadOrientation].as<bool>();
+            mapAstcRGBAToLDR = args[kMapAstcRGBAToLDR].as<bool>();
         }
     };
 
@@ -266,11 +297,11 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                                                                           ktxTexture1_Destroy};
     ktxTexture1* texture = nullptr;
     StreambufStream<std::streambuf*> ktxStream{inputStream->rdbuf(), std::ios::in | std::ios::binary};
-    auto ret = ktxTexture1_CreateFromStream(ktxStream.stream(),
+    auto res = ktxTexture1_CreateFromStream(ktxStream.stream(),
                                             KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
     texture_raii.reset(texture);
-    if (ret != KTX_SUCCESS) {
-        if (ret == KTX_UNSUPPORTED_TEXTURE_TYPE) {
+    if (res != KTX_SUCCESS) {
+        if (res == KTX_UNSUPPORTED_TEXTURE_TYPE) {
             inputStream->seekg(0);
             KTX_header header;
             inputStream->read(reinterpret_cast<char*>(&header), KTX_HEADER_SIZE);
@@ -278,7 +309,29 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                   "Format of input file, {}, is unsupported or has no equivalent VkFormat.",
                   ::glInternalformatString(header.glInternalformat));
         } else {
-            fatal(rc::INVALID_FILE, "Failed to create KTX texture: {}", ktxErrorString(ret));
+            fatal(rc::INVALID_FILE, "Failed to create KTX texture: {}", ktxErrorString(res));
+        }
+    }
+
+    if (options.mapAstcRGBAToLDR) {
+        switch(texture->glInternalformat) {
+        case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_6x5_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_6x6_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_8x5_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_8x6_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_8x8_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_10x5_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_10x6_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_10x8_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_10x10_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_12x10_KHR:  [[fallthrough]];
+        case GL_COMPRESSED_RGBA_ASTC_12x12_KHR:
+            break;
+        default:
+            options.mapAstcRGBAToLDR = false;
         }
     }
 
@@ -326,6 +379,9 @@ void CommandConvert::convertKtx(InputStream& inputStream, OutputStreamEx& output
                          static_cast<uint32_t>(writer.size() + 1),
                          writer.c_str());
 
+    if (options.mapAstcRGBAToLDR) {
+        ktxTexture1_SetRgbaAstcMapping(texture, KTX_MAP_RGBA_ASTC_TO_LDR);
+    }
     outputStream.writeKTX2(texture, *this);
 }
 

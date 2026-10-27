@@ -19,6 +19,7 @@
  */
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <inttypes.h>
 #include <stdio.h>
@@ -203,12 +204,16 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     // Early exit for redundant transcode from UASTC4x4 to ASTC4x4
     if (colorModel   == KHR_DF_MODEL_UASTC_HDR_4x4 &&
         outputFormat == KTX_TTF_ASTC_HDR_4x4_RGBA) {
+        // Create the new DFD before modifying the texture so a failure
+        // leaves the texture unchanged instead of freeing its DFD and
+        // relabelling its vkFormat first.
+        uint32_t* newDfd = vk2dfd(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK);
+        if (!newDfd)
+            return KTX_OUT_OF_MEMORY;
         // Fix up the current texture
         free(This->pDfd);
+        This->pDfd = newDfd;
         This->vkFormat = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK;
-        This->pDfd = vk2dfd(VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK);
-        if (!This->pDfd)
-            return KTX_INVALID_VALUE;  // Format is unknown or unsupported.
         return KTX_SUCCESS;
     }
 
@@ -389,9 +394,11 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     createInfo.pDfd = nullptr;
 
     KTX_error_code result;
-    ktxTexture2* prototype;
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &prototype);
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> prototype_raii{nullptr,
+                                                                                ktxTexture2_Destroy};
+    ktxTexture2* prototype = nullptr;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+    prototype_raii.reset(prototype);
 
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY); // The only run time error
@@ -404,12 +411,10 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             result = ktxTexture2_LoadImageData(This, NULL, 0);
             if (result != KTX_SUCCESS)
             {
-                ktxTexture2_Destroy(prototype);
                 return result;
             }
         } else {
             // No data to transcode.
-            ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
     }
@@ -472,7 +477,6 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             This->_private->_supercompressionGlobalData = NULL;
         }
     }
-    ktxTexture2_Destroy(prototype);
     return result;
  }
 
@@ -548,10 +552,13 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 {
     DECLARE_PRIVATE(priv, This);
     DECLARE_PRIVATE(protoPriv, prototype);
-    KTX_error_code result = KTX_SUCCESS;
 
     assert(This->supercompressionScheme == KTX_SS_BASIS_LZ);
 
+    if (priv._sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+        debug_printf("ktxTexture_TranscodeBasis: supercompression global data too short");
+        return KTX_FILE_DATA_ERROR;
+    }
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
@@ -566,27 +573,23 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // level to largest or when randomly accessing them (t.b.c). The last array
     // entry contains the total number of images, for calculating the offsets
     // of the endpoints, etc.
-    uint32_t* firstImages = new uint32_t[This->numLevels+1];
+    std::unique_ptr<uint32_t[]> firstImages = std::make_unique<uint32_t[]>(This->numLevels+1);
 
     // Temporary invariant value
     uint32_t layersFaces = This->numLayers * This->numFaces;
     firstImages[0] = 0;
-    for (uint32_t level = 1; level <= This->numLevels; level++) {
+    for (uint32_t level = 0; level < This->numLevels; level++) {
         // NOTA BENE: numFaces * depth is only reasonable because they can't
         // both be > 1. I.e there are no 3d cubemaps.
-        firstImages[level] = firstImages[level - 1]
-                           + layersFaces * MAX(This->baseDepth >> (level - 1), 1);
+        firstImages[level + 1] = firstImages[level]
+                           + layersFaces * MAX(This->baseDepth >> level, 1);
     }
     uint32_t& imageCount = firstImages[This->numLevels];
 
     if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
-        // Compiler will not allow `goto cleanup;` because "jump bypasses variable initialization."
-        // The static initializations below this and before the loop are presumably the issue
-        // as the compiler is, presumably, inserting code to destruct those at the end of the
-        // function.
-        delete[] firstImages;
         return KTX_FILE_DATA_ERROR;
     }
+
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
@@ -600,13 +603,19 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
-    bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
-                        bgdh.endpointsByteLength,
-                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
-                        bgdh.selectorsByteLength);
+    if (!bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
+                             bgdh.endpointsByteLength,
+                             bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
+                             bgdh.selectorsByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid endpoint or selector palettes");
+        return KTX_TRANSCODE_FAILED;
+    }
 
-    bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
-                      bgdh.tablesByteLength);
+    if (!bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
+                           bgdh.tablesByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid Huffman tables");
+        return KTX_TRANSCODE_FAILED;
+    }
 
     // Find matching VkFormat and calculate output sizes.
 
@@ -623,7 +632,6 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     ktx_size_t xcodedDataLength
                       = prototype->dataSize / outputBlockByteLength;
     ktxLevelIndexEntry* protoLevelIndex;
-    uint64_t levelOffsetWrite;
     const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(bgd);
 
     // Finally we're ready to transcode the slices.
@@ -633,11 +641,10 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // returns a structure with lots of info about the image.
 
     protoLevelIndex = protoPriv._levelIndex;
-    levelOffsetWrite = 0;
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         uint64_t levelOffset = ktxTexture2_levelDataOffset(This, level);
-        uint64_t writeOffset = levelOffsetWrite;
-        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
+        uint64_t writeOffset = protoLevelIndex[level].byteOffset;
+        uint64_t writeOffsetBlocks = writeOffset / outputBlockByteLength;
         uint32_t levelWidth = MAX(1, This->baseWidth >> level);
         uint32_t levelHeight = MAX(1, This->baseHeight >> level);
         // ETC1S texel block dimensions
@@ -650,10 +657,9 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
         uint32_t numImages = This->numLayers * faceSlices;
         uint32_t image = firstImages[level];
         uint32_t endImage = image + numImages;
-        ktx_size_t levelImageSizeOut, levelSizeOut;
+        ktx_size_t levelImageSizeOut;
         uint32_t stateIndex = 0;
 
-        levelSizeOut = 0;
         // FIXME: Figure out a way to get the size out of the transcoder.
         levelImageSizeOut = ktxTexture2_GetImageSize(prototype, level);
         for (; image < endImage; image++) {
@@ -706,34 +712,21 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
                       0  // output_rows_in_pixels
                       );
             if (!status) {
-                result = KTX_TRANSCODE_FAILED;
-                goto cleanup;
+                return KTX_TRANSCODE_FAILED;
             }
 
             writeOffset += levelImageSizeOut;
-            levelSizeOut += levelImageSizeOut;
+            writeOffsetBlocks = writeOffset / outputBlockByteLength;
         } // end images loop
-        protoLevelIndex[level].byteOffset = levelOffsetWrite;
-        protoLevelIndex[level].byteLength = levelSizeOut;
-        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
-        levelOffsetWrite += levelSizeOut;
-        assert(levelOffsetWrite == writeOffset);
-        // In case of transcoding to uncompressed.
-        levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
-                                     levelOffsetWrite);
     } // level loop
 
-    result = KTX_SUCCESS;
-
-cleanup:
-    delete[] firstImages;
-    return result;
+    return KTX_SUCCESS;
 }
 
 static KTX_error_code
 transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
-                                  ktxTexture2* prototype,
-                           ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
+                     ktxTexture2* prototype,
+                     ktx_transcode_fmt_e outputFormat, ktx_transcode_flags transcodeFlags) {
     ktx_uint8_t* pXcodedData = prototype->pData;
     ktx_uint32_t outputBlockByteLength
                       = prototype->_protected->_formatSize.blockSizeInBits / 8;
@@ -741,7 +734,6 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                       = prototype->dataSize / outputBlockByteLength;
     DECLARE_PRIVATE(protoPriv, prototype);
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
-    ktx_size_t levelOffsetWrite = 0;
 
     basist::basisu_lowlevel_uastc_ldr_4x4_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
@@ -751,10 +743,10 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
     {
         ktx_uint32_t depth;
-        uint64_t writeOffset = levelOffsetWrite;
-        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
+        uint64_t writeOffset = protoLevelIndex[level].byteOffset;
+        uint64_t writeOffsetBlocks = writeOffset / outputBlockByteLength;
         ktx_size_t levelImageSizeIn, levelImageOffsetIn;
-        ktx_size_t levelImageSizeOut, levelSizeOut;
+        ktx_size_t levelImageSizeOut;
         ktx_uint32_t levelImageCount;
         uint32_t levelWidth = MAX(1, This->baseWidth >> level);
         uint32_t levelHeight = MAX(1, This->baseHeight >> level);
@@ -774,7 +766,6 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                                                      KTX_FORMAT_VERSION_TWO);
 
         levelImageOffsetIn = ktxTexture2_levelDataOffset(This, level);
-        levelSizeOut = 0;
         bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
             basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
@@ -805,22 +796,12 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                           -1, // channel0
                           -1  // channel1
                           );
-            if (!status)
-                return KTX_TRANSCODE_FAILED;
+            if (!status) return KTX_TRANSCODE_FAILED;
             writeOffset += levelImageSizeOut;
-            levelSizeOut += levelImageSizeOut;
+            writeOffsetBlocks = writeOffset / outputBlockByteLength;
             levelImageOffsetIn += levelImageSizeIn;
         }
-        protoLevelIndex[level].byteOffset = levelOffsetWrite;
-        // writeOffset will be equal to total size of the images in the level.
-        protoLevelIndex[level].byteLength = levelSizeOut;
-        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
-        levelOffsetWrite += levelSizeOut;
     }
-    // In case of transcoding to uncompressed.
-    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment,
-                                 levelOffsetWrite);
-
     return KTX_SUCCESS;
 }
 
@@ -835,7 +816,6 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
     ktx_size_t xcodedDataLength = prototype->dataSize / outputBlockByteLength;
     DECLARE_PRIVATE(protoPriv, prototype);
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
-    ktx_size_t levelOffsetWrite = 0;
 
     basist::basisu_lowlevel_uastc_hdr_4x4_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
@@ -844,10 +824,10 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
 
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
         ktx_uint32_t depth;
-        uint64_t writeOffset = levelOffsetWrite;
-        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
+        uint64_t writeOffset = protoLevelIndex[level].byteOffset;
+        uint64_t writeOffsetBlocks = writeOffset / outputBlockByteLength;
         ktx_size_t levelImageSizeIn, levelImageOffsetIn;
-        ktx_size_t levelImageSizeOut, levelSizeOut;
+        ktx_size_t levelImageSizeOut;
         ktx_uint32_t levelImageCount;
         uint32_t levelWidth = MAX(1, This->baseWidth >> level);
         uint32_t levelHeight = MAX(1, This->baseHeight >> level);
@@ -866,7 +846,6 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
             ktxTexture_calcImageSize(ktxTexture(prototype), level, KTX_FORMAT_VERSION_TWO);
 
         levelImageOffsetIn = ktxTexture2_levelDataOffset(This, level);
-        levelSizeOut = 0;
         bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
             basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
@@ -889,18 +868,11 @@ transcodeUastcHDR4x4(ktxTexture2* This, alpha_content_e alphaContent, ktxTexture
             );
             if (!status) return KTX_TRANSCODE_FAILED;
             writeOffset += levelImageSizeOut;
-            levelSizeOut += levelImageSizeOut;
+            writeOffsetBlocks = writeOffset / outputBlockByteLength;
             levelImageOffsetIn += levelImageSizeIn;
         }
-        protoLevelIndex[level].byteOffset = levelOffsetWrite;
-        // writeOffset will be equal to total size of the images in the level.
-        protoLevelIndex[level].byteLength = levelSizeOut;
-        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
-        levelOffsetWrite += levelSizeOut;
     }
-    // In case of transcoding to uncompressed.
-    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment, levelOffsetWrite);
-    
+
     return KTX_SUCCESS;
 }
 
@@ -915,9 +887,8 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
     ktx_size_t xcodedDataLength = prototype->dataSize / outputBlockByteLength;
     DECLARE_PRIVATE(protoPriv, prototype);
     ktxLevelIndexEntry* protoLevelIndex = protoPriv._levelIndex;
-    ktx_size_t levelOffsetWrite = 0;
 
-  basist::basisu_lowlevel_uastc_hdr_6x6_intermediate_transcoder uit;
+    basist::basisu_lowlevel_uastc_hdr_6x6_intermediate_transcoder uit;
     // See comment on same declaration in transcodeEtc1s.
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
@@ -928,11 +899,35 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
         reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(This->_private->_supercompressionGlobalData);
     const uint64_t totalImageDescs = This->_private->_sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc);
 
+    // The image descriptions are stored in level order, level 0 first, with
+    // each level contributing numLayers * numFaces * depth(level) images (see
+    // the writer in basis_encode.cpp). level * levelImageCount only equals
+    // the index of a level's first description while every level has the
+    // same image count; for 3D textures depth halves with each level, so the
+    // first-image index of each level must be accumulated, as transcodeEtc1s
+    // does with its firstImages table.
+    std::vector<uint64_t> firstImages(This->numLevels + 1);
+    firstImages[0] = 0;
+    for (uint32_t l = 0; l < This->numLevels; l++) {
+        firstImages[l + 1] = firstImages[l]
+                             + (uint64_t)This->numLayers * This->numFaces
+                               * MAX(This->baseDepth >> l, 1);
+    }
+
+    // firstImages[numLevels] has the total image count for the texture's
+    // dimensions so a descriptor table whose size does not match exactly is
+    // corrupt; reject it before processing any level.
+    if (This->_private->_sgdByteLength
+            % sizeof(ktxUASTCHDR6x6IntermediateImageDesc) != 0
+        || firstImages[This->numLevels] != totalImageDescs) {
+        return KTX_FILE_DATA_ERROR;
+    }
+
     for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--) {
         ktx_uint32_t depth;
-        uint64_t writeOffset = levelOffsetWrite;
-        uint64_t writeOffsetBlocks = levelOffsetWrite / outputBlockByteLength;
-        ktx_size_t levelImageSizeOut, levelSizeOut;
+        uint64_t writeOffset = protoLevelIndex[level].byteOffset;
+        uint64_t writeOffsetBlocks = writeOffset / outputBlockByteLength;
+        ktx_size_t levelImageSizeOut;
         ktx_uint32_t levelImageCount;
         uint32_t levelWidth = MAX(1, This->baseWidth >> level);
         uint32_t levelHeight = MAX(1, This->baseHeight >> level);
@@ -966,15 +961,14 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
             return KTX_FILE_DATA_ERROR;
         }
 
-        levelSizeOut = 0;
         bool status;
         for (uint32_t image = 0; image < levelImageCount; image++) {
             basisu_transcoder_state& xcoderState = xcoderStates[stateIndex];
             // See comment before same lines in transcodeEtc1s.
             if (++stateIndex == xcoderStates.size()) stateIndex = 0;
 
-            // Compute the start index into the image seek table.
-            const uint32_t sgdImageDescIndex = (level * levelImageCount) + image;
+            // Compute the index into the image seek table.
+            const uint64_t sgdImageDescIndex = firstImages[level] + image;
 
             // Sanity check the SGD image desc index
             if (sgdImageDescIndex >= totalImageDescs) {
@@ -1007,16 +1001,9 @@ transcodeUastcHDR6x6_intermediate(ktxTexture2* This, alpha_content_e alphaConten
                 return KTX_TRANSCODE_FAILED;
 
             writeOffset += levelImageSizeOut;
-            levelSizeOut += levelImageSizeOut;
+            writeOffsetBlocks = writeOffset / outputBlockByteLength;
         }
-        protoLevelIndex[level].byteOffset = levelOffsetWrite;
-        // writeOffset will be equal to total size of the images in the level.
-        protoLevelIndex[level].byteLength = levelSizeOut;
-        protoLevelIndex[level].uncompressedByteLength = levelSizeOut;
-        levelOffsetWrite += levelSizeOut;
     }
-    // In case of transcoding to uncompressed.
-    levelOffsetWrite = _KTX_PADN(protoPriv._requiredLevelAlignment, levelOffsetWrite);
 
     return KTX_SUCCESS;
 }

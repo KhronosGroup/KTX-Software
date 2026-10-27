@@ -137,7 +137,6 @@ class VulkanAppSDL : public AppBaseSDL {
     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
     std::vector<const char*> extensionNames;
-    std::vector<const char*> deviceValidationLayers;
 
     VkCommandBuffer setupCmdBuffer;
     VkSurfaceKHR vsSurface;

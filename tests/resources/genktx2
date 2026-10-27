@@ -133,7 +133,7 @@ $ktx create --testrun --format R8G8B8A8_SRGB input/npbm/rgba.pam ktx2/r8g8b8a8_s
 
 # No source from which to generate skybox_zstd_22.ktx2
 
-$ktx convert --testrun -t ktx ktx/astc_8x8_unorm_array_7.ktx ktx2/astc_8x8_unorm_array_7.ktx2
+$ktx convert --testrun -t ktx -l ktx/astc_8x8_unorm_array_7.ktx ktx2/astc_8x8_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/bc3_unorm_array_7.ktx ktx2/bc3_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/etc2_unorm_array_7.ktx ktx2/etc2_unorm_array_7.ktx2
 $ktx convert --testrun -t ktx ktx/pattern_02_bc2.ktx ktx2/pattern_02_bc2.ktx2

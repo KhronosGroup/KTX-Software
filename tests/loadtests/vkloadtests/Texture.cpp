@@ -64,6 +64,7 @@ Texture::Texture(VulkanContext& vkctx,
     zoom = -2.5f;
     rotation = { 0.0f, 15.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     useSubAlloc = UseSuballocator::No;
     rgbcolor upperLeftColor{ 0.7f, 0.1f, 0.2f };
     rgbcolor lowerLeftColor{ 0.8f, 0.9f, 0.3f };
@@ -126,13 +127,14 @@ Texture::Texture(VulkanContext& vkctx,
         ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
                                                            static_cast<VkImageTiling>(tiling),
                                                            VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &subAllocatorCallbacks);
+                                                           static_cast<VkImageLayout>(finalLayout),
+                                                           &subAllocatorCallbacks);
     }
     else // Keep separate call so ktxTexture_VkUploadEx is also tested.
         ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
                                           static_cast<VkImageTiling>(tiling),
                                           VK_IMAGE_USAGE_SAMPLED_BIT,
-                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                                          static_cast<VkImageLayout>(finalLayout));
     
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -235,6 +237,7 @@ Texture::processArgs(std::string sArgs)
     struct argparser::option longopts[] = {
       {"external",      argparser::option::no_argument,       &externalFile,        1},
       {"linear-tiling", argparser::option::no_argument,       (int*)&tiling,        (int)vk::ImageTiling::eLinear},
+      {"general-layout",argparser::option::no_argument,       (int*)&finalLayout,   (int)vk::ImageLayout::eGeneral},
       {"use-vma",       argparser::option::no_argument,       (int*)&useSubAlloc,   (int)UseSuballocator::Yes},
       {"qcolor",        argparser::option::required_argument, NULL,                 1},
       {NULL,            argparser::option::no_argument,       NULL,                 0}
@@ -557,7 +560,7 @@ Texture::setupDescriptorSet()
     vk::DescriptorImageInfo texDescriptor(
             sampler,
             imageView,
-            vk::ImageLayout::eShaderReadOnlyOptimal);
+            finalLayout);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
     // Binding 0 : Vertex shader uniform buffer
