@@ -39,15 +39,6 @@ KTX_error_code CLASS_FUNC(IterateLevelFaces)(CLASS* This,
 KTX_error_code CLASS_FUNC(IterateLoadLevelFaces)(CLASS* This,
                                                  PFNKTXITERCB iterCb,
                                                  void* userdata);
-KTX_error_code CLASS_FUNC(SetImageFromStdioStream)(CLASS* This,
-                                    ktx_uint32_t level,ktx_uint32_t layer,
-                                    ktx_uint32_t faceSlice,
-                                    FILE* src, ktx_size_t srcSize);
-KTX_error_code CLASS_FUNC(SetImageFromMemory)(CLASS* This,
-                               ktx_uint32_t level, ktx_uint32_t layer,
-                               ktx_uint32_t faceSlice,
-                               const ktx_uint8_t* src, ktx_size_t srcSize);
-
 
 /*
  ======================================
