@@ -2060,7 +2060,7 @@ void CommandCreate::executeCreate() {
     // Note:
     //  We don't want to capture mipmap generation options if mipmap generation
     //  is not activated (because looking at kv metadata might give the wrong
-    //  impression that mipmaps were generated). This is the same for ASTC.
+    //  impression that mipmaps were generated).
     const auto writerScParams = fmt::format("{}{}{}{}{}",
         options.encodeASTC ? options.astcOptions : "",
         options.codecOptions,
