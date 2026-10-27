@@ -1293,7 +1293,7 @@ typedef enum ktx_pack_uastc_flag_bits_e {
         /*!< Very slow compression. 48.24dB. */
     KTX_PACK_UASTC_MAX_LEVEL = KTX_PACK_UASTC_LEVEL_VERYSLOW,
         /*!< Maximum supported quality level. */
-    KTX_PACK_UASTC_LEVEL_MASK     = 0xF,
+    KTX_PACK_UASTC_LEVEL_MASK     = 0x7,
         /*!< Mask to extract the level from the other bits. */
     KTX_PACK_UASTC_FAVOR_UASTC_ERROR = 8U,
         /*!< Optimize for lowest UASTC error. */
