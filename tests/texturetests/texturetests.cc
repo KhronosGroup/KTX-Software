@@ -1642,6 +1642,51 @@ TEST_P(ktxTexture2_CreateCopySupercompressedTest, CopiesDeferredImageData) {
     EXPECT_EQ(memcmp(copy->pData, expectedData.data(), expectedSize), 0);
 }
 
+TEST_P(ktxTexture2_CreateCopySupercompressedTest, FailsWhenImageDataCannotBeInflated) {
+    ASSERT_NE(ktxMemFile, nullptr);
+    ktxTexture2* encoded = nullptr;
+    auto result = ktxTexture2_CreateFromMemory(
+        ktxMemFile.get(), ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &encoded);
+    ktxTexture_unique_ptr encoded_raii{ktxTexture(encoded), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    result = GetParam() == KTX_SS_ZSTD ? ktxTexture2_DeflateZstd(encoded, 3)
+                                      : ktxTexture2_DeflateZLIB(encoded, 6);
+    ASSERT_EQ(result, KTX_SUCCESS);
+
+    ktx_uint8_t* file = nullptr;
+    ktx_size_t fileSize = 0;
+    result = ktxTexture2_WriteToMemory(encoded, &file, &fileSize);
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> file_raii{file, std::free};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    // Zero the start of level 0's data, the Zstd frame's magic number or the
+    // zlib header, so that the level cannot be inflated.
+    ktxLevelIndexEntry level0;
+    memcpy(&level0, file + KTX2_HEADER_SIZE, sizeof(level0));
+    ASSERT_GE(level0.byteLength, 4U);
+    ASSERT_LE(level0.byteOffset + level0.byteLength, fileSize);
+    memset(file + level0.byteOffset, 0, 4);
+
+    ktxTexture2* source = nullptr;
+    result = ktxTexture2_CreateFromMemory(file, fileSize, 0, &source);
+    ktxTexture_unique_ptr source_raii{ktxTexture(source), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_EQ(source->pData, nullptr);
+
+    // The copy must fail with the error of the load instead of copying the
+    // image data that the failed load did not leave. Then again, after the
+    // first load has failed.
+    for (int i = 0; i < 2; i++) {
+        ktxTexture2* copy = nullptr;
+        result = ktxTexture2_CreateCopy(source, &copy);
+        ktxTexture_unique_ptr copy_raii{ktxTexture(copy), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_FILE_DATA_ERROR);
+        EXPECT_EQ(copy, nullptr);
+        EXPECT_EQ(source->pData, nullptr);
+        EXPECT_EQ(source->supercompressionScheme, GetParam());
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(
     Supercompression, ktxTexture2_CreateCopySupercompressedTest,
     ::testing::Values(KTX_SS_ZSTD, KTX_SS_ZLIB),
