@@ -28,6 +28,7 @@ on:
       - .github/workflows/linux.yml
       - .github/workflows/macos.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/pyktx.yml
       - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .github/workflows/windows.yml
@@ -97,6 +98,8 @@ jobs:
     - name: Build MinGW x64 Release
       run: cmake --build build --config Release -j $(nproc)
 
+      # For Debug builds, make sure to set -DASTCENC_ISA_NONE=ON because SIMD-enbled ASTCENC builds may cause
+      # random crashouts at unload time that are very hard to debug!
     - name: Test MinGW build
       id: teststep
       run: ctest --output-on-failure --test-dir build -C Release -j $(nproc)
@@ -107,4 +110,3 @@ jobs:
       with:
         name: cts_failure_artifacts_commit_sha_${{ github.sha }}
         path: tests/cts/clitests/output
-
