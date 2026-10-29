@@ -9,8 +9,8 @@
 #include "sbufstream.h"
 #include "validate.h"
 #include "vkformat_enum.h"
-#include "GL/glcorearb.h"
 
+#include <GL/glcorearb.h>
 #include <exception>
 #include <filesystem>
 #include <regex>
