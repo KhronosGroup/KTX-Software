@@ -281,6 +281,18 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
             ktx_uint32_t kvdLen = pHeader->bytesOfKeyValueData;
             ktx_uint8_t* pKvd;
 
+            /* Check the data is in the file before allocating memory for it.
+             * A pipe's size is unknown so it is not checked. */
+            if (stream->getsize(stream, &size) == KTX_SUCCESS) {
+                result = stream->getpos(stream, &pos);
+                if (result != KTX_SUCCESS)
+                    goto cleanup;
+                if (kvdLen > size - (ktx_size_t)pos) {
+                    result = KTX_FILE_UNEXPECTED_EOF;
+                    goto cleanup;
+                }
+            }
+
             pKvd = malloc(kvdLen);
             if (pKvd == NULL) {
                 result = KTX_OUT_OF_MEMORY;
@@ -355,18 +367,18 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     }
 
     /*
-     * Get the size of the image data.
+     * Get the size of the image data. For a pipe, calculate it.
      */
-    result = stream->getsize(stream, &size);
-    if (result != KTX_SUCCESS)
-        goto cleanup;
-
-    result = stream->getpos(stream, &pos);
-    if (result != KTX_SUCCESS)
-        goto cleanup;
+    if (stream->getsize(stream, &size) == KTX_SUCCESS) {
+        result = stream->getpos(stream, &pos);
+        if (result != KTX_SUCCESS)
+            goto cleanup;
 
                                 /* Remove space for faceLodSize fields */
-    This->dataSize = size - pos - This->numLevels * sizeof(ktx_uint32_t);
+        This->dataSize = size - pos - This->numLevels * sizeof(ktx_uint32_t);
+    } else {
+        This->dataSize = ktxTexture_calcDataSizeTexture(ktxTexture(This));
+    }
 
     /*
      * Load the images, if requested.
