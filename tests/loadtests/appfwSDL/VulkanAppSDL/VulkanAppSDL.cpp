@@ -445,8 +445,27 @@ VulkanAppSDL::resizeWindow(int width, int height)
 
     flushInitialCommands();
     if (enableTextOverlay) {
-        textOverlay->reallocateCommandBuffers();
+        VkRect2D safeRenderArea; // Avoids any status area such as on iPad.
+        safeRenderArea.offset.x = safeRenderArea.offset.y = 0;
+        safeRenderArea.extent.width = w_width;
+        safeRenderArea.extent.height = w_height;
+        SDL_Rect safeWindowArea;
+        float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
+        if (displayScale == 0.0f) displayScale = 1.0f;
+        if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
+            safeRenderArea.extent.width = (safeWindowArea.w - 1) * displayScale;
+            safeRenderArea.extent.height = safeWindowArea.h * displayScale;
+            safeRenderArea.offset.x = safeWindowArea.x * displayScale;
+            safeRenderArea.offset.y = safeWindowArea.y * displayScale;
+        }
+        textOverlay->resize(safeRenderArea);
         updateTextOverlay();
+        std::cerr << "resize: w_width = " << w_width << ", w_height = " << w_height
+                  << ", event.width = " << width << ", event.height = " << height
+                  << ", sRA.w = " << safeRenderArea.extent.width
+                  << ", sRA.h = " << safeRenderArea.extent.height
+                  << ", sRA.x = " << safeRenderArea.offset.x
+                  << ", sRA.y = " << safeRenderArea.offset.y << std::endl;
     }
     // Notify derived class.
     windowResized();
@@ -1563,6 +1582,20 @@ VulkanAppSDL::prepareTextOverlay()
         shaderStages.push_back(shaderStage);
         shaderModules.push_back(shaderStage.module);
 
+        VkRect2D safeRenderArea;  // Avoids any status area such as that on iPad.
+        safeRenderArea.offset.x = safeRenderArea.offset.y = 0;
+        safeRenderArea.extent.width = w_width;
+        safeRenderArea.extent.height = w_height;
+        SDL_Rect safeWindowArea;
+        float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
+        if (displayScale == 0.0f) displayScale = 1.0f;
+        if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
+            safeRenderArea.extent.width = safeWindowArea.w * displayScale;
+            safeRenderArea.extent.height = safeWindowArea.h * displayScale;
+            safeRenderArea.offset.x = safeWindowArea.x * displayScale;
+            safeRenderArea.offset.y = safeWindowArea.y * displayScale;
+        }
+
         textOverlay = new VulkanTextOverlay(
             vkctx.gpu,
             vkctx.device,
@@ -1570,8 +1603,7 @@ VulkanAppSDL::prepareTextOverlay()
             vkctx.framebuffers,
             vkctx.swapchain.colorFormat,
             vkctx.depthBuffer.format,
-            &w_width,
-            &w_height,
+            safeRenderArea,
             shaderStages
             );
         updateTextOverlay();
@@ -1584,30 +1616,42 @@ void VulkanAppSDL::updateTextOverlay()
     if (!enableTextOverlay)
         return;
 
+    float x = 10.0f, y = 5.0f;
+
+#if 0
+    SDL_Rect safeRenderArea;
+    float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
+    if (displayScale == 0.0f) displayScale = 1.0f;
+    if (SDL_GetWindowsafeRenderArea(pswMainWindow, &safeRenderArea)) {
+        x += (float)safeRenderArea.x * displayScale;
+        y += (float)safeRenderArea.y * displayScale;
+    }
+#endif
+
     textOverlay->beginTextUpdate();
 
-    textOverlay->addText(appTitle, 5.0f, 5.0f, VulkanTextOverlay::alignLeft);
+    textOverlay->addText(appTitle, x, y, VulkanTextOverlay::alignLeft);
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2)
        << lastFrameTime << "ms (" << fpsCounter.lastFPS << " fps)";
-    textOverlay->addText(ss.str(), 5.0f, 25.0f, VulkanTextOverlay::alignLeft);
+    textOverlay->addText(ss.str(), x, y += 20.0f, VulkanTextOverlay::alignLeft);
 
     ss.str("");
     ss << vkctx.gpuProperties.deviceName << " with "
        << vkctx.gpuDriverProperties.driverName << " version "
        << vkctx.gpuDriverProperties.driverInfo;
-    textOverlay->addText(ss.str(), 5.0f, 45.0f,
+    textOverlay->addText(ss.str(), x, y+=20.0f,
                          VulkanTextOverlay::alignLeft);
 
     // Leave a blank line between us and the derived class's text.
-    getOverlayText(85.0f);
+    getOverlayText(x, y+= 40.0f);
 
     textOverlay->endTextUpdate();
 }
 
 
-void VulkanAppSDL::getOverlayText(float /*yOffset*/)
+void VulkanAppSDL::getOverlayText(float /*xOffset*/, float /*yOffset*/)
 {
     // Can be overriden in derived class
 }

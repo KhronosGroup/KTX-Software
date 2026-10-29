@@ -148,8 +148,7 @@ private:
     VkFormat colorFormat;
     VkFormat depthFormat;
 
-    uint32_t *frameBufferWidth;
-    uint32_t *frameBufferHeight;
+    VkRect2D safeRenderArea;
 
     VkSampler sampler;
     VkImage image;
@@ -211,8 +210,7 @@ public:
         std::vector<VkFramebuffer> &framebuffers,
         VkFormat colorformat,
         VkFormat depthformat,
-        uint32_t *framebufferwidth,
-        uint32_t *framebufferheight,
+        VkRect2D& saferenderarea,
         std::vector<VkPipelineShaderStageCreateInfo> shaderstages)
     {
         this->physicalDevice = physicalDevice;
@@ -229,8 +227,7 @@ public:
 
         this->shaderStages = shaderstages;
 
-        this->frameBufferWidth = framebufferwidth;
-        this->frameBufferHeight = framebufferheight;
+        this->safeRenderArea = saferenderarea;
 
         vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
         cmdBuffers.resize(framebuffers.size());
@@ -669,11 +666,11 @@ public:
 
         assert(mapped != nullptr);
 
-        const float charW = 1.5f / *frameBufferWidth;
-        const float charH = 1.5f / *frameBufferHeight;
+        const float charW = 1.5f / safeRenderArea.extent.width;
+        const float charH = 1.5f / safeRenderArea.extent.height;
 
-        float fbW = (float)*frameBufferWidth;
-        float fbH = (float)*frameBufferHeight;
+        float fbW = (float)safeRenderArea.extent.width;
+        float fbH = (float)safeRenderArea.extent.height;
         x = (x / fbW * 2.0f) - 1.0f;
         y = (y / fbH * 2.0f) - 1.0f;
 
@@ -748,6 +745,7 @@ public:
                 break; // Truncate the text.
         }
     }
+
     // Unmap buffer and update command buffers
     void endTextUpdate()
     {
@@ -761,8 +759,7 @@ public:
 
         VkRenderPassBeginInfo renderPassBeginInfo = vkTools::initializers::renderPassBeginInfo();
         renderPassBeginInfo.renderPass = renderPass;
-        renderPassBeginInfo.renderArea.extent.width = *frameBufferWidth;
-        renderPassBeginInfo.renderArea.extent.height = *frameBufferHeight;
+        renderPassBeginInfo.renderArea = safeRenderArea;
         renderPassBeginInfo.clearValueCount = 0;
         renderPassBeginInfo.pClearValues = nullptr;
 
@@ -779,12 +776,16 @@ public:
 
             vkCmdBeginRenderPass(cmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-            VkViewport viewport = vkTools::initializers::viewport((float)*frameBufferWidth, (float)*frameBufferHeight, 0.0f, 1.0f);
+            VkViewport viewport
+                = vkTools::initializers::viewport((float)safeRenderArea.extent.width,
+                                                  (float)safeRenderArea.extent.height, 0.0f, 1.0f);
+            viewport.x = safeRenderArea.offset.x;
+            viewport.y = safeRenderArea.offset.y;
             vkCmdSetViewport(cmdBuffers[i], 0, 1, &viewport);
 
-            VkRect2D scissor = vkTools::initializers::rect2D(*frameBufferWidth, *frameBufferHeight, 0, 0);
-            vkCmdSetScissor(cmdBuffers[i], 0, 1, &scissor);
-            
+            //VkRect2D scissor = vkTools::initializers::rect2D(frameBufferWidth, frameBufferHeight, 0, 0);
+            vkCmdSetScissor(cmdBuffers[i], 0, 1, &safeRenderArea);
+
             vkCmdBindPipeline(cmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
             vkCmdBindDescriptorSets(cmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
 
@@ -832,6 +833,15 @@ public:
                 static_cast<uint32_t>(cmdBuffers.size()));
 
         VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, cmdBuffers.data()));
+    }
+
+    void resize(VkRect2D& saferenderarea)
+    {
+        this->safeRenderArea = saferenderarea;
+        reallocateCommandBuffers();
+        vkDestroyRenderPass(device, renderPass, NULL);
+        prepareRenderPass();
+        updateCommandBuffers();
     }
 
 };
