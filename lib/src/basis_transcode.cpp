@@ -526,6 +526,9 @@ pvrtc1BlockIndex(uint32_t blocksX, uint32_t blocksY, uint32_t x, uint32_t y)
  * onto itself so tiling them over the 2x2 grid, in its block order, gives
  * the image basisu intended and leaves no byte of it unwritten.
  *
+ * Remove this and its two calls once basisu fills the whole 2x2 grid
+ * itself. See https://github.com/BinomialLLC/basis_universal/issues/475.
+ *
  * @param[in,out] image    pointer to the transcoded image.
  * @param[in]     blocksX  width of the image's block grid, a power of 2.
  * @param[in]     blocksY  height of the image's block grid, a power of 2.
