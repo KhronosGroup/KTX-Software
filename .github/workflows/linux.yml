@@ -98,8 +98,8 @@ jobs:
             sse: ON, opencl: OFF
           }
         # The packages are built in manylinux_2_28 so they need only glibc
-        # 2.28 and run on older distributions. The load tests aren't
-        # packaged so they aren't built here. Other jobs build them.
+        # 2.28 and run on older distributions. Only the OpenGL load tests
+        # are built here. The Vulkan SDK's glslc needs glibc 2.34.
         - name: Package (x86_64)
           os: ubuntu-latest
           container: quay.io/pypa/manylinux_2_28_x86_64
@@ -108,7 +108,7 @@ jobs:
           compiler: gcc
           options: {
             config: Release,
-            doc: ON, jni: ON, loadtests: OFF, py: ON, tools: ON, tools_cts: ON,
+            doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: ON, opencl: OFF
           }
         - name: Package (aarch64)
@@ -119,7 +119,7 @@ jobs:
           compiler: gcc
           options: {
             config: Release,
-            doc: ON, jni: ON, loadtests: OFF, py: ON, tools: ON, tools_cts: ON,
+            doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
         # Can't run OpenCL on Actions because the runner CPU reports as
@@ -249,6 +249,38 @@ jobs:
           echo "/opt/doxygen/bin" >> $GITHUB_PATH
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Install load test dependencies (manylinux)
+        if: matrix.container && matrix.options.loadtests != 'OFF'
+        # vcpkg builds SDL3 and assimp from source. SDL3's default features
+        # need the X11, Wayland and ibus headers. dbus's systemd feature brings
+        # in libxcrypt, which needs autoconf-archive and perl-open, and
+        # libsystemd, which needs jinja2.
+        run: |
+          pip install jinja2
+          dnf install -y --enablerepo=powertools zip unzip \
+            autoconf autoconf-archive automake libtool perl-open pkgconf-pkg-config \
+            mesa-libGL-devel mesa-libEGL-devel \
+            libX11-devel libXext-devel libXft-devel libXcursor-devel \
+            libXfixes-devel libXi-devel libXrandr-devel libXtst-devel \
+            wayland-devel wayland-protocols-devel libxkbcommon-devel ibus-devel
+
+      - name: Set up vcpkg (manylinux)
+        if: matrix.container && matrix.options.loadtests != 'OFF'
+        run: |
+          git clone --depth 1 https://github.com/microsoft/vcpkg /opt/vcpkg
+          /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+          echo "VCPKG_ROOT=/opt/vcpkg" >> $GITHUB_ENV
+          echo "VCPKG_CACHE_DIR=$HOME/vcpkg-cache" >> $GITHUB_ENV
+          mkdir -p $HOME/vcpkg-cache
+
+      # The other jobs cache through NuGet, which needs mono.
+      - name: Cache vcpkg packages (manylinux)
+        if: matrix.container && matrix.options.loadtests != 'OFF'
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.VCPKG_CACHE_DIR }}
+          key: vcpkg-${{ matrix.container }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+
       # EL8's Doxygen 1.8.14 is too old for the docs' layout file, and
       # Doxygen's Linux binary needs glibc 2.34 and has no aarch64 build,
       # so build the version docs.yml installs. EL8's flex 2.6.1 can't
@@ -310,7 +342,7 @@ jobs:
           ./scripts/install_linux.sh
 
       - name: Install libldtl and mono
-        if: matrix.options.loadtests != 'OFF' && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        if: matrix.options.loadtests != 'OFF' && !matrix.container && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
         # These packages were omitted from ubuntu-24.04 for some reason.
         # libldtl is needed by libxcrypt which is needed by vcpkg.
         # mono is needed for adding NuGet sources for caching.
@@ -346,7 +378,7 @@ jobs:
           scripts/smudge_date.sh
 
       - name: Export environment variables for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
+        if: matrix.options.loadtests != 'OFF' && !matrix.container
         # actions/github-script is used primarily because it is the only
         # way to access VCPKG_INSTALLATION_ROOT outside of the runner's shell.
         # Maintaining cross-platform access is desirable so the code can be
@@ -363,7 +395,7 @@ jobs:
             core.exportVariable('NUGET_FEED_URL', 'https://nuget.pkg.github.com/KhronosGroup/index.json' || '');
 
       - name: Add NuGet sources for vcpkg binary caching
-        if: matrix.options.loadtests != 'OFF'
+        if: matrix.options.loadtests != 'OFF' && !matrix.container
         env:
           USERNAME: KhronosGroup
         shell: bash
@@ -383,7 +415,7 @@ jobs:
 
       - name: script
         env:
-          VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
+          VCPKG_BINARY_SOURCES: ${{ matrix.container && format('clear;files,{0},readwrite', env.VCPKG_CACHE_DIR) || format('clear;nuget,{0},readwrite', env.NUGET_FEED_URL) }}
         run: |
           ./scripts/build_linux.sh
 
