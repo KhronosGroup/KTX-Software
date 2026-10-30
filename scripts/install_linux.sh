@@ -82,6 +82,7 @@ if [[ "$FEATURE_VK_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
 fi
 
 if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" && !(-d $VULKAN_SDK) ]]; then
+  sudo apt-get -qq install autoconf-archive:$dpkg_arch # Needed by vcpkg/assimp
   # No Vulkan SDK for Linux/arm64 yet.
   if [[ "$dpkg_arch" = "arm64" ]]; then
     echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS to OpenGL or OFF."
