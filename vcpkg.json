@@ -17,11 +17,6 @@
           "features": [
             "vulkan"
           ]
-        },
-        {
-          "name": "dbus",
-          "default-features": false,
-          "platform": "linux"
         }
       ]
     },
