@@ -319,12 +319,6 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
     // Account for ETC1S with possible second slice.
     This->blockSizeInBits += KHR_DFDVAL(pBdb, BYTESPLANE1) * 8;
-    // A texel block takes at least a byte. Samples that describe less, such
-    // as a single bit, reconstruct bytesPlane0 as 0, and the level alignment,
-    // lcm4(blockSizeInBits / 8), would then be 0.
-    if (This->blockSizeInBits == 0) {
-        return KTX_FILE_DATA_ERROR;
-    }
     This->paletteSizeInBits = 0; // No paletted formats in ktx v2.
     This->flags = 0;
     This->minBlocksX = This->minBlocksY = 1;

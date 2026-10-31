@@ -2956,7 +2956,7 @@ TEST_F(ktxTexture2_DeflateTest, DeflateZLIB) {
     }
 }
 
-TEST_F(ktxTexture2_DeflateTest, RejectsDfdWhoseTexelBlockHasNoBytes) {
+TEST_F(ktxTexture2_DeflateTest, GetDataSizeUncompressedWithOneBitSamples) {
     ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
     KTX_error_code result;
 
@@ -2976,9 +2976,9 @@ TEST_F(ktxTexture2_DeflateTest, RejectsDfdWhoseTexelBlockHasNoBytes) {
         ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
         std::unique_ptr<ktx_uint8_t, decltype(std::free)*> deflated{pDeflated, std::free};
 
-        // With bytesPlane0 0, libktx reconstructs it from the samples, and
-        // with every sample 1 bit long at offset 0 it reconstructs 0. The
-        // level alignment of a Zstd texture was then 0, and
+        // With bytesPlane0 0, libktx reconstructs it from the samples. With
+        // every sample 1 bit long at offset 0 it reconstructed 0, the level
+        // alignment of a Zstd texture was then 0, and
         // ktxTexture2_GetDataSizeUncompressed divided by it.
         const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pDeflated);
         ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
@@ -2989,12 +2989,16 @@ TEST_F(ktxTexture2_DeflateTest, RejectsDfdWhoseTexelBlockHasNoBytes) {
             KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 0);
         }
 
-        ktxTexture* corrupt = nullptr;
+        ktxTexture* oneBit = nullptr;
         result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
                                              KTX_TEXTURE_CREATE_NO_FLAGS,
-                                             &corrupt);
-        ktxTexture_unique_ptr corrupt_raii{corrupt, ktxTexture_Deleter};
-        EXPECT_EQ(result, KTX_FILE_DATA_ERROR) << ktxErrorString(result);
+                                             &oneBit);
+        ktxTexture_unique_ptr oneBit_raii{oneBit, ktxTexture_Deleter};
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        // A 1-byte texel block gives the same 4-byte level alignment as the
+        // texture's own 4-byte one.
+        EXPECT_EQ(ktxTexture_GetDataSizeUncompressed(oneBit),
+                  ktxTexture_GetDataSizeUncompressed(ktxTexture(texture)));
     }
 }
 
