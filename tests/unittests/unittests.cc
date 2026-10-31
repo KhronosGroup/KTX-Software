@@ -691,6 +691,20 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
         EXPECT_EQ(origBytesPlane47, bdb[KHR_DF_WORD_BYTESPLANE4]);
     }
 
+    // Samples that end short of a byte still take one.
+    {
+        std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(VK_FORMAT_R8G8B8A8_UNORM), std::free};
+        ASSERT_TRUE(dfd != NULL);
+        uint32_t* bdb = dfd.get() + 1;
+        bdb[KHR_DF_WORD_BYTESPLANE0] = 0U;
+        for (uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdb); sample++) {
+            KHR_DFDSETSVAL(bdb, sample, BITOFFSET, 0);
+            KHR_DFDSETSVAL(bdb, sample, BITLENGTH, 0);
+        }
+        reconstructDFDBytesPlanesFromSamples(dfd.get());
+        EXPECT_EQ(1U, KHR_DFDVAL(bdb, BYTESPLANE0));
+    }
+
     // No need to test reconstruction for UASTC as, colorModel aside, the DFD
     // is identical to that for VK_FORMAT_ASTC_4x4_BLOCK_UNORM which has been
     // tested above.
