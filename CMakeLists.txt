@@ -535,7 +535,7 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     else()
         set(processor_name ${arch0})
     endif()
-elseif( CMAKE_CXX_COMPILER_ARCHITECTURE_ID )
+elseif( WIN32 AND CMAKE_CXX_COMPILER_ARCHITECTURE_ID )
     # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly
     # return AMD64. See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170.
     # We assume that when building for Windows arm64 that we are using MSVC
@@ -588,6 +588,16 @@ if(APPLE)
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
+    # CPack asks dpkg for the .deb architecture. Builds on RPM-based
+    # systems, such as manylinux, don't have dpkg.
+    find_program(DPKG_EXECUTABLE dpkg)
+    if(NOT DPKG_EXECUTABLE)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
+        elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE arm64)
+        endif()
+    endif()
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 
     # This fixes the directory permission derived from Ubuntu ${BUILD_DIR} of 0775 to 0755.

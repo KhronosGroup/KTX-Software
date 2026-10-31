@@ -100,6 +100,9 @@ fi
 if [ -n "$CMAKE_BUILD_TYPE" ]; then
   cmake_args+=("-D" "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE")
 fi
+if [ -n "$INSTALL_LIBDIR" ]; then
+  cmake_args+=("-D" "CMAKE_INSTALL_LIBDIR=$INSTALL_LIBDIR")
+fi
 
 mkdir -p $BUILD_DIR
 

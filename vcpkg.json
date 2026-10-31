@@ -7,6 +7,11 @@
       "dependencies": [
         "assimp",
         {
+          "name": "dbus",
+          "default-features": false,
+          "platform": "linux"
+        },
+        {
           "name": "sdl3",
           "default-features": true,
           "features": [
