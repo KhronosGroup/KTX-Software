@@ -2330,6 +2330,106 @@ ktxTexture2_GetLevelSize(ktxTexture2* This, ktx_uint32_t level)
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Iterate over the levels or faces in a ktxTexture2 object.
+ *
+ * Blocks of image data are passed to an application-supplied callback
+ * function. This is not a strict per-image iteration. Rather it reflects how
+ * OpenGL needs the images. For most textures the block of data includes all
+ * images of a mip level which implies all layers of an array. However, for
+ * non-array cube map textures the block is a single face of the mip level,
+ * i.e the callback is called once for each face.
+ *
+ * This function works even if @p This->pData == 0 so it can be used to
+ * obtain offsets and sizes for each level by callers who have loaded the data
+ * externally.
+ *
+ * @param[in]     This      pointer to the ktxTexture2 object of interest.
+ * @param[in,out] iterCb    the address of a callback function which is called
+ *                          with the data for each image block.
+ * @param[in,out] userdata  the address of application-specific data which is
+ *                          passed to the callback along with the image data.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error. The
+ *          following are returned directly by this function. @p iterCb may
+ *          return these for other causes or may return additional errors.
+ *
+ * @exception KTX_FILE_DATA_ERROR   Mip level sizes are increasing not
+ *                                  decreasing
+ * @exception KTX_INVALID_OPERATION supercompressionScheme != SUPERCOMPRESSION_NONE.
+ * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
+ *
+ */
+KTX_error_code
+ktxTexture2_IterateLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
+                             void* userdata)
+{
+    KTX_error_code  result = KTX_SUCCESS;
+
+    if (This == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (iterCb == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (This->supercompressionScheme != KTX_SS_NONE)
+        return KTX_INVALID_OPERATION;
+
+    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
+    {
+        ktx_uint32_t faceLodSize;
+        ktx_uint32_t face;
+        ktx_uint32_t innerIterations;
+        GLsizei      width, height, depth;
+
+        /* Array textures have the same number of layers at each mip level. */
+        width = MAX(1, This->baseWidth  >> level);
+        height = MAX(1, This->baseHeight >> level);
+        depth = MAX(1, This->baseDepth  >> level);
+
+        faceLodSize = (ktx_uint32_t)ktxTexture2_calcFaceLodSize(
+                                                    This, level);
+
+        /* All array layers are passed in a group because that is how
+         * GL & Vulkan need them. Hence no
+         *    for (layer = 0; layer < This->numLayers)
+         */
+        if (This->isCubemap && !This->isArray)
+            innerIterations = This->numFaces;
+        else
+            innerIterations = 1;
+        for (face = 0; face < innerIterations; ++face)
+        {
+            /* And all z_slices are also passed as a group hence no
+             *    for (slice = 0; slice < This->depth)
+             */
+            ktx_size_t offset;
+
+            result = ktxTexture2_GetImageOffset(This, level, 0, face, &offset);
+            if (result != KTX_SUCCESS)
+                break;
+
+            /* The sizes come from the format and extents, not the data. */
+            if (offset > This->dataSize
+                || faceLodSize > This->dataSize - offset) {
+                result = KTX_FILE_DATA_ERROR;
+                break;
+            }
+
+            result = iterCb(level, face,
+                            width, height, depth,
+                            faceLodSize, This->pData + offset, userdata);
+
+            if (result != KTX_SUCCESS)
+                break;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Iterate over the mip levels in a ktxTexture2 object.
  *
  * This is almost identical to ktxTexture_IterateLevelFaces(). The difference is
@@ -2480,8 +2580,11 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
 
     levelIndex = This->_private->_levelIndex;
 
-    // Allocate memory sufficient for the base level
-    dataSize = levelIndex[0].byteLength;
+    // If this is super-compressed then base level 0 may NOT necessarily be the
+    // one with the largest size. This is why we simply loop over all levels and
+    // pick the largest one and NOT simply pick level 0.
+    for (ktx_uint32_t level = 0; level < This->numLevels; ++level)
+        dataSize = MAX(dataSize, levelIndex[level].byteLength);
     dataBuf = malloc(dataSize);
     if (!dataBuf)
         return KTX_OUT_OF_MEMORY;
@@ -3187,6 +3290,7 @@ struct ktxTexture_vtbl ktxTexture2_vtbl = {
     (PFNKTEXGETIMAGESIZE)ktxTexture2_GetImageSize,
     (PFNKTEXGETLEVELSIZE)ktxTexture2_GetLevelSize,
     (PFNKTEXITERATELEVELS)ktxTexture2_IterateLevels,
+    (PFNKTEXITERATELEVELFACES)ktxTexture2_IterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture2_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture2_NeedsTranscoding,
     (PFNKTEXISTRANSCODABLE)ktxTexture2_IsTranscodable,
