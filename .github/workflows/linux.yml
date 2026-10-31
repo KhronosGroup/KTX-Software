@@ -252,13 +252,10 @@ jobs:
       - name: Install load test dependencies (manylinux)
         if: matrix.container && matrix.options.loadtests != 'OFF'
         # vcpkg builds SDL3 and assimp from source. SDL3's default features
-        # need the X11, Wayland and ibus headers. dbus's systemd feature brings
-        # in libxcrypt, which needs autoconf-archive and perl-open, and
-        # libsystemd, which needs jinja2.
+        # need the X11, Wayland and ibus headers.
         run: |
-          pip install jinja2
           dnf install -y --enablerepo=powertools zip unzip \
-            autoconf autoconf-archive automake libtool perl-open pkgconf-pkg-config \
+            pkgconf-pkg-config \
             mesa-libGL-devel mesa-libEGL-devel \
             libX11-devel libXext-devel libXft-devel libXcursor-devel \
             libXfixes-devel libXi-devel libXrandr-devel libXtst-devel \
@@ -341,12 +338,11 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
-      - name: Install libldtl and mono
+      - name: Install mono
         if: matrix.options.loadtests != 'OFF' && !matrix.container && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
-        # These packages were omitted from ubuntu-24.04 for some reason.
-        # libldtl is needed by libxcrypt which is needed by vcpkg.
+        # This package was omitted from ubuntu-24.04 for some reason.
         # mono is needed for adding NuGet sources for caching.
-        run: sudo apt-get install mono-complete libltdl-dev
+        run: sudo apt-get install mono-complete
 
       # Should a specific version of Python ever be wanted, use this.
 #      - name: Set up Python
