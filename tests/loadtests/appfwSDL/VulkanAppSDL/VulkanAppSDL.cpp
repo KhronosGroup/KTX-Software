@@ -446,6 +446,7 @@ VulkanAppSDL::resizeWindow(int width, int height)
     flushInitialCommands();
     if (enableTextOverlay) {
         VkRect2D safeRenderArea; // Avoids any status area such as on iPad.
+#if 0
         safeRenderArea.offset.x = safeRenderArea.offset.y = 0;
         safeRenderArea.extent.width = w_width;
         safeRenderArea.extent.height = w_height;
@@ -453,11 +454,22 @@ VulkanAppSDL::resizeWindow(int width, int height)
         float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
         if (displayScale == 0.0f) displayScale = 1.0f;
         if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
-            safeRenderArea.extent.width = (safeWindowArea.w - 1) * displayScale;
+            safeRenderArea.extent.width = safeWindowArea.w * displayScale;
             safeRenderArea.extent.height = safeWindowArea.h * displayScale;
             safeRenderArea.offset.x = safeWindowArea.x * displayScale;
             safeRenderArea.offset.y = safeWindowArea.y * displayScale;
         }
+#else
+        // Workaround two apparent SDL bugs:
+        // 1. On iOS after rotating the device, the reported safeWindowArea is sized for
+        //    the pre-rotate orientation.
+        // 2. On macOS safeWindowArea.[wh] differ from the size reported in the event
+        //    by tens of pixels even though the full window can be safely used.
+        safeRenderArea.offset.x = 0;
+        safeRenderArea.offset.y = topBarHeight;
+        safeRenderArea.extent.width = w_width;
+        safeRenderArea.extent.height = w_height - topBarHeight - bottomBarHeight;
+#endif
         textOverlay->resize(safeRenderArea);
         updateTextOverlay();
         std::cerr << "resize: w_width = " << w_width << ", w_height = " << w_height
@@ -1595,6 +1607,9 @@ VulkanAppSDL::prepareTextOverlay()
             safeRenderArea.offset.x = safeWindowArea.x * displayScale;
             safeRenderArea.offset.y = safeWindowArea.y * displayScale;
         }
+        // See resizeWindow for explanation. Here SDL returns the correct safe area.
+        topBarHeight = safeRenderArea.offset.y;
+        bottomBarHeight = w_height - safeRenderArea.offset.y - safeRenderArea.extent.height;
 
         textOverlay = new VulkanTextOverlay(
             vkctx.gpu,
@@ -1617,16 +1632,6 @@ void VulkanAppSDL::updateTextOverlay()
         return;
 
     float x = 10.0f, y = 5.0f;
-
-#if 0
-    SDL_Rect safeRenderArea;
-    float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
-    if (displayScale == 0.0f) displayScale = 1.0f;
-    if (SDL_GetWindowsafeRenderArea(pswMainWindow, &safeRenderArea)) {
-        x += (float)safeRenderArea.x * displayScale;
-        y += (float)safeRenderArea.y * displayScale;
-    }
-#endif
 
     textOverlay->beginTextUpdate();
 
