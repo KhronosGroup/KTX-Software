@@ -668,6 +668,8 @@ if(APPLE_MAC_OS_UNIVERSAL)
     # Set ordinary variable to override astc-encoder option's ON default
     # and hide the option.
     set(ASTCENC_UNIVERSAL_BUILD ON)
+else()
+    set(ASTCENC_UNIVERSAL_BUILD OFF)
 endif()
 
 # If we detect the user is doing a universal build defer to astc-encoder

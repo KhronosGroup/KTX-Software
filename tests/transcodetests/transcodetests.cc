@@ -370,8 +370,9 @@ checkSmallPvrtc1Levels(ktx_basis_codec_e codec, ktx_uint32_t baseWidth,
     std::unique_ptr<ktxTexture2, void(*)(ktxTexture2*)> texture_raii(
         texture, [](ktxTexture2* t) { ktxTexture_Destroy(ktxTexture(t)); });
 
-    // Opaque, with a red left half and a blue right half so that the blocks
-    // of a level 2 blocks wide differ.
+    // Opaque, with a red left half, a blue right half and a green ramp from
+    // top to bottom, so that the blocks of a level 2 blocks wide or 2 blocks
+    // high differ.
     for (ktx_uint32_t level = 0; level < createInfo.numLevels; level++) {
         const ktx_uint32_t width = std::max(1u, baseWidth >> level);
         const ktx_uint32_t height = std::max(1u, baseHeight >> level);
@@ -432,6 +433,12 @@ checkSmallPvrtc1Levels(ktx_basis_codec_e codec, ktx_uint32_t baseWidth,
             // The red and blue halves are in different blocks.
             EXPECT_NE(std::memcmp(image + pvrtc1BlockIndex(2, 2, 0, 0) * blockSize,
                                   image + pvrtc1BlockIndex(2, 2, 1, 0) * blockSize,
+                                  blockSize), 0)
+                << "level " << level;
+        } else if (blocksY == 2) {
+            // The top and bottom of the green ramp are in different blocks.
+            EXPECT_NE(std::memcmp(image + pvrtc1BlockIndex(2, 2, 0, 0) * blockSize,
+                                  image + pvrtc1BlockIndex(2, 2, 0, 1) * blockSize,
                                   blockSize), 0)
                 << "level " << level;
         }
