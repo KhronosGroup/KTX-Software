@@ -528,6 +528,10 @@ macro(common_libktx_settings target enable_write library_type)
         )
     endif()
 
+    # gl_funcs.c and vk_funcs.c call dlopen and dlsym. Before glibc 2.34
+    # they are in libdl.
+    target_link_libraries(${target} PRIVATE ${CMAKE_DL_LIBS})
+
 endmacro(common_libktx_settings)
 
 macro(add_lib_dependencies target lib)
