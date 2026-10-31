@@ -130,6 +130,7 @@ function( CreateDocLibKTX )
         lib/src/astc_codec.cpp
         lib/src/basis_encode.cpp
         lib/src/basis_transcode.cpp
+        lib/src/level_processor.cpp
         lib/src/miniz_wrapper.cpp
         lib/src/strings.c
         lib/src/gl_funcs.c

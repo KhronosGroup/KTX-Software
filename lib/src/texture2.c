@@ -423,6 +423,7 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
         return KTX_OUT_OF_MEMORY;
     }
     memset(This->_private, 0, privateSize);
+    This->_private->_kvDataIsParsed = KTX_TRUE;
     return KTX_SUCCESS;
 }
 
@@ -775,9 +776,12 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
     if (result != KTX_SUCCESS)
         goto cleanup;
 
-    // Check that the data the header and level index declare is within the
-    // file, before memory is allocated for it. The size of a pipe, such as
-    // stdin, is not known. Skip the check then; the reads still fail at EOF.
+    // Check that the metadata the header declares is within the file, before
+    // memory is allocated for it. The size of a pipe, such as stdin, is not
+    // known. Skip the check then; the reads still fail at EOF. The image data
+    // is checked when it is loaded (ktxTexture2_checkLevelsInStream), so that
+    // a texture can be created from the start of a file, up to the end of
+    // its supercompression global data, without its image data.
     if (stream->getsize(stream, &fileSize) == KTX_SUCCESS) {
         const ktxIndexEntry32* dfd = &pHeader->dataFormatDescriptor;
         const ktxIndexEntry32* kvd = &pHeader->keyValueData;
@@ -787,13 +791,6 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             sgd->byteOffset > fileSize || sgd->byteLength > fileSize - sgd->byteOffset) {
             result = KTX_FILE_UNEXPECTED_EOF;
             goto cleanup;
-        }
-        for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
-            const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
-            if (entry->byteOffset > fileSize || entry->byteLength > fileSize - entry->byteOffset) {
-                result = KTX_FILE_UNEXPECTED_EOF;
-                goto cleanup;
-            }
         }
     }
 
@@ -1059,6 +1056,10 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
         result = KTX_FILE_DATA_ERROR;
         goto cleanup;
     }
+
+    private->_kvDataIsParsed = pHeader->keyValueData.byteLength == 0
+        || !(createFlags & (KTX_TEXTURE_CREATE_SKIP_KVDATA_BIT
+                          | KTX_TEXTURE_CREATE_RAW_KVDATA_BIT));
 
     if (pHeader->supercompressionGlobalData.byteLength > 0) {
         switch (This->supercompressionScheme) {
@@ -2012,6 +2013,75 @@ ktxTexture2_GetImageOffset(ktxTexture2* This, ktx_uint32_t level,
 /**
  * @memberof ktxTexture2
  * @~English
+ * @brief Retrieve a level's location and size within the serialized source.
+ *
+ * Reports where a mip level's stored (possibly supercompressed) payload
+ * lives in the serialized KTX2 source the texture was created from, as an
+ * absolute file offset and byte length, together with the level's
+ * uncompressedByteLength from the serialized Level Index. A streaming
+ * consumer can use the values to fetch a level's bytes, e.g. with an HTTP
+ * Range request, without parsing the container itself.
+ *
+ * The information reflects the source as serialized, so it is available
+ * only while the texture retains its serialized-source state: a texture
+ * created from a stream, memory or file whose image data has not been
+ * loaded. For a texture created with ktxTexture2_Create(), or once image
+ * data has been fully loaded (e.g. with
+ * KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT or ktxTexture2_LoadImageData()),
+ * the serialized layout is considered discarded and
+ * KTX_INVALID_OPERATION is returned.
+ *
+ * @param[in]  This  pointer to the ktxTexture2 object of interest.
+ * @param[in]  level mip level of interest.
+ * @param[out] pInfo pointer to location to store the level information.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_VALUE @p This or @p pInfo is NULL or @p level is
+ *                              not less than This->numLevels.
+ * @exception KTX_INVALID_OPERATION
+ *                              The texture has no serialized source: it was
+ *                              created with ktxTexture2_Create() or its
+ *                              image data has been fully loaded.
+ * @exception KTX_FILE_DATA_ERROR
+ *                              The serialized Level Index is corrupt: the
+ *                              level's offset cannot be converted to an
+ *                              absolute file offset.
+ */
+KTX_error_code
+ktxTexture2_GetLevelFileInfo(const ktxTexture2* This, ktx_uint32_t level,
+                             ktxLevelFileInfo* pInfo)
+{
+    if (This == NULL || This->_private == NULL || pInfo == NULL)
+        return KTX_INVALID_VALUE;
+
+    if (level >= This->numLevels)
+        return KTX_INVALID_VALUE;
+
+    // Image data cannot start at file offset 0 (the identifier and header
+    // precede it), so a zero base reliably marks a texture without
+    // serialized-source state: created via ktxTexture2_Create or already
+    // fully loaded.
+    if (This->_private->_firstLevelFileOffset == 0)
+        return KTX_INVALID_OPERATION;
+
+    const ktxLevelIndexEntry* entry = &This->_private->_levelIndex[level];
+
+    // In-memory offsets are rebased relative to the start of image data;
+    // guard the conversion back to absolute against a corrupt index.
+    if (entry->byteOffset > UINT64_MAX - This->_private->_firstLevelFileOffset)
+        return KTX_FILE_DATA_ERROR;
+
+    pInfo->byteOffset =
+        entry->byteOffset + This->_private->_firstLevelFileOffset;
+    pInfo->byteLength = entry->byteLength;
+    pInfo->uncompressedByteLength = entry->uncompressedByteLength;
+    return KTX_SUCCESS;
+}
+
+/**
+ * @memberof ktxTexture2
+ * @~English
  * @brief Retrieve the transfer function of the images.
  *
  * @param[in]     This      pointer to the ktxTexture2 object of interest.
@@ -2403,6 +2473,46 @@ ktxTexture2_IterateLevels(ktxTexture2* This, PFNKTXITERCB iterCb, void* userdata
 }
 
 /**
+ * @internal
+ * @~English
+ * @brief Check that the image data the level index declares is within the
+ *        source stream, before memory is allocated for it.
+ *
+ * The size of a pipe, such as stdin, is not known. The check is skipped
+ * then; the reads still fail at EOF.
+ *
+ * @param[in] This pointer to the ktxTexture2 object of interest.
+ *
+ * @return      KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_FILE_UNEXPECTED_EOF
+ *                              The data of a level extends past the end of
+ *                              the source.
+ */
+static KTX_error_code
+ktxTexture2_checkLevelsInStream(ktxTexture2* This)
+{
+    DECLARE_PROTECTED(ktxTexture);
+    DECLARE_PRIVATE(ktxTexture2);
+    ktx_size_t streamSize;
+
+    if (prtctd->_stream.getsize(&prtctd->_stream, &streamSize) != KTX_SUCCESS)
+        return KTX_SUCCESS;
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        const ktxLevelIndexEntry* entry = &private->_levelIndex[level];
+        // The constructor rebased the index to the offset of the smallest
+        // level. Adding that back restores the offset in the file, also for
+        // a level stored before the smallest one, whose rebased offset
+        // wrapped around.
+        ktx_uint64_t offset = entry->byteOffset
+                            + private->_firstLevelFileOffset;
+        if (offset > streamSize || entry->byteLength > streamSize - offset)
+            return KTX_FILE_UNEXPECTED_EOF;
+    }
+    return KTX_SUCCESS;
+}
+
+/**
  * @memberof ktxTexture2
  * @~English
  * @brief Iterate over the images in a ktxTexture2 object while loading the
@@ -2477,6 +2587,10 @@ ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
     if (prtctd->_stream.data.file == NULL)
         // This Texture not created from a stream or images are already loaded.
         return KTX_INVALID_OPERATION;
+
+    result = ktxTexture2_checkLevelsInStream(This);
+    if (result != KTX_SUCCESS)
+        return result;
 
     levelIndex = This->_private->_levelIndex;
 
@@ -2706,6 +2820,10 @@ ktxTexture2_loadImageDataInt(ktxTexture2* This,
     if (prtctd->_stream.data.file == NULL)
         // This Texture not created from a stream or images already loaded;
         return KTX_INVALID_OPERATION;
+
+    result = ktxTexture2_checkLevelsInStream(This);
+    if (result != KTX_SUCCESS)
+        return result;
 
     if (inflateHandling == LOADDATA_INFLATE_ON_LOAD) {
         outputDataCapacity = ktxTexture2_GetDataSizeUncompressed(This);
@@ -3096,6 +3214,85 @@ ktxTexture2_inflateZLIBInt(ktxTexture2* This, ktx_uint8_t* pDeflatedData,
 cleanup:
     if (nindex) free(nindex);
     return result;
+}
+
+/**
+ * @memberof ktxTexture2 @private
+ * @~English
+ * @brief Inflate the Zstd or ZLIB supercompressed data of one level.
+ *
+ * The texture itself is not modified. Used where levels are inflated one
+ * at a time from data held by the caller, as by ktxLevelProcessor.
+ *
+ * @param[in] This              pointer to the ktxTexture2 object of interest.
+ * @param[in] level             the level whose data is to be inflated.
+ * @param[in] pDeflatedData     pointer to the level's supercompressed data.
+ * @param[in] deflatedByteLength size of the data at @p pDeflatedData.
+ * @param[in,out] pInflatedData pointer to a buffer in which to write the
+ *                              inflated data.
+ * @param[in] inflatedDataCapacity capacity of the buffer pointed at by
+ *                                @p pInflatedData.
+ * @param[in] dctx              Zstd decompression context to use when the
+ *                              texture is Zstd supercompressed. Ignored for
+ *                              ZLIB.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error.
+ *
+ * @exception KTX_INVALID_OPERATION The texture is not Zstd or ZLIB
+ *                                  supercompressed.
+ * @exception KTX_DECOMPRESS_LENGTH_ERROR The inflated size does not match
+ *                                        the level's uncompressedByteLength
+ *                                        or exceeds @p inflatedDataCapacity.
+ * @exception KTX_DECOMPRESS_CHECKSUM_ERROR The Zstd frame checksum does
+ *                                          not match.
+ * @exception KTX_FILE_DATA_ERROR The data is not a valid Zstd frame.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory to inflate the data.
+ */
+KTX_error_code
+ktxTexture2_inflateLevelInt(const ktxTexture2* This, ktx_uint32_t level,
+                            const ktx_uint8_t* pDeflatedData,
+                            ktx_size_t deflatedByteLength,
+                            ktx_uint8_t* pInflatedData,
+                            ktx_size_t inflatedDataCapacity,
+                            struct ZSTD_DCtx_s* dctx)
+{
+    size_t levelByteLength;
+
+    if (This->supercompressionScheme == KTX_SS_ZSTD) {
+        levelByteLength = ZSTD_decompressDCtx(dctx, pInflatedData,
+                                              inflatedDataCapacity,
+                                              pDeflatedData,
+                                              deflatedByteLength);
+        if (ZSTD_isError(levelByteLength)) {
+            ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLength);
+            switch(error) {
+              case ZSTD_error_dstSize_tooSmall:
+                return KTX_DECOMPRESS_LENGTH_ERROR; // inflatedDataCapacity too small.
+              case ZSTD_error_checksum_wrong:
+                return KTX_DECOMPRESS_CHECKSUM_ERROR;
+              case ZSTD_error_memory_allocation:
+                return KTX_OUT_OF_MEMORY;
+              default:
+                return KTX_FILE_DATA_ERROR;
+            }
+        }
+    } else if (This->supercompressionScheme == KTX_SS_ZLIB) {
+        levelByteLength = inflatedDataCapacity;
+        KTX_error_code result = ktxUncompressZLIBInt(pInflatedData,
+                                                     &levelByteLength,
+                                                     pDeflatedData,
+                                                     deflatedByteLength);
+        if (result != KTX_SUCCESS)
+            return result;
+    } else {
+        return KTX_INVALID_OPERATION;
+    }
+
+    if (This->_private->_levelIndex[level].uncompressedByteLength
+        != levelByteLength)
+        return KTX_DECOMPRESS_LENGTH_ERROR;
+
+    return KTX_SUCCESS;
 }
 
 #if !KTX_FEATURE_WRITE
