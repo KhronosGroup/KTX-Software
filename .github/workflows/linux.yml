@@ -122,6 +122,22 @@ jobs:
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
+        # Native RISC-V runner provided by RISE. The runner matches on the
+        # exact set of runs-on labels, so the `os` value must be used as-is;
+        # an unrecognized extra label means the job is never picked up.
+        # No Vulkan SDK and no vcpkg riscv64 triplet, so no load tests and no
+        # vcpkg-based build. Tests are run because ARCH matches uname -m.
+        - name: RISC-V
+          os: ubuntu-24.04-riscv
+          generator: Ninja
+          arch: riscv64
+          compiler: gcc
+          vk_sdk_ver: '1.4.313'
+          options: {
+            config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: OFF,
+            sse: OFF, opencl: OFF
+          }
         # Can't run OpenCL on Actions because the runner CPU reports as
         # "generic" so POCL (the only OpenCL CPU driver) can't figure out
         # which code to use. Disable tests, just check building.
@@ -254,7 +270,9 @@ jobs:
 
       - name: install
         run: |
-          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+          # Java env var names differ per runner architecture. x86_64 images use
+          # JAVA_HOME_17_X64; the RISE riscv64 image uses JAVA_HOME_17_RISCV64.
+          echo "JAVA_HOME=${JAVA_HOME_17_X64:-$JAVA_HOME_17_RISCV64}" >> $GITHUB_ENV
           ./scripts/install_linux.sh
 
       - name: Install libldtl and mono
@@ -334,6 +352,19 @@ jobs:
           VCPKG_BINARY_SOURCES: clear;nuget,${{ env.NUGET_FEED_URL }},readwrite
         run: |
           ./scripts/build_linux.sh
+
+      - name: Check SIMD settings on RISC-V
+        # BasisU has no RISC-V SIMD path and astc-encoder must fall back to its
+        # scalar "none" ISA. cmake_dependent_option() stores BASISU_SSE with
+        # cache type INTERNAL when its condition is false, so accept any type.
+        if: matrix.arch == 'riscv64'
+        run: |
+          c=$BUILD_DIR/CMakeCache.txt
+          grep -q '^BASISU_SSE:' "$c" || { echo "BASISU_SSE: missing"; exit 1; }
+          grep -q '^BASISU_SSE:[A-Z]*=OFF' "$c" || { echo "BASISU_SSE: expected OFF, got $(grep '^BASISU_SSE:' "$c" | cut -d: -f2)"; exit 1; }
+          grep -q '^ASTCENC_ISA_NONE:' "$c" || { echo "ASTCENC_ISA_NONE: missing"; exit 1; }
+          grep -q '^ASTCENC_ISA_NONE:[A-Z]*=ON' "$c" || { echo "ASTCENC_ISA_NONE: expected ON, got $(grep '^ASTCENC_ISA_NONE:' "$c" | cut -d: -f2)"; exit 1; }
+          grep -E '^(BASISU_SSE|ASTCENC_ISA_NONE):' "$c"
 
       - name: Sanitize release notes
         if: matrix.options.package == 'YES' && github.event_name == 'push' && github.ref_type == 'tag'
