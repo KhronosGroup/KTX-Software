@@ -43,6 +43,7 @@ runs:
       shell: pwsh
       # choco or GitHub's networks have proved to be unreliable.
       run: |
+        $ErrorActionPreference = "Continue"
         echo "ErrorActionPreference = $ErrorActionPreference"
         $tries = 0;
         for(($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
