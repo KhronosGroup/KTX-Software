@@ -451,13 +451,13 @@ VulkanAppSDL::resizeWindow(int width, int height)
         safeRenderArea.extent.width = w_width;
         safeRenderArea.extent.height = w_height;
         SDL_Rect safeWindowArea;
-        float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
-        if (displayScale == 0.0f) displayScale = 1.0f;
+        float pixelDensity = SDL_GetWindowPixelDensity(pswMainWindow);
+        if (pixelDensity == 0.0f) pixelDensity = 1.0f;
         if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
-            safeRenderArea.extent.width = safeWindowArea.w * displayScale;
-            safeRenderArea.extent.height = safeWindowArea.h * displayScale;
-            safeRenderArea.offset.x = safeWindowArea.x * displayScale;
-            safeRenderArea.offset.y = safeWindowArea.y * displayScale;
+            safeRenderArea.extent.width = safeWindowArea.w * pixelDensity;
+            safeRenderArea.extent.height = safeWindowArea.h * pixelDensity;
+            safeRenderArea.offset.x = safeWindowArea.x * pixelDensity;
+            safeRenderArea.offset.y = safeWindowArea.y * pixelDensity;
         }
 #else
         // Workaround two apparent SDL bugs:
@@ -1599,13 +1599,13 @@ VulkanAppSDL::prepareTextOverlay()
         safeRenderArea.extent.width = w_width;
         safeRenderArea.extent.height = w_height;
         SDL_Rect safeWindowArea;
-        float displayScale = SDL_GetWindowDisplayScale(pswMainWindow);
-        if (displayScale == 0.0f) displayScale = 1.0f;
+        float pixelDensity = SDL_GetWindowPixelDensity(pswMainWindow);
+        if (pixelDensity == 0.0f) pixelDensity = 1.0f;
         if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
-            safeRenderArea.extent.width = safeWindowArea.w * displayScale;
-            safeRenderArea.extent.height = safeWindowArea.h * displayScale;
-            safeRenderArea.offset.x = safeWindowArea.x * displayScale;
-            safeRenderArea.offset.y = safeWindowArea.y * displayScale;
+            safeRenderArea.extent.width = safeWindowArea.w * pixelDensity;
+            safeRenderArea.extent.height = safeWindowArea.h * pixelDensity;
+            safeRenderArea.offset.x = safeWindowArea.x * pixelDensity;
+            safeRenderArea.offset.y = safeWindowArea.y * pixelDensity;
         }
         // See resizeWindow for explanation. Here SDL returns the correct safe area.
         topBarHeight = safeRenderArea.offset.y;
