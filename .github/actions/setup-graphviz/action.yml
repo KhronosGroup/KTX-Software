@@ -43,10 +43,13 @@ runs:
       shell: pwsh
       # choco or GitHub's networks have proved to be unreliable.
       run: |
-        for(($tries = 0), ($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
-            choco upgrade graphviz --yes --no-progress --limit-output
+        echo "ErrorActionPreference = $ErrorActionPreference"
+        $tries = 0;
+        for(($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
+            choco upgrade graphviz --yes --no-progress --limit-output --failstderr
             $exitCode = $LASTEXITCODE
         }
+        echo "Tried $tries times"
     - name: "Check Graphviz installation"
       #if: ${{ inputs.graphviz == 'true' }}
       shell: bash
