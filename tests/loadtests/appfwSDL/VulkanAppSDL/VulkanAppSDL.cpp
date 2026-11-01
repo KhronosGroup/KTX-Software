@@ -445,8 +445,8 @@ VulkanAppSDL::resizeWindow(int width, int height)
 
     flushInitialCommands();
     if (enableTextOverlay) {
-        VkRect2D safeRenderArea; // Avoids any status area such as on iPad.
-#if 0
+        VkRect2D safeRenderArea; // Avoid status bars or other on-screen gizmos.
+#if !WORKAROUND_SDL_SAFE_AREA_BUGS
         safeRenderArea.offset.x = safeRenderArea.offset.y = 0;
         safeRenderArea.extent.width = w_width;
         safeRenderArea.extent.height = w_height;
@@ -454,6 +454,10 @@ VulkanAppSDL::resizeWindow(int width, int height)
         float pixelDensity = SDL_GetWindowPixelDensity(pswMainWindow);
         if (pixelDensity == 0.0f) pixelDensity = 1.0f;
         if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
+            // safeWindowArea is in nebulous "window coordinates". pixelDensity is
+            // the multiplier to convert to pixel size. If we want to make the text
+            // larger for high DPI displays, it should be scaled by the value from
+            // SDL_GetWindowDisplayScale.
             safeRenderArea.extent.width = safeWindowArea.w * pixelDensity;
             safeRenderArea.extent.height = safeWindowArea.h * pixelDensity;
             safeRenderArea.offset.x = safeWindowArea.x * pixelDensity;
@@ -472,12 +476,14 @@ VulkanAppSDL::resizeWindow(int width, int height)
 #endif
         textOverlay->resize(safeRenderArea);
         updateTextOverlay();
+#if 0
         std::cerr << "resize: w_width = " << w_width << ", w_height = " << w_height
                   << ", event.width = " << width << ", event.height = " << height
                   << ", sRA.w = " << safeRenderArea.extent.width
                   << ", sRA.h = " << safeRenderArea.extent.height
                   << ", sRA.x = " << safeRenderArea.offset.x
                   << ", sRA.y = " << safeRenderArea.offset.y << std::endl;
+#endif
     }
     // Notify derived class.
     windowResized();
@@ -1602,14 +1608,20 @@ VulkanAppSDL::prepareTextOverlay()
         float pixelDensity = SDL_GetWindowPixelDensity(pswMainWindow);
         if (pixelDensity == 0.0f) pixelDensity = 1.0f;
         if (SDL_GetWindowSafeArea(pswMainWindow, &safeWindowArea)) {
+            // safeWindowArea is in nebulous "window coordinates". pixelDensity is
+            // the multiplier to convert to pixel size. If we want to make the text
+            // larger for high DPI displays, it should be scaled by the value from
+            // SDL_GetWindowDisplayScale.
             safeRenderArea.extent.width = safeWindowArea.w * pixelDensity;
             safeRenderArea.extent.height = safeWindowArea.h * pixelDensity;
             safeRenderArea.offset.x = safeWindowArea.x * pixelDensity;
             safeRenderArea.offset.y = safeWindowArea.y * pixelDensity;
         }
+#if WORKAROUND_SDL_SAFE_AREA_BUGS
         // See resizeWindow for explanation. Here SDL returns the correct safe area.
         topBarHeight = safeRenderArea.offset.y;
         bottomBarHeight = w_height - safeRenderArea.offset.y - safeRenderArea.extent.height;
+#endif
 
         textOverlay = new VulkanTextOverlay(
             vkctx.gpu,

@@ -61,8 +61,13 @@ class VulkanAppSDL : public AppBaseSDL {
         ::operator delete(storage);
     }
 
-    uint32_t topBarHeight; // Needed to workaround SDL bugs. See resizeWindow() impl.
+#if !defined(WORKAROUND_SDL_SAFE_AREA_BUGS)
+  #define WORKAROUND_SDL_SAFE_AREA_BUGS 1
+#endif
+#if WORKAROUND_SDL_SAFE_AREA_BUGS
+    uint32_t topBarHeight; // See resizeWindow() impl.
     uint32_t bottomBarHeight;
+#endif
     void updateTextOverlay();
 
     // Called when the text overlay is updating
