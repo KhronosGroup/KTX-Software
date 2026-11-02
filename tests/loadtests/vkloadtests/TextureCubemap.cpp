@@ -65,13 +65,20 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     rotation = { -7.25f, 120.0f, 0.0f };
     transcoded = false;
 
+    KTX_error_code ktxresult;
     ktxVulkanDeviceInfo vdi;
-    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool, nullptr);
+    ktxresult = ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
+                                              vkctx.queue, vkctx.commandPool, nullptr);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxVulkanDeviceInfo failed: "
+                << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
 
     processArgs(szArgs);
 
-    KTX_error_code ktxresult;
     ktxTexture* kTexture;
     std::string ktxfilepath = externalFile ? ktxfilename
                                            : getAssetPath() + ktxfilename;
