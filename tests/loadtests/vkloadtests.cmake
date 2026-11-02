@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Find Vulkan package
-set(vk_components validation)
 if(APPLE)
+    # validation needed for copying to bundle on macOS, linking on IOS.
+    set(vk_components validation)
     if(APPLE_LOCKED_OS)
         # KosmicKrisp does not yet support iOS, etc.
         list(APPEND vk_components MoltenVK)
