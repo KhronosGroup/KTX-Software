@@ -317,6 +317,7 @@ do {                             \
     LOAD_DEVICE_FUNC(funcs, device, vkCmdBlitImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCmdCopyBufferToImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCmdPipelineBarrier);
+    LOAD_DEVICE_FUNC(funcs, device, vkCmdPipelineBarrier2);
     LOAD_DEVICE_FUNC(funcs, device, vkCreateImage);
     LOAD_DEVICE_FUNC(funcs, device, vkDestroyImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCreateBuffer);
@@ -928,11 +929,11 @@ ktxTexture_VkUploadEx_WithSuballocator(ktxTexture* This, ktxVulkanDeviceInfo* vd
 
     // Early check to avoid a lot of wasted work including memory allocations.
     switch (finalLayout) {
-      case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: [[fallthrough]];
-      case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: [[fallthrough]];
-      case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: [[fallthrough]];
-      case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: [[fallthrough]];
-      case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: [[fallthrough]];
+      case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: /* FALLTHROUGH */
+      case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: /* FALLTHROUGH */
+      case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: /* FALLTHROUGH */
+      case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: /* FALLTHROUGH */
+      case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: /* FALLTHROUGH */
       case VK_IMAGE_LAYOUT_GENERAL:
         break;
       default:
@@ -1709,15 +1710,15 @@ setImageLayout(
     VkImageSubresourceRange subresourceRange)
 {
     // Create an image barrier object
-    VkImageMemoryBarrier imageMemoryBarrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    VkImageMemoryBarrier2 imageMemoryBarrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
         .pNext = NULL,
          // Some default values
+        .srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
     };
-    VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
     imageMemoryBarrier.oldLayout = oldLayout;
     imageMemoryBarrier.newLayout = newLayout;
@@ -1739,7 +1740,7 @@ setImageLayout(
         // Image is preinitialized.
         // Only valid as initial layout for linear images; preserves memory
         // contents. Make sure host writes have finished.
-        srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT;
+        imageMemoryBarrier.srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT;
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
         break;
 
@@ -1799,7 +1800,7 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
         // Image will be used as a transfer source.
         // Make sure any reads from and writes to the image have finished.
-        srcStageFlags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+        imageMemoryBarrier.srcStageMask |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
         imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         break;
@@ -1823,11 +1824,11 @@ setImageLayout(
         // Make sure any writes to the image have finished.
         if (imageMemoryBarrier.srcAccessMask == 0)
         {
-            srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+            imageMemoryBarrier.srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
             imageMemoryBarrier.srcAccessMask
                     = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         }
-        destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        imageMemoryBarrier.dstStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
 
@@ -1842,16 +1843,21 @@ setImageLayout(
         assert(KTX_FALSE);
     }
 
+    VkDependencyInfo dependencyInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+        .pNext = NULL,
+        .dependencyFlags = 0,
+        .memoryBarrierCount = 0,
+        .pMemoryBarriers = NULL,
+        .bufferMemoryBarrierCount = 0,
+        .pBufferMemoryBarriers = NULL,
+        .imageMemoryBarrierCount = 1,
+        .pImageMemoryBarriers = &imageMemoryBarrier
+    };
+
     // Put barrier on top of pipeline.
     // Add the barrier to the passed command buffer
-    vkFuncs.vkCmdPipelineBarrier(
-        cmdBuffer,
-        srcStageFlags,
-        destStageFlags,
-        0,
-        0, NULL,
-        0, NULL,
-        1, &imageMemoryBarrier);
+    vkFuncs.vkCmdPipelineBarrier2(cmdBuffer, &dependencyInfo);
 }
 
 /** @internal

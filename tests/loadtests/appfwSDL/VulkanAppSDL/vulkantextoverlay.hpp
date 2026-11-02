@@ -779,8 +779,8 @@ public:
             VkViewport viewport
                 = vkTools::initializers::viewport((float)safeRenderArea.extent.width,
                                                   (float)safeRenderArea.extent.height, 0.0f, 1.0f);
-            viewport.x = safeRenderArea.offset.x;
-            viewport.y = safeRenderArea.offset.y;
+            viewport.x = (float)safeRenderArea.offset.x;
+            viewport.y = (float)safeRenderArea.offset.y;
             vkCmdSetViewport(cmdBuffers[i], 0, 1, &viewport);
 
             //VkRect2D scissor = vkTools::initializers::rect2D(frameBufferWidth, frameBufferHeight, 0, 0);

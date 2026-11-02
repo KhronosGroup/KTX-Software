@@ -317,12 +317,12 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
     if (!prepared)
         return;
 
-    VkResult res = acquireNextImage();
+    VkResult result = acquireNextImage();
 
-    if (res != VK_SUCCESS) {
+    if (result != VK_SUCCESS) {
         if (!acquireNextImageErrorWarned) {
             std::stringstream msg;
-            msg << "Failed to acquire swapchain image: VK_RESULT = " << res;
+            msg << "Failed to acquire swapchain image: VK_RESULT = " << result;
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
                                      msg.str().c_str(), NULL);
             acquireNextImageErrorWarned = true;
@@ -348,9 +348,9 @@ VulkanAppSDL::drawFrame(uint32_t /*msTicks*/)
 	// Submit draw command to the queue with a renderComplete semaphore.
 	if (vkctx.perFb[currentImage].semaphores.renderComplete == VK_NULL_HANDLE) {
 		VkSemaphoreCreateInfo semaphore_info {
-		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-            .pNext = NULL,
-            .flags = 0
+            VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            NULL,
+            0
         };
 		VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
                         &vkctx.perFb[currentImage].semaphores.renderComplete));
@@ -512,16 +512,16 @@ VulkanAppSDL::onFPSUpdate()
 VkResult
 VulkanAppSDL::acquireNextImage()
 {
-    VkResult res;
+    VkResult result;
     VkSemaphore presentCompleteSemaphore;
     // Since we don't know which image will be acquired we cannot pass a
     // semaphore associated with a particular image. Make a new one which
     // we will associate with the image later.
 	if (vkctx.recycledSemaphores.empty()) {
 		VkSemaphoreCreateInfo semaphore_info {
-		    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-            .pNext = NULL,
-            .flags = 0
+            VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            NULL,
+            0
         };
         VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info,
                                           nullptr,
@@ -531,14 +531,14 @@ VulkanAppSDL::acquireNextImage()
 		vkctx.recycledSemaphores.pop_back();
 	}
     // Acquire the next image from the swap chain
-    res = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore,
+    result = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore,
                                            &currentImage);
 
-    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR)
-        res = VK_SUCCESS;
+    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && result == VK_SUBOPTIMAL_KHR)
+        result = VK_SUCCESS;
 
-    if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
-        if (res == VK_SUBOPTIMAL_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        if (result == VK_SUBOPTIMAL_KHR) {
             // Implementations can signal the semaphore in this case. Since
             // passing a signaled semaphore to acquireNextImage is invalid
             // we cannot recycle it.
@@ -547,13 +547,13 @@ VulkanAppSDL::acquireNextImage()
 		    vkctx.recycledSemaphores.push_back(presentCompleteSemaphore);
         }
         resizeWindow(w_width, w_height);
-        res = acquireNextImage();
-        if (res == VK_SUCCESS)
-            return res; // The recursive call sets the semaphore on the FB.
+        result = acquireNextImage();
+        if (result == VK_SUCCESS)
+            return result; // The recursive call sets the semaphore on the FB.
 	}
-	if (res != VK_SUCCESS) {
+	if (result != VK_SUCCESS) {
 		vkQueueWaitIdle(vkctx.queue);
-		return res;
+		return result;
 	}
 
 	// Recycle the image's old semaphore back into the semaphore manager.
@@ -565,7 +565,7 @@ VulkanAppSDL::acquireNextImage()
 
 	vkctx.perFb[currentImage].semaphores.presentComplete = presentCompleteSemaphore;
 
-	return res;
+	return result;
 }
 
 
@@ -590,9 +590,9 @@ VulkanAppSDL::submitFrame()
         // Signal ready with text overlay complete semaphore
         if (vkctx.perFb[currentImage].semaphores.textOverlayComplete == VK_NULL_HANDLE) {
             VkSemaphoreCreateInfo semaphore_info {
-                .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-                .pNext = NULL,
-                .flags = 0
+                VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+                NULL,
+                0
             };
             VK_CHECK_RESULT(vkCreateSemaphore(vkctx.device, &semaphore_info, nullptr,
                             &vkctx.perFb[currentImage].semaphores.textOverlayComplete));
@@ -623,23 +623,23 @@ VulkanAppSDL::submitFrame()
     submitInfo.pCommandBuffers = &vkctx.prePresentCmdBuffers[currentImage];
     VK_CHECK_RESULT(vkQueueSubmit(vkctx.queue, 1, &submitInfo, VK_NULL_HANDLE));
 
-    VkResult res =
+    VkResult result =
             vkctx.swapchain.queuePresent(vkctx.queue, currentImage,
                submitTextOverlay
                    ? vkctx.perFb[currentImage].semaphores.textOverlayComplete
                    : vkctx.perFb[currentImage].semaphores.renderComplete);
 
 	// Handle error in present.
-    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && res == VK_SUBOPTIMAL_KHR) {
-        res = VK_SUCCESS;
+    if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && result == VK_SUBOPTIMAL_KHR) {
+        result = VK_SUCCESS;
     }
 
-	if (res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         resizeWindow(w_width, w_height);
-    } else if (res != VK_SUCCESS) {
+    } else if (result != VK_SUCCESS) {
         if (!presentSwapchainErrorWarned) {
             std::stringstream msg;
-            msg << "Failed to present swapchain image: VK_RESULT = " << res;
+            msg << "Failed to present swapchain image: VK_RESULT = " << result;
             SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, szName,
                                      msg.str().c_str(), NULL);
             presentSwapchainErrorWarned = true;
@@ -1612,10 +1612,10 @@ VulkanAppSDL::prepareTextOverlay()
             // the multiplier to convert to pixel size. If we want to make the text
             // larger for high DPI displays, it should be scaled by the value from
             // SDL_GetWindowDisplayScale.
-            safeRenderArea.extent.width = safeWindowArea.w * pixelDensity;
-            safeRenderArea.extent.height = safeWindowArea.h * pixelDensity;
-            safeRenderArea.offset.x = safeWindowArea.x * pixelDensity;
-            safeRenderArea.offset.y = safeWindowArea.y * pixelDensity;
+            safeRenderArea.extent.width = (uint32_t)(safeWindowArea.w * pixelDensity);
+            safeRenderArea.extent.height = (uint32_t)(safeWindowArea.h * pixelDensity);
+            safeRenderArea.offset.x = (uint32_t)(safeWindowArea.x * pixelDensity);
+            safeRenderArea.offset.y = (uint32_t)(safeWindowArea.y * pixelDensity);
         }
 #if WORKAROUND_SDL_SAFE_AREA_BUGS
         // See resizeWindow for explanation. Here SDL returns the correct safe area.

@@ -200,9 +200,9 @@ void
 VulkanContext::createSemaphores()
 {
     const VkSemaphoreCreateInfo semaphore_info {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-        .pNext = NULL,
-        .flags = 0
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        NULL,
+        0
     };
 
     for (uint32_t i = 0; i < framebuffers.size(); i++) {

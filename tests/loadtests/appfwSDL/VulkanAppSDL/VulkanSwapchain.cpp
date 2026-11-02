@@ -121,8 +121,6 @@ VulkanSwapchain::destroySurface()
 void
 VulkanSwapchain::findGraphicsPresentQueue()
 {
-    U_ASSERT_ONLY VkResult err;
-
     // Get available queue family properties
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);

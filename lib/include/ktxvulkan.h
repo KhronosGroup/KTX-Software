@@ -74,6 +74,7 @@ typedef struct ktxVulkanFunctions {
     PFN_vkCmdBlitImage vkCmdBlitImage;
     PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+    PFN_vkCmdPipelineBarrier2 vkCmdPipelineBarrier2;
     PFN_vkCreateImage vkCreateImage;
     PFN_vkDestroyImage vkDestroyImage;
     PFN_vkCreateBuffer vkCreateBuffer;
