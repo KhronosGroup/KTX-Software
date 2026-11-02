@@ -26,6 +26,7 @@ struct VulkanContext {
     vk::Instance instance;
     vk::PhysicalDevice gpu;
     vk::StructureChain<vk::PhysicalDeviceFeatures2,
+    vk::PhysicalDeviceSynchronization2Features,
 #if VK_EXT_texture_compression_astc_hdr
         vk::PhysicalDeviceTextureCompressionASTCHDRFeatures,
 #endif

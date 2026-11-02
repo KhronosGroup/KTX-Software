@@ -1183,6 +1183,8 @@ VulkanAppSDL::createDevice()
         deviceFeaturesToEnable.textureCompressionETC2 = true;
     // There appears to be no feature to enable for pvrtc.
 
+    vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceSynchronization2Features>().synchronization2 = true;
+
     vk::DeviceCreateInfo deviceInfo(
             {},
             1,
