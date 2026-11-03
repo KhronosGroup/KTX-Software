@@ -16,12 +16,7 @@ ARCH=${ARCH:-$(uname -m)}  # Architecture to install tools for.
 FEATURE_DOC=${FEATURE_DOC:-ON}
 FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
 FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
-if [ "$ARCH" = "x86_64" ]; then
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
-else
-  # No Vulkan SDK yet for Linux/arm64.
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
-fi
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.4.363.0}
 VULKAN_INSTALL_DIR=${VULKAN_INSTALL_DIR:-~/VulkanSDK}
 VULKAN_SDK=${VULKAN_SDK:-$VULKAN_INSTALL_DIR/$VULKAN_SDK_VER/$ARCH}
@@ -83,8 +78,11 @@ fi
 
 if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" && !(-d $VULKAN_SDK) ]]; then
   # No Vulkan SDK for Linux/arm64 yet.
-  if [[ "$dpkg_arch" = "arm64" ]]; then
-    echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS to OpenGL or OFF."
+  if [[ "$dpkg_arch" != "amd64" ]]; then
+    echo "No Vulkan SDK for Linux/$ARCH yet. Installing Vulkan components"
+    echo "from Linux distribution."
+    sudo apt-get -qq install libvulkan-dev:$dpkg_arch glslang-tools:$dpkg_arch glslc:$dpkg_arch vulkan-validationlayers:$dpkg_arch
+    export VULKAN_SDK=""
   else
     echo "Download Vulkan SDK"
     vsdk_tar_file=vulkansdk-linux-$ARCH-$VULKAN_SDK_VER.tar.xz
@@ -95,6 +93,8 @@ if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" && !(-d $VULKAN_SDK) ]]; then
     tar xf ~/Downloads/$vsdk_tar_file
     popd
   fi
+  # Needed by SDL3 with X11 feature.
+  sudo apt-get -qq install libxtst-dev
 fi
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
