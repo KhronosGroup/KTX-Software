@@ -1168,9 +1168,9 @@ VulkanAppSDL::createDevice()
               vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>().features;
     // Reusing gpuFeaturesChain, which holds the output of getFeatures2 queried in findGpu,
     // is convenient as we want to set all the features reported available by extension
-    // features. However we only need a few of the standard features. Therefore clear the
-    // reported set, which has been saved in vkctx.gpuFeatures, prior to setting those
-    // needed.
+    // and other queried features. However we only need a few of the standard
+    // PhysicalDevice features. Therefore clear the reported set, a copy of which has
+    // been saved in vkctx.gpuFeatures, prior to setting those needed.
     deviceFeaturesToEnable = vk::PhysicalDeviceFeatures {};
     // Enable specific required and available features here.
     if (vkctx.gpuFeatures.samplerAnisotropy)
@@ -1182,8 +1182,6 @@ VulkanAppSDL::createDevice()
     if (vkctx.gpuFeatures.textureCompressionETC2)
         deviceFeaturesToEnable.textureCompressionETC2 = true;
     // There appears to be no feature to enable for pvrtc.
-
-    vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceSynchronization2Features>().synchronization2 = true;
 
     vk::DeviceCreateInfo deviceInfo(
             {},
