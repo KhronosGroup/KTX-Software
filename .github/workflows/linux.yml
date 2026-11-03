@@ -87,12 +87,22 @@ jobs:
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF, sanitize: 'address'
           }
-        - name: Clang
+        - name: Clang x86-64
           os: ubuntu-latest
           generator: Ninja Multi-Config
           arch: x86_64
           compiler: clang
           vk_sdk_ver: '1.4.363.0'
+          options: {
+            config: 'Debug,Release',
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
+            sse: ON, opencl: OFF
+          }
+        - name: Clang Aarch64
+          os: ubuntu-latest
+          generator: Ninja Multi-Config
+          arch: aarch64
+          compiler: clang
           options: {
             config: 'Debug,Release',
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
@@ -118,7 +128,6 @@ jobs:
           generator: Ninja
           arch: aarch64
           compiler: gcc
-          vk_sdk_ver: '1.4.363.0'
           #vcpkg_install_options: --debug
           options: {
             config: Release,
@@ -223,7 +232,7 @@ jobs:
       # vcpkg binary caching.
       VCPKG_FORCE_DOWNLOADED_BINARIES: 1
 
-      VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver }}
+      VULKAN_SDK_VER: ${{ matrix.vk_sdk_ver || '' }}
 
       SANITIZE: ${{ matrix.options.sanitize || '' }}
 
