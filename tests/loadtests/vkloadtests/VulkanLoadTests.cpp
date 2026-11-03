@@ -33,9 +33,9 @@
 #include "ltexceptions.h"
 
 #define LT_VK_MAJOR_VERSION 1
-#define LT_VK_MINOR_VERSION 3
+#define LT_VK_MINOR_VERSION 0
 #define LT_VK_PATCH_VERSION 0
-#define LT_VK_VERSION VK_MAKE_VERSION(1, 3, 0)
+#define LT_VK_VERSION VK_MAKE_VERSION(1, 0, 0)
 
 VulkanLoadTests::VulkanLoadTests(const sampleInvocation samples[],
                                  const uint32_t numSamples,

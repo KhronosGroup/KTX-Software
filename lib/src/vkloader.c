@@ -36,7 +36,7 @@
 
 /*
  * N.B. See comment at top of ./glloader.c regarding references to
- * "non0class" members in Doxygen comments.
+ * "non-class" members in Doxygen comments.
  */
 
 // Macro to check and display Vulkan return results.
@@ -62,6 +62,17 @@
 
 #define DEFAULT_FENCE_TIMEOUT 100000000000
 #define VK_FLAGS_NONE 0
+
+ // This enables use of vkCmdPipelineBarrier2 in setImageLayout. The code has been
+ // kept in case of future need, to save relearning it. However its use can only
+ // be considered in a new major release because using it will break backward
+ // compatibility. To use it apps will have to (a) request at least v1.3 when
+ // creating their Vulkan instance, (b) enable the synchronization2 feature, via
+ // adding VkPhysicalDeviceSynchronization2Features to the features chain passed
+ // when creating their device and (c), if passing an array of Vulkan function
+ // pointers when creating their ktxVulkanDeviceInfo, include a pointer to
+ // vkCmdPipelineBarrier2.
+#define USE_BARRIER2 0
 
 static void
 setImageLayout(
@@ -317,7 +328,9 @@ do {                             \
     LOAD_DEVICE_FUNC(funcs, device, vkCmdBlitImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCmdCopyBufferToImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCmdPipelineBarrier);
+#if USE_BARRIER2
     LOAD_DEVICE_FUNC(funcs, device, vkCmdPipelineBarrier2);
+#endif
     LOAD_DEVICE_FUNC(funcs, device, vkCreateImage);
     LOAD_DEVICE_FUNC(funcs, device, vkDestroyImage);
     LOAD_DEVICE_FUNC(funcs, device, vkCreateBuffer);
@@ -1709,7 +1722,6 @@ setImageLayout(
     VkImageLayout newLayout,
     VkImageSubresourceRange subresourceRange)
 {
-#define USE_BARRIER2 0
     // Create an image barrier object
 #if USE_BARRIER2
     VkImageMemoryBarrier2 imageMemoryBarrier = {
@@ -1721,8 +1733,6 @@ setImageLayout(
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
     };
-    #define SRC_STAGE_MASK imageMemoryBarrier.srcStageMask
-    #define DST_STAGE_MASK imageMemoryBarrier.dstStageMask
 #else
     VkImageMemoryBarrier imageMemoryBarrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1733,8 +1743,6 @@ setImageLayout(
     };
     VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
     VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    #define SRC_STAGE_MASK srcStageMask
-    #define DST_STAGE_MASK dstStageMask
 #endif
 
     imageMemoryBarrier.oldLayout = oldLayout;
@@ -1757,7 +1765,11 @@ setImageLayout(
         // Image is preinitialized.
         // Only valid as initial layout for linear images; preserves memory
         // contents. Make sure host writes have finished.
-        SRC_STAGE_MASK = VK_PIPELINE_STAGE_HOST_BIT;
+#if USE_BARRIER2
+        imageMemoryBarrier.srcStageMask = VK_PIPELINE_STAGE_2_HOST_BIT;
+#else
+        srcStageMask = VK_PIPELINE_STAGE_HOST_BIT;
+#endif
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
         break;
 
@@ -1817,8 +1829,11 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
         // Image will be used as a transfer source.
         // Make sure any reads from and writes to the image have finished.
-        //SRC_STAGE_MASK |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
-        SRC_STAGE_MASK |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+#if USE_BARRIER2
+        imageMemoryBarrier.srcStageMask |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+#else
+        srcStageMask |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+#endif
         imageMemoryBarrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         break;
@@ -1840,14 +1855,22 @@ setImageLayout(
     case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
         // Image will be read in a shader (sampler, input attachment).
         // Make sure any writes to the image have finished.
-        if (imageMemoryBarrier.srcAccessMask == 0)
-        {
-//            SRC_STAGE_MASK = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
-            SRC_STAGE_MASK = VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+        if (imageMemoryBarrier.srcAccessMask == 0) {
+#if USE_BARRIER2
+            imageMemoryBarrier.srcStageMask
+                    = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+#else
+            srcStageMask = VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+#endif
             imageMemoryBarrier.srcAccessMask
                     = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         }
-        DST_STAGE_MASK = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+#if USE_BARRIER2
+        imageMemoryBarrier.dstStageMask
+                    = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+#else
+        dstStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+#endif
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         break;
 
@@ -1862,6 +1885,7 @@ setImageLayout(
         assert(KTX_FALSE);
     }
 
+    // Add the barrier to the passed command buffer
 #if USE_BARRIER2
     VkDependencyInfo dependencyInfo = {
         .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
@@ -1874,9 +1898,6 @@ setImageLayout(
         .imageMemoryBarrierCount = 1,
         .pImageMemoryBarriers = &imageMemoryBarrier
     };
-
-    // Put barrier on top of pipeline.
-    // Add the barrier to the passed command buffer
     vkFuncs.vkCmdPipelineBarrier2(cmdBuffer, &dependencyInfo);
 #else
     vkFuncs.vkCmdPipelineBarrier(
