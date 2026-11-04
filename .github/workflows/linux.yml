@@ -337,7 +337,7 @@ jobs:
           ./scripts/install_linux.sh
 
       - name: Install mono
-        if: matrix.options.loadtests != 'OFF' && !matrix.container && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest')
+        if: matrix.options.loadtests != 'OFF' && !matrix.container && (matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-26.04-arm')
         # This package was omitted from ubuntu-24.04 for some reason.
         # mono is needed for adding NuGet sources for caching.
         run: sudo apt-get install mono-complete
