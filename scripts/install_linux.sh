@@ -94,7 +94,7 @@ if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" && !(-d $VULKAN_SDK) ]]; then
     popd
   fi
   # Needed by SDL3 with X11 feature.
-  sudo apt-get -qq install libxcursor-dev libxtst-dev
+  sudo apt-get -qq install libxcursor-dev libxrandr-dev libxtst-dev
 fi
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then
