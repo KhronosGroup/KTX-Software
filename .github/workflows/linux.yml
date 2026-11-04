@@ -61,26 +61,26 @@ jobs:
         generator: [ Ninja ]
         arch: [ x86_64 ]
         compiler: [ gcc ]
-        vk_sdk_ver: [ '1.4.363.0' ]
+        vk_sdk_ver: [ 1.4.363.0 ]
         options: [
           # Default
           { config: Debug,
             doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF
-          }
+          },
           # OpenCL,SSE
           # Can't run OpenCL on Actions because the runner CPU reports as
           # "generic" so POCL (the only OpenCL CPU driver) can't figure out
           # which code to use. Disable tests, just check building.
-           { config: Release,
+          { config: Release,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
             tools_cts: OFF, sse: ON, opencl: ON
-          }
+          },
           # OpenCL
           { config: Release,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
             tools_cts: OFF, sse: OFF, opencl: ON
-          }
+          },
           # All OFF
           {  config: Release,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
