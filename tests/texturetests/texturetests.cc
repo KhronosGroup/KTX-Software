@@ -4014,6 +4014,86 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
     runTest(u8"astc_8x8_unorm_array_7.ktx2");
 }
 
+////////////////////////////////////////////
+// ktxPrintKTX2Info tests
+///////////////////////////////////////////
+
+// The sizes of the blocks of a KTX 2 file come from its header. The info
+// printers must check them before allocating or reading a block.
+class ktxPrintKTX2InfoTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {
+  protected:
+    // A copy of the test file, for damaging its header.
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    static KTX_header2& header(std::vector<ktx_uint8_t>& file) {
+        return *reinterpret_cast<KTX_header2*>(file.data());
+    }
+
+    static KTX_error_code printText(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoTextForMemory(file.data(), file.size());
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+
+    static KTX_error_code printJSON(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoJSONForMemory(file.data(), file.size(),
+                                                              0, 4, false);
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+};
+
+TEST_F(ktxPrintKTX2InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    EXPECT_EQ(printText(file), KTX_SUCCESS);
+    EXPECT_EQ(printJSON(file), KTX_SUCCESS);
+}
+
+// 24 times a levelCount of 0xC0000000 was computed in 32 bits, wrapped to 0,
+// and the printers printed the level index from an empty buffer.
+TEST_F(ktxPrintKTX2InfoTest, LevelIndexLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    header(file).levelCount = 0xC0000000;
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// The text printer read the 4-byte dfdTotalSize from a DFD of 1 byte.
+TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    header(file).dataFormatDescriptor.byteLength = 1;
+    EXPECT_EQ(printText(file), KTX_FILE_DATA_ERROR);
+}
+
+TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    ASSERT_NE(header(file).keyValueData.byteLength, 0u);
+    header(file).keyValueData.byteLength = 0xFFFFFFFF;
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// A supercompression global data length that cannot be allocated failed
+// with KTX_OUT_OF_MEMORY, or, under AddressSanitizer, aborted.
+TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    header(file).supercompressionScheme = KTX_SS_BASIS_LZ;
+    header(file).supercompressionGlobalData.byteOffset = file.size();
+    header(file).supercompressionGlobalData.byteLength = UINT64_C(1) << 62;
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
 }  // namespace
 
 

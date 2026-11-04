@@ -497,8 +497,9 @@ void ValidationContext::validateHeader() {
     numLevels = std::max(header.levelCount, 1u);
 
     // This test works for arrays too because height or depth will be 0.
+    // Check > 32 first. Shifting by 32 or more is undefined.
     const auto max_dim = std::max(std::max(header.pixelWidth, header.pixelHeight), header.pixelDepth);
-    if (max_dim < (1u << (numLevels - 1u))) {
+    if (numLevels > 32 || max_dim < (1u << (numLevels - 1u))) {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         error(HeaderData::TooManyMipLevels, numLevels, max_dim);
     }
@@ -648,11 +649,17 @@ size_t ValidationContext::calcLevelOffset(size_t firstLevelOffset, size_t alignm
 }
 
 void ValidationContext::validateLevelIndex() {
-    levelIndices.resize(numLevels);
-
     const auto levelIndexOffset = sizeof(KTX_header2);
     const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
-    read(levelIndexOffset, levelIndices.data(), levelIndexSize, "the level index");
+    // Read the index entry by entry: the number of levels comes from the
+    // header, so a levelCount far beyond the file fails at its end instead
+    // of first allocating the whole index.
+    levelIndices.clear();
+    for (uint32_t level = 0; level < numLevels; ++level) {
+        ktxLevelIndexEntry entry;
+        read(levelIndexOffset + level * sizeof(ktxLevelIndexEntry), &entry, sizeof(entry), "the level index");
+        levelIndices.push_back(entry);
+    }
 
     const auto blockByteLength = (expectedBytePlanes ? expectedBytePlanes->at(0) : (parsedBlockByteLength == 0 ? uint8_t(1) : parsedBlockByteLength.value_or(0)));
     std::size_t requiredLevelAlignment = calcLevelAlignment(ktxSupercmpScheme(header.supercompressionScheme), blockByteLength);
@@ -781,6 +788,11 @@ void ValidationContext::validateDFD() {
 
     if (dfdByteOffset == 0 || dfdByteLength == 0)
         return; // There is no DFD block
+
+    if (dfdByteLength < sizeof(uint32_t)) {
+        error(DFD::NotEnoughDataForTotalSize, dfdByteLength);
+        return;
+    }
 
     const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
     read(dfdByteOffset, buffer.get(), dfdByteLength, "the DFD");
@@ -1521,7 +1533,17 @@ void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) 
     const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
     const uint32_t * pBDB = pDFD + 1;
 
-    uint32_t nSamples = KHR_DFDSAMPLECOUNT(pBDB);
+    // Look only at the samples the DFD holds. validateDFD reports a DFD too
+    // short for its basic block or for the samples the block declares.
+    const auto bdfdSize = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const auto sampleSize = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
+    uint32_t nSamples = 0;
+    if (dfdByteLength >= sizeof(uint32_t) + bdfdSize) {
+        const auto blockSize = std::min<std::size_t>(KHR_DFDVAL(pBDB, DESCRIPTORBLOCKSIZE),
+                                                     dfdByteLength - sizeof(uint32_t));
+        if (blockSize >= bdfdSize)
+            nSamples = static_cast<uint32_t>((blockSize - bdfdSize) / sampleSize);
+    }
     for (uint32_t sample = 0; sample < nSamples; ++sample) {
         auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(KHR_DFDSVAL(pBDB, sample, QUALIFIERS));
         if (!(qualifiers & KHR_DF_SAMPLE_DATATYPE_LINEAR) &&
