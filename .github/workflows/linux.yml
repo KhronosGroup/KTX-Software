@@ -65,7 +65,7 @@ jobs:
         options: [
           # Default
           { config: Debug,
-            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF
           },
           # OpenCL,SSE
@@ -83,7 +83,7 @@ jobs:
           },
           # All OFF
           {  config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: ON, tools: OFF, tools_cts: OFF,
             sse: OFF, opencl: OFF
           }
         ]
