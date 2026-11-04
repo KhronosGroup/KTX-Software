@@ -57,16 +57,46 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
+        os: [ ubuntu-latest ]
+        generator: [ Ninja ]
+        arch: [ x86_64 ]
+        compiler: [ gcc ]
+        vk_sdk_ver: [ '1.4.363.0' ]
+        options: [
+          # Default
+          { config: Debug,
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            sse: ON, opencl: OFF
+          }
+          # OpenCL,SSE
+          # Can't run OpenCL on Actions because the runner CPU reports as
+          # "generic" so POCL (the only OpenCL CPU driver) can't figure out
+          # which code to use. Disable tests, just check building.
+           { config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: ON, opencl: ON
+          }
+          # OpenCL
+          { config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
+            tools_cts: OFF, sse: OFF, opencl: ON
+          }
+          # All OFF
+          {  config: Release,
+            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+            sse: OFF, opencl: OFF
+          }
+        ]
         include:
-        - name: Default
+        - name: Clang x86-64, Ninja Multi-Config
           os: ubuntu-latest
-          generator: Ninja
+          generator: Ninja Multi-Config
           arch: x86_64
-          compiler: gcc
+          compiler: clang
           vk_sdk_ver: '1.4.363.0'
           options: {
-            config: Debug,
-            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,
+            config: 'Debug,Release',
+            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
             sse: ON, opencl: OFF
           }
         # We perform ASan/UBSan/TSan on only one job because they greatly slow
@@ -86,30 +116,6 @@ jobs:
             config: Debug,
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF, sanitize: 'address'
-          }
-        - name: Clang x86-64
-          os: ubuntu-latest
-          generator: Ninja Multi-Config
-          arch: x86_64
-          compiler: clang
-          vk_sdk_ver: '1.4.363.0'
-          options: {
-            config: 'Debug,Release',
-            doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: OFF,
-            sse: ON, opencl: OFF
-          }
-        # Can't build vkloadtests on manylinux because glslc needs newer version of libgcc.
-        # tests, jni, python are all built and tested in 'Package (aarch64)' so no need for
-        # those here.
-        - name: vkloadtests aarch64
-          os: ubuntu-latest
-          generator: Ninja Multi-Config
-          arch: aarch64
-          compiler: clang
-          options: {
-            config: 'Debug,Release',
-            doc: OFF, jni: OFF, loadtests: Vulkan, py: OFF, tests: 0FF tools: OFF, tools_cts: OFF,
-            sse: OFF, opencl: OFF
           }
         # The packages are built in manylinux_2_28 so they need only glibc
         # 2.28 and run on older distributions. Only the OpenGL load tests
@@ -137,40 +143,17 @@ jobs:
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
-        # Can't run OpenCL on Actions because the runner CPU reports as
-        # "generic" so POCL (the only OpenCL CPU driver) can't figure out
-        # which code to use. Disable tests, just check building.
-        - name: OpenCL,SSE
-          os: ubuntu-24.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.4.363.0'
+        # Can't build vkloadtests on manylinux because glslc needs newer version of libgcc.
+        # tests, jni, python are all built and tested in 'Package (aarch64)' so no need for
+        # those here.
+        - name: vkloadtests aarch64
+          os: ubuntu-latest
+          generator: Ninja Multi-Config
+          arch: aarch64
+          compiler: clang
           options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
-            tools_cts: OFF, sse: ON, opencl: ON
-          }
-        - name: OpenCL
-          os: ubuntu-24.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.4.363.0'
-          options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tests: OFF, tools: OFF,
-            tools_cts: OFF, sse: OFF, opencl: ON
-          }
-        - name: All OFF
-          os: ubuntu-24.04
-          generator: Ninja
-          arch: x86_64
-          compiler: gcc
-          vk_sdk_ver: '1.4.363.0'
-          options: {
-            config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: OFF, tools_cts: OFF,
+            config: 'Debug,Release',
+            doc: OFF, jni: OFF, loadtests: Vulkan, py: OFF, tests: 0FF tools: OFF, tools_cts: OFF,
             sse: OFF, opencl: OFF
           }
 
