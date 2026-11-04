@@ -147,13 +147,13 @@ jobs:
         # tests, jni, python are all built and tested in 'Package (aarch64)' so no need for
         # those here.
         - name: vkloadtests aarch64
-          os: ubuntu-latest
+          os: ubuntu-24.04-arm
           generator: Ninja Multi-Config
           arch: aarch64
           compiler: clang
           options: {
             config: 'Debug,Release',
-            doc: OFF, jni: OFF, loadtests: Vulkan, py: OFF, tests: 0FF tools: OFF, tools_cts: OFF,
+            doc: OFF, jni: OFF, loadtests: Vulkan, py: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
             sse: OFF, opencl: OFF
           }
 
