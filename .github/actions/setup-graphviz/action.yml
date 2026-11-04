@@ -44,13 +44,24 @@ runs:
       # choco or GitHub's networks have proved to be unreliable.
       run: |
         $ErrorActionPreference = "Continue"
-        echo "ErrorActionPreference = $ErrorActionPreference"
-        $tries = 0;
-        for(($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
-            choco upgrade graphviz --yes --no-progress --limit-output --failstderr
-            $exitCode = $LASTEXITCODE
+        $retryCount = 4
+        $success = $false
+        for ($i = 1; $i -le $retryCount; $i++) {
+            Write-Host "Attempt no: $i"
+            choco upgrade graphviz --yes --no-progress --failstderr
+            if ($LASTEXITCODE -eq 0) {
+                $success = $true
+                Write-Host "Installation successful."
+                break
+            } else {
+                Write-Host "Installation failed. Retrying..."
+                Start-Sleep -Seconds (2*$i)
+            }
         }
-        echo "Tried $tries times"
+        if (-not $success) {
+            Write-Host "Installation failed after $retryCount attempts."
+            exit 1
+        }
     - name: "Check Graphviz installation"
       #if: ${{ inputs.graphviz == 'true' }}
       shell: bash
