@@ -147,7 +147,7 @@ jobs:
         # tests, jni, python are all built and tested in 'Package (aarch64)' so no need for
         # those here.
         - name: vkloadtests aarch64
-          os: ubuntu-24.04-arm
+          os: ubuntu-26.04-arm
           generator: Ninja Multi-Config
           arch: aarch64
           compiler: clang
