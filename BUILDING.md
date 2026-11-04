@@ -65,9 +65,9 @@ machine and a driver on the run-time machine.
 
 > **Note:**
 > 
-> When building from a source `tar.gz` and not from the git repository directly, 
-> it is recommended to set the variable `KTX_GIT_VERSION_FULL` to the
-> associated git tag (e.g `v4.3.2`)
+> When building from a source `tar.gz` and not from the git repository
+> directly, it is recommended to set the variable `KTX_GIT_VERSION_FULL` to
+> the associated git tag (e.g `v4.3.2`)
 > 
 > ```bash
 > cmake . -G Ninja -B build -D KTX_GIT_VERSION_FULL=v4.3.2
@@ -168,26 +168,25 @@ sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninj
 To build the load test applications you also need to install the following
 
 - [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
-- OpenGL development libraries
-- Vulkan development libraries and tools
-- [Vulkan SDK](#vulkan-sdk)
-- zlib development library
+- XTEST development library (for SDL3)
+- OpenGL development libraries, if building OpenGL load tests
+- Vulkan development libraries and tools or [Vulkan SDK](#vulkan-sdk), if building Vulkan load tests
 
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install libgl1-mesa-glx libgl1-mesa-dev libvulkan-dev glslang-tools glslc
+sudo apt install libxtst-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan-dev glslang-tools glslc
 ```
 
 On Fedora and RedHat these can be installed via
 
 ```bash
-sudo dnf install mesa-libGL mesa-libGL-devel glslang glslc vulkan-headers vulkan-loader
+sudo dnf install libXtst-devel mesa-libGL mesa-libGL-devel glslang glslc vulkan-headers vulkan-loader
 ```
 
-If you want to run Vulkan validation on `vkloadtests` (`--validate`) you
-also need to install `vulkan-validationlayers` (Ubuntu and Debian) or
-`vulkan-validation-layers` (Fedora and RedHat).
+If you want to use Vulkan validation when running `vkloadtests`
+(`--validate`) you also need to install `vulkan-validationlayers`
+(Ubuntu and Debian) or `vulkan-validation-layers` (Fedora and RedHat).
 
 > **Note:**
 >
@@ -204,6 +203,10 @@ shown above install just `libvulkan1` (Ubuntu and Debian) or `vulkan-loader`
 
 Make sure you have the environment variable `VULKAN_SDK` set as described in the Vulkan SDK installation instructions before you run cmake.
 `source $VULKAN_SDK/setup-env.sh` before you try to run the built program if you want to use the SDK's version of the Khronos validation library.
+
+> **Note:**
+> 
+> There is no Vulkan SDK for aarch64. You must use the system packages.
  
 You should then be able to build like this
 
