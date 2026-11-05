@@ -105,19 +105,25 @@ checkNextBlockInStream(ktxStream* stream, ktx_uint64_t length)
  *        global data describes them.
  *
  * Levels past the 32nd add one image per layer and face: a depth shifted by
- * 32 or more bits would be undefined.
+ * 32 or more bits would be undefined. The count is computed in 64 bits and
+ * limited to UINT32_MAX: it only bounds the loops over the image
+ * descriptions, which stop at the end of the global data.
  */
 static ktx_uint32_t
 numImagesInLevels(const KTX_header2* pHeader)
 {
-    ktx_uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
+    ktx_uint64_t layersFaces = (ktx_uint64_t)MAX(pHeader->layerCount, 1) * pHeader->faceCount;
     ktx_uint32_t depth = MAX(pHeader->pixelDepth, 1);
-    ktx_uint32_t layerPixelDepth = depth;
+    ktx_uint64_t layerPixelDepth = depth;
     for (ktx_uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
         layerPixelDepth += level < 32 ? MAX(depth >> level, 1U) : 1U;
     // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
     // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-    return layersFaces * layerPixelDepth;
+    // Each factor is limited to UINT32_MAX, so that the product fits.
+    layersFaces = MIN(layersFaces, UINT32_MAX);
+    layerPixelDepth = MIN(layerPixelDepth, UINT32_MAX);
+    ktx_uint64_t numImages = layersFaces * layerPixelDepth;
+    return (ktx_uint32_t)MIN(numImages, UINT32_MAX);
 }
 
 /** @internal */

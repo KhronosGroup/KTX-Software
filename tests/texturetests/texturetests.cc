@@ -4028,8 +4028,16 @@ class ktxPrintKTX2InfoTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {
                                         ktxMemFile.get() + ktxMemFileLen);
     }
 
-    static KTX_header2& header(std::vector<ktx_uint8_t>& file) {
-        return *reinterpret_cast<KTX_header2*>(file.data());
+    // The bytes of the vector are not a KTX_header2 object, so the header
+    // is copied out of the file and back.
+    static KTX_header2 header(const std::vector<ktx_uint8_t>& file) {
+        KTX_header2 header;
+        memcpy(&header, file.data(), sizeof(header));
+        return header;
+    }
+
+    static void setHeader(std::vector<ktx_uint8_t>& file, const KTX_header2& header) {
+        memcpy(file.data(), &header, sizeof(header));
     }
 
     static KTX_error_code printText(const std::vector<ktx_uint8_t>& file) {
@@ -4060,7 +4068,9 @@ TEST_F(ktxPrintKTX2InfoTest, PrintsTheFile) {
 TEST_F(ktxPrintKTX2InfoTest, LevelIndexLongerThanTheFile) {
     ASSERT_TRUE(ktxMemFile != nullptr);
     auto file = copyOfFile();
-    header(file).levelCount = 0xC0000000;
+    auto damaged = header(file);
+    damaged.levelCount = 0xC0000000;
+    setHeader(file, damaged);
     EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
     EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
 }
@@ -4069,7 +4079,9 @@ TEST_F(ktxPrintKTX2InfoTest, LevelIndexLongerThanTheFile) {
 TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
     ASSERT_TRUE(ktxMemFile != nullptr);
     auto file = copyOfFile();
-    header(file).dataFormatDescriptor.byteLength = 1;
+    auto damaged = header(file);
+    damaged.dataFormatDescriptor.byteLength = 1;
+    setHeader(file, damaged);
     EXPECT_EQ(printText(file), KTX_FILE_DATA_ERROR);
     EXPECT_EQ(printJSON(file), KTX_FILE_DATA_ERROR);
 }
@@ -4077,8 +4089,10 @@ TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
 TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
     ASSERT_TRUE(ktxMemFile != nullptr);
     auto file = copyOfFile();
-    ASSERT_NE(header(file).keyValueData.byteLength, 0u);
-    header(file).keyValueData.byteLength = 0xFFFFFFFF;
+    auto damaged = header(file);
+    ASSERT_NE(damaged.keyValueData.byteLength, 0u);
+    damaged.keyValueData.byteLength = 0xFFFFFFFF;
+    setHeader(file, damaged);
     EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
     EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
 }
@@ -4088,9 +4102,11 @@ TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
 TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
     ASSERT_TRUE(ktxMemFile != nullptr);
     auto file = copyOfFile();
-    header(file).supercompressionScheme = KTX_SS_BASIS_LZ;
-    header(file).supercompressionGlobalData.byteOffset = file.size();
-    header(file).supercompressionGlobalData.byteLength = UINT64_C(1) << 62;
+    auto damaged = header(file);
+    damaged.supercompressionScheme = KTX_SS_BASIS_LZ;
+    damaged.supercompressionGlobalData.byteOffset = file.size();
+    damaged.supercompressionGlobalData.byteLength = UINT64_C(1) << 62;
+    setHeader(file, damaged);
     EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
     EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
 }
