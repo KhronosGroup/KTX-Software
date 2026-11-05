@@ -601,21 +601,22 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     fprintf(stdout, "\nData Sizes (bytes)\n------------------\n");
     for (uint32_t level = 0; level < levelCount; level++) {
         ktx_uint32_t faceLodSize;
-        ktx_uint32_t lodSize;
         result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
         if (result != KTX_SUCCESS)
             return result;
         if (pHeader->endianness == KTX_ENDIAN_REF_REV)
             _ktxSwapEndian32(&faceLodSize, 1);
-        if (nonArrayCubemap) {
-            lodSize = faceLodSize * 6;
-        } else {
-            lodSize = faceLodSize;
+        // For a non-array cube map imageSize is the size of one face. The
+        // six faces can take more than 32 bits, so their sizes are added up
+        // in 64 bits and they are skipped one by one.
+        const ktx_uint32_t numFaces = nonArrayCubemap ? 6 : 1;
+        const ktx_uint64_t lodSize = (ktx_uint64_t)faceLodSize * numFaces;
+        fprintf(stdout, "Level %u: %" PRIu64 "\n", level, lodSize);
+        for (ktx_uint32_t face = 0; face < numFaces; face++) {
+            result = stream->skip(stream, faceLodSize);
+            if (result != KTX_SUCCESS)
+                return result;
         }
-        fprintf(stdout, "Level %u: %u\n", level, lodSize);
-        result = stream->skip(stream, lodSize);
-        if (result != KTX_SUCCESS)
-            return result;
         dataSize += lodSize;
     }
     fprintf(stdout, "\nTotal: %" PRId64 "\n", dataSize);
