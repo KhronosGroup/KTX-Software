@@ -117,9 +117,10 @@ jobs:
             doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: ON,
             sse: ON, opencl: OFF, sanitize: 'address'
           }
-        # The packages are built in manylinux_2_28 so they need only glibc
-        # 2.28 and run on older distributions. Only the OpenGL load tests
-        # are built here. The Vulkan SDK's glslc needs glibc 2.34.
+        # The packages are built in manylinux_2_28 so they need only glibc 2.28
+        # and run on older distributions. Only the OpenGL load tests are built
+        # here. manlinux does not have the glslc and glslang packages and the
+        # the Vulkan SDK's glslc needs glibc 2.34.
         - name: Package (x86_64)
           os: ubuntu-latest
           container: quay.io/pypa/manylinux_2_28_x86_64
@@ -143,9 +144,10 @@ jobs:
             doc: ON, jni: ON, loadtests: OpenGL, py: ON, tools: ON, tools_cts: ON,
             package: YES, sse: OFF, opencl: OFF
           }
-        # Can't build vkloadtests on manylinux because glslc needs newer version of libgcc.
-        # tests, jni, python are all built and tested in 'Package (aarch64)' so no need for
-        # those here.
+        # Can't build vkloadtests on manylinux for the reasons noted above
+        # "Package (x86_64)." vkloadtests for x86_64 are built in the "Default"
+        # job. Tests, jni and python are all built and tested in "Package (aarch64)"
+        # so no need for those here.
         - name: vkloadtests (aarch64)
           os: ubuntu-26.04-arm
           generator: Ninja Multi-Config
