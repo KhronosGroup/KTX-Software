@@ -206,7 +206,6 @@ private:
     size_t calcImageSize(uint32_t level);
     size_t calcLayerSize(uint32_t level);
     size_t calcLevelSize(uint32_t level);
-    size_t calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -688,22 +687,6 @@ size_t ValidationContext::calcLevelSize(uint32_t level) {
     return calcLayerSize(level) * numLayers;
 }
 
-size_t ValidationContext::calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level) {
-    // This function is only useful when the following 2 conditions are met
-    // as otherwise we have no idea what the size of a level ought to be.
-    assert(header.vkFormat != VK_FORMAT_UNDEFINED);
-    assert(header.supercompressionScheme == KTX_SS_NONE);
-
-    assert(level < numLevels);
-    // Calculate the expected base offset in the file
-    size_t levelOffset = align(firstLevelOffset, alignment);
-    for (uint32_t i = numLevels - 1; i > level; --i) {
-        levelOffset += calcLevelSize(i);
-        levelOffset = align(levelOffset, alignment);
-    }
-    return levelOffset;
-}
-
 void ValidationContext::validateLevelIndex() {
     const auto levelIndexOffset = sizeof(KTX_header2);
     const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
@@ -740,6 +723,11 @@ void ValidationContext::validateLevelIndex() {
 
     std::size_t lastByteOffset = expectedFirstLevelOffset; // Reuse lastByteOffset to inject first offset to expectedOffset
     std::size_t lastByteLength = 0;
+    // Where the level sizes are known, the expected offset of each level is
+    // the sum of the aligned sizes of the smaller levels, which the loop adds
+    // up as it goes. Summing them again for each level took time quadratic in
+    // levelCount, which a damaged header can set to 2^32 - 1.
+    std::size_t knownExpectedOffset = expectedFirstLevelOffset;
 
     // Count down, so we can check the distance between levels for the UNDEFINED and SUPERCOMPRESSION cases.
     for (auto it = static_cast<uint32_t>(levelIndices.size()); it != 0; --it) {
@@ -753,8 +741,10 @@ void ValidationContext::validateLevelIndex() {
         // In that case we know where the first level must be in the file, and we can calculate
         // the offsets by progressively summing the lengths and paddings so far.
         const auto expectedOffset = knownLevelOffset ?
-                calcLevelOffset(expectedFirstLevelOffset, requiredLevelAlignment, index) :
+                knownExpectedOffset :
                 align(lastByteOffset + lastByteLength, requiredLevelAlignment);
+        if (knownLevelOffset)
+            knownExpectedOffset = align(knownExpectedOffset + calcLevelSize(index), requiredLevelAlignment);
 
         if (level.byteOffset % requiredLevelAlignment != 0)
             error(LevelIndex::IncorrectByteOffsetUnaligned, index, level.byteOffset, requiredLevelAlignment, expectedOffset);
