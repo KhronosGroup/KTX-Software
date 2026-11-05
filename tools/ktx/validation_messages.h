@@ -860,6 +860,10 @@ struct SGD {
         8209, "Invalid slice dimensions in the Compressed Data bitstream. The dimensions in the Compressed Data bitstream must match the level dimensions.",
         "For Level {} Layer {} Face {} zSlice {} the dimensions in the Compressed Data bitstream are width: {} and height: {} but the dimensions must be width: {} and height: {}."
     };
+    static constexpr IssueError UH6X6IESizeIncorrect{
+        8210, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must hold one UASTCHDR6x6IntermediateImageDesc for each image.",
+        "sgdByteLength is {} but based on image count of {} the expected value is 12 * imageCount."
+    };
 };
 
 struct System {
