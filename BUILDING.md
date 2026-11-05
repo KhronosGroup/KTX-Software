@@ -168,20 +168,22 @@ sudo dnf install make automake gcc gcc-c++ kernel-devel cmake libzstd-devel ninj
 To build the load test applications you also need to install the following
 
 - [vcpkg](#vcpkg) (which will automatically install the actual dependencies: [SDL3](sdl3) and [assimp](assimp))
-- XTEST development library (for SDL3)
+- Various X11-related development libraries (for SDL3)
 - OpenGL development libraries, if building OpenGL load tests
 - Vulkan development libraries and tools or [Vulkan SDK](#vulkan-sdk), if building Vulkan load tests
 
 On Ubuntu and Debian these can be installed via
 
 ```bash
-sudo apt install libxtst-dev libgl1-mesa-glx libgl1-mesa-dev libvulkan-dev glslang-tools glslc
+sudo apt install libgl1-mesa-glx libgl1-mesa-dev libvulkan-dev glslang-tools glslc
+sudo apt install libxcursor-dev libxrandr-dev libxtst-dev # For SDL3
 ```
 
 On Fedora and RedHat these can be installed via
 
 ```bash
-sudo dnf install libXtst-devel mesa-libGL mesa-libGL-devel glslang glslc vulkan-headers vulkan-loader
+sudo dnf install mesa-libGL mesa-libGL-devel glslang glslc vulkan-headers vulkan-loader
+sudo dnf install libXcursor-devel libXrandr-devel libXtst-devel # For SDL3
 ```
 
 If you want to use Vulkan validation when running `vkloadtests`
