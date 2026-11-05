@@ -116,7 +116,7 @@ namespace vkTools
                 // Image is preinitialized
                 // Only valid as initial layout for linear images, preserves memory contents
                 // Make sure host writes have been finished
-                srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT;
+                srcStageFlags = VK_PIPELINE_STAGE_HOST_BIT;
                 imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
                 break;
 
@@ -173,7 +173,7 @@ namespace vkTools
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
             // Image will be used as a transfer source
             // Make sure any reads from and writes to the image have been finished
-            srcStageFlags |= VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+            srcStageFlags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
             imageMemoryBarrier.srcAccessMask = imageMemoryBarrier.srcAccessMask | VK_ACCESS_TRANSFER_READ_BIT;
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
             break;
@@ -196,7 +196,7 @@ namespace vkTools
             // Make sure any writes to the image have been finished
             if (imageMemoryBarrier.srcAccessMask == 0)
             {
-               srcStageFlags = VK_PIPELINE_STAGE_2_HOST_BIT | VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
+               srcStageFlags = VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
                imageMemoryBarrier.srcAccessMask
                        = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
             }

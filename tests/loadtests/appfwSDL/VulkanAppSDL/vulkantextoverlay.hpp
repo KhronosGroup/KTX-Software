@@ -783,7 +783,6 @@ public:
             viewport.y = (float)safeRenderArea.offset.y;
             vkCmdSetViewport(cmdBuffers[i], 0, 1, &viewport);
 
-            //VkRect2D scissor = vkTools::initializers::rect2D(frameBufferWidth, frameBufferHeight, 0, 0);
             vkCmdSetScissor(cmdBuffers[i], 0, 1, &safeRenderArea);
 
             vkCmdBindPipeline(cmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);

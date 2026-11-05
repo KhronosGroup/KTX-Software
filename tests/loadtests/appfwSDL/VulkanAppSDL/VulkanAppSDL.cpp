@@ -1245,6 +1245,8 @@ VulkanAppSDL::createSwapchain()
     vkctx.createSwapchain(w_width, w_height, enableVSync);
 #if SDL_PLATFORM_APPLE && !SDL_PLATFORM_MACOS
     extern void setWantsExtendedDynamicRangeContent(SDL_Window* window, bool enable);
+    // Workaround MoltenVK bug. Not needed with KosmicKrisp but it is easier to always
+    // set the value rather than detect which driver is in use.
     if (hdr)
         setWantsExtendedDynamicRangeContent(pswMainWindow, hdr);
 #endif
