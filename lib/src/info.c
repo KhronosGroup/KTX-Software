@@ -1034,6 +1034,11 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT_NOARG(0, "}") // End of index
 
     if (hasDFD) {
+        // The DFD starts with dfdTotalSize.
+        if (pHeader->dataFormatDescriptor.byteLength < sizeof(ktx_uint32_t)) {
+            printf("%s", nl);
+            return KTX_FILE_DATA_ERROR;
+        }
         ec = checkNextBlockInStream(stream, pHeader->dataFormatDescriptor.byteLength);
         if (ec != KTX_SUCCESS) {
             printf("%s", nl);

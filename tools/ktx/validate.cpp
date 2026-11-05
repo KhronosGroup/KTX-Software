@@ -147,6 +147,21 @@ protected:
 private:
     virtual void read(std::size_t offset, void* readDst, std::size_t readSize, std::string_view name) = 0;
     virtual KTX_error_code createKTXTexture(ktxTextureCreateFlags createFlags, ktxTexture2** newTex) = 0;
+    /// The size of the input, or nullopt when it cannot be told.
+    virtual std::optional<std::size_t> inputSize() = 0;
+
+    /// Fails, as read() would, when the input ends before offset + size.
+    /// The offsets and sizes of the blocks come from the header, so a block
+    /// is checked before it is allocated: a damaged header must not cause a
+    /// huge allocation.
+    void checkReadable(std::uint64_t offset, std::uint64_t size, std::string_view name) {
+        const auto size_ = inputSize();
+        if (!size_)
+            return;
+        const std::uint64_t available = offset > *size_ ? 0 : *size_ - offset;
+        if (available < size)
+            fatal(IOError::UnexpectedEOF, size, offset, name, available);
+    }
 
 private:
     template <typename... Args>
@@ -243,6 +258,17 @@ private:
         ktx2Stream.emplace(stream.rdbuf(), std::ios::in | std::ios::binary);
         return ktxTexture2_CreateFromStream(ktx2Stream->stream(), createFlags, newTex);
     }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        // read() seeks before every read, so the position need not be kept.
+        stream.clear();
+        stream.seekg(0, std::ios::end);
+        const auto end = stream.tellg();
+        stream.clear();
+        if (end < 0)
+            return std::nullopt;
+        return static_cast<std::size_t>(end);
+    }
 };
 
 class ValidationContextStdioStream : public ValidationContext {
@@ -280,6 +306,16 @@ private:
 
         return ktxTexture2_CreateFromStdioStream(file, createFlags, newTex);
     }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        // read() seeks before every read, so the position need not be kept.
+        if (fseek(file, 0, SEEK_END) != 0)
+            return std::nullopt;
+        const auto end = ftell(file);
+        if (end < 0)
+            return std::nullopt;
+        return static_cast<std::size_t>(end);
+    }
 };
 
 class ValidationContextMemory : public ValidationContext {
@@ -310,6 +346,10 @@ private:
 
     virtual KTX_error_code createKTXTexture(ktxTextureCreateFlags createFlags, ktxTexture2** newTex) override {
         return ktxTexture2_CreateFromMemory(reinterpret_cast<const ktx_uint8_t*>(memoryData), memorySize, createFlags, newTex);
+    }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        return memorySize;
     }
 };
 
@@ -651,17 +691,15 @@ size_t ValidationContext::calcLevelOffset(size_t firstLevelOffset, size_t alignm
 void ValidationContext::validateLevelIndex() {
     const auto levelIndexOffset = sizeof(KTX_header2);
     const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
-    // Read the index entry by entry: the number of levels comes from the
-    // header, so a levelCount far beyond the file fails at its end instead
-    // of first allocating the whole index.
-    levelIndices.clear();
-    for (uint32_t level = 0; level < numLevels; ++level) {
-        ktxLevelIndexEntry entry;
-        read(levelIndexOffset + level * sizeof(ktxLevelIndexEntry), &entry, sizeof(entry), "the level index");
-        levelIndices.push_back(entry);
-    }
+    checkReadable(levelIndexOffset, std::uint64_t{sizeof(ktxLevelIndexEntry)} * numLevels, "the level index");
+    levelIndices.resize(numLevels);
+    read(levelIndexOffset, levelIndices.data(), levelIndexSize, "the level index");
 
-    const auto blockByteLength = (expectedBytePlanes ? expectedBytePlanes->at(0) : (parsedBlockByteLength == 0 ? uint8_t(1) : parsedBlockByteLength.value_or(0)));
+    // Without a parsed basic DFD block, as with bytesPlane0 0, take blocks of
+    // 1 byte: a level alignment of 0 would divide by 0.
+    const auto blockByteLength = expectedBytePlanes ?
+            expectedBytePlanes->at(0) :
+            std::max<uint8_t>(parsedBlockByteLength.value_or(0), 1);
     std::size_t requiredLevelAlignment = calcLevelAlignment(ktxSupercmpScheme(header.supercompressionScheme), blockByteLength);
 
     std::size_t expectedFirstLevelOffset = 0;
@@ -794,6 +832,7 @@ void ValidationContext::validateDFD() {
         return;
     }
 
+    checkReadable(dfdByteOffset, dfdByteLength, "the DFD");
     const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
     read(dfdByteOffset, buffer.get(), dfdByteLength, "the DFD");
     const auto* ptrDFD = buffer.get();
@@ -1322,6 +1361,7 @@ void ValidationContext::validateKVD() {
     if (kvdByteOffset == 0 || kvdByteLength == 0)
         return; // There is no KVD block
 
+    checkReadable(kvdByteOffset, kvdByteLength, "the Key/Value Data");
     const auto buffer = std::make_unique<uint8_t[]>(kvdByteLength);
     read(kvdByteOffset, buffer.get(), kvdByteLength, "the Key/Value Data");
     const auto* ptrKVD = buffer.get();
@@ -1528,6 +1568,7 @@ void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) 
     const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
     const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
 
+    checkReadable(dfdByteOffset, dfdByteLength, "the ff DFD");
     const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
     read(dfdByteOffset, buffer.get(), dfdByteLength, "the ff DFD");
     const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
@@ -1715,6 +1756,7 @@ void ValidationContext::validateSGD() {
     if (sgdByteOffset == 0 || sgdByteLength == 0)
         return; // There is no SGD block
 
+    checkReadable(sgdByteOffset, sgdByteLength, "the SGD");
     const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
     read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
 
@@ -1883,6 +1925,7 @@ void ValidationContext::validatePaddings() {
         }
 
         const auto paddingSize = offset - position;
+        checkReadable(position, paddingSize, "the padding before " + name);
         const auto buffer = std::make_unique<uint8_t[]>(paddingSize);
         read(position, buffer.get(), paddingSize, "the padding before " + name);
 

@@ -4071,6 +4071,7 @@ TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
     auto file = copyOfFile();
     header(file).dataFormatDescriptor.byteLength = 1;
     EXPECT_EQ(printText(file), KTX_FILE_DATA_ERROR);
+    EXPECT_EQ(printJSON(file), KTX_FILE_DATA_ERROR);
 }
 
 TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
