@@ -529,8 +529,12 @@ printKTXHeader(KTX_header* pHeader)
  *
  * @param [in]     stream  pointer to the ktxStream reading the file.
  * @param [in]     pHeader pointer to the header to print.
+ *
+ * @return KTX_SUCCESS, also for a header ktxCheckHeader1_ rejects, or the
+ *         error that stopped the printing of the key/value data or of the
+ *         level sizes.
  */
-void
+KTX_error_code
 printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
 {
     ktx_uint8_t* metadata;
@@ -560,13 +564,22 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
           default:
               ; // _ktxCheckHeader returns only the above 2 errors.
         }
-        return;
+        return KTX_SUCCESS;
     }
 
     if (pHeader->bytesOfKeyValueData) {
         fprintf(stdout, "\nKey/Value Data\n\n");
+        result = checkNextBlockInStream(stream, pHeader->bytesOfKeyValueData);
+        if (result != KTX_SUCCESS)
+            return result;
         metadata = malloc(pHeader->bytesOfKeyValueData);
-        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        if (metadata == NULL)
+            return KTX_OUT_OF_MEMORY;
+        result = stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        if (result != KTX_SUCCESS) {
+            free(metadata);
+            return result;
+        }
         printKVData(metadata, pHeader->bytesOfKeyValueData);
         free(metadata);
     } else {
@@ -590,6 +603,8 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         ktx_uint32_t faceLodSize;
         ktx_uint32_t lodSize;
         result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
+        if (result != KTX_SUCCESS)
+            return result;
         if (pHeader->endianness == KTX_ENDIAN_REF_REV)
             _ktxSwapEndian32(&faceLodSize, 1);
         if (nonArrayCubemap) {
@@ -597,11 +612,14 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         } else {
             lodSize = faceLodSize;
         }
-        result = stream->skip(stream, lodSize);
-        dataSize += lodSize;
         fprintf(stdout, "Level %u: %u\n", level, lodSize);
+        result = stream->skip(stream, lodSize);
+        if (result != KTX_SUCCESS)
+            return result;
+        dataSize += lodSize;
     }
     fprintf(stdout, "\nTotal: %" PRId64 "\n", dataSize);
+    return KTX_SUCCESS;
 }
 
 /**
@@ -638,7 +656,9 @@ ktxPrintKTX1InfoTextForStream(ktxStream* stream)
         if (!memcmp(header.identifier, ktx_ident_ref, sizeof(ktx_ident_ref))) {
             result = stream->read(stream, &header.endianness,
                                   KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
-            printKTXInfo2(stream, &header);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = printKTXInfo2(stream, &header);
         } else {
                 return KTX_UNKNOWN_FILE_FORMAT;
         }
@@ -1256,7 +1276,9 @@ ktxPrintInfoForStream(ktxStream* stream)
             // Read rest of header.
             result = stream->read(stream, &header.ktx.endianness,
                                   KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
-            printKTXInfo2(stream, &header.ktx);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = printKTXInfo2(stream, &header.ktx);
         } else {
             // Read rest of header.
             result = stream->read(stream, &header.ktx2.vkFormat,
