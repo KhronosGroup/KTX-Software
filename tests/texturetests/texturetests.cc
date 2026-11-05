@@ -3002,6 +3002,49 @@ TEST_F(ktxTexture2_DeflateTest, GetDataSizeUncompressedWithOneBitSamples) {
     }
 }
 
+TEST_F(ktxTexture2_DeflateTest, RejectsSamplesPastBytesPlane0) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        result = ktxTexture2_DeflateZstd(texture, 3);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        ktx_uint8_t* pDeflated;
+        ktx_size_t deflatedLen;
+        result = ktxTexture2_WriteToMemory(texture, &pDeflated, &deflatedLen);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        std::unique_ptr<ktx_uint8_t, decltype(std::free)*> deflated{pDeflated, std::free};
+
+        // A sample at bit offset 0xFF00 that is 256 bits long ends at byte
+        // 8192, whose low 8 bits, all that bytesPlane0 keeps, are 0: the
+        // reconstructed bytesPlane0 was 0, the level alignment of a Zstd
+        // texture was then 0, and ktxTexture2_GetDataSizeUncompressed
+        // divided by it.
+        const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pDeflated);
+        ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
+                pDeflated + header->dataFormatDescriptor.byteOffset) + 1;
+        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
+        for (ktx_uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdfd); sample++) {
+            KHR_DFDSETSVAL(bdfd, sample, BITOFFSET, 0xFF00);
+            KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 255);
+        }
+
+        ktxTexture* pastPlane = nullptr;
+        result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
+                                             KTX_TEXTURE_CREATE_NO_FLAGS,
+                                             &pastPlane);
+        ktxTexture_unique_ptr pastPlane_raii{pastPlane, ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_FILE_DATA_ERROR) << ktxErrorString(result);
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////

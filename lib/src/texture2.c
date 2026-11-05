@@ -319,6 +319,12 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
     // Account for ETC1S with possible second slice.
     This->blockSizeInBits += KHR_DFDVAL(pBdb, BYTESPLANE1) * 8;
+    // Blocks of 0 bytes would make the level alignments 0. bytesPlane0
+    // keeps only the low 8 bits of the size reconstructed from the
+    // samples, which are 0 when the samples of a damaged DFD end at a
+    // multiple of 256 bytes.
+    if (This->blockSizeInBits == 0)
+        return KTX_FILE_DATA_ERROR;
     This->paletteSizeInBits = 0; // No paletted formats in ktx v2.
     This->flags = 0;
     This->minBlocksX = This->minBlocksY = 1;
