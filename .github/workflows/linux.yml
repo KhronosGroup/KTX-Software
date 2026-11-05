@@ -157,7 +157,9 @@ jobs:
             sse: OFF, opencl: OFF
           }
 
-    name: ${{ matrix.name && matrix.name || format('{0} Doc:{1},JNI:{2},Loadtests:{3},Py:{4},Tests:{5},Tools:{6},CTS:{7},SSE:{8},OpenCL:{9}', matrix.os, matrix.options.doc, matrix.options.jni, matrix.options.loadtests, matrix.options.py, matrix.options.tests, matrix.options.tools, matrix.options.tools_cts, matrix.options.sse, matrix.options.opencl) }}
+    name: ${{ matrix.name && matrix.name || format('{0} Doc:{1},JNI:{2},Loadtests:{3},Py:{4},Tests:{5},Tools:{6},CTS:{7},SSE:{8},OpenCL:{9}',
+      matrix.os, matrix.options.doc, matrix.options.jni, matrix.options.loadtests, matrix.options.py, env.tests,
+      matrix.options.tools, matrix.options.tools_cts, matrix.options.sse, matrix.options.opencl) }}
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     env:
