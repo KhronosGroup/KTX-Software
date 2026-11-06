@@ -76,13 +76,20 @@ Texture::Texture(VulkanContext& vkctx,
     quadColor = { upperLeftColor, lowerLeftColor,
                   upperRightColor, lowerRightColor };
 
+    KTX_error_code ktxresult;
     ktxVulkanDeviceInfo vdi;
-    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool, nullptr);
+    ktxresult = ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
+                                              vkctx.queue, vkctx.commandPool, nullptr);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxVulkanDeviceInfo failed: "
+                << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
 
     processArgs(szArgs);
 
-    KTX_error_code ktxresult;
     ktxTexture* kTexture;
     std::string ktxfilepath = externalFile ? ktxfilename
                                            : getAssetPath() + ktxfilename;
@@ -823,12 +830,12 @@ Texture::keyPressed(uint32_t keyCode)
 }
 
 void
-Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
+Texture::getOverlayText(VulkanTextOverlay *textOverlay, float xOffset, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                         xOffset, yOffset, VulkanTextOverlay::alignLeft);
 }
 
 const char*
