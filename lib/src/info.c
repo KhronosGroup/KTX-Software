@@ -296,7 +296,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
             } else {
                 fprintf(stdout, " [");
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
-                    fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
+                    fprintf(stdout, "%u%s", (unsigned) (ktx_uint8_t) value[i], i + 1 == valueLen ? "" : ", ");
                 fprintf(stdout, "]\n");
             }
         }
@@ -420,7 +420,7 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
                 firstPrint = false;
                 PRINT_INDENT(0, "\"%s\":%s[", key, space)
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
-                    fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
+                    fprintf(stdout, "%u%s", (unsigned) (ktx_uint8_t) value[i], i + 1 == valueLen ? "" : ", ");
                 fprintf(stdout, "]");
             }
         }
