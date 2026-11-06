@@ -114,7 +114,7 @@ if(APPLE)
         # The unit tests now use std::filesystem.
         set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "macOS Deployment Target")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
