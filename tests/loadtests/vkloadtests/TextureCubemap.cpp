@@ -65,13 +65,20 @@ TextureCubemap::TextureCubemap(VulkanContext& vkctx,
     rotation = { -7.25f, 120.0f, 0.0f };
     transcoded = false;
 
+    KTX_error_code ktxresult;
     ktxVulkanDeviceInfo vdi;
-    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool, nullptr);
+    ktxresult = ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
+                                              vkctx.queue, vkctx.commandPool, nullptr);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxVulkanDeviceInfo failed: "
+                << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
 
     processArgs(szArgs);
 
-    KTX_error_code ktxresult;
     ktxTexture* kTexture;
     std::string ktxfilepath = externalFile ? ktxfilename
                                            : getAssetPath() + ktxfilename;
@@ -840,16 +847,16 @@ TextureCubemap::keyPressed(uint32_t keyCode)
 }
 
 void
-TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
+TextureCubemap::getOverlayText(VulkanTextOverlay *textOverlay, float xOffset, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << ubo.lodBias;
-    textOverlay->addText("Press \"s\" to toggle skybox", 5.0f,
+    textOverlay->addText("Press \"s\" to toggle skybox", xOffset,
                          yOffset, VulkanTextOverlay::alignLeft);
-    textOverlay->addText("Press \"space\" or 2-finger swipe up or down to change object", 5.0f,
+    textOverlay->addText("Press \"space\" or 2-finger swipe up or down to change object", xOffset,
                          yOffset+20.0f, VulkanTextOverlay::alignLeft);
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, yOffset+40.0f, VulkanTextOverlay::alignLeft);
+                         xOffset, yOffset+40.0f, VulkanTextOverlay::alignLeft);
 }
 
 const char*
