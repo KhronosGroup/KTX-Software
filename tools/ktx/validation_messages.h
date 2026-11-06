@@ -351,6 +351,10 @@ struct DFD {
         6004, "Invalid DFD data. Not enough data left to process another DFD block header.",
         "DFD has {} byte(s) unprocessed but for a valid DFD at least 8 bytes are required."
     };
+    static constexpr IssueError NotEnoughDataForTotalSize{
+        6032, "Invalid DFD data. Not enough data for dfdTotalSize.",
+        "dfdByteLength is {} but the DFD must hold at least the 4 bytes of dfdTotalSize."
+    };
     static constexpr IssueWarning MultipleBDFD{
         6005, "Multiple basic DFD blocks.",
         "DFD block #{} is a basic DFD block but one was already processed before. It will be ignored."

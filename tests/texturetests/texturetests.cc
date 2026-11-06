@@ -4062,6 +4062,103 @@ TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
     runTest(u8"astc_8x8_unorm_array_7.ktx2");
 }
 
+////////////////////////////////////////////
+// ktxPrintKTX2Info tests
+///////////////////////////////////////////
+
+// The sizes of the blocks of a KTX 2 file come from its header. The info
+// printers must check them before allocating or reading a block.
+class ktxPrintKTX2InfoTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {
+  protected:
+    // A copy of the test file, for damaging its header.
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    // The bytes of the vector are not a KTX_header2 object, so the header
+    // is copied out of the file and back.
+    static KTX_header2 header(const std::vector<ktx_uint8_t>& file) {
+        KTX_header2 header;
+        memcpy(&header, file.data(), sizeof(header));
+        return header;
+    }
+
+    static void setHeader(std::vector<ktx_uint8_t>& file, const KTX_header2& header) {
+        memcpy(file.data(), &header, sizeof(header));
+    }
+
+    static KTX_error_code printText(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoTextForMemory(file.data(), file.size());
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+
+    static KTX_error_code printJSON(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoJSONForMemory(file.data(), file.size(),
+                                                              0, 4, false);
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+};
+
+TEST_F(ktxPrintKTX2InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    EXPECT_EQ(printText(file), KTX_SUCCESS);
+    EXPECT_EQ(printJSON(file), KTX_SUCCESS);
+}
+
+// 24 times a levelCount of 0xC0000000 was computed in 32 bits, wrapped to 0,
+// and the printers printed the level index from an empty buffer.
+TEST_F(ktxPrintKTX2InfoTest, LevelIndexLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.levelCount = 0xC0000000;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// The text printer read the 4-byte dfdTotalSize from a DFD of 1 byte.
+TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.dataFormatDescriptor.byteLength = 1;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_DATA_ERROR);
+    EXPECT_EQ(printJSON(file), KTX_FILE_DATA_ERROR);
+}
+
+TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    ASSERT_NE(damaged.keyValueData.byteLength, 0u);
+    damaged.keyValueData.byteLength = 0xFFFFFFFF;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// A supercompression global data length that cannot be allocated failed
+// with KTX_OUT_OF_MEMORY, or, under AddressSanitizer, aborted.
+TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.supercompressionScheme = KTX_SS_BASIS_LZ;
+    damaged.supercompressionGlobalData.byteOffset = file.size();
+    damaged.supercompressionGlobalData.byteLength = UINT64_C(1) << 62;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
 }  // namespace
 
 
