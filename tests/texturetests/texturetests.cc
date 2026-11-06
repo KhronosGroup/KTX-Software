@@ -3022,26 +3022,31 @@ TEST_F(ktxTexture2_DeflateTest, RejectsSamplesPastBytesPlane0) {
         ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
         std::unique_ptr<ktx_uint8_t, decltype(std::free)*> deflated{pDeflated, std::free};
 
-        // A sample at bit offset 0xFF00 that is 256 bits long ends at byte
-        // 8192, whose low 8 bits, all that bytesPlane0 keeps, are 0: the
-        // reconstructed bytesPlane0 was 0, the level alignment of a Zstd
-        // texture was then 0, and ktxTexture2_GetDataSizeUncompressed
-        // divided by it.
+        // Samples that end past byte 255 give a texel block size that
+        // bytesPlane0, an 8-bit field, cannot hold. A sample at bit offset
+        // 0xFF00 that is 256 bits long ends at byte 8192, which bytesPlane0
+        // would hold as 0: blockSizeInBits and the level alignment of a
+        // Zstd texture were then 0, and ktxTexture2_GetDataSizeUncompressed
+        // divided by it. One at bit offset 0xFF08 ends at byte 8193, which
+        // bytesPlane0 would hold as 1.
         const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pDeflated);
         ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
                 pDeflated + header->dataFormatDescriptor.byteOffset) + 1;
-        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
-        for (ktx_uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdfd); sample++) {
-            KHR_DFDSETSVAL(bdfd, sample, BITOFFSET, 0xFF00);
-            KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 255);
-        }
+        for (ktx_uint32_t bitOffset : {0xFF00u, 0xFF08u}) {
+            KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
+            for (ktx_uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdfd); sample++) {
+                KHR_DFDSETSVAL(bdfd, sample, BITOFFSET, bitOffset);
+                KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 255);
+            }
 
-        ktxTexture* pastPlane = nullptr;
-        result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
-                                             KTX_TEXTURE_CREATE_NO_FLAGS,
-                                             &pastPlane);
-        ktxTexture_unique_ptr pastPlane_raii{pastPlane, ktxTexture_Deleter};
-        EXPECT_EQ(result, KTX_FILE_DATA_ERROR) << ktxErrorString(result);
+            ktxTexture* pastPlane = nullptr;
+            result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
+                                                 KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                 &pastPlane);
+            ktxTexture_unique_ptr pastPlane_raii{pastPlane, ktxTexture_Deleter};
+            EXPECT_EQ(result, KTX_FILE_DATA_ERROR)
+                << "bit offset " << bitOffset << ": " << ktxErrorString(result);
+        }
     }
 }
 
