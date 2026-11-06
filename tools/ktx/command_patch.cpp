@@ -217,8 +217,9 @@ void CommandPatch::patch(std::FILE* input) {
     if (options.operation == Operation::makeUnsized_e) {
         KHR_DFDSETVAL(DFD+1, BYTESPLANE0, 0);
         KHR_DFDSETVAL(DFD+1, BYTESPLANE1, 0);
-    } else {
-        reconstructDFDBytesPlanesFromSamples(DFD);
+    } else if (!reconstructDFDBytesPlanesFromSamples(DFD)) {
+        fatal(rc::INVALID_FILE, "The samples of the DFD in \"{}\" end past byte 255; "
+              "its bytesPlane0 cannot be reconstructed.", options.inputFilepath);
     }
     std::fseek(input, header.dataFormatDescriptor.byteOffset, SEEK_SET); // Seek to start of DFD.
     fwrite(DFD, header.dataFormatDescriptor.byteLength, 1, input);

@@ -686,7 +686,7 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
         origBytesPlane47 = bdb[KHR_DF_WORD_BYTESPLANE4];
         bdb[KHR_DF_WORD_BYTESPLANE0] = 0U;
         bdb[KHR_DF_WORD_BYTESPLANE1] = 0U;
-        reconstructDFDBytesPlanesFromSamples(dfd.get());
+        EXPECT_TRUE(reconstructDFDBytesPlanesFromSamples(dfd.get()));
         EXPECT_EQ(origBytesPlane03, bdb[KHR_DF_WORD_BYTESPLANE0]);
         EXPECT_EQ(origBytesPlane47, bdb[KHR_DF_WORD_BYTESPLANE4]);
     }
@@ -701,8 +701,28 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
             KHR_DFDSETSVAL(bdb, sample, BITOFFSET, 0);
             KHR_DFDSETSVAL(bdb, sample, BITLENGTH, 0);
         }
-        reconstructDFDBytesPlanesFromSamples(dfd.get());
+        EXPECT_TRUE(reconstructDFDBytesPlanesFromSamples(dfd.get()));
         EXPECT_EQ(1U, KHR_DFDVAL(bdb, BYTESPLANE0));
+    }
+
+    // Samples that end past byte 255 give a size bytesPlane0 cannot hold.
+    // One at bit offset 0xFF00 that is 256 bits long ends at byte 8192,
+    // whose low 8 bits are 0; one at 0xFF08 ends at byte 8193. The DFD is
+    // left unchanged.
+    for (uint32_t bitOffset : {0xFF00u, 0xFF08u}) {
+        std::unique_ptr<uint32_t, decltype(std::free)*> dfd{vk2dfd(VK_FORMAT_R8G8B8A8_UNORM), std::free};
+        ASSERT_TRUE(dfd != NULL);
+        uint32_t* bdb = dfd.get() + 1;
+        bdb[KHR_DF_WORD_BYTESPLANE0] = 0U;
+        for (uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdb); sample++) {
+            KHR_DFDSETSVAL(bdb, sample, BITOFFSET, bitOffset);
+            KHR_DFDSETSVAL(bdb, sample, BITLENGTH, 255);
+        }
+        const uint32_t dfdSize = *dfd.get();
+        std::unique_ptr<uint8_t[]> before{new uint8_t[dfdSize]};
+        memcpy(before.get(), dfd.get(), dfdSize);
+        EXPECT_FALSE(reconstructDFDBytesPlanesFromSamples(dfd.get())) << "bit offset " << bitOffset;
+        EXPECT_EQ(memcmp(before.get(), dfd.get(), dfdSize), 0) << "bit offset " << bitOffset;
     }
 
     // No need to test reconstruction for UASTC as, colorModel aside, the DFD
@@ -752,7 +772,7 @@ TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
             KHR_DFDSETSVAL(bdb, sample, SAMPLELOWER, 0);
             KHR_DFDSETSVAL(bdb, sample, SAMPLEUPPER, UINT32_MAX);
         }
-        reconstructDFDBytesPlanesFromSamples(dfd.get());
+        EXPECT_TRUE(reconstructDFDBytesPlanesFromSamples(dfd.get()));
         EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE0));
         if (sampleCount == 2)
             EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE1));

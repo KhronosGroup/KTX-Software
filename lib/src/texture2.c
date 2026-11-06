@@ -313,8 +313,13 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
     if (KHR_DFDVAL(pBdb, BYTESPLANE0) == 0) {
         // The DFD uses the deprecated way of indicating a supercompressed
-        // texture. Reconstruct the original values.
-        reconstructDFDBytesPlanesFromSamples(pDfd);
+        // texture. Reconstruct the original values. This fails when the
+        // samples end past byte 255, a texel block size that bytesPlane0
+        // cannot hold and no valid format has. Storing only its low 8 bits
+        // would give a wrong size, or 0, which would make the level
+        // alignment 0 for ktxTexture2_GetDataSizeUncompressed to divide by.
+        if (!reconstructDFDBytesPlanesFromSamples(pDfd))
+            return KTX_FILE_DATA_ERROR;
     }
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
     // Account for ETC1S with possible second slice.
