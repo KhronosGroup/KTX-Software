@@ -79,14 +79,14 @@ VulkanAppSDL::initialize(Args& args)
 {
     // Currently this app supports only linear HDR and non-linear (sRGB) LDR
     // color spaces. All others are commented out. As the app does not do
-    // primaries or transfer-function conversion and input data is all in
-    // BT709 primaries, in truth only sRGB and extended sRGB formats will
-    // give correct results. The other uncommented spaces will give
-    // approximately correct results. This infrastructure has been put in
-    // place to enable work with color spaces.
+    // primaries or transfer-function conversion and input data, most
+    // likely, uses BT709 primaries, in truth only sRGB and extended sRGB
+    // formats will give correct results. The other uncommented spaces will
+    // give approximately correct results. This infrastructure has been put
+    // in place to enable work with color spaces.
     static const std::unordered_map<std::string, VulkanSwapchain::csInfo> csValues {
         // LDR
-        {"adobergb", {vk::ColorSpaceKHR::eAdobergbLinearEXT, false, true}}, // Not on Apple
+//        {"adobergb", {vk::ColorSpaceKHR::eAdobergbLinearEXT, false, true}}, // Not on Apple
 //        {"bt2020", {vk::ColorSpaceKHR::eBt2020LinearEXT, false, true}},
 //        {"bt709", {vk::ColorSpaceKHR::eBt709LinearEXT, false, true}},
         {"adobergb-nl", {vk::ColorSpaceKHR::eAdobergbNonlinearEXT, false, true}},
@@ -96,9 +96,8 @@ VulkanAppSDL::initialize(Args& args)
         {"srgb-nl", {vk::ColorSpaceKHR::eSrgbNonlinear, false, false}},
         // HDR
         // MoltenVK and KosmicKrisp (Apple) apparently map this to kCGColorSpaceLinearDisplayP3
-        // which does not clamp values of 16F components so is effectively the same as
-        // kCGColorSpaceExtendedLinearDisplayP3, which has no vk::ColorSpaceKHR equivalent,
-        // so is HDR.
+        // which does not clamp values of 16F components so is effectively HDR, the same as
+        // kCGColorSpaceExtendedLinearDisplayP3, which has no vk::ColorSpaceKHR equivalent.
         {"display-p3", {vk::ColorSpaceKHR::eDisplayP3LinearEXT, true, true}},
         {"extended-srgb", {vk::ColorSpaceKHR::eExtendedSrgbLinearEXT, true, true}},
         //{"dolby", {vk::ColorSpaceKHR::eDolbyvisionEXT, true, false}}, // deprecated
@@ -433,14 +432,10 @@ VulkanAppSDL::resizeWindow(int width, int height)
         vkDestroyFramebuffer(vkctx.device, vkctx.framebuffers[i], nullptr);
     }
 
-    // XXX Is this necessary? Is Willems doing this?
-    //vkDestroyRenderPass(vkctx.device, vkctx.renderPass, NULL);
-
     vkctx.destroyPresentCommandBuffers();
     (void)(prepareDepthBuffer() // XXX Call it DepthStencil?
         && vkctx.createPresentCommandBuffers()
         && preparePresentCommandBuffers()
-        //&& prepareRenderPass()
         && prepareFramebuffers());
 
     flushInitialCommands();
@@ -532,7 +527,7 @@ VulkanAppSDL::acquireNextImage()
 	}
     // Acquire the next image from the swap chain
     result = vkctx.swapchain.acquireNextImage(presentCompleteSemaphore,
-                                           &currentImage);
+                                              &currentImage);
 
     if (!RECREATE_SWAPCHAIN_ON_SUBOPTIMAL && result == VK_SUBOPTIMAL_KHR)
         result = VK_SUCCESS;
@@ -689,7 +684,7 @@ VulkanAppSDL::initializeVulkan()
 bool
 VulkanAppSDL::createInstance()
 {
-    MAYBE_UNUSED VkResult err;
+    MAYBE_UNUSED VkResult result;
     uint32_t instanceLayerCount = 0;
     std::vector<const char *> instanceValidationLayers;
 
@@ -704,15 +699,15 @@ VulkanAppSDL::createInstance()
     // Look for validation layers.
     bool validationFound = 0;
     if (validate) {
-        err = vkEnumerateInstanceLayerProperties(&instanceLayerCount, NULL);
-        assert(err == VK_SUCCESS);
+        result = vkEnumerateInstanceLayerProperties(&instanceLayerCount, NULL);
+        assert(result == VK_SUCCESS);
 
         if (instanceLayerCount > 0) {
             VkLayerProperties* instanceLayers
                 = new VkLayerProperties[instanceLayerCount];
-            err = vkEnumerateInstanceLayerProperties(&instanceLayerCount,
+            result = vkEnumerateInstanceLayerProperties(&instanceLayerCount,
                                                      instanceLayers);
-            assert(err == VK_SUCCESS);
+            assert(result == VK_SUCCESS);
 
             validationFound = checkLayers(
                                 (uint32_t)instanceValidationLayers_alt1.size(),
@@ -830,35 +825,35 @@ VulkanAppSDL::createInstance()
         instanceInfo.pNext = &dbgCreateInfo;
     }
 
-    vk::Result cerr;
-    cerr = vk::createInstance(&instanceInfo, nullptr, &vkctx.instance);
+    vk::Result cresult;
+    cresult = vk::createInstance(&instanceInfo, nullptr, &vkctx.instance);
 
-    if (cerr != vk::Result::eSuccess) {
+    if (cresult != vk::Result::eSuccess) {
         std::string title;
         std::stringstream msg;
         title = szName;
         title += ": vkCreateInstance Failure";
-        if (cerr == vk::Result::eErrorIncompatibleDriver) {
+      if (cresult == vk::Result::eErrorIncompatibleDriver) {
             msg << "Cannot find a compatible Vulkan installable client "
                    "driver (ICD).";
-        } else if (cerr == vk::Result::eErrorExtensionNotPresent) {
+      } else if (cresult == vk::Result::eErrorExtensionNotPresent) {
             // Figure out which extension(s) are missing.
             uint32_t instanceExtensionCount = 0;
 
-            err = vkEnumerateInstanceExtensionProperties(
+            result = vkEnumerateInstanceExtensionProperties(
                                                         NULL,
                                                         &instanceExtensionCount,
                                                         NULL);
             VkExtensionProperties* instanceExtensions
                 = new VkExtensionProperties[instanceExtensionCount];
 
-            assert(err == VK_SUCCESS);
+            assert(result == VK_SUCCESS);
             if (instanceExtensionCount > 0) {
-                err = vkEnumerateInstanceExtensionProperties(
+                result = vkEnumerateInstanceExtensionProperties(
                                                         NULL,
                                                         &instanceExtensionCount,
                                                         instanceExtensions);
-                assert(err == VK_SUCCESS);
+                assert(result == VK_SUCCESS);
             }
             msg << "Cannot find the following extensions:\n";
             for (uint32_t j = 0; j < extensionNames.size(); j++) {
@@ -891,12 +886,12 @@ VulkanAppSDL::createInstance()
                 }
             }
             delete [] instanceExtensions;
-       } else if (cerr == vk::Result::eErrorLayerNotPresent) {
+        } else if (cresult == vk::Result::eErrorLayerNotPresent) {
            msg << "Cannot find validation layers."
                << " Make sure your layers path is set appropriately.";
        } else {
             msg << "vkCreateInstance: unexpected failure, code = "
-                << cerr << ".\n\nDo you have a compatible Vulkan "
+                << cresult << ".\n\nDo you have a compatible Vulkan "
                   "installable client driver (ICD) installed?";
        }
        (void)SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(),
@@ -910,13 +905,13 @@ VulkanAppSDL::createInstance()
 bool
 VulkanAppSDL::findGpu()
 {
-    MAYBE_UNUSED vk::Result err;
+    MAYBE_UNUSED vk::Result result;
     uint32_t gpuCount;
 
     // Make initial call to query gpu_count, then second call for gpu info.
-    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount,
+    result = vkctx.instance.enumeratePhysicalDevices(&gpuCount,
                                                   (vk::PhysicalDevice*)nullptr);
-    assert(err == vk::Result::eSuccess);
+    assert(result == vk::Result::eSuccess);
 
     if (gpuCount == 0) {
         ERROR_RETURN(
@@ -927,8 +922,8 @@ VulkanAppSDL::findGpu()
 
     std::vector<vk::PhysicalDevice> gpus;
     gpus.resize(gpuCount);
-    err = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
-    assert(err == vk::Result::eSuccess);
+    result = vkctx.instance.enumeratePhysicalDevices(&gpuCount, gpus.data());
+    assert(result == vk::Result::eSuccess);
 #if (SDL_PLATFORM_APPLE)
     if (gpuCount > 1) {
         // KosmicKrisp only advertises a VkPhysicalDevice when running on an OS
@@ -974,10 +969,10 @@ VulkanAppSDL::setupDebugReporting()
         dbgCreateInfo.pUserData = this;
         dbgCreateInfo.flags =
             VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-        VkResult err = pfnCreateDebugReportCallbackEXT(vkctx.instance,
+        VkResult result = pfnCreateDebugReportCallbackEXT(vkctx.instance,
                                                        &dbgCreateInfo, NULL,
                                                        &msgCallback);
-        switch (err) {
+        switch (result) {
           case VK_SUCCESS:
             return true;
             break;
@@ -988,7 +983,7 @@ VulkanAppSDL::setupDebugReporting()
           {
             std::stringstream msg;
             msg << "CreateDebugReportCallback: unexpected failure, result code "
-                << err << ".";
+                << result << ".";
             ERROR_RETURN(msg.str().c_str());
             break;
           }
@@ -1193,8 +1188,9 @@ VulkanAppSDL::createDevice()
             (const char *const *)extensionsToEnable.data(),
             nullptr);
 
-    // Want to enable all available features in the queried device features so
-    // use the structure chain where getFeatures2 saved them.
+    // Enable the features set above in the base vk::PhysicalDeviceFeatures and all
+    // other features reported available by getFeatures2. Use the structure chain
+    // where getFeatures2 saved them.
 #if VK_HEADER_VERSION < 304 // Rough estimate. Don't know which version fixed vulkan.hpp.
     deviceInfo.pNext = (const void*)&vkctx.gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>();
 #else
