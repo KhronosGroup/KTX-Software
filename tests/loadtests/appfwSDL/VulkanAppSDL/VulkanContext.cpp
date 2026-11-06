@@ -96,13 +96,11 @@ VulkanContext::createDrawCommandBuffers()
     aInfo.pNext = NULL;
     aInfo.commandPool = commandPool;
     aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
+    aInfo.commandBufferCount = swapchain.imageCount;
 
     drawCmdBuffers.resize(swapchain.imageCount);
-    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &drawCmdBuffers[i]));
-    }
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    drawCmdBuffers.data()));
     return true;
 }
 
@@ -114,16 +112,14 @@ VulkanContext::createPresentCommandBuffers()
     aInfo.pNext = NULL;
     aInfo.commandPool = commandPool;
     aInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    aInfo.commandBufferCount = 1;
+    aInfo.commandBufferCount = swapchain.imageCount;
 
     prePresentCmdBuffers.resize(swapchain.imageCount);
     postPresentCmdBuffers.resize(swapchain.imageCount);
-    for (uint32_t i = 0; i < swapchain.imageCount; i++) {
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &prePresentCmdBuffers[i]));
-        VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
-                        &postPresentCmdBuffers[i]));
-    }
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    prePresentCmdBuffers.data()));
+    VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &aInfo,
+                    postPresentCmdBuffers.data()));
     return true;
 }
 
@@ -138,7 +134,6 @@ VulkanContext::destroyDrawCommandBuffers()
     for (uint32_t i = 0; i < drawCmdBuffers.size(); ++i) {
         drawCmdBuffers[i] = nullptr;
     }
-
 }
 
 void
@@ -163,6 +158,81 @@ VulkanContext::checkDrawCommandBuffers()
         }
     }
     return true;
+}
+
+void
+VulkanContext::createSwapchain(uint32_t& width, uint32_t& height, bool enableVSync)
+{
+    swapchain.create(width, height, enableVSync);
+    framebuffers.resize(swapchain.imageCount);
+    perFb.resize(swapchain.imageCount);
+}
+
+void
+VulkanContext::createFramebuffers(uint32_t width, uint32_t height)
+{
+    VkImageView attachments[2];
+    attachments[1] = depthBuffer.view;
+
+    const VkFramebufferCreateInfo fb_info = {
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        NULL,
+        0,
+        renderPass,
+        2,
+        attachments,
+        width,
+        height,
+        1,
+    };
+
+    framebuffers.resize(swapchain.imageCount);
+    for (uint32_t i = 0; i < framebuffers.size(); i++) {
+        U_ASSERT_ONLY VkResult err;
+        attachments[0] = swapchain.buffers[i].view;
+        err = vkCreateFramebuffer(device, &fb_info, NULL,
+                                  &framebuffers[i]);
+        assert(!err);
+    }
+}
+
+void
+VulkanContext::createSemaphores()
+{
+    const VkSemaphoreCreateInfo semaphore_info {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        NULL,
+        0
+    };
+
+    for (uint32_t i = 0; i < framebuffers.size(); i++) {
+        // Semaphore used to synchronize render command submission.
+        // Ensures that the image is not presented until all render commands
+        // have been submitted and executed.
+        VK_CHECK_RESULT(vkCreateSemaphore(device,
+                                          &semaphore_info,
+                                          nullptr,
+                                          &perFb[i].semaphores.renderComplete));
+        // Semaphore used to synchronize text overlay command submission.
+        // Ensures that the image is not presented until all commands for the
+        // text overlay have been submitted and executed. Will be inserted after
+        // the render complete semaphore if the text overlay is enabled.
+        VK_CHECK_RESULT(vkCreateSemaphore(device,
+                                          &semaphore_info,
+                                          nullptr,
+                                          &perFb[i].semaphores.textOverlayComplete));
+        // A presentComplete semaphore cannot be permanently associated with a
+        // framebuffer so not created here. See VulkanAppSDL::acquireNextImage
+        // for explanation.
+    }
+
+    // TODO: Move this somewhere else.
+    // Set up submit info structure
+    // Semaphores will stay the same during application lifetime
+    // Command buffer submission info is set by each example
+    drawCmdSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    drawCmdSubmitInfo.pNext = NULL;
+    drawCmdSubmitInfo.pWaitDstStageMask = &submitPipelineStages;
 }
 
 bool
@@ -364,6 +434,7 @@ VulkanContext::readSpv(const char *filename, size_t *pSize) {
 void
 VulkanContext::setGpu(vk::PhysicalDevice _gpu) {
         gpu = _gpu;
+
         // Store features and properties so apps can query them.
         gpu.getFeatures2(&gpuFeaturesChain.get<vk::PhysicalDeviceFeatures2>());
         // Make a copy so we can reuse the gpuFeaturesChain for enabling features.
@@ -374,7 +445,7 @@ VulkanContext::setGpu(vk::PhysicalDevice _gpu) {
 #if VK_EXT_texture_compression_astc_3d
         gpuFeatureAstc3d = gpuAstc3dFeatures.textureCompressionASTC_3D;
 #endif
-        // There is no single portaibility feature we can check in gpuPortabilityFeatures
+        // There is no single portability feature we can check in gpuPortabilityFeatures
         // to determine presence. Instead enabledDeviceExtensions.portability is set if
         // the extension is found when extensions are enumerated.
 

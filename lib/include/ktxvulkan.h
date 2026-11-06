@@ -74,6 +74,8 @@ typedef struct ktxVulkanFunctions {
     PFN_vkCmdBlitImage vkCmdBlitImage;
     PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+    // Uncomment this if setting USE_BARRIER2 in vkloader.c. Beware!
+    //PFN_vkCmdPipelineBarrier2 vkCmdPipelineBarrier2;
     PFN_vkCreateImage vkCreateImage;
     PFN_vkDestroyImage vkDestroyImage;
     PFN_vkCreateBuffer vkCreateBuffer;
