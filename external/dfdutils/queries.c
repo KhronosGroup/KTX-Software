@@ -177,22 +177,33 @@ reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD)
  * Little-endian data only and no multi-plane models except ETC1S hence
  * only looking at bytesPlane0 abd bytesPlane1.
  *
+ * The value of bytesPlane0 is the number of bytes up to the end of the
+ * sample with the largest bit offset. bytesPlane0 has 8 bits, so a value
+ * over 255, which no valid format has, cannot be stored: the DFD is then
+ * left unchanged and false is returned.
+ *
  * @param DFD Pointer to a Data Format Descriptor for which,
  *            described as 32-bit words in native endianness.
  *            Note that this is the whole descriptor, not just
  *            the basic descriptor block.
+ * @return    true if the fields were updated, false if the value
+ *            reconstructed for bytesPlane0 does not fit in it.
  */
 
-void
+bool
 reconstructDFDBytesPlanesFromSamples(uint32_t* DFD)
 {
     uint32_t *BDFDB = DFD+1;
+    uint32_t bytesPlane0 = reconstructDFDBytesPlane0FromSamples(DFD);
 
-    KHR_DFDSETVAL(BDFDB, BYTESPLANE0, reconstructDFDBytesPlane0FromSamples(DFD));
+    if (bytesPlane0 > 255)
+        return false;
+    KHR_DFDSETVAL(BDFDB, BYTESPLANE0, bytesPlane0);
     if (KHR_DFDVAL(BDFDB, MODEL) == KHR_DF_MODEL_ETC1S) {
         if (KHR_DFDSAMPLECOUNT(BDFDB) == 2)
             KHR_DFDSETVAL(BDFDB, BYTESPLANE1, 8);
     }
+    return true;
 }
 
 /**

@@ -313,19 +313,13 @@ ktxFormatSize_initFromDfd(ktxFormatSize* This, ktx_uint32_t* pDfd)
     This->blockDepth = KHR_DFDVAL(pBdb, TEXELBLOCKDIMENSION2) + 1;
     if (KHR_DFDVAL(pBdb, BYTESPLANE0) == 0) {
         // The DFD uses the deprecated way of indicating a supercompressed
-        // texture. Reconstruct the original values.
-        //
-        // The reconstruction takes the size of a texel block from the end
-        // of the sample with the largest bit offset and stores it in
-        // bytesPlane0. That field has 8 bits, so it keeps only the low 8
-        // bits of a size over 255 bytes, which no valid format has. A
-        // sample at bit offset 65280 that is 256 bits long ends at byte
-        // 8192, which bytesPlane0 would hold as 0, making blockSizeInBits
-        // 0 and the post-inflation level alignment of a Zstd or zlib
-        // texture 0, by which ktxTexture2_GetDataSizeUncompressed divides.
-        if (reconstructDFDBytesPlane0FromSamples(pDfd) > 255)
+        // texture. Reconstruct the original values. This fails when the
+        // samples end past byte 255, a texel block size that bytesPlane0
+        // cannot hold and no valid format has. Storing only its low 8 bits
+        // would give a wrong size, or 0, which would make the level
+        // alignment 0 for ktxTexture2_GetDataSizeUncompressed to divide by.
+        if (!reconstructDFDBytesPlanesFromSamples(pDfd))
             return KTX_FILE_DATA_ERROR;
-        reconstructDFDBytesPlanesFromSamples(pDfd);
     }
     This->blockSizeInBits = KHR_DFDVAL(pBdb, BYTESPLANE0) * 8;
     // Account for ETC1S with possible second slice.

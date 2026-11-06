@@ -201,9 +201,10 @@ void getDFDComponentInfoUnpacked(const uint32_t* DFD, uint32_t* numComponents,
 uint32_t getDFDNumComponents(const uint32_t* DFD);
 
 /* Reconstruct and update the bytesPlane[0-4] fields of an unsized DFD to what
- * they were before supercompression.
+ * they were before supercompression. Returns false, leaving the DFD unchanged,
+ * when the size reconstructed for bytesPlane0 does not fit in its 8 bits.
  */
-void reconstructDFDBytesPlanesFromSamples(uint32_t* DFD);
+bool reconstructDFDBytesPlanesFromSamples(uint32_t* DFD);
 /* Deprecated. For backward compatibility. */
 uint32_t reconstructDFDBytesPlane0FromSamples(const uint32_t* DFD);
 /* Deprecated. For backward compatibility. */
