@@ -613,6 +613,12 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
         const ktx_uint64_t lodSize = (ktx_uint64_t)faceLodSize * numFaces;
         fprintf(stdout, "Level %u: %" PRIu64 "\n", level, lodSize);
         for (ktx_uint32_t face = 0; face < numFaces; face++) {
+            // A stream can skip past its end, as the std::filebuf of
+            // ktx info does, so each face is first checked against the
+            // size of the stream.
+            result = checkNextBlockInStream(stream, faceLodSize);
+            if (result != KTX_SUCCESS)
+                return result;
             result = stream->skip(stream, faceLodSize);
             if (result != KTX_SUCCESS)
                 return result;

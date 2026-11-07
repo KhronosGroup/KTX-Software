@@ -4159,6 +4159,109 @@ TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
     EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
 }
 
+////////////////////////////////////////////
+// ktxPrintInfo tests for KTX 1 files
+///////////////////////////////////////////
+
+// The KTX 1 printer reads the key/value data and the image sizes and skips
+// the images. It must return an error for a file shorter than they say.
+class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
+  protected:
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    // The first size bytes of a file, as a stream that can skip past its
+    // end, as seeking the std::filebuf of ktx info can. Only the checks of
+    // the printer find that the file is short.
+    struct SeekingStream {
+        const ktx_uint8_t* bytes;
+        ktx_size_t size;
+        ktx_size_t pos = 0;
+        ktxStream stream{};
+
+        SeekingStream(const SeekingStream&) = delete;
+        SeekingStream(const std::vector<ktx_uint8_t>& file, ktx_size_t size)
+            : bytes(file.data()), size(size) {
+            stream.type = eStreamTypeCustom;
+            stream.data.custom_ptr.address = this;
+            stream.read = [](ktxStream* str, void* dst, ktx_size_t count) -> KTX_error_code {
+                auto self = static_cast<SeekingStream*>(str->data.custom_ptr.address);
+                if (self->pos > self->size || count > self->size - self->pos)
+                    return KTX_FILE_UNEXPECTED_EOF;
+                memcpy(dst, self->bytes + self->pos, count);
+                self->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.skip = [](ktxStream* str, ktx_size_t count) -> KTX_error_code {
+                static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.getpos = [](ktxStream* str, ktx_off_t* const offset) -> KTX_error_code {
+                *offset = static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos;
+                return KTX_SUCCESS;
+            };
+            stream.getsize = [](ktxStream* str, ktx_size_t* const size) -> KTX_error_code {
+                *size = static_cast<SeekingStream*>(str->data.custom_ptr.address)->size;
+                return KTX_SUCCESS;
+            };
+        }
+    };
+};
+
+TEST_F(ktxPrintKTX1InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
+    testing::internal::GetCapturedStdout();
+}
+
+// The printer allocated bytesOfKeyValueData from the header, up to 4 GiB,
+// without checking it against the file.
+TEST_F(ktxPrintKTX1InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    KTX_header header;
+    memcpy(&header, file.data(), sizeof(header));
+    ASSERT_NE(header.bytesOfKeyValueData, 0u);
+    header.bytesOfKeyValueData = 0xFFFFFFFF;
+    memcpy(file.data(), &header, sizeof(header));
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_FILE_UNEXPECTED_EOF);
+    testing::internal::GetCapturedStdout();
+}
+
+// Every file that ends in the image sizes or in the images, those of the
+// last level included, is short.
+TEST_F(ktxPrintKTX1InfoTest, FileEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    KTX_header header;
+    memcpy(&header, file.data(), sizeof(header));
+    const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+    ASSERT_LT(imagesStart, file.size());
+
+    struct Result { ktx_size_t size; KTX_error_code memory, stream; };
+    std::vector<Result> results;
+    testing::internal::CaptureStdout();
+    for (ktx_size_t size = imagesStart; size < file.size(); size++) {
+        SeekingStream stream(file, size);
+        results.push_back({size, ktxPrintInfoForMemory(file.data(), size),
+                           ktxPrintKTX1InfoTextForStream(&stream.stream)});
+    }
+    testing::internal::GetCapturedStdout();
+    for (const auto& r : results) {
+        EXPECT_EQ(r.memory, KTX_FILE_UNEXPECTED_EOF) << "memory, " << r.size << " bytes";
+        EXPECT_EQ(r.stream, KTX_FILE_UNEXPECTED_EOF) << "stream, " << r.size << " bytes";
+    }
+}
+
 }  // namespace
 
 
