@@ -4208,6 +4208,53 @@ class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
             };
         }
     };
+
+    // Expects both printers to fail for every truncation of file in its
+    // image sizes or images.
+    static void expectShortInTheImages(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        ASSERT_LT(imagesStart, file.size());
+
+        struct Result { ktx_size_t size; KTX_error_code memory, stream; };
+        std::vector<Result> results;
+        testing::internal::CaptureStdout();
+        for (ktx_size_t size = imagesStart; size < file.size(); size++) {
+            SeekingStream stream(file, size);
+            results.push_back({size, ktxPrintInfoForMemory(file.data(), size),
+                               ktxPrintKTX1InfoTextForStream(&stream.stream)});
+        }
+        testing::internal::GetCapturedStdout();
+        for (const auto& r : results) {
+            EXPECT_EQ(r.memory, KTX_FILE_UNEXPECTED_EOF) << "memory, " << r.size << " bytes";
+            EXPECT_EQ(r.stream, KTX_FILE_UNEXPECTED_EOF) << "stream, " << r.size << " bytes";
+        }
+    }
+
+    // A non-array cube map with the levels of a 2D file as each face. The
+    // images of the test file need no padding.
+    static std::vector<ktx_uint8_t> cubeMapOf(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        EXPECT_EQ(header.pixelWidth, header.pixelHeight);
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        header.numberOfFaces = 6;
+        std::vector<ktx_uint8_t> cubeMap(file.begin(), file.begin() + imagesStart);
+        memcpy(cubeMap.data(), &header, sizeof(header));
+        ktx_size_t pos = imagesStart;
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            ktx_uint32_t imageSize;
+            memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+            const auto image = file.begin() + pos + sizeof(imageSize);
+            cubeMap.insert(cubeMap.end(), file.begin() + pos, image);
+            for (int face = 0; face < 6; face++)
+                cubeMap.insert(cubeMap.end(), image, image + imageSize);
+            pos += sizeof(imageSize) + imageSize;
+        }
+        EXPECT_EQ(pos, file.size());
+        return cubeMap;
+    }
 };
 
 TEST_F(ktxPrintKTX1InfoTest, PrintsTheFile) {
@@ -4241,25 +4288,20 @@ TEST_F(ktxPrintKTX1InfoTest, KVDLongerThanTheFile) {
 // last level included, is short.
 TEST_F(ktxPrintKTX1InfoTest, FileEndsInTheImages) {
     ASSERT_TRUE(ktxMemFile != nullptr);
-    auto file = copyOfFile();
-    KTX_header header;
-    memcpy(&header, file.data(), sizeof(header));
-    const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
-    ASSERT_LT(imagesStart, file.size());
+    expectShortInTheImages(copyOfFile());
+}
 
-    struct Result { ktx_size_t size; KTX_error_code memory, stream; };
-    std::vector<Result> results;
+// For a non-array cube map the printer skips the six faces of each level one
+// by one.
+TEST_F(ktxPrintKTX1InfoTest, CubeMapEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto cubeMap = cubeMapOf(copyOfFile());
+    SeekingStream stream(cubeMap, cubeMap.size());
     testing::internal::CaptureStdout();
-    for (ktx_size_t size = imagesStart; size < file.size(); size++) {
-        SeekingStream stream(file, size);
-        results.push_back({size, ktxPrintInfoForMemory(file.data(), size),
-                           ktxPrintKTX1InfoTextForStream(&stream.stream)});
-    }
+    EXPECT_EQ(ktxPrintInfoForMemory(cubeMap.data(), cubeMap.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
     testing::internal::GetCapturedStdout();
-    for (const auto& r : results) {
-        EXPECT_EQ(r.memory, KTX_FILE_UNEXPECTED_EOF) << "memory, " << r.size << " bytes";
-        EXPECT_EQ(r.stream, KTX_FILE_UNEXPECTED_EOF) << "stream, " << r.size << " bytes";
-    }
+    expectShortInTheImages(cubeMap);
 }
 
 }  // namespace
