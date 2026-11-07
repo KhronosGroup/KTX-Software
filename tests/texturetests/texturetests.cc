@@ -4164,7 +4164,8 @@ TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
 ///////////////////////////////////////////
 
 // The KTX 1 printer reads the key/value data and the image sizes and skips
-// the images. It must return an error for a file shorter than they say.
+// the images. For a file shorter than they say it must print what it read, as
+// it does for the whole file, and return an error.
 class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
   protected:
     std::vector<ktx_uint8_t> copyOfFile() const {
@@ -4210,25 +4211,56 @@ class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
     };
 
     // Expects both printers to fail for every truncation of file in its
-    // image sizes or images.
+    // image sizes or images, after printing the header, the key/value data
+    // and the size of each level whose imageSize is in the file exactly as
+    // they do for the whole file.
     static void expectShortInTheImages(const std::vector<ktx_uint8_t>& file) {
         KTX_header header;
         memcpy(&header, file.data(), sizeof(header));
         const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
         ASSERT_LT(imagesStart, file.size());
+        const ktx_uint32_t numFaces =
+            header.numberOfFaces == 6 && header.numberOfArrayElements == 0 ? 6 : 1;
 
-        struct Result { ktx_size_t size; KTX_error_code memory, stream; };
-        std::vector<Result> results;
         testing::internal::CaptureStdout();
-        for (ktx_size_t size = imagesStart; size < file.size(); size++) {
-            SeekingStream stream(file, size);
-            results.push_back({size, ktxPrintInfoForMemory(file.data(), size),
-                               ktxPrintKTX1InfoTextForStream(&stream.stream)});
+        ASSERT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_SUCCESS);
+        const std::string whole = testing::internal::GetCapturedStdout();
+        // Where the output of the whole file has the line of each level.
+        std::vector<size_t> levelLineEnds;
+        size_t lineEnd = whole.find("------------------\n", whole.find("Data Sizes"));
+        ASSERT_NE(lineEnd, std::string::npos);
+        lineEnd += sizeof("------------------\n") - 1;
+        levelLineEnds.push_back(lineEnd);
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            lineEnd = whole.find('\n', lineEnd) + 1;
+            ASSERT_NE(lineEnd, 0u);
+            levelLineEnds.push_back(lineEnd);
         }
-        testing::internal::GetCapturedStdout();
-        for (const auto& r : results) {
-            EXPECT_EQ(r.memory, KTX_FILE_UNEXPECTED_EOF) << "memory, " << r.size << " bytes";
-            EXPECT_EQ(r.stream, KTX_FILE_UNEXPECTED_EOF) << "stream, " << r.size << " bytes";
+
+        for (ktx_size_t size = imagesStart; size < file.size(); size++) {
+            // The printer prints the size of each level whose imageSize
+            // it read, and stops at the first face that is not all there.
+            ktx_uint32_t levelsRead = 0;
+            for (ktx_size_t pos = imagesStart; pos + sizeof(ktx_uint32_t) <= size;) {
+                ktx_uint32_t imageSize;
+                memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+                levelsRead++;
+                pos += sizeof(imageSize) + (ktx_size_t)imageSize * numFaces;
+            }
+            const std::string expected = whole.substr(0, levelLineEnds[levelsRead]);
+
+            testing::internal::CaptureStdout();
+            KTX_error_code result = ktxPrintInfoForMemory(file.data(), size);
+            std::string printed = testing::internal::GetCapturedStdout();
+            EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "memory, " << size << " bytes";
+            EXPECT_EQ(printed, expected) << "memory, " << size << " bytes";
+
+            SeekingStream stream(file, size);
+            testing::internal::CaptureStdout();
+            result = ktxPrintKTX1InfoTextForStream(&stream.stream);
+            printed = testing::internal::GetCapturedStdout();
+            EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "stream, " << size << " bytes";
+            EXPECT_EQ(printed, expected) << "stream, " << size << " bytes";
         }
     }
 
