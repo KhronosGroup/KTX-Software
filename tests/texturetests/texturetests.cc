@@ -3082,32 +3082,44 @@ TEST_F(ktxTexture2_UastcBlockSizeTest, RejectsBlocksThatAreNot16Bytes) {
         ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE0), 16U);
         ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE1), 0U);
 
-        // Transcoding steps through the images by the block size from the
-        // DFD and reads 16-byte UASTC blocks wherever that lands.
-        const struct { ktx_uint32_t plane0, plane1; } sizes[] = {
-            {17, 0}, {15, 0}, {16, 1}
-        };
-        for (const auto& size : sizes) {
-            KHR_DFDSETVAL(bdfd, BYTESPLANE0, size.plane0);
-            KHR_DFDSETVAL(bdfd, BYTESPLANE1, size.plane1);
-            ktxTexture* wrongSize = nullptr;
-            result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
-                                                 KTX_TEXTURE_CREATE_NO_FLAGS,
-                                                 &wrongSize);
-            ktxTexture_unique_ptr wrongSize_raii{wrongSize, ktxTexture_Deleter};
-            EXPECT_EQ(result, KTX_FILE_DATA_ERROR)
-                << "bytesPlane0 " << size.plane0 << ", bytesPlane1 " << size.plane1
-                << ": " << ktxErrorString(result);
-        }
+        ASSERT_EQ(KHR_DFDSVAL(bdfd, 0, BITLENGTH), 127U);
 
-        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 16);
-        KHR_DFDSETVAL(bdfd, BYTESPLANE1, 0);
-        ktxTexture* rightSize = nullptr;
-        result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
-                                             KTX_TEXTURE_CREATE_NO_FLAGS,
-                                             &rightSize);
-        ktxTexture_unique_ptr rightSize_raii{rightSize, ktxTexture_Deleter};
-        EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        // Transcoding steps through the images by the block size from the
+        // DFD and reads 16-byte UASTC blocks wherever that lands. A
+        // bytesPlane0 of 0 makes libktx compute the size from the sample,
+        // 16 bytes for a bitLength of 127 and 17 for one of 135.
+        const struct {
+            ktx_uint32_t plane0, plane1, bitLength;
+            KTX_error_code expected;
+        } cases[] = {
+            {17, 0, 127, KTX_FILE_DATA_ERROR},
+            {15, 0, 127, KTX_FILE_DATA_ERROR},
+            {16, 1, 127, KTX_FILE_DATA_ERROR},
+            {0, 0, 135, KTX_FILE_DATA_ERROR},
+            {0, 0, 127, KTX_SUCCESS},
+            {16, 0, 127, KTX_SUCCESS},
+        };
+        // The same sizes for UASTC HDR 4x4, whose blocks are 16 bytes too.
+        const ktx_uint32_t models[] = {
+            KHR_DF_MODEL_UASTC, KHR_DF_MODEL_UASTC_HDR_4x4
+        };
+        for (ktx_uint32_t model : models) {
+            KHR_DFDSETVAL(bdfd, MODEL, model);
+            for (const auto& c : cases) {
+                KHR_DFDSETVAL(bdfd, BYTESPLANE0, c.plane0);
+                KHR_DFDSETVAL(bdfd, BYTESPLANE1, c.plane1);
+                KHR_DFDSETSVAL(bdfd, 0, BITLENGTH, c.bitLength);
+                ktxTexture* loaded = nullptr;
+                result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
+                                                     KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                     &loaded);
+                ktxTexture_unique_ptr loaded_raii{loaded, ktxTexture_Deleter};
+                EXPECT_EQ(result, c.expected)
+                    << "model " << model << ", bytesPlane0 " << c.plane0
+                    << ", bytesPlane1 " << c.plane1 << ", bitLength "
+                    << c.bitLength << ": " << ktxErrorString(result);
+            }
+        }
     }
 }
 
