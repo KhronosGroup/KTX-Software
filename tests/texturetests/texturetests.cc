@@ -3084,10 +3084,11 @@ TEST_F(ktxTexture2_UastcBlockSizeTest, RejectsBlocksThatAreNot16Bytes) {
 
         ASSERT_EQ(KHR_DFDSVAL(bdfd, 0, BITLENGTH), 127U);
 
-        // Transcoding steps through the images by the block size from the
-        // DFD and reads 16-byte UASTC blocks wherever that lands. A
-        // bytesPlane0 of 0 makes libktx compute the size from the sample,
-        // 16 bytes for a bitLength of 127 and 17 for one of 135.
+        // The readers of UASTC and the other models below step through the
+        // images by the block size from the DFD and read 16-byte blocks
+        // wherever that lands. A bytesPlane0 of 0 makes libktx compute the
+        // size from the sample, 16 bytes for a bitLength of 127 and 17 for
+        // one of 135.
         const struct {
             ktx_uint32_t plane0, plane1, bitLength;
             KTX_error_code expected;
@@ -3099,9 +3100,13 @@ TEST_F(ktxTexture2_UastcBlockSizeTest, RejectsBlocksThatAreNot16Bytes) {
             {0, 0, 127, KTX_SUCCESS},
             {16, 0, 127, KTX_SUCCESS},
         };
-        // The same sizes for UASTC HDR 4x4, whose blocks are 16 bytes too.
+        // The same sizes, on the same data, for the other models whose
+        // blocks are 16 bytes.
         const ktx_uint32_t models[] = {
-            KHR_DF_MODEL_UASTC, KHR_DF_MODEL_UASTC_HDR_4x4
+            KHR_DF_MODEL_UASTC, KHR_DF_MODEL_UASTC_HDR_4x4,
+            KHR_DF_MODEL_UASTC_HDR_6x6, KHR_DF_MODEL_ASTC,
+            KHR_DF_MODEL_BC2, KHR_DF_MODEL_BC3, KHR_DF_MODEL_BC5,
+            KHR_DF_MODEL_BC6H, KHR_DF_MODEL_BC7
         };
         for (ktx_uint32_t model : models) {
             KHR_DFDSETVAL(bdfd, MODEL, model);
