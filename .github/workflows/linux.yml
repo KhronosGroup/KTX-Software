@@ -133,8 +133,8 @@ jobs:
           vk_sdk_ver: '1.4.313'
           options: {
             config: Release,
-            doc: OFF, jni: OFF, loadtests: OFF, py: OFF, tools: ON, tools_cts: OFF,
-            sse: OFF, opencl: OFF
+            doc: ON, jni: ON, loadtests: OFF, py: OFF, tools: ON, tools_cts: OFF,
+            package: YES, sse: OFF, opencl: OFF
           }
         # Can't run OpenCL on Actions because the runner CPU reports as
         # "generic" so POCL (the only OpenCL CPU driver) can't figure out
