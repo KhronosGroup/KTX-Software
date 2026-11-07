@@ -76,15 +76,21 @@ finding is written to the current directory as `crash-<sha1>`, `leak-<sha1>`,
 Reproduce one by passing it as the only argument:
 
 ```sh
-build/fuzz/ktx_read_fuzzer crash-<sha1>
+UBSAN_OPTIONS=print_stacktrace=1 build/fuzz/ktx_read_fuzzer crash-<sha1>
 ```
+
+The report gives the stack of the error: without `print_stacktrace=1`
+UndefinedBehaviorSanitizer gives only its file and line.
 
 Continuous integration
 ----------------------
 
 The `.github/workflows/fuzz.yml` workflow builds each target in a job of its
-own, fuzzes it for 10 minutes from the seeds and uploads any finding as a
-workflow artifact named after the target. It is
+own and fuzzes it for 10 minutes from the seeds. When a target finds
+something, the job uploads an artifact named after the target. It holds the
+finding with the extension of what it is, `crash-<sha1>.ktx2` or `.ktx`, or
+`.bin` for other bytes; the log of the run, whose report gives the stack of the
+error; and a `README.txt` that says how to reproduce it. The workflow is
 separate from the ASan job in `linux.yml` because libFuzzer needs Clang and a
 build instrumented for it, while the ASan job builds with GCC and runs the test
 suite.

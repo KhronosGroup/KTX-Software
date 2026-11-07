@@ -63,6 +63,9 @@ jobs:
     env:
       GIT_LFS_SKIP_SMUDGE: 1
       FUZZ_BUILD_DIR: build/fuzz
+      # Report the stack of an UndefinedBehaviorSanitizer error, not only
+      # its file and line.
+      UBSAN_OPTIONS: print_stacktrace=1
     steps:
       - uses: actions/checkout@v6
         with:
@@ -80,6 +83,8 @@ jobs:
 
       - name: Fuzz for 10 minutes
         id: fuzz10
+        # bash -o pipefail, so that the step fails when the fuzzer does.
+        shell: bash
         run: |
           mkdir -p $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds $FUZZ_BUILD_DIR/findings
           # Files up to 64 KiB, the maximum input length below.
@@ -88,7 +93,30 @@ jobs:
           $FUZZ_BUILD_DIR/${{ matrix.target }} -dict=tests/fuzz/ktx.dict -max_len=65536 \
             -max_total_time=600 -timeout=30 -rss_limit_mb=2560 -print_final_stats=1 \
             -artifact_prefix=$FUZZ_BUILD_DIR/findings/ \
-            $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds
+            $FUZZ_BUILD_DIR/corpus $FUZZ_BUILD_DIR/seeds 2>&1 \
+            | tee $FUZZ_BUILD_DIR/findings/fuzz.log
+
+      - name: Name the findings for what they are
+        if: failure() && steps.fuzz10.outcome == 'failure'
+        working-directory: ${{ env.FUZZ_BUILD_DIR }}/findings
+        run: |
+          # libFuzzer names a finding crash-<sha1>, leak-, timeout-, oom- or
+          # slow-unit-. Add the extension of the file it is.
+          for f in crash-* leak-* timeout-* oom-* slow-unit-*; do
+            [ -f "$f" ] || continue
+            case $(head -c 12 "$f" | od -An -tx1 | tr -d ' \n') in
+              ab4b5458203230bb0d0a1a0a) mv "$f" "$f.ktx2" ;;
+              ab4b5458203131bb0d0a1a0a) mv "$f" "$f.ktx" ;;
+              *) mv "$f" "$f.bin" ;;
+            esac
+          done
+          cat > README.txt <<EOF
+          These are inputs on which ${{ matrix.target }} failed, and fuzz.log,
+          the log of the run with the report of the failure. To reproduce one,
+          build the fuzz targets as tests/fuzz/README.md says and run
+
+              UBSAN_OPTIONS=print_stacktrace=1 build/fuzz/${{ matrix.target }} <file>
+          EOF
 
       - name: Upload findings
         if: failure() && steps.fuzz10.outcome == 'failure'
