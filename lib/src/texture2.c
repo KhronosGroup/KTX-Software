@@ -967,6 +967,15 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             goto cleanup;
         }
     }
+    if ((pBDFD->model == KHR_DF_MODEL_UASTC
+         || pBDFD->model == KHR_DF_MODEL_UASTC_HDR_4x4)
+        && This->_protected->_formatSize.blockSizeInBits != 128) {
+        // UASTC blocks are 16 bytes. Transcoding steps through the images
+        // by the block size from the DFD and reads 16-byte blocks wherever
+        // that lands, misaligned or past the image for any other size.
+        result = KTX_FILE_DATA_ERROR;
+        goto cleanup;
+    }
 
     This->_private->_requiredLevelAlignment
                           = ktxTexture2_calcRequiredLevelAlignment(This);

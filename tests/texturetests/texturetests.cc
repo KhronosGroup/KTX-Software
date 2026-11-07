@@ -3050,6 +3050,67 @@ TEST_F(ktxTexture2_DeflateTest, RejectsSamplesPastBytesPlane0) {
     }
 }
 
+class ktxTexture2_UastcBlockSizeTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+TEST_F(ktxTexture2_UastcBlockSizeTest, RejectsBlocksThatAreNot16Bytes) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        ktxBasisParams cparams = { };
+        cparams.structSize = sizeof(cparams);
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR_4x4;
+        result = ktxTexture2_CompressBasisEx(texture, &cparams);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        ktx_uint8_t* pUastc;
+        ktx_size_t uastcLen;
+        result = ktxTexture2_WriteToMemory(texture, &pUastc, &uastcLen);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        std::unique_ptr<ktx_uint8_t, decltype(std::free)*> uastc{pUastc, std::free};
+
+        const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pUastc);
+        ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
+                pUastc + header->dataFormatDescriptor.byteOffset) + 1;
+        ASSERT_EQ(KHR_DFDVAL(bdfd, MODEL), (ktx_uint32_t)KHR_DF_MODEL_UASTC);
+        ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE0), 16U);
+        ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE1), 0U);
+
+        // Transcoding steps through the images by the block size from the
+        // DFD and reads 16-byte UASTC blocks wherever that lands.
+        const struct { ktx_uint32_t plane0, plane1; } sizes[] = {
+            {17, 0}, {15, 0}, {16, 1}
+        };
+        for (const auto& size : sizes) {
+            KHR_DFDSETVAL(bdfd, BYTESPLANE0, size.plane0);
+            KHR_DFDSETVAL(bdfd, BYTESPLANE1, size.plane1);
+            ktxTexture* wrongSize = nullptr;
+            result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
+                                                 KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                 &wrongSize);
+            ktxTexture_unique_ptr wrongSize_raii{wrongSize, ktxTexture_Deleter};
+            EXPECT_EQ(result, KTX_FILE_DATA_ERROR)
+                << "bytesPlane0 " << size.plane0 << ", bytesPlane1 " << size.plane1
+                << ": " << ktxErrorString(result);
+        }
+
+        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 16);
+        KHR_DFDSETVAL(bdfd, BYTESPLANE1, 0);
+        ktxTexture* rightSize = nullptr;
+        result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
+                                             KTX_TEXTURE_CREATE_NO_FLAGS,
+                                             &rightSize);
+        ktxTexture_unique_ptr rightSize_raii{rightSize, ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
