@@ -24,14 +24,15 @@ printers read the header and the blocks it describes themselves, without the
 checks of `ktxTexture_CreateFromMemory`. Their output is discarded.
 
 `ktx_validate_fuzzer` runs `validateMemory` from `tools/ktx/validate.cpp` on
-each input, the checks of `ktx validate` and of the other commands that
-validate their input, with the glTF checks of `--gltf-basisu` for every other
-input. Only `validate.cpp` is built, with fmt, not the whole tool. The
-validator ends by loading the texture with libktx, so inputs that libktx
-accepts and that declare more than 64 MiB of image data or 16 Mi texels are
-skipped, as in `ktx_read_fuzzer`. The validator converts header fields to the
-C enums of `ktx.h` before checking them, and any 32-bit value can be in the
-file, so the target is built without `-fsanitize=enum`.
+each input. That function does the checks of `ktx validate`, which the other
+`ktx` commands also run on their input files. For an input of odd size it also
+does the glTF checks of `ktx validate --gltf-basisu`. Only `validate.cpp` and
+fmt are built, not the whole tool. The validator ends by loading the texture
+with libktx, so inputs that libktx accepts and that declare more than 64 MiB of
+image data or 16 Mi texels are skipped, as in `ktx_read_fuzzer`. The validator
+converts header fields to the C enums of `ktx.h` before checking them, and any
+32-bit value can be in the file, so the target is built without
+`-fsanitize=enum`.
 
 The targets are a separate CMake project that adds `lib/` as a sub-project,
 like `tests/use-ktx`. libktx is built with `-fsanitize=fuzzer-no-link` and the
