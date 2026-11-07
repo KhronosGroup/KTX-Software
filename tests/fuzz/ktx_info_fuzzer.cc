@@ -12,14 +12,23 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 
 #include <ktx.h>
 
 extern "C" int LLVMFuzzerInitialize(int* /*argc*/, char*** /*argv*/) {
     // The printers write to stdout. Printing every input would slow the
     // fuzzer down and bury its own output, which goes to stderr.
-    if (std::freopen("/dev/null", "w", stdout) == nullptr)
+#ifdef _WIN32
+    const char* nullDevice = "NUL";
+#else
+    const char* nullDevice = "/dev/null";
+#endif
+    if (std::freopen(nullDevice, "w", stdout) == nullptr) {
+        // freopen has closed stdout, which the printers would then use.
         std::perror("Could not discard stdout");
+        std::exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
