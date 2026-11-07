@@ -1801,7 +1801,7 @@ void ValidationContext::validateSGD() {
 
             const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(buffer.get());
 
-            uint32_t i = 0;
+            std::size_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
                 const auto level_offset = levelIndices[level].byteOffset;
                 for (uint32_t layer = 0; layer < numLayers; ++layer) {
@@ -1878,7 +1878,7 @@ void ValidationContext::validateSGD() {
             const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(buffer.get());
 
             bool foundPFrame = false;
-            uint32_t i = 0;
+            std::size_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
                 for (uint32_t layer = 0; layer < numLayers; ++layer) {
                     for (uint32_t face = 0; face < header.faceCount; ++face) {
