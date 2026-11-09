@@ -967,6 +967,28 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
             goto cleanup;
         }
     }
+    switch (pBDFD->model) {
+      // The blocks of these models are 16 bytes. Their readers, such as the
+      // UASTC transcoders and the ASTC decoder, find the images by the
+      // block size from the DFD and read 16-byte blocks wherever that
+      // lands, misaligned or past the data for any other size.
+      case KHR_DF_MODEL_UASTC:
+      case KHR_DF_MODEL_UASTC_HDR_4x4:
+      case KHR_DF_MODEL_UASTC_HDR_6x6:
+      case KHR_DF_MODEL_ASTC:
+      case KHR_DF_MODEL_BC2:
+      case KHR_DF_MODEL_BC3:
+      case KHR_DF_MODEL_BC5:
+      case KHR_DF_MODEL_BC6H:
+      case KHR_DF_MODEL_BC7:
+        if (This->_protected->_formatSize.blockSizeInBits != 128) {
+            result = KTX_FILE_DATA_ERROR;
+            goto cleanup;
+        }
+        break;
+      default:
+        break;
+    }
 
     This->_private->_requiredLevelAlignment
                           = ktxTexture2_calcRequiredLevelAlignment(This);
