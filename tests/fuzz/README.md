@@ -51,7 +51,10 @@ cmake --build build/fuzz --target ktx_read_fuzzer ktx_info_fuzzer ktx_validate_f
 
 The default build type is `RelWithDebInfo`, so libktx's `assert()`s are
 compiled out. `KTX_FUZZ_SANITIZERS` sets the sanitizers (default
-`address,undefined`).
+`address,undefined`). `KTX_FUZZ_ENGINE` is for OSS-Fuzz: set to its
+`LIB_FUZZING_ENGINE`, the targets are linked with that engine and built with
+the sanitizer and coverage flags of `CFLAGS` and `CXXFLAGS` instead. See
+[oss-fuzz/README.md](oss-fuzz/README.md).
 
 Running
 -------
