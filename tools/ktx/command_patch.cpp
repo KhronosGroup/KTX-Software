@@ -7,7 +7,7 @@
 #include "utility.h"
 #include "ktx.h"
 #include "dfd.h"
-#include "../lib/ktxint.h"
+#include "ktxint.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
