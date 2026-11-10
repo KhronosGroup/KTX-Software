@@ -4237,6 +4237,206 @@ TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
     EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
 }
 
+////////////////////////////////////////////
+// ktxPrintInfo tests for KTX 1 files
+///////////////////////////////////////////
+
+// The KTX 1 printer reads the key/value data and the image sizes and skips
+// the images. For a file shorter than they say it must print what it read, as
+// it does for the whole file, and return an error.
+class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
+  protected:
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    // The first size bytes of a file, as a stream that can skip past its
+    // end, as seeking the std::filebuf of ktx info can. Only the checks of
+    // the printer find that the file is short.
+    struct SeekingStream {
+        const ktx_uint8_t* bytes;
+        ktx_size_t size;
+        ktx_size_t pos = 0;
+        ktxStream stream{};
+
+        SeekingStream(const SeekingStream&) = delete;
+        SeekingStream(const std::vector<ktx_uint8_t>& file, ktx_size_t size)
+            : bytes(file.data()), size(size) {
+            stream.type = eStreamTypeCustom;
+            stream.data.custom_ptr.address = this;
+            stream.read = [](ktxStream* str, void* dst, ktx_size_t count) -> KTX_error_code {
+                auto self = static_cast<SeekingStream*>(str->data.custom_ptr.address);
+                if (self->pos > self->size || count > self->size - self->pos)
+                    return KTX_FILE_UNEXPECTED_EOF;
+                memcpy(dst, self->bytes + self->pos, count);
+                self->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.skip = [](ktxStream* str, ktx_size_t count) -> KTX_error_code {
+                static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.getpos = [](ktxStream* str, ktx_off_t* const offset) -> KTX_error_code {
+                *offset = static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos;
+                return KTX_SUCCESS;
+            };
+            stream.getsize = [](ktxStream* str, ktx_size_t* const size) -> KTX_error_code {
+                *size = static_cast<SeekingStream*>(str->data.custom_ptr.address)->size;
+                return KTX_SUCCESS;
+            };
+        }
+    };
+
+    static void expectTruncated(const std::vector<ktx_uint8_t>& file,
+                                ktx_size_t truncatedSize,
+                                const std::string& expected) {
+        SCOPED_TRACE("truncated to " + std::to_string(truncatedSize) + " bytes");
+        ASSERT_LT(truncatedSize, file.size());
+
+        // Both APIs see only the prefix, even though file still holds all
+        // the bytes of the complete fixture.
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintInfoForMemory(file.data(), truncatedSize);
+        std::string printed = testing::internal::GetCapturedStdout();
+        EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "memory";
+        EXPECT_EQ(printed, expected) << "memory";
+
+        SeekingStream stream(file, truncatedSize);
+        testing::internal::CaptureStdout();
+        result = ktxPrintKTX1InfoTextForStream(&stream.stream);
+        printed = testing::internal::GetCapturedStdout();
+        EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "stream";
+        EXPECT_EQ(printed, expected) << "stream";
+    }
+
+    // Check incomplete imageSize fields and representative truncations in
+    // every face, including the last one. The printers must keep the header,
+    // key/value data and each level size read before reaching the short data.
+    static void expectShortInTheImages(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        ASSERT_LT(imagesStart, file.size());
+        const ktx_uint32_t numFaces =
+            header.numberOfFaces == 6 && header.numberOfArrayElements == 0 ? 6 : 1;
+
+        testing::internal::CaptureStdout();
+        const KTX_error_code result = ktxPrintInfoForMemory(file.data(), file.size());
+        const std::string whole = testing::internal::GetCapturedStdout();
+        ASSERT_EQ(result, KTX_SUCCESS);
+        // Use the complete file only as the reference for the unchanged
+        // header and key/value text. Build the expected level lines from
+        // the fixture's imageSize fields, not from the printer's output.
+        const std::string sizesHeading = "Data Sizes (bytes)\n------------------\n";
+        const size_t headingStart = whole.find(sizesHeading);
+        ASSERT_NE(headingStart, std::string::npos);
+        std::string expected = whole.substr(0, headingStart + sizesHeading.size());
+
+        ktx_size_t pos = imagesStart;
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            SCOPED_TRACE("level " + std::to_string(level));
+            ktx_uint32_t imageSize;
+            ASSERT_LE(pos + sizeof(imageSize), file.size());
+            memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+            ASSERT_GT(imageSize, 0u);
+
+            // Zero to three bytes of the four-byte size field: this level
+            // cannot be printed yet.
+            for (ktx_size_t bytesRead = 0; bytesRead < sizeof(imageSize); bytesRead++) {
+                expectTruncated(file, pos + bytesRead, expected);
+            }
+            pos += sizeof(imageSize);
+            expected += "Level " + std::to_string(level) + ": "
+                      + std::to_string((ktx_uint64_t)imageSize * numFaces) + "\n";
+
+            for (ktx_uint32_t face = 0; face < numFaces; face++) {
+                SCOPED_TRACE("face " + std::to_string(face));
+                ASSERT_LE(pos + imageSize, file.size());
+                // No bytes, half the face, or only its final byte missing.
+                // The size field is complete, so its line must be printed.
+                for (ktx_size_t truncatedSize : {pos, pos + imageSize / 2,
+                                                pos + imageSize - 1}) {
+                    expectTruncated(file, truncatedSize, expected);
+                }
+                pos += imageSize;
+            }
+        }
+        EXPECT_EQ(pos, file.size());
+    }
+
+    // A non-array cube map with the levels of a 2D file as each face. The
+    // images of the test file need no padding.
+    static std::vector<ktx_uint8_t> cubeMapOf(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        EXPECT_EQ(header.pixelWidth, header.pixelHeight);
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        header.numberOfFaces = 6;
+        std::vector<ktx_uint8_t> cubeMap(file.begin(), file.begin() + imagesStart);
+        memcpy(cubeMap.data(), &header, sizeof(header));
+        ktx_size_t pos = imagesStart;
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            ktx_uint32_t imageSize;
+            memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+            const auto image = file.begin() + pos + sizeof(imageSize);
+            cubeMap.insert(cubeMap.end(), file.begin() + pos, image);
+            for (int face = 0; face < 6; face++)
+                cubeMap.insert(cubeMap.end(), image, image + imageSize);
+            pos += sizeof(imageSize) + imageSize;
+        }
+        EXPECT_EQ(pos, file.size());
+        return cubeMap;
+    }
+};
+
+TEST_F(ktxPrintKTX1InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
+    testing::internal::GetCapturedStdout();
+}
+
+// The printer allocated bytesOfKeyValueData from the header, up to 4 GiB,
+// without checking it against the file.
+TEST_F(ktxPrintKTX1InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    KTX_header header;
+    memcpy(&header, file.data(), sizeof(header));
+    ASSERT_NE(header.bytesOfKeyValueData, 0u);
+    header.bytesOfKeyValueData = 0xFFFFFFFF;
+    memcpy(file.data(), &header, sizeof(header));
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_FILE_UNEXPECTED_EOF);
+    testing::internal::GetCapturedStdout();
+}
+
+// A file that ends in an image size or image, including the last level,
+// must be reported as short while preserving the information already read.
+TEST_F(ktxPrintKTX1InfoTest, FileEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    expectShortInTheImages(copyOfFile());
+}
+
+// For a non-array cube map the printer skips the six faces of each level one
+// by one.
+TEST_F(ktxPrintKTX1InfoTest, CubeMapEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto cubeMap = cubeMapOf(copyOfFile());
+    SeekingStream stream(cubeMap, cubeMap.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(cubeMap.data(), cubeMap.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
+    testing::internal::GetCapturedStdout();
+    expectShortInTheImages(cubeMap);
+}
+
 }  // namespace
 
 
