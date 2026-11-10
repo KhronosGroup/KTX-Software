@@ -815,7 +815,7 @@ namespace basisu
 		interval_timer tm;
 		tm.start();
 
-		opencl_context* pContext = static_cast<opencl_context * >(calloc(sizeof(opencl_context), 1));
+		opencl_context* pContext = static_cast<opencl_context * >(calloc(1, sizeof(opencl_context)));
 		if (!pContext)
 			return nullptr;
 
