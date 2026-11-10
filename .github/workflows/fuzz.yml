@@ -45,6 +45,7 @@ on:
       - install-gitconfig*
   # Allow manual trigger
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   fuzz:
