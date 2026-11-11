@@ -2357,74 +2357,21 @@ ktxTexture2_GetLevelSize(ktxTexture2* This, ktx_uint32_t level)
  *                                  decreasing
  * @exception KTX_INVALID_OPERATION supercompressionScheme != SUPERCOMPRESSION_NONE.
  * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
- *
+ * @exception KTX_INVALID_OPERATION @p This requires transcoding (i.e., @p This
+ *                                  is using a basis universal codec).
+ *                                  Since there is no per-level transcoding API,
+ *                                  iterating over a texture that requires
+ *                                  transcoding is not yet supported.
  */
-KTX_error_code
+ktx_error_code_e
 ktxTexture2_IterateLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
                              void* userdata)
 {
-    KTX_error_code  result = KTX_SUCCESS;
-
-    if (This == NULL)
-        return KTX_INVALID_VALUE;
-
-    if (iterCb == NULL)
-        return KTX_INVALID_VALUE;
-
     if (This->supercompressionScheme != KTX_SS_NONE)
         return KTX_INVALID_OPERATION;
-
-    for (ktx_int32_t level = This->numLevels - 1; level >= 0; level--)
-    {
-        ktx_uint32_t faceLodSize;
-        ktx_uint32_t face;
-        ktx_uint32_t innerIterations;
-        GLsizei      width, height, depth;
-
-        /* Array textures have the same number of layers at each mip level. */
-        width = MAX(1, This->baseWidth  >> level);
-        height = MAX(1, This->baseHeight >> level);
-        depth = MAX(1, This->baseDepth  >> level);
-
-        faceLodSize = (ktx_uint32_t)ktxTexture2_calcFaceLodSize(
-                                                    This, level);
-
-        /* All array layers are passed in a group because that is how
-         * GL & Vulkan need them. Hence no
-         *    for (layer = 0; layer < This->numLayers)
-         */
-        if (This->isCubemap && !This->isArray)
-            innerIterations = This->numFaces;
-        else
-            innerIterations = 1;
-        for (face = 0; face < innerIterations; ++face)
-        {
-            /* And all z_slices are also passed as a group hence no
-             *    for (slice = 0; slice < This->depth)
-             */
-            ktx_size_t offset;
-
-            result = ktxTexture2_GetImageOffset(This, level, 0, face, &offset);
-            if (result != KTX_SUCCESS)
-                break;
-
-            /* The sizes come from the format and extents, not the data. */
-            if (offset > This->dataSize
-                || faceLodSize > This->dataSize - offset) {
-                result = KTX_FILE_DATA_ERROR;
-                break;
-            }
-
-            result = iterCb(level, face,
-                            width, height, depth,
-                            faceLodSize, This->pData + offset, userdata);
-
-            if (result != KTX_SUCCESS)
-                break;
-        }
-    }
-
-    return result;
+    if (ktxTexture2_IsTranscodable(This))
+        return KTX_INVALID_OPERATION;
+    return ktxTexture_iterateLevelFaces(ktxTexture(This), iterCb, userdata);
 }
 
 /**

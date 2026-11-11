@@ -1114,70 +1114,11 @@ ktxTexture1_glTypeSize(ktxTexture1* This)
  * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
  *
  */
-KTX_error_code
+ktx_error_code_e
 ktxTexture1_IterateLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
                              void* userdata)
 {
-    ktx_uint32_t    miplevel;
-    KTX_error_code  result = KTX_SUCCESS;
-
-    if (This == NULL)
-        return KTX_INVALID_VALUE;
-
-    if (iterCb == NULL)
-        return KTX_INVALID_VALUE;
-
-    for (miplevel = 0; miplevel < This->numLevels; ++miplevel)
-    {
-        ktx_uint32_t faceLodSize;
-        ktx_uint32_t face;
-        ktx_uint32_t innerIterations;
-        GLsizei      width, height, depth;
-
-        /* Array textures have the same number of layers at each mip level. */
-        width = MAX(1, This->baseWidth  >> miplevel);
-        height = MAX(1, This->baseHeight >> miplevel);
-        depth = MAX(1, This->baseDepth  >> miplevel);
-
-        faceLodSize = (ktx_uint32_t)ktxTexture1_calcFaceLodSize(
-                                                    This, miplevel);
-
-        /* All array layers are passed in a group because that is how
-         * GL & Vulkan need them. Hence no
-         *    for (layer = 0; layer < This->numLayers)
-         */
-        if (This->isCubemap && !This->isArray)
-            innerIterations = This->numFaces;
-        else
-            innerIterations = 1;
-        for (face = 0; face < innerIterations; ++face)
-        {
-            /* And all z_slices are also passed as a group hence no
-             *    for (slice = 0; slice < This->depth)
-             */
-            ktx_size_t offset;
-
-            result = ktxTexture1_GetImageOffset(This, miplevel, 0, face, &offset);
-            if (result != KTX_SUCCESS)
-                break;
-
-            /* The sizes come from the format and extents, not the data. */
-            if (offset > This->dataSize
-                || faceLodSize > This->dataSize - offset) {
-                result = KTX_FILE_DATA_ERROR;
-                break;
-            }
-
-            result = iterCb(miplevel, face,
-                            width, height, depth,
-                            faceLodSize, This->pData + offset, userdata);
-
-            if (result != KTX_SUCCESS)
-                break;
-        }
-    }
-
-    return result;
+    return ktxTexture_iterateLevelFaces(ktxTexture(This), iterCb, userdata);
 }
 
 /**
