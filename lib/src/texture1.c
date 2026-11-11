@@ -1086,6 +1086,44 @@ ktxTexture1_glTypeSize(ktxTexture1* This)
 /**
  * @memberof ktxTexture1
  * @~English
+ * @brief Iterate over the levels or faces in a ktxTexture1 object.
+ *
+ * Blocks of image data are passed to an application-supplied callback
+ * function. This is not a strict per-image iteration. Rather it reflects how
+ * OpenGL needs the images. For most textures the block of data includes all
+ * images of a mip level which implies all layers of an array. However, for
+ * non-array cube map textures the block is a single face of the mip level,
+ * i.e the callback is called once for each face.
+ *
+ * This function works even if @p This->pData == 0 so it can be used to
+ * obtain offsets and sizes for each level by callers who have loaded the data
+ * externally.
+ *
+ * @param[in]     This      pointer to the ktxTexture1 object of interest.
+ * @param[in,out] iterCb    the address of a callback function which is called
+ *                          with the data for each image block.
+ * @param[in,out] userdata  the address of application-specific data which is
+ *                          passed to the callback along with the image data.
+ *
+ * @return  KTX_SUCCESS on success, other KTX_* enum values on error. The
+ *          following are returned directly by this function. @p iterCb may
+ *          return these for other causes or may return additional errors.
+ *
+ * @exception KTX_FILE_DATA_ERROR   Mip level sizes are increasing not
+ *                                  decreasing
+ * @exception KTX_INVALID_VALUE     @p This is @c NULL or @p iterCb is @c NULL.
+ *
+ */
+ktx_error_code_e
+ktxTexture1_IterateLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
+                             void* userdata)
+{
+    return ktxTexture_iterateLevelFaces(ktxTexture(This), iterCb, userdata);
+}
+
+/**
+ * @memberof ktxTexture1
+ * @~English
  * @brief Iterate over the mip levels in a ktxTexture1 object.
  *
  * This is almost identical to @ref ktxTexture::ktxTexture_IterateLevelFaces
@@ -1550,6 +1588,7 @@ struct ktxTexture_vtbl ktxTexture1_vtbl = {
     (PFNKTEXGETIMAGESIZE)ktxTexture1_GetImageSize,
     (PFNKTEXGETLEVELSIZE)ktxTexture1_GetLevelSize,
     (PFNKTEXITERATELEVELS)ktxTexture1_IterateLevels,
+    (PFNKTEXITERATELEVELFACES)ktxTexture1_IterateLevelFaces,
     (PFNKTEXITERATELOADLEVELFACES)ktxTexture1_IterateLoadLevelFaces,
     (PFNKTEXNEEDSTRANSCODING)ktxTexture1_NeedsTranscoding,
     (PFNKTEXISTRANSCODABLE)ktxTexture1_IsTranscodable,
