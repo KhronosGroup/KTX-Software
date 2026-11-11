@@ -68,8 +68,7 @@ class unsupported_ctype : public std::runtime_error {
 
 class unsupported_surface_format : public std::runtime_error {
   public:
-    unsupported_surface_format()
-        : std::runtime_error("No matching surface format found.") { }
+    unsupported_surface_format(std::string& what) : std::runtime_error(what) { }
 };
 
 class swapchain_init_surface_failed : public std::runtime_error {
@@ -77,3 +76,4 @@ class swapchain_init_surface_failed : public std::runtime_error {
     swapchain_init_surface_failed(std::string& what) : std::runtime_error(what) { }
     swapchain_init_surface_failed(const char* what) : std::runtime_error(what) { }
 };
+
