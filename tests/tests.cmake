@@ -18,6 +18,7 @@ FetchContent_Declare(
 # will be ignored.
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_GMOCK OFF)
+set(INSTALL_GTEST OFF)
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_RESET})

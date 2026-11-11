@@ -25,6 +25,7 @@ on:
       - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/linux.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
@@ -59,7 +60,7 @@ jobs:
         os: [ macos-latest ]
         generator: [ Xcode ]
         arch: [ arm64 ]
-        vulkan_sdk_version: ['1.4.313.1']
+        vulkan_sdk_version: ['1.4.363.0']
         options: [
           {config: 'Debug,Release', platform: macOS,
            doc: ON, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tools: ON, tools_cts: ON,

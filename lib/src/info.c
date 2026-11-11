@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +48,83 @@ enum {
     MAX_NUM_KVD_ENTRIES = 100,
     MAX_NUM_LEVELS = 64,
 };
+
+/**
+ * @internal
+ * @~English
+ * @brief Check that a block of a file lies within the stream reading it.
+ *
+ * The offsets and lengths of the blocks of a KTX 2 file come from its
+ * header. Checking them against the size of the stream, when the stream
+ * knows it, before allocating a block keeps a damaged header from causing a
+ * huge allocation.
+ *
+ * @param [in]  stream  pointer to the ktxStream reading the file.
+ * @param [in]  offset  offset of the block in the stream.
+ * @param [in]  length  length of the block.
+ *
+ * @return KTX_SUCCESS, KTX_FILE_UNEXPECTED_EOF when the block extends past
+ *         the end of the stream, or KTX_OUT_OF_MEMORY when it is too large
+ *         to allocate.
+ */
+static KTX_error_code
+checkBlockInStream(ktxStream* stream, ktx_uint64_t offset, ktx_uint64_t length)
+{
+    ktx_size_t streamSize;
+
+    if (stream->getsize(stream, &streamSize) == KTX_SUCCESS
+        && (offset > streamSize || length > streamSize - offset))
+        return KTX_FILE_UNEXPECTED_EOF;
+    if (length > SIZE_MAX)
+        return KTX_OUT_OF_MEMORY;
+    return KTX_SUCCESS;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Check that the block that starts at the stream's current position
+ *        lies within the stream.
+ *
+ * @copydetails checkBlockInStream
+ */
+static KTX_error_code
+checkNextBlockInStream(ktxStream* stream, ktx_uint64_t length)
+{
+    ktx_off_t pos;
+
+    if (stream->getpos(stream, &pos) != KTX_SUCCESS || pos < 0)
+        return length > SIZE_MAX ? KTX_OUT_OF_MEMORY : KTX_SUCCESS;
+    return checkBlockInStream(stream, (ktx_uint64_t)pos, length);
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief The number of images of a texture, as the Basis supercompression
+ *        global data describes them.
+ *
+ * Levels past the 32nd add one image per layer and face: a depth shifted by
+ * 32 or more bits would be undefined. The count is computed in 64 bits and
+ * limited to UINT32_MAX: it only bounds the loops over the image
+ * descriptions, which stop at the end of the global data.
+ */
+static ktx_uint32_t
+numImagesInLevels(const KTX_header2* pHeader)
+{
+    ktx_uint64_t layersFaces = (ktx_uint64_t)MAX(pHeader->layerCount, 1) * pHeader->faceCount;
+    ktx_uint32_t depth = MAX(pHeader->pixelDepth, 1);
+    ktx_uint64_t layerPixelDepth = depth;
+    for (ktx_uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
+        layerPixelDepth += level < 32 ? MAX(depth >> level, 1U) : 1U;
+    // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
+    // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
+    // Each factor is limited to UINT32_MAX, so that the product fits.
+    layersFaces = MIN(layersFaces, UINT32_MAX);
+    layerPixelDepth = MIN(layerPixelDepth, UINT32_MAX);
+    ktx_uint64_t numImages = layersFaces * layerPixelDepth;
+    return (ktx_uint32_t)MIN(numImages, UINT32_MAX);
+}
 
 /** @internal */
 #define LENGTH_OF_INDENT(INDENT) ((base_indent + INDENT) * indent_width)
@@ -218,7 +296,7 @@ printKVData(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen)
             } else {
                 fprintf(stdout, " [");
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
-                    fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
+                    fprintf(stdout, "%u%s", (unsigned) (ktx_uint8_t) value[i], i + 1 == valueLen ? "" : ", ");
                 fprintf(stdout, "]\n");
             }
         }
@@ -342,7 +420,7 @@ printKVDataJSON(ktx_uint8_t* pKvd, ktx_uint32_t kvdLen, ktx_uint32_t base_indent
                 firstPrint = false;
                 PRINT_INDENT(0, "\"%s\":%s[", key, space)
                 for (ktx_uint32_t i = 0; i < valueLen; i++)
-                    fprintf(stdout, "%d%s", (int) value[i], i + 1 == valueLen ? "" : ", ");
+                    fprintf(stdout, "%u%s", (unsigned) (ktx_uint8_t) value[i], i + 1 == valueLen ? "" : ", ");
                 fprintf(stdout, "]");
             }
         }
@@ -451,8 +529,12 @@ printKTXHeader(KTX_header* pHeader)
  *
  * @param [in]     stream  pointer to the ktxStream reading the file.
  * @param [in]     pHeader pointer to the header to print.
+ *
+ * @return KTX_SUCCESS, also for a header ktxCheckHeader1_ rejects, or the
+ *         error that stopped the printing of the key/value data or of the
+ *         level sizes.
  */
-void
+KTX_error_code
 printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
 {
     ktx_uint8_t* metadata;
@@ -482,13 +564,22 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
           default:
               ; // _ktxCheckHeader returns only the above 2 errors.
         }
-        return;
+        return KTX_SUCCESS;
     }
 
     if (pHeader->bytesOfKeyValueData) {
         fprintf(stdout, "\nKey/Value Data\n\n");
+        result = checkNextBlockInStream(stream, pHeader->bytesOfKeyValueData);
+        if (result != KTX_SUCCESS)
+            return result;
         metadata = malloc(pHeader->bytesOfKeyValueData);
-        stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        if (metadata == NULL)
+            return KTX_OUT_OF_MEMORY;
+        result = stream->read(stream, metadata, pHeader->bytesOfKeyValueData);
+        if (result != KTX_SUCCESS) {
+            free(metadata);
+            return result;
+        }
         printKVData(metadata, pHeader->bytesOfKeyValueData);
         free(metadata);
     } else {
@@ -510,20 +601,32 @@ printKTXInfo2(ktxStream* stream, KTX_header* pHeader)
     fprintf(stdout, "\nData Sizes (bytes)\n------------------\n");
     for (uint32_t level = 0; level < levelCount; level++) {
         ktx_uint32_t faceLodSize;
-        ktx_uint32_t lodSize;
         result = stream->read(stream, &faceLodSize, sizeof(ktx_uint32_t));
+        if (result != KTX_SUCCESS)
+            return result;
         if (pHeader->endianness == KTX_ENDIAN_REF_REV)
             _ktxSwapEndian32(&faceLodSize, 1);
-        if (nonArrayCubemap) {
-            lodSize = faceLodSize * 6;
-        } else {
-            lodSize = faceLodSize;
+        // For a non-array cube map imageSize is the size of one face. The
+        // six faces can take more than 32 bits, so their sizes are added up
+        // in 64 bits and they are skipped one by one.
+        const ktx_uint32_t numFaces = nonArrayCubemap ? 6 : 1;
+        const ktx_uint64_t lodSize = (ktx_uint64_t)faceLodSize * numFaces;
+        fprintf(stdout, "Level %u: %" PRIu64 "\n", level, lodSize);
+        for (ktx_uint32_t face = 0; face < numFaces; face++) {
+            // A stream can skip past its end, as the std::filebuf of
+            // ktx info does, so each face is first checked against the
+            // size of the stream.
+            result = checkNextBlockInStream(stream, faceLodSize);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = stream->skip(stream, faceLodSize);
+            if (result != KTX_SUCCESS)
+                return result;
         }
-        result = stream->skip(stream, lodSize);
         dataSize += lodSize;
-        fprintf(stdout, "Level %u: %u\n", level, lodSize);
     }
     fprintf(stdout, "\nTotal: %" PRId64 "\n", dataSize);
+    return KTX_SUCCESS;
 }
 
 /**
@@ -560,7 +663,9 @@ ktxPrintKTX1InfoTextForStream(ktxStream* stream)
         if (!memcmp(header.identifier, ktx_ident_ref, sizeof(ktx_ident_ref))) {
             result = stream->read(stream, &header.endianness,
                                   KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
-            printKTXInfo2(stream, &header);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = printKTXInfo2(stream, &header);
         } else {
                 return KTX_UNKNOWN_FILE_FORMAT;
         }
@@ -729,7 +834,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
-    ktx_uint32_t levelIndexSize;
+    ktx_uint64_t levelIndexSize;
     KTX_error_code ec = KTX_SUCCESS;
 
     fprintf(stdout, "Header\n\n");
@@ -737,11 +842,16 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     fprintf(stdout, "\nLevel Index\n\n");
     numLevels = MAX(1, pHeader->levelCount);
-    levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
-    levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
+    // In 64 bits: 24 times a levelCount of 0xC0000000 or more does not fit
+    // in 32.
+    levelIndexSize = (ktx_uint64_t)sizeof(ktxLevelIndexEntry) * numLevels;
+    ec = checkNextBlockInStream(stream, levelIndexSize);
+    if (ec != KTX_SUCCESS)
+        return ec;
+    levelIndex = (ktxLevelIndexEntry*)malloc((size_t)levelIndexSize);
     if (levelIndex == NULL)
         return KTX_OUT_OF_MEMORY;
-    ec = stream->read(stream, levelIndex, levelIndexSize);
+    ec = stream->read(stream, levelIndex, (ktx_size_t)levelIndexSize);
     if (ec != KTX_SUCCESS) {
         free(levelIndex);
         return ec;
@@ -751,6 +861,12 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     if (hasDFD) {
         fprintf(stdout, "\nData Format Descriptor\n\n");
+        // The DFD starts with dfdTotalSize, which is checked below.
+        if (pHeader->dataFormatDescriptor.byteLength < sizeof(ktx_uint32_t))
+            return KTX_FILE_DATA_ERROR;
+        ec = checkNextBlockInStream(stream, pHeader->dataFormatDescriptor.byteLength);
+        if (ec != KTX_SUCCESS)
+            return ec;
         ktx_uint32_t* dfd = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
         if (dfd == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -769,6 +885,9 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
 
     if (hasKVD) {
         fprintf(stdout, "\nKey/Value Data\n\n");
+        ec = checkNextBlockInStream(stream, pHeader->keyValueData.byteLength);
+        if (ec != KTX_SUCCESS)
+            return ec;
         ktx_uint8_t* kvd = malloc(pHeader->keyValueData.byteLength);
         if (kvd == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -784,8 +903,16 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
     }
 
     if (hasSGD) {
+        if (pHeader->supercompressionScheme == KTX_SS_BASIS_LZ
+            || pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
+            ec = checkBlockInStream(stream,
+                                    pHeader->supercompressionGlobalData.byteOffset,
+                                    pHeader->supercompressionGlobalData.byteLength);
+            if (ec != KTX_SUCCESS)
+                return ec;
+        }
         if (pHeader->supercompressionScheme == KTX_SS_BASIS_LZ) {
-            ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
+            ktx_uint8_t* sgd = malloc((size_t)pHeader->supercompressionGlobalData.byteLength);
             if (sgd == NULL)
                 return KTX_OUT_OF_MEMORY;
             ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
@@ -798,21 +925,12 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
                 free(sgd);
                 return ec;
             }
-            //
-            // Calculate number of images
-            //
-            uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
-            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
-            for(uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
-                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
-            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
-            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-            uint32_t numImages = layersFaces * layerPixelDepth;
+            uint32_t numImages = numImagesInLevels(pHeader);
             fprintf(stdout, "\nBasis Supercompression Global Data\n\n");
             printBasisSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
             free(sgd);
         } else if (pHeader->supercompressionScheme == KTX_SS_UASTC_HDR_6x6_INTERMEDIATE) {
-            ktx_uint8_t* sgd = malloc(pHeader->supercompressionGlobalData.byteLength);
+            ktx_uint8_t* sgd = malloc((size_t)pHeader->supercompressionGlobalData.byteLength);
             if (sgd == NULL)
                 return KTX_OUT_OF_MEMORY;
             ec = stream->setpos(stream, pHeader->supercompressionGlobalData.byteOffset);
@@ -825,16 +943,7 @@ printKTX2Info2(ktxStream* stream, KTX_header2* pHeader)
                 free(sgd);
                 return ec;
             }
-            //
-            // Calculate number of images
-            //
-            uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
-            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
-            for(uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
-                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
-            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
-            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-            uint32_t numImages = layersFaces * layerPixelDepth;
+            uint32_t numImages = numImagesInLevels(pHeader);
             fprintf(stdout, "\nUASTC HDR6X6 Intermediate Supercompression Global Data\n\n");
             printUASTCHDR6X6IntermediateSGDInfo(sgd, pHeader->supercompressionGlobalData.byteLength, numImages);
             free(sgd);
@@ -881,7 +990,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
 
     ktx_uint32_t numLevels;
     ktxLevelIndexEntry* levelIndex;
-    ktx_uint32_t levelIndexSize;
+    ktx_uint64_t levelIndexSize;
 
     KTX_error_code ec = KTX_SUCCESS;
 
@@ -909,11 +1018,18 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT_NOARG(0, "}")
 
     numLevels = MAX(1, pHeader->levelCount);
-    levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
-    levelIndex = (ktxLevelIndexEntry*)malloc(levelIndexSize);
+    // In 64 bits: 24 times a levelCount of 0xC0000000 or more does not fit
+    // in 32.
+    levelIndexSize = (ktx_uint64_t)sizeof(ktxLevelIndexEntry) * numLevels;
+    ec = checkNextBlockInStream(stream, levelIndexSize);
+    if (ec != KTX_SUCCESS) {
+        printf("%s", nl);
+        return ec;
+    }
+    levelIndex = (ktxLevelIndexEntry*)malloc((size_t)levelIndexSize);
     if (levelIndex == NULL)
         return KTX_OUT_OF_MEMORY;
-    ec = stream->read(stream, levelIndex, levelIndexSize);
+    ec = stream->read(stream, levelIndex, (ktx_size_t)levelIndexSize);
     if (ec != KTX_SUCCESS) {
         printf("%s", nl);
         free(levelIndex);
@@ -951,6 +1067,16 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     PRINT_INDENT_NOARG(0, "}") // End of index
 
     if (hasDFD) {
+        // The DFD starts with dfdTotalSize.
+        if (pHeader->dataFormatDescriptor.byteLength < sizeof(ktx_uint32_t)) {
+            printf("%s", nl);
+            return KTX_FILE_DATA_ERROR;
+        }
+        ec = checkNextBlockInStream(stream, pHeader->dataFormatDescriptor.byteLength);
+        if (ec != KTX_SUCCESS) {
+            printf("%s", nl);
+            return ec;
+        }
         ktx_uint32_t* dfd = (ktx_uint32_t*)malloc(pHeader->dataFormatDescriptor.byteLength);
         if (dfd == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -968,6 +1094,11 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
     }
 
     if (hasKVD) {
+        ec = checkNextBlockInStream(stream, pHeader->keyValueData.byteLength);
+        if (ec != KTX_SUCCESS) {
+            printf("%s", nl);
+            return ec;
+        }
         ktx_uint8_t* kvd = malloc(pHeader->keyValueData.byteLength);
         if (kvd == NULL)
             return KTX_OUT_OF_MEMORY;
@@ -995,7 +1126,15 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
         }
         case KTX_SS_BASIS_LZ: {
             PRINT_INDENT(1, "\"type\":%s\"%s\"", space, "KTX_SS_BASIS_LZ")
-            ktx_size_t sgdByteLength = pHeader->supercompressionGlobalData.byteLength;
+            ec = checkBlockInStream(stream,
+                                    pHeader->supercompressionGlobalData.byteOffset,
+                                    pHeader->supercompressionGlobalData.byteLength);
+            if (ec != KTX_SUCCESS) {
+                printf("%s", nl);
+                PRINT_INDENT(0, "}%s", nl)
+                return ec;
+            }
+            ktx_size_t sgdByteLength = (ktx_size_t)pHeader->supercompressionGlobalData.byteLength;
             ktx_uint8_t* sgd = malloc(sgdByteLength);
             if (sgd == NULL)
                 return KTX_OUT_OF_MEMORY;
@@ -1014,14 +1153,7 @@ printKTX2Info2JSON(ktxStream* stream, KTX_header2* pHeader, ktx_uint32_t base_in
                 return ec;
             }
 
-            // Calculate number of images
-            uint32_t layersFaces = MAX(pHeader->layerCount, 1) * pHeader->faceCount;
-            uint32_t layerPixelDepth = MAX(pHeader->pixelDepth, 1);
-            for (uint32_t level = 1; level < MAX(pHeader->levelCount, 1); level++)
-                layerPixelDepth += MAX(MAX(pHeader->pixelDepth, 1) >> level, 1U);
-            // NOTA BENE: faceCount * layerPixelDepth is only reasonable because
-            // faceCount and depth can't both be > 1. I.e there are no 3d cubemaps.
-            uint32_t numImages = layersFaces * layerPixelDepth;
+            uint32_t numImages = numImagesInLevels(pHeader);
             ktxBasisLzGlobalHeader* bgdh = (ktxBasisLzGlobalHeader*)(sgd);
 
             if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
@@ -1151,7 +1283,9 @@ ktxPrintInfoForStream(ktxStream* stream)
             // Read rest of header.
             result = stream->read(stream, &header.ktx.endianness,
                                   KTX_HEADER_SIZE - sizeof(ktx_ident_ref));
-            printKTXInfo2(stream, &header.ktx);
+            if (result != KTX_SUCCESS)
+                return result;
+            result = printKTXInfo2(stream, &header.ktx);
         } else {
             // Read rest of header.
             result = stream->read(stream, &header.ktx2.vkFormat,
@@ -1290,8 +1424,10 @@ ktxPrintInfoForMemory(const ktx_uint8_t* bytes, ktx_size_t size)
     ktxStream stream;
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
-    if (result == KTX_SUCCESS)
+    if (result == KTX_SUCCESS) {
         result = ktxPrintInfoForStream(&stream);
+        stream.destruct(&stream);
+    }
     return result;
 }
 
@@ -1363,8 +1499,10 @@ ktxPrintKTX2InfoJSONForMemory(const ktx_uint8_t* bytes, ktx_size_t size, ktx_uin
     ktxStream stream;
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
-    if (result == KTX_SUCCESS)
+    if (result == KTX_SUCCESS) {
         result = ktxPrintKTX2InfoJSONForStream(&stream, base_indent, indent_width, minified);
+        stream.destruct(&stream);
+    }
     return result;
 }
 
@@ -1431,7 +1569,9 @@ ktxPrintKTX2InfoTextForMemory(const ktx_uint8_t* bytes, ktx_size_t size)
     ktxStream stream;
 
     result = ktxMemStream_construct_ro(&stream, bytes, size);
-    if (result == KTX_SUCCESS)
+    if (result == KTX_SUCCESS) {
         result = ktxPrintKTX2InfoTextForStream(&stream);
+        stream.destruct(&stream);
+    }
     return result;
 }

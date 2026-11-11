@@ -46,6 +46,9 @@
 #include "GL/glcorearb.h"
 #include "ktx.h"
 #include "ktxint.h"
+extern "C" {
+  #include "memstream.h"
+}
 #include "texture.h"
 #include "texture1.h"
 #include "texture2.h"
@@ -96,6 +99,31 @@ static void ktxTexture_Deleter(ktxTexture* texture) { ktxTexture_Destroy(texture
 // Alias long unique_ptr types
 typedef std::unique_ptr<ktxTexture, decltype(ktxTexture_Deleter)*> ktxTexture_unique_ptr;
 typedef std::unique_ptr<ktxHashList, decltype(ktxHashList_Destroy)*> ktxHashList_unique_ptr;
+
+// Reports that the size of the source is not known, as for a pipe.
+static KTX_error_code
+getsizeUnknown(ktxStream*, ktx_size_t*)
+{
+    return KTX_FILE_ISPIPE;
+}
+
+// Creates a texture, without loading its image data, from the first
+// @p size bytes of @p bytes through a stream whose size is not known, as for
+// a pipe. Construction cannot then check the level data against the size of
+// the source, so a source without all the image data fails only when the
+// data is loaded. The texture owns the stream.
+static KTX_error_code
+createFromSourceOfUnknownSize(const ktx_uint8_t* bytes, ktx_size_t size,
+                              ktxTexture** newTex)
+{
+    ktxStream stream;
+    KTX_error_code result = ktxMemStream_construct_ro(&stream, bytes, size);
+    if (result != KTX_SUCCESS)
+        return result;
+    stream.getsize = getsizeUnknown;
+    return ktxTexture_CreateFromStream(&stream, KTX_TEXTURE_CREATE_NO_FLAGS,
+                                       newTex);
+}
 
 
 //-------------------------------------------------------
@@ -571,6 +599,9 @@ class ktxTexture2_IterateLevelFacesTest : public ktxTexture2TestBase<GLubyte, 4,
 class ktxTexture2_IterateLevelsTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 class ktxTexture2_LoadImageDataTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
 class ktxTexture2_CreateCopyTest: public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+class ktxTexture2_CreateCopySupercompressedTest
+    : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8>,
+      public ::testing::WithParamInterface<ktxSupercmpScheme> { };
 
 /////////////////////////////////////////
 // ktxTexture_Create tests
@@ -1490,6 +1521,29 @@ TEST(ktxTexture2_GetDataSizeUncompressed, CompareWithGetDataSizeAfterInflate) {
     ASSERT_EQ(reported_uncompressed_size, texture->dataSize);
 }
 
+TEST_F(ktxTexture2_LoadImageDataTest, FailedLoadLeavesNoImageData) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != NULL) {
+        // Without its last byte the source does not have all the image data.
+        ktxTexture* texture = nullptr;
+        result = createFromSourceOfUnknownSize(ktxMemFile.get(),
+                                               ktxMemFileLen - 1, &texture);
+        texture_raii.reset(texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromStream failed: "
+                                     << ktxErrorString(result);
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, NULL, 0),
+                  KTX_FILE_UNEXPECTED_EOF);
+        EXPECT_TRUE(texture->pData == NULL);
+        // The load fails the same way when tried again.
+        EXPECT_EQ(ktxTexture_LoadImageData(texture, NULL, 0),
+                  KTX_FILE_UNEXPECTED_EOF);
+        EXPECT_TRUE(texture->pData == NULL);
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture2 invalid creation params tests.
 ////////////////////////////////////////
@@ -1521,6 +1575,33 @@ TEST(ktxTexture2_invalidCreateInfoParams, InvalidWidth) {
     result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
     texture_raii.reset(ktxTexture(texture));
     EXPECT_EQ(result, KTX_INVALID_VALUE);
+}
+
+TEST(ktxTexture_Create, RejectsMipLevelCountBeyondBitWidth) {
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.glInternalformat = GL_RGBA8;
+    createInfo.vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
+    createInfo.baseWidth = 16;
+    createInfo.baseHeight = 16;
+    createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLayers = 1;
+    createInfo.numFaces = 1;
+    for (ktx_uint32_t count : {33u, UINT32_MAX}) {
+        SCOPED_TRACE(count);
+        createInfo.numLevels = count;
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                        KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_Create(&createInfo,
+                                   KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_INVALID_OPERATION);
+    }
 }
 
 /////////////////////////////////////////
@@ -1626,6 +1707,203 @@ TEST_F(ktxTexture2_CreateCopyTest, CreateCopy) {
         EXPECT_EQ(memcmp(texture->_private, copyTexture->_private,
                          privateSize), 0);
     }
+}
+
+TEST_P(ktxTexture2_CreateCopySupercompressedTest, CopiesDeferredImageData) {
+    ASSERT_NE(ktxMemFile, nullptr);
+    ktxTexture2* encoded = nullptr;
+    auto result = ktxTexture2_CreateFromMemory(
+        ktxMemFile.get(), ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &encoded);
+    ktxTexture_unique_ptr encoded_raii{ktxTexture(encoded), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    const ktx_size_t expectedSize = encoded->dataSize;
+    const std::vector<ktx_uint8_t> expectedData(encoded->pData,
+                                               encoded->pData + expectedSize);
+    const std::vector<ktx_uint32_t> expectedDfd(
+        encoded->pDfd, encoded->pDfd + *encoded->pDfd / sizeof(ktx_uint32_t));
+    std::vector<ktx_size_t> expectedOffsets(encoded->numLevels);
+    for (ktx_uint32_t level = 0; level < encoded->numLevels; level++) {
+        ASSERT_EQ(ktxTexture2_GetImageOffset(encoded, level, 0, 0,
+                                             &expectedOffsets[level]),
+                  KTX_SUCCESS);
+    }
+    result = GetParam() == KTX_SS_ZSTD ? ktxTexture2_DeflateZstd(encoded, 3)
+                                      : ktxTexture2_DeflateZLIB(encoded, 6);
+    ASSERT_EQ(result, KTX_SUCCESS);
+    // Ensure that allocating the compressed size cannot hold the copy.
+    ASSERT_LT(encoded->dataSize, expectedSize);
+
+    ktx_uint8_t* file = nullptr;
+    ktx_size_t fileSize = 0;
+    result = ktxTexture2_WriteToMemory(encoded, &file, &fileSize);
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> file_raii{file, std::free};
+    ASSERT_EQ(result, KTX_SUCCESS);
+
+    ktxTexture2* source = nullptr;
+    result = ktxTexture2_CreateFromMemory(file, fileSize, 0, &source);
+    ktxTexture_unique_ptr source_raii{ktxTexture(source), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_EQ(source->pData, nullptr);
+    ASSERT_EQ(source->supercompressionScheme, GetParam());
+
+    ktxTexture2* copy = nullptr;
+    result = ktxTexture2_CreateCopy(source, &copy);
+    ktxTexture_unique_ptr copy_raii{ktxTexture(copy), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_NE(copy, nullptr);
+    EXPECT_EQ(source->supercompressionScheme, KTX_SS_NONE);
+    EXPECT_EQ(copy->supercompressionScheme, KTX_SS_NONE);
+    EXPECT_EQ(copy->vkFormat, source->vkFormat);
+    EXPECT_EQ(source->dataSize, expectedSize);
+    ASSERT_EQ(copy->dataSize, expectedSize);
+    ASSERT_NE(copy->pData, nullptr);
+    EXPECT_NE(copy->pData, source->pData);
+    ASSERT_EQ(*copy->pDfd, expectedDfd.front());
+    EXPECT_EQ(memcmp(copy->pDfd, expectedDfd.data(), *copy->pDfd), 0);
+    ASSERT_EQ(copy->numLevels, expectedOffsets.size());
+    for (ktx_uint32_t level = 0; level < copy->numLevels; level++) {
+        ktx_size_t offset = 0;
+        ASSERT_EQ(ktxTexture2_GetImageOffset(copy, level, 0, 0, &offset),
+                  KTX_SUCCESS);
+        EXPECT_EQ(offset, expectedOffsets[level]);
+    }
+    source_raii.reset();
+    EXPECT_EQ(memcmp(copy->pData, expectedData.data(), expectedSize), 0);
+}
+
+TEST_P(ktxTexture2_CreateCopySupercompressedTest, FailsWhenImageDataCannotBeInflated) {
+    ASSERT_NE(ktxMemFile, nullptr);
+    ktxTexture2* encoded = nullptr;
+    auto result = ktxTexture2_CreateFromMemory(
+        ktxMemFile.get(), ktxMemFileLen, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+        &encoded);
+    ktxTexture_unique_ptr encoded_raii{ktxTexture(encoded), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    result = GetParam() == KTX_SS_ZSTD ? ktxTexture2_DeflateZstd(encoded, 3)
+                                      : ktxTexture2_DeflateZLIB(encoded, 6);
+    ASSERT_EQ(result, KTX_SUCCESS);
+
+    ktx_uint8_t* file = nullptr;
+    ktx_size_t fileSize = 0;
+    result = ktxTexture2_WriteToMemory(encoded, &file, &fileSize);
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> file_raii{file, std::free};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    // Zero the start of level 0's data, the Zstd frame's magic number or the
+    // zlib header, so that the level cannot be inflated.
+    ktxLevelIndexEntry level0;
+    memcpy(&level0, file + KTX2_HEADER_SIZE, sizeof(level0));
+    ASSERT_GE(level0.byteLength, 4U);
+    ASSERT_LE(level0.byteOffset + level0.byteLength, fileSize);
+    memset(file + level0.byteOffset, 0, 4);
+
+    ktxTexture2* source = nullptr;
+    result = ktxTexture2_CreateFromMemory(file, fileSize, 0, &source);
+    ktxTexture_unique_ptr source_raii{ktxTexture(source), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_EQ(source->pData, nullptr);
+
+    // The copy must fail with the error of the load instead of copying the
+    // image data that the failed load did not leave. Then again, after the
+    // first load has failed.
+    for (int i = 0; i < 2; i++) {
+        ktxTexture2* copy = nullptr;
+        result = ktxTexture2_CreateCopy(source, &copy);
+        ktxTexture_unique_ptr copy_raii{ktxTexture(copy), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_FILE_DATA_ERROR);
+        EXPECT_EQ(copy, nullptr);
+        EXPECT_EQ(source->pData, nullptr);
+        EXPECT_EQ(source->supercompressionScheme, GetParam());
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Supercompression, ktxTexture2_CreateCopySupercompressedTest,
+    ::testing::Values(KTX_SS_ZSTD, KTX_SS_ZLIB),
+    [](const ::testing::TestParamInfo<ktxSupercmpScheme>& info) {
+        return info.param == KTX_SS_ZSTD ? "Zstd" : "Zlib";
+    });
+
+TEST_F(ktxTexture2_CreateCopyTest, FailsWhenImageDataCannotBeLoaded) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture_unique_ptr copyTexture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        // Without its last byte the source does not have all the image data.
+        ktxTexture2* texture = nullptr;
+        result = createFromSourceOfUnknownSize(ktxMemFile.get(),
+                                               ktxMemFileLen - 1,
+                                               (ktxTexture**)&texture);
+        texture_raii.reset((ktxTexture*)texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromStream failed: "
+                                     << ktxErrorString(result);
+        // The copy must not be made: it would share the texture's stream,
+        // which destroying both would destruct twice. Then again, after the
+        // first load has failed.
+        for (int i = 0; i < 2; i++) {
+            ktxTexture2* copyTexture = nullptr;
+            result = ktxTexture2_CreateCopy(texture, &copyTexture);
+            copyTexture_raii.reset((ktxTexture*)copyTexture);
+            EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF);
+            EXPECT_TRUE(copyTexture == NULL);
+            EXPECT_TRUE(texture->pData == NULL);
+        }
+    }
+}
+
+TEST_F(ktxTexture2_CreateCopyTest, CopiesTextureWithImageDataInCallerBuffer) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture_unique_ptr copyTexture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                             0,
+                                             (ktxTexture**)&texture);
+        texture_raii.reset((ktxTexture*)texture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(texture != NULL) << "ktxTexture_CreateFromMemory failed: "
+                                     << ktxErrorString(result);
+        auto buf = std::make_unique<ktx_uint8_t[]>(texture->dataSize);
+        EXPECT_EQ(ktxTexture2_LoadImageData(texture, buf.get(), texture->dataSize),
+                  KTX_SUCCESS);
+        ASSERT_TRUE(texture->pData == NULL);
+
+        ktxTexture2* copyTexture = nullptr;
+        result = ktxTexture2_CreateCopy(texture, &copyTexture);
+        copyTexture_raii.reset((ktxTexture*)copyTexture);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        ASSERT_TRUE(copyTexture != NULL) << "ktxTexture2_CreateCopy failed: "
+                                         << ktxErrorString(result);
+        EXPECT_EQ(compareTexture(copyTexture), true);
+        EXPECT_EQ(copyTexture->dataSize, texture->dataSize);
+        EXPECT_TRUE(copyTexture->pData == NULL);
+    }
+}
+
+TEST_F(ktxTexture2_CreateCopyTest, CopiesTextureCreatedWithNoStorage) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    ktxTexture_unique_ptr copyTexture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    ktxTexture2* texture = nullptr;
+    result = ktxTexture2_Create(&texinfo, KTX_TEXTURE_CREATE_NO_STORAGE,
+                                &texture);
+    texture_raii.reset((ktxTexture*)texture);
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(texture->pData == NULL);
+
+    ktxTexture2* copyTexture = nullptr;
+    result = ktxTexture2_CreateCopy(texture, &copyTexture);
+    copyTexture_raii.reset((ktxTexture*)copyTexture);
+    EXPECT_EQ(result, KTX_SUCCESS);
+    ASSERT_TRUE(copyTexture != NULL) << "ktxTexture2_CreateCopy failed: "
+                                     << ktxErrorString(result);
+    EXPECT_EQ(compareTexture(copyTexture), true);
+    EXPECT_TRUE(copyTexture->pData == NULL);
 }
 
 /////////////////////////////////////////////
@@ -2781,6 +3059,178 @@ TEST_F(ktxTexture2_DeflateTest, DeflateZLIB) {
     }
 }
 
+TEST_F(ktxTexture2_DeflateTest, GetDataSizeUncompressedWithOneBitSamples) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        result = ktxTexture2_DeflateZstd(texture, 3);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        ktx_uint8_t* pDeflated;
+        ktx_size_t deflatedLen;
+        result = ktxTexture2_WriteToMemory(texture, &pDeflated, &deflatedLen);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        std::unique_ptr<ktx_uint8_t, decltype(std::free)*> deflated{pDeflated, std::free};
+
+        // With bytesPlane0 0, libktx reconstructs it from the samples. With
+        // every sample 1 bit long at offset 0 it reconstructed 0, the level
+        // alignment of a Zstd texture was then 0, and
+        // ktxTexture2_GetDataSizeUncompressed divided by it.
+        const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pDeflated);
+        ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
+                pDeflated + header->dataFormatDescriptor.byteOffset) + 1;
+        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
+        for (ktx_uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdfd); sample++) {
+            KHR_DFDSETSVAL(bdfd, sample, BITOFFSET, 0);
+            KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 0);
+        }
+
+        ktxTexture* oneBit = nullptr;
+        result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
+                                             KTX_TEXTURE_CREATE_NO_FLAGS,
+                                             &oneBit);
+        ktxTexture_unique_ptr oneBit_raii{oneBit, ktxTexture_Deleter};
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        // A 1-byte texel block gives the same 4-byte level alignment as the
+        // texture's own 4-byte one.
+        EXPECT_EQ(ktxTexture_GetDataSizeUncompressed(oneBit),
+                  ktxTexture_GetDataSizeUncompressed(ktxTexture(texture)));
+    }
+}
+
+TEST_F(ktxTexture2_DeflateTest, RejectsSamplesPastBytesPlane0) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        result = ktxTexture2_DeflateZstd(texture, 3);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        ktx_uint8_t* pDeflated;
+        ktx_size_t deflatedLen;
+        result = ktxTexture2_WriteToMemory(texture, &pDeflated, &deflatedLen);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        std::unique_ptr<ktx_uint8_t, decltype(std::free)*> deflated{pDeflated, std::free};
+
+        // Samples that end past byte 255 give a texel block size that
+        // bytesPlane0, an 8-bit field, cannot hold. A sample at bit offset
+        // 0xFF00 that is 256 bits long ends at byte 8192, which bytesPlane0
+        // would hold as 0: blockSizeInBits and the level alignment of a
+        // Zstd texture were then 0, and ktxTexture2_GetDataSizeUncompressed
+        // divided by it. One at bit offset 0xFF08 ends at byte 8193, which
+        // bytesPlane0 would hold as 1.
+        const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pDeflated);
+        ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
+                pDeflated + header->dataFormatDescriptor.byteOffset) + 1;
+        for (ktx_uint32_t bitOffset : {0xFF00u, 0xFF08u}) {
+            KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
+            for (ktx_uint32_t sample = 0; sample < KHR_DFDSAMPLECOUNT(bdfd); sample++) {
+                KHR_DFDSETSVAL(bdfd, sample, BITOFFSET, bitOffset);
+                KHR_DFDSETSVAL(bdfd, sample, BITLENGTH, 255);
+            }
+
+            ktxTexture* pastPlane = nullptr;
+            result = ktxTexture_CreateFromMemory(pDeflated, deflatedLen,
+                                                 KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                 &pastPlane);
+            ktxTexture_unique_ptr pastPlane_raii{pastPlane, ktxTexture_Deleter};
+            EXPECT_EQ(result, KTX_FILE_DATA_ERROR)
+                << "bit offset " << bitOffset << ": " << ktxErrorString(result);
+        }
+    }
+}
+
+class ktxTexture2_UastcBlockSizeTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> { };
+
+TEST_F(ktxTexture2_UastcBlockSizeTest, RejectsBlocksThatAreNot16Bytes) {
+    ktxTexture_unique_ptr texture_raii{nullptr, ktxTexture_Deleter};
+    KTX_error_code result;
+
+    if (ktxMemFile != nullptr) {
+        ktxTexture2* texture = nullptr;
+        result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
+                                              KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                              &texture);
+        texture_raii.reset((ktxTexture*)texture);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        ktxBasisParams cparams = { };
+        cparams.structSize = sizeof(cparams);
+        cparams.codec = KTX_BASIS_CODEC_UASTC_LDR_4x4;
+        result = ktxTexture2_CompressBasisEx(texture, &cparams);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        ktx_uint8_t* pUastc;
+        ktx_size_t uastcLen;
+        result = ktxTexture2_WriteToMemory(texture, &pUastc, &uastcLen);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+        std::unique_ptr<ktx_uint8_t, decltype(std::free)*> uastc{pUastc, std::free};
+
+        const KTX_header2* header = reinterpret_cast<const KTX_header2*>(pUastc);
+        ktx_uint32_t* bdfd = reinterpret_cast<ktx_uint32_t*>(
+                pUastc + header->dataFormatDescriptor.byteOffset) + 1;
+        ASSERT_EQ(KHR_DFDVAL(bdfd, MODEL), (ktx_uint32_t)KHR_DF_MODEL_UASTC);
+        ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE0), 16U);
+        ASSERT_EQ(KHR_DFDVAL(bdfd, BYTESPLANE1), 0U);
+
+        ASSERT_EQ(KHR_DFDSVAL(bdfd, 0, BITLENGTH), 127U);
+
+        // The readers of UASTC and the other models below step through the
+        // images by the block size from the DFD and read 16-byte blocks
+        // wherever that lands. A bytesPlane0 of 0 makes libktx compute the
+        // size from the sample, 16 bytes for a bitLength of 127 and 17 for
+        // one of 135.
+        const struct {
+            ktx_uint32_t plane0, plane1, bitLength;
+            KTX_error_code expected;
+        } cases[] = {
+            {17, 0, 127, KTX_FILE_DATA_ERROR},
+            {15, 0, 127, KTX_FILE_DATA_ERROR},
+            {16, 1, 127, KTX_FILE_DATA_ERROR},
+            {0, 0, 135, KTX_FILE_DATA_ERROR},
+            {0, 0, 127, KTX_SUCCESS},
+            {16, 0, 127, KTX_SUCCESS},
+        };
+        // The same sizes, on the same data, for the other models whose
+        // blocks are 16 bytes.
+        const ktx_uint32_t models[] = {
+            KHR_DF_MODEL_UASTC, KHR_DF_MODEL_UASTC_HDR_4x4,
+            KHR_DF_MODEL_UASTC_HDR_6x6, KHR_DF_MODEL_ASTC,
+            KHR_DF_MODEL_BC2, KHR_DF_MODEL_BC3, KHR_DF_MODEL_BC5,
+            KHR_DF_MODEL_BC6H, KHR_DF_MODEL_BC7
+        };
+        for (ktx_uint32_t model : models) {
+            KHR_DFDSETVAL(bdfd, MODEL, model);
+            for (const auto& c : cases) {
+                KHR_DFDSETVAL(bdfd, BYTESPLANE0, c.plane0);
+                KHR_DFDSETVAL(bdfd, BYTESPLANE1, c.plane1);
+                KHR_DFDSETSVAL(bdfd, 0, BITLENGTH, c.bitLength);
+                ktxTexture* loaded = nullptr;
+                result = ktxTexture_CreateFromMemory(pUastc, uastcLen,
+                                                     KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                     &loaded);
+                ktxTexture_unique_ptr loaded_raii{loaded, ktxTexture_Deleter};
+                EXPECT_EQ(result, c.expected)
+                    << "model " << model << ", bytesPlane0 " << c.plane0
+                    << ", bytesPlane1 " << c.plane1 << ", bitLength "
+                    << c.bitLength << ": " << ktxErrorString(result);
+            }
+        }
+    }
+}
+
 /////////////////////////////////////////
 // ktxTexture2_BasisCompress tests
 ////////////////////////////////////////
@@ -3791,6 +4241,303 @@ class ktxTexture2AstcDecodeTestBase : public ::testing::Test {
 
 TEST_F(ktxTexture2AstcDecodeTestBase, Decode_astc_8x8_unorm_array_7) {
     runTest(u8"astc_8x8_unorm_array_7.ktx2");
+}
+
+////////////////////////////////////////////
+// ktxPrintKTX2Info tests
+///////////////////////////////////////////
+
+// The sizes of the blocks of a KTX 2 file come from its header. The info
+// printers must check them before allocating or reading a block.
+class ktxPrintKTX2InfoTest : public ktxTexture2TestBase<GLubyte, 4, GL_RGBA8> {
+  protected:
+    // A copy of the test file, for damaging its header.
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    // The bytes of the vector are not a KTX_header2 object, so the header
+    // is copied out of the file and back.
+    static KTX_header2 header(const std::vector<ktx_uint8_t>& file) {
+        KTX_header2 header;
+        memcpy(&header, file.data(), sizeof(header));
+        return header;
+    }
+
+    static void setHeader(std::vector<ktx_uint8_t>& file, const KTX_header2& header) {
+        memcpy(file.data(), &header, sizeof(header));
+    }
+
+    static KTX_error_code printText(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoTextForMemory(file.data(), file.size());
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+
+    static KTX_error_code printJSON(const std::vector<ktx_uint8_t>& file) {
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintKTX2InfoJSONForMemory(file.data(), file.size(),
+                                                              0, 4, false);
+        testing::internal::GetCapturedStdout();
+        return result;
+    }
+};
+
+TEST_F(ktxPrintKTX2InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    EXPECT_EQ(printText(file), KTX_SUCCESS);
+    EXPECT_EQ(printJSON(file), KTX_SUCCESS);
+}
+
+// 24 times a levelCount of 0xC0000000 was computed in 32 bits, wrapped to 0,
+// and the printers printed the level index from an empty buffer.
+TEST_F(ktxPrintKTX2InfoTest, LevelIndexLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.levelCount = 0xC0000000;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// The text printer read the 4-byte dfdTotalSize from a DFD of 1 byte.
+TEST_F(ktxPrintKTX2InfoTest, DFDShorterThanDfdTotalSize) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.dataFormatDescriptor.byteLength = 1;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_DATA_ERROR);
+    EXPECT_EQ(printJSON(file), KTX_FILE_DATA_ERROR);
+}
+
+TEST_F(ktxPrintKTX2InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    ASSERT_NE(damaged.keyValueData.byteLength, 0u);
+    damaged.keyValueData.byteLength = 0xFFFFFFFF;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+// A supercompression global data length that cannot be allocated failed
+// with KTX_OUT_OF_MEMORY, or, under AddressSanitizer, aborted.
+TEST_F(ktxPrintKTX2InfoTest, SGDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    auto damaged = header(file);
+    damaged.supercompressionScheme = KTX_SS_BASIS_LZ;
+    damaged.supercompressionGlobalData.byteOffset = file.size();
+    damaged.supercompressionGlobalData.byteLength = UINT64_C(1) << 62;
+    setHeader(file, damaged);
+    EXPECT_EQ(printText(file), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(printJSON(file), KTX_FILE_UNEXPECTED_EOF);
+}
+
+////////////////////////////////////////////
+// ktxPrintInfo tests for KTX 1 files
+///////////////////////////////////////////
+
+// The KTX 1 printer reads the key/value data and the image sizes and skips
+// the images. For a file shorter than they say it must print what it read, as
+// it does for the whole file, and return an error.
+class ktxPrintKTX1InfoTest : public ktxTexture1TestBase {
+  protected:
+    std::vector<ktx_uint8_t> copyOfFile() const {
+        return std::vector<ktx_uint8_t>(ktxMemFile.get(),
+                                        ktxMemFile.get() + ktxMemFileLen);
+    }
+
+    // The first size bytes of a file, as a stream that can skip past its
+    // end, as seeking the std::filebuf of ktx info can. Only the checks of
+    // the printer find that the file is short.
+    struct SeekingStream {
+        const ktx_uint8_t* bytes;
+        ktx_size_t size;
+        ktx_size_t pos = 0;
+        ktxStream stream{};
+
+        SeekingStream(const SeekingStream&) = delete;
+        SeekingStream(const std::vector<ktx_uint8_t>& file, ktx_size_t size)
+            : bytes(file.data()), size(size) {
+            stream.type = eStreamTypeCustom;
+            stream.data.custom_ptr.address = this;
+            stream.read = [](ktxStream* str, void* dst, ktx_size_t count) -> KTX_error_code {
+                auto self = static_cast<SeekingStream*>(str->data.custom_ptr.address);
+                if (self->pos > self->size || count > self->size - self->pos)
+                    return KTX_FILE_UNEXPECTED_EOF;
+                memcpy(dst, self->bytes + self->pos, count);
+                self->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.skip = [](ktxStream* str, ktx_size_t count) -> KTX_error_code {
+                static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos += count;
+                return KTX_SUCCESS;
+            };
+            stream.getpos = [](ktxStream* str, ktx_off_t* const offset) -> KTX_error_code {
+                *offset = static_cast<SeekingStream*>(str->data.custom_ptr.address)->pos;
+                return KTX_SUCCESS;
+            };
+            stream.getsize = [](ktxStream* str, ktx_size_t* const size) -> KTX_error_code {
+                *size = static_cast<SeekingStream*>(str->data.custom_ptr.address)->size;
+                return KTX_SUCCESS;
+            };
+        }
+    };
+
+    static void expectTruncated(const std::vector<ktx_uint8_t>& file,
+                                ktx_size_t truncatedSize,
+                                const std::string& expected) {
+        SCOPED_TRACE("truncated to " + std::to_string(truncatedSize) + " bytes");
+        ASSERT_LT(truncatedSize, file.size());
+
+        // Both APIs see only the prefix, even though file still holds all
+        // the bytes of the complete fixture.
+        testing::internal::CaptureStdout();
+        KTX_error_code result = ktxPrintInfoForMemory(file.data(), truncatedSize);
+        std::string printed = testing::internal::GetCapturedStdout();
+        EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "memory";
+        EXPECT_EQ(printed, expected) << "memory";
+
+        SeekingStream stream(file, truncatedSize);
+        testing::internal::CaptureStdout();
+        result = ktxPrintKTX1InfoTextForStream(&stream.stream);
+        printed = testing::internal::GetCapturedStdout();
+        EXPECT_EQ(result, KTX_FILE_UNEXPECTED_EOF) << "stream";
+        EXPECT_EQ(printed, expected) << "stream";
+    }
+
+    // Check incomplete imageSize fields and representative truncations in
+    // every face, including the last one. The printers must keep the header,
+    // key/value data and each level size read before reaching the short data.
+    static void expectShortInTheImages(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        ASSERT_LT(imagesStart, file.size());
+        const ktx_uint32_t numFaces =
+            header.numberOfFaces == 6 && header.numberOfArrayElements == 0 ? 6 : 1;
+
+        testing::internal::CaptureStdout();
+        const KTX_error_code result = ktxPrintInfoForMemory(file.data(), file.size());
+        const std::string whole = testing::internal::GetCapturedStdout();
+        ASSERT_EQ(result, KTX_SUCCESS);
+        // Use the complete file only as the reference for the unchanged
+        // header and key/value text. Build the expected level lines from
+        // the fixture's imageSize fields, not from the printer's output.
+        const std::string sizesHeading = "Data Sizes (bytes)\n------------------\n";
+        const size_t headingStart = whole.find(sizesHeading);
+        ASSERT_NE(headingStart, std::string::npos);
+        std::string expected = whole.substr(0, headingStart + sizesHeading.size());
+
+        ktx_size_t pos = imagesStart;
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            SCOPED_TRACE("level " + std::to_string(level));
+            ktx_uint32_t imageSize;
+            ASSERT_LE(pos + sizeof(imageSize), file.size());
+            memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+            ASSERT_GT(imageSize, 0u);
+
+            // Zero to three bytes of the four-byte size field: this level
+            // cannot be printed yet.
+            for (ktx_size_t bytesRead = 0; bytesRead < sizeof(imageSize); bytesRead++) {
+                expectTruncated(file, pos + bytesRead, expected);
+            }
+            pos += sizeof(imageSize);
+            expected += "Level " + std::to_string(level) + ": "
+                      + std::to_string((ktx_uint64_t)imageSize * numFaces) + "\n";
+
+            for (ktx_uint32_t face = 0; face < numFaces; face++) {
+                SCOPED_TRACE("face " + std::to_string(face));
+                ASSERT_LE(pos + imageSize, file.size());
+                // No bytes, half the face, or only its final byte missing.
+                // The size field is complete, so its line must be printed.
+                for (ktx_size_t truncatedSize : {pos, pos + imageSize / 2,
+                                                pos + imageSize - 1}) {
+                    expectTruncated(file, truncatedSize, expected);
+                }
+                pos += imageSize;
+            }
+        }
+        EXPECT_EQ(pos, file.size());
+    }
+
+    // A non-array cube map with the levels of a 2D file as each face. The
+    // images of the test file need no padding.
+    static std::vector<ktx_uint8_t> cubeMapOf(const std::vector<ktx_uint8_t>& file) {
+        KTX_header header;
+        memcpy(&header, file.data(), sizeof(header));
+        EXPECT_EQ(header.pixelWidth, header.pixelHeight);
+        const ktx_size_t imagesStart = sizeof(header) + header.bytesOfKeyValueData;
+        header.numberOfFaces = 6;
+        std::vector<ktx_uint8_t> cubeMap(file.begin(), file.begin() + imagesStart);
+        memcpy(cubeMap.data(), &header, sizeof(header));
+        ktx_size_t pos = imagesStart;
+        for (ktx_uint32_t level = 0; level < header.numberOfMipLevels; level++) {
+            ktx_uint32_t imageSize;
+            memcpy(&imageSize, file.data() + pos, sizeof(imageSize));
+            const auto image = file.begin() + pos + sizeof(imageSize);
+            cubeMap.insert(cubeMap.end(), file.begin() + pos, image);
+            for (int face = 0; face < 6; face++)
+                cubeMap.insert(cubeMap.end(), image, image + imageSize);
+            pos += sizeof(imageSize) + imageSize;
+        }
+        EXPECT_EQ(pos, file.size());
+        return cubeMap;
+    }
+};
+
+TEST_F(ktxPrintKTX1InfoTest, PrintsTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
+    testing::internal::GetCapturedStdout();
+}
+
+// The printer allocated bytesOfKeyValueData from the header, up to 4 GiB,
+// without checking it against the file.
+TEST_F(ktxPrintKTX1InfoTest, KVDLongerThanTheFile) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto file = copyOfFile();
+    KTX_header header;
+    memcpy(&header, file.data(), sizeof(header));
+    ASSERT_NE(header.bytesOfKeyValueData, 0u);
+    header.bytesOfKeyValueData = 0xFFFFFFFF;
+    memcpy(file.data(), &header, sizeof(header));
+    SeekingStream stream(file, file.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(file.data(), file.size()), KTX_FILE_UNEXPECTED_EOF);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_FILE_UNEXPECTED_EOF);
+    testing::internal::GetCapturedStdout();
+}
+
+// A file that ends in an image size or image, including the last level,
+// must be reported as short while preserving the information already read.
+TEST_F(ktxPrintKTX1InfoTest, FileEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    expectShortInTheImages(copyOfFile());
+}
+
+// For a non-array cube map the printer skips the six faces of each level one
+// by one.
+TEST_F(ktxPrintKTX1InfoTest, CubeMapEndsInTheImages) {
+    ASSERT_TRUE(ktxMemFile != nullptr);
+    auto cubeMap = cubeMapOf(copyOfFile());
+    SeekingStream stream(cubeMap, cubeMap.size());
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(ktxPrintInfoForMemory(cubeMap.data(), cubeMap.size()), KTX_SUCCESS);
+    EXPECT_EQ(ktxPrintKTX1InfoTextForStream(&stream.stream), KTX_SUCCESS);
+    testing::internal::GetCapturedStdout();
+    expectShortInTheImages(cubeMap);
 }
 
 }  // namespace

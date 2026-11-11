@@ -63,38 +63,64 @@
     }                                                                       \
   }
 
-const std::vector<VkColorSpaceKHR> linearCS = {
+#if 0
+# Keep in case they may be useful in future.
+const std::vector<VkColorSpaceKHR> linearHDRSpaces = {
+    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT,
+    //VK_COLOR_SPACE_EXTENDED_DISPLAY_P3_LINEAR_EXT // Why does Vulkan not have this?
+    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT  // MoltenVK and KosmicKrisp (Apple) apparently map
+                                          // this to kCGColorSpaceLinearDisplayP3 which does
+                                          // not clamp values of 16F components so is effectively
+                                          // the same as kCGColorSpaceExtendedLinearDisplayP3 so
+                                          // is HDR.
+};
+
+const std::vector<VkColorSpaceKHR> nonlinearHDRSpaces = {
+    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT, //???
+    VK_COLOR_SPACE_HDR10_ST2084_EXT,  // ITU Rec 2100 PQ
+    VK_COLOR_SPACE_HDR10_HLG_EXT,     // ITU Rec 2100 HLG
+    VK_COLOR_SPACE_DOLBYVISION_EXT,   // PQ
+    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD // HDR but do not know if its linear or non-linear.
+};
+
+const std::vector<VkColorSpaceKHR> linearLDRSpaces = {
     VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT,
     VK_COLOR_SPACE_BT2020_LINEAR_EXT,
     VK_COLOR_SPACE_BT709_LINEAR_EXT,
-    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT,
-    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT
 };
 
-static bool isColorSpaceLinear(VkColorSpaceKHR colorSpace)
-{
-    std::vector<VkColorSpaceKHR>::const_iterator it = linearCS.begin();
-    for (; it < linearCS.end(); it++) {
-        if (*it == colorSpace)
-            return true;
-    }
-    return false;
-}
+const std::vector<VkColorSpaceKHR> nonlinearLDRSpaces = {
+    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT,
+    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT,
+    VK_COLOR_SPACE_BT709_NONLINEAR_EXT,
+    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT,
+    VK_COLOR_SPACE_PASS_THROUGH_EXT   // Assuming most displays are non-linear and non-HDR
+};
+#endif
 
-// Creates an os specific surface
-// Tries to find a graphics and a present queue
+// Create an OS specific surface.
 void
-VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
-                             colorSpaceSelector css, VkColorSpaceKHR reqColorSpace)
+VulkanSwapchain::createSurface(struct SDL_Window* window)
 {
-    U_ASSERT_ONLY VkResult err;
-
     if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) {
         std::string msg = "SDL_CreateVulkanSurface failed: ";
         msg += SDL_GetError();
-        throw swapchain_init_surface_failed(msg);
+        throw std::runtime_error(msg);
     }
+}
 
+void
+VulkanSwapchain::destroySurface()
+{
+    if (surface != nullptr)
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+}
+
+// Look for a graphics and a present queue
+void
+VulkanSwapchain::findGraphicsPresentQueue()
+{
     // Get available queue family properties
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueCount, NULL);
@@ -148,17 +174,27 @@ VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
         || presentQueueIndex == UINT32_MAX)
     {
         vkDestroySurfaceKHR(instance, surface, nullptr);
-        throw swapchain_init_surface_failed("Could not find a graphics or presenting queue!");
+        throw std::runtime_error("Could not find a graphics or presenting queue!");
     }
 
     // TODO: Add support for separate graphics and presenting queue
     if (graphicsQueueIndex != presentQueueIndex)
     {
         vkDestroySurfaceKHR(instance, surface, nullptr);
-        throw swapchain_init_surface_failed("Separate graphics and present queues not yet supported!");
+        throw std::runtime_error("App does not yet support separate graphics and present queues!");
     }
 
     queueIndex = graphicsQueueIndex;
+}
+
+
+// Creates an os specific surface
+void
+VulkanSwapchain::initSurface(VkFormat reqFormat,
+                             csInfo& reqColorSpace,
+                             bool destroySurfaceOnFailure)
+{
+    U_ASSERT_ONLY VkResult err;
 
     // Get list of supported surface formats
     uint32_t formatCount;
@@ -185,31 +221,22 @@ VulkanSwapchain::initSurface(SDL_Window* window, VkFormat reqFormat,
         assert(formatCount >= 1);
         uint32_t i;
         for (i = 0; i < formatCount; i++) {
-            if (surfaceFormats[i].format == reqFormat) {
-                if (css == colorSpaceSelector::eSpecific) {
-                    if (surfaceFormats[i].colorSpace == reqColorSpace) {
-                        break;
-                    }
-                } else {
-                    bool colorSpaceIsLinear = isColorSpaceLinear(surfaceFormats[i].colorSpace);
-                    if (css == colorSpaceSelector::eAnyLinear && colorSpaceIsLinear) {
-                        break;
-                    }
-                    if (css == colorSpaceSelector::eAnyNonLinear && !colorSpaceIsLinear) {
-                        break;
-                    }
-                }
-            }
+            if (surfaceFormats[i].format == reqFormat
+                && surfaceFormats[i].colorSpace == (VkColorSpaceKHR)reqColorSpace.cs)
+                    break;
         }
         if (i == formatCount) {
-            vkDestroySurfaceKHR(instance, surface, nullptr);
-            throw unsupported_surface_format();
+            if (destroySurfaceOnFailure)
+                destroySurface();
+            std::string msg;
+            msg = "Requested color space, ";
+            msg += vk::to_string(reqColorSpace.cs) + ", not supported.";
+            throw unsupported_surface_format(msg);
         }
         colorFormat = surfaceFormats[i].format;
-        colorSpace = surfaceFormats[i].colorSpace;
+        colorSpace = reqColorSpace;
     }
 }
-
 
 // Connect to the instance and device and get all required function pointers
 bool
@@ -246,7 +273,7 @@ VulkanSwapchain::connectInstance(VkInstance targetInstance,
 
 // Create the swap chain and get images with given width and height
 void
-VulkanSwapchain::create(uint32_t *width, uint32_t *height,
+VulkanSwapchain::create(uint32_t& width, uint32_t& height,
                         bool vsync)
 {
     U_ASSERT_ONLY VkResult err;
@@ -278,14 +305,14 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     {
         // If the surface size is undefined, the size is set to
         // the size of the images requested.
-        swapchainExtent.width = *width;
-        swapchainExtent.height = *height;
+        swapchainExtent.width = width;
+        swapchainExtent.height = height;
     }
     else
     {
         swapchainExtent = surfCaps.currentExtent;
-        *width = surfCaps.currentExtent.width;
-        *height = surfCaps.currentExtent.height;
+        width = surfCaps.currentExtent.width;
+        height = surfCaps.currentExtent.height;
     }
 
 
@@ -335,7 +362,7 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
     swapchainCI.surface = surface;
     swapchainCI.minImageCount = desiredNumberOfSwapchainImages;
     swapchainCI.imageFormat = colorFormat;
-    swapchainCI.imageColorSpace = colorSpace;
+    swapchainCI.imageColorSpace = (VkColorSpaceKHR)colorSpace.cs;
     swapchainCI.imageExtent = { swapchainExtent.width, swapchainExtent.height };
     swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainCI.preTransform = (VkSurfaceTransformFlagBitsKHR)preTransform;
@@ -408,12 +435,12 @@ VulkanSwapchain::create(uint32_t *width, uint32_t *height,
 // Acquires the next image in the swap chain
 VkResult
 VulkanSwapchain::acquireNextImage(VkSemaphore presentCompleteSemaphore,
-                                  uint32_t *currentBuffer)
+                                  uint32_t *imageIndex)
 {
     return vkAcquireNextImageKHR(device, swapchain, UINT64_MAX,
                                  presentCompleteSemaphore,
-                                 (VkFence)nullptr,
-                                 currentBuffer);
+                                 nullptr,
+                                 imageIndex);
 }
 
 

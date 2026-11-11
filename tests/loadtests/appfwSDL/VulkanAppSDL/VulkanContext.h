@@ -26,6 +26,8 @@ struct VulkanContext {
     vk::Instance instance;
     vk::PhysicalDevice gpu;
     vk::StructureChain<vk::PhysicalDeviceFeatures2,
+    // vk::PhysicalDeviceSynchronization2Features,  // For vkCmdPipelineBarrier2, etc.
+                                                    // Needs Vulkan 1.3+ instance
 #if VK_EXT_texture_compression_astc_hdr
         vk::PhysicalDeviceTextureCompressionASTCHDRFeatures,
 #endif
@@ -50,7 +52,12 @@ struct VulkanContext {
     vk::PhysicalDevicePortabilitySubsetFeaturesKHR& gpuPortabilityFeatures =
         gpuFeaturesChain.get<vk::PhysicalDevicePortabilitySubsetFeaturesKHR>();
 #endif
-    vk::PhysicalDeviceProperties gpuProperties;
+    vk::StructureChain<vk::PhysicalDeviceProperties2,
+        vk::PhysicalDeviceDriverProperties> gpuPropertiesChain;
+    vk::PhysicalDeviceProperties& gpuProperties
+        = gpuPropertiesChain.get<vk::PhysicalDeviceProperties2>().properties;
+    vk::PhysicalDeviceDriverProperties& gpuDriverProperties
+        = gpuPropertiesChain.get<vk::PhysicalDeviceDriverProperties>();
     vk::PhysicalDeviceMemoryProperties memoryProperties;
     vk::Device device;
     vk::CommandPool commandPool;
@@ -61,6 +68,11 @@ struct VulkanContext {
     bool gpuFeatureAstcHdr = false;
     bool gpuFeatureAstc3d = false;
 
+    struct {
+        bool physicalDeviceProps2 = false;
+        bool swapchainColorSpace = false;
+        bool portabilityEnumeration = false;
+    } enabledInstanceExtensions;
     struct {
        // These extensions do not have corresponding device (gpu) features flags. These flags,
        // showing whether or not the corresponding extensions have been found and
@@ -85,8 +97,22 @@ struct VulkanContext {
     VkPipelineCache pipelineCache;
 
     VulkanSwapchain swapchain;
-    // List of frame buffers (same as number of swap chain images)
-    std::vector<VkFramebuffer>framebuffers;
+    // List of frame buffers and per-buffer items (same as number of swap chain images)
+    std::vector<VkFramebuffer> framebuffers;
+    struct PerFramebufferData {
+        struct {
+            VkSemaphore     presentComplete         = VK_NULL_HANDLE;
+            VkSemaphore     renderComplete          = VK_NULL_HANDLE;
+            VkSemaphore     textOverlayComplete     = VK_NULL_HANDLE;
+        } semaphores;
+        // CommandBuffers not added here because Allocate and Free commands can handle an
+        // array of buffers.
+	};
+    std::vector<PerFramebufferData> perFb;
+
+    // A set of semaphores that can be reused.
+    std::vector<VkSemaphore> recycledSemaphores;
+
     VulkanDepthBuffer depthBuffer;
 
     // Create a new command buffer, opening it for command entry,
@@ -99,10 +125,14 @@ struct VulkanContext {
 
     // Create a command buffer for each image in the swap chain.
     bool createDrawCommandBuffers();
-    bool createPresentCommandBuffers();
     bool checkDrawCommandBuffers();
+    bool createPresentCommandBuffers();
+    void createFramebuffers(uint32_t width, uint32_t height);
+    void createSemaphores();
+    void createSwapchain(uint32_t& width, uint32_t& height, bool enableVSync);
     void destroyDrawCommandBuffers();
     void destroyPresentCommandBuffers();
+
 
 
     bool getMemoryType(uint32_t typeBits,

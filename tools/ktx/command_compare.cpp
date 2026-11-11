@@ -22,7 +22,7 @@
 #include <cxxopts.hpp>
 #include <fmt/printf.h>
 #include <ktx.h>
-#include <ktxint.h>
+#include "ktxint.h"
 
 
 // -------------------------------------------------------------------------------------------------

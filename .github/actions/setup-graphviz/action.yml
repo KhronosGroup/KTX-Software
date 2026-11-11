@@ -42,10 +42,28 @@ runs:
       if: ${{ runner.os == 'Windows' }}
       shell: pwsh
       # choco or GitHub's networks have proved to be unreliable.
+      # Due to https://github.com/chocolatey/choco/issues/1609 choco does not set the exit
+      # code on certain errors. Therefore we cannot rely on it.
       run: |
-        for(($tries = 0), ($exitCode = 1); $exitCode -and $tries -lt 4; $tries++) {
-            choco upgrade graphviz --yes --no-progress --limit-output
-            $exitCode = $LASTEXITCODE
+        $ErrorActionPreference = "Continue"
+        $retryCount = 4
+        $success = $false
+        for ($i = 1; $i -le $retryCount; $i++) {
+            Write-Host "Attempt no: $i"
+            choco upgrade graphviz --yes --no-progress
+            $installed = choco list --exact --limit-output graphviz
+            if ($installed) {
+                $success = $true
+                Write-Host "Installation successful: $installed"
+                break
+            } else {
+                Write-Host "Installation failed. Retrying..."
+                Start-Sleep -Seconds (2*$i)
+            }
+        }
+        if (-not $success) {
+            Write-Host "Installation failed after $retryCount attempts."
+            exit 1
         }
     - name: "Check Graphviz installation"
       #if: ${{ inputs.graphviz == 'true' }}

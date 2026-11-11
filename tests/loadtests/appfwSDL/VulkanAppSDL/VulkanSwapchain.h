@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 #if !defined(USE_FUNCPTRS_FOR_KHR_EXTS)
 #define USE_FUNCPTRS_FOR_KHR_EXTS 0
@@ -25,7 +25,24 @@ class VulkanSwapchain
 {
   public:
     VkFormat colorFormat;
-    VkColorSpaceKHR colorSpace;
+    struct csInfo {
+        vk::ColorSpaceKHR cs;
+        bool isHDR;
+        bool isLinear;
+
+        csInfo() {
+            set(vk::ColorSpaceKHR::eSrgbNonlinear, false, false);
+        }
+        csInfo(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            set(_cs, hdr, linear);
+        }
+        void set(vk::ColorSpaceKHR _cs, bool hdr, bool linear) {
+            cs = _cs;
+            isHDR = hdr;
+            isLinear = linear;
+        }
+    };
+    csInfo colorSpace;
 
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 
@@ -36,17 +53,9 @@ class VulkanSwapchain
     // Index of the detected graphics- and present-capable device queue.
     uint32_t queueIndex = UINT32_MAX;
 
-    enum class colorSpaceSelector {
-        eAnyLinear,
-        eAnyNonLinear,
-        eSpecific
-    };
-
-    // Creates an OS specific surface.
-    // Looks for a graphics and a present queue
-    void initSurface(struct SDL_Window* window, VkFormat format,
-                     colorSpaceSelector css = colorSpaceSelector::eSpecific,
-                     VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
+    // Create the swap chain and get images with given width and height
+    void create(uint32_t& width, uint32_t& height,
+                bool vsync = false);
 
     // Connect to device and get required device function pointers.
     bool connectDevice(VkDevice device);
@@ -55,13 +64,22 @@ class VulkanSwapchain
     bool connectInstance(VkInstance instance,
                          VkPhysicalDevice physicalDevice);
 
-    // Create the swap chain and get images with given width and height
-    void create(uint32_t *width, uint32_t *height,
-                bool vsync = false);
+
+    // Creates an OS specific surface.
+    void createSurface(struct SDL_Window* window);
+    // Destroys the surface.
+    void destroySurface();
+   // Looks for a graphics and a present queue.
+    void findGraphicsPresentQueue();
+    // Initializes the surface.
+    void initSurface(VkFormat format,
+                     csInfo& colorSpace,
+                     bool destroySurfaceOnFailure = true);
+
 
     // Acquires the next image in the swap chain
     VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore,
-                              uint32_t *currentBuffer);
+                              uint32_t *imageIndex);
 
     // Present the current image to the queue
     VkResult queuePresent(VkQueue queue, uint32_t currentBuffer);
@@ -70,6 +88,7 @@ class VulkanSwapchain
     VkResult queuePresent(VkQueue queue, uint32_t currentBuffer,
                           VkSemaphore waitSemaphore);
 
+    VkSurfaceKHR getSurface() { return surface; }
 
     // Free all Vulkan resources used by the swap chain
     void cleanup();
