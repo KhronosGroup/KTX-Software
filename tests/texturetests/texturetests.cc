@@ -1220,6 +1220,7 @@ TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZSTD) {
         ktxTexture2* texture = nullptr;
         ktx_uint8_t* data = nullptr;
         ktx_size_t data_size = 0;
+        std::unique_ptr<ktx_uint8_t, decltype(&std::free)> data_raii {nullptr, std::free};
 
         // Load texture, deflate it using ZSTD, then re-write it to a memory buffer
         result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
@@ -1230,6 +1231,7 @@ TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZSTD) {
         ASSERT_EQ(ktxTexture2_DeflateZstd(texture, 22), KTX_SUCCESS);
         ASSERT_EQ(texture->supercompressionScheme, KTX_SS_ZSTD);
         ASSERT_EQ(ktxTexture2_WriteToMemory(texture, &data, &data_size), KTX_SUCCESS);
+        data_raii.reset(data);
         texture_raii.reset(nullptr);
 
         // Re-load the just-written ZSTD-compressed texture
@@ -1255,6 +1257,7 @@ TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZlib) {
         ktxTexture2* texture = nullptr;
         ktx_uint8_t* data = nullptr;
         ktx_size_t data_size = 0;
+        std::unique_ptr<ktx_uint8_t, decltype(&std::free)> data_raii {nullptr, std::free};
 
         // Load texture, deflate it using Zlib, then re-write it to a memory buffer
         result = ktxTexture2_CreateFromMemory(ktxMemFile.get(), ktxMemFileLen,
@@ -1265,6 +1268,7 @@ TEST_F(ktxTexture2_IterateLoadLevelFacesTest, IterateImagesZlib) {
         ASSERT_EQ(ktxTexture2_DeflateZLIB(texture, 9), KTX_SUCCESS);
         ASSERT_EQ(texture->supercompressionScheme, KTX_SS_ZLIB);
         ASSERT_EQ(ktxTexture2_WriteToMemory(texture, &data, &data_size), KTX_SUCCESS);
+        data_raii.reset(data);
         texture_raii.reset(nullptr);
 
         // Reload the just-written Zlib-compressed texture
