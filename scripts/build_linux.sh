@@ -47,6 +47,7 @@ PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 PY_USE_VENV=${PY_USE_VENV:-OFF}
+SANITIZE=${SANITIZE:-}
 WERROR=${WERROR:-OFF}
 
 if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
@@ -99,6 +100,9 @@ fi
 if [ -n "$CMAKE_BUILD_TYPE" ]; then
   cmake_args+=("-D" "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE")
 fi
+if [ -n "$INSTALL_LIBDIR" ]; then
+  cmake_args+=("-D" "CMAKE_INSTALL_LIBDIR=$INSTALL_LIBDIR")
+fi
 
 mkdir -p $BUILD_DIR
 
@@ -115,7 +119,7 @@ cmake_args+=(\
   "-D" "BASISU_OPENCL=$SUPPORT_OPENCL" \
   "-D" "BASISU_SSE=$SUPPORT_SSE" \
   "-D" "KTX_WERROR=$WERROR" \
-  "-D" "SANITIZE=$SANITIZE"
+  "-D" "KTX_SANITIZE=$SANITIZE"
 )
 if [ "$FEATURE_PY" = "ON" ]; then
   cmake_args+=("-D" "KTX_PY_USE_VENV=$PY_USE_VENV")

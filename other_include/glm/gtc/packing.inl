@@ -613,7 +613,7 @@ namespace detail
 
 	GLM_FUNC_QUALIFIER uint32 packF3x9_E1x5(vec3 const & v)
 	{
-		float const SharedExpMax = (pow(2.0f, 9.0f - 1.0f) / pow(2.0f, 9.0f)) * pow(2.0f, 31.f - 15.f);
+		float const SharedExpMax = ((pow(2.0f, 9.0f) - 1.0f) / pow(2.0f, 9.0f)) * pow(2.0f, 31.f - 15.f);
 		vec3 const Color = clamp(v, 0.0f, SharedExpMax);
 		float const MaxColor = max(Color.x, max(Color.y, Color.z));
 

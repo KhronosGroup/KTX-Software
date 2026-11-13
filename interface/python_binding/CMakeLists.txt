@@ -139,23 +139,7 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_custom_command(
-    TARGET pyktx
-    POST_BUILD
-    COMMAND
-        ${CMAKE_COMMAND} -E env
-            LIBKTX_INCLUDE_DIR=${libktx_include_dir}
-            DFDUTILS_INCLUDE_DIR=${dfdutils_include_dir}
-            LIBKTX_IMPORT_DIR=${libktx_import_dir}
-            LIBKTX_LIB_DIR=${libktx_lib_dir}
-            LIBKTX_VERSION=${KTX_VERSION_NORMALIZED}
-        # Ditto with sdist isolated environment comment.
-        ${PYTHON_EXECUTABLE} -m build --wheel --outdir ${DIST_DIR}
-    COMMENT
-        "Build pyktx wheel"
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
+# Wheels, with libktx included, are built by .github/workflows/pyktx.yml.
 
 set(pyktx_egg_info
     ${CMAKE_CURRENT_SOURCE_DIR}/pyktx.egg-info/dependency_links.txt

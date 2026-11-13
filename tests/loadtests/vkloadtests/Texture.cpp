@@ -65,6 +65,7 @@ Texture::Texture(VulkanContext& vkctx,
     zoom = -2.5f;
     rotation = { 0.0f, 15.0f, 0.0f };
     tiling = vk::ImageTiling::eOptimal;
+    finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     useSubAlloc = UseSuballocator::No;
     useQueueGuard = UseQueueGuard::No;
     rgbcolor upperLeftColor{0.7f, 0.1f, 0.2f};
@@ -77,13 +78,20 @@ Texture::Texture(VulkanContext& vkctx,
     quadColor = { upperLeftColor, lowerLeftColor,
                   upperRightColor, lowerRightColor };
 
+    KTX_error_code ktxresult;
     ktxVulkanDeviceInfo vdi;
-    ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
-                                  vkctx.queue, vkctx.commandPool, nullptr);
+    ktxresult = ktxVulkanDeviceInfo_Construct(&vdi, vkctx.gpu, vkctx.device,
+                                              vkctx.queue, vkctx.commandPool, nullptr);
+    if (KTX_SUCCESS != ktxresult) {
+        std::stringstream message;
+        
+        message << "Creation of ktxVulkanDeviceInfo failed: "
+                << ktxErrorString(ktxresult);
+        throw std::runtime_error(message.str());
+    }
 
     processArgs(szArgs);
 
-    KTX_error_code ktxresult;
     ktxTexture* kTexture;
     std::string ktxfilepath = externalFile ? ktxfilename
                                            : getAssetPath() + ktxfilename;
@@ -131,8 +139,9 @@ Texture::Texture(VulkanContext& vkctx,
                 ktxresult = ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(kTexture, &vdi, &texture,
                                                                                 static_cast<VkImageTiling>(tiling),
                                                                                 VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                                                &subAllocatorCallbacksGuarded, &queueGuardCallbacks);
+                                                                                static_cast<VkImageLayout>(finalLayout),
+                                                                                &subAllocatorCallbacksGuarded,
+                                                                                &queueGuardCallbacks);
             });
             uploaderThread.join(); // We really have no choice here. This crucible/test-environment only loads one texture at a time.
                                    // Additionally `QUEUE_GUARD_CALLBACKS::queueAccessGuard` and `QUEUE_GUARD_CALLBACKS::memoryAccessGuard` would
@@ -143,14 +152,15 @@ Texture::Texture(VulkanContext& vkctx,
             ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
                                                                static_cast<VkImageTiling>(tiling),
                                                                VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &subAllocatorCallbacks);
+                                                               static_cast<VkImageLayout>(finalLayout),
+                                                               &subAllocatorCallbacks);
         }
     }
     else // Keep separate call so ktxTexture_VkUploadEx is also tested.
         ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
                                           static_cast<VkImageTiling>(tiling),
                                           VK_IMAGE_USAGE_SAMPLED_BIT,
-                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                                          static_cast<VkImageLayout>(finalLayout));
     
     if (KTX_SUCCESS != ktxresult) {
         std::stringstream message;
@@ -253,6 +263,7 @@ Texture::processArgs(std::string sArgs)
     struct argparser::option longopts[] = {
       {"external",      argparser::option::no_argument,       &externalFile,        1},
       {"linear-tiling", argparser::option::no_argument,       (int*)&tiling,        (int)vk::ImageTiling::eLinear},
+      {"general-layout",argparser::option::no_argument,       (int*)&finalLayout,   (int)vk::ImageLayout::eGeneral},
       {"use-vma",       argparser::option::no_argument,       (int*)&useSubAlloc,   (int)UseSuballocator::Yes},
       {"guard-queue",   argparser::option::no_argument,       (int*)&useQueueGuard, (int)UseQueueGuard::Yes},
       {"qcolor",        argparser::option::required_argument, NULL,                 1},
@@ -576,7 +587,7 @@ Texture::setupDescriptorSet()
     vk::DescriptorImageInfo texDescriptor(
             sampler,
             imageView,
-            vk::ImageLayout::eShaderReadOnlyOptimal);
+            finalLayout);
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
     // Binding 0 : Vertex shader uniform buffer
@@ -839,12 +850,12 @@ Texture::keyPressed(uint32_t keyCode)
 }
 
 void
-Texture::getOverlayText(VulkanTextOverlay *textOverlay, float yOffset)
+Texture::getOverlayText(VulkanTextOverlay *textOverlay, float xOffset, float yOffset)
 {
     std::stringstream ss;
     ss << std::setprecision(2) << std::fixed << uboVS.lodBias;
     textOverlay->addText("LOD bias: " + ss.str() + " (numpad +/- to change)",
-                         5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                         xOffset, yOffset, VulkanTextOverlay::alignLeft);
 }
 
 const char*

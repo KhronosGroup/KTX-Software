@@ -132,4 +132,20 @@ TEST(NormaliseColorTest, multi_channel_test) {
     test_by_channel<1>(min_res1, max_res1, some_res8_1, some_res16_1, some_res32_1);
 }
 
+TEST(ImagePackingTest, E5B9G9R9FullRange) {
+    const float values[] = {0.0f, 1.0f, 32768.0f, 49152.0f, 65408.0f, 65536.0f};
+    const uint32_t expected[] = {0x00000000u, 0x80000100u, 0xf8000100u,
+                                 0xf8000180u, 0xf80001ffu, 0xf80001ffu};
+    for (uint32_t channel = 0; channel < 3; ++channel) {
+        for (uint32_t x = 0; x < 6; ++x) {
+            glm::vec3 pixel(0.0f);
+            pixel[channel] = values[x];
+            const uint32_t expectedWord =
+                (expected[x] & 0xf8000000u) | ((expected[x] & 0x1ffu) << (channel * 9));
+            EXPECT_EQ(glm::packF3x9_E1x5(pixel), expectedWord)
+                << "value " << values[x] << ", channel " << channel;
+        }
+    }
+}
+
 }  // namespace

@@ -24,7 +24,7 @@ class Texture : public VulkanLoadTestSample
     virtual void resize(uint32_t width, uint32_t height);
     virtual void run(uint32_t msTicks);
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay, float yOffset);
+    virtual void getOverlayText(VulkanTextOverlay *textOverlay, float xOffset, float yOffset);
     virtual const char* customizeTitle(const char* const title);
 
     static VulkanLoadTestSample*
@@ -49,6 +49,7 @@ class Texture : public VulkanLoadTestSample
     vk::Sampler sampler;
     vk::ImageView imageView;
     vk::ImageTiling tiling;
+    vk::ImageLayout finalLayout;
     UseSuballocator useSubAlloc;
     UseQueueGuard useQueueGuard;
     vk::ComponentMapping swizzle;

@@ -156,7 +156,9 @@ KTX_error_code  ktxCheckHeader1_(KTX_header* pHeader,
 
     /* This test works for arrays too because height or depth will be 0. */
     max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
+    /* Check > 32 first. Shifting by 32 or more is undefined. */
+    if (pHeader->numberOfMipLevels > 32 ||
+        max_dim < ((ktx_uint32_t)1 << (pHeader->numberOfMipLevels - 1)))
     {
         /* Can't have more mip levels than 1 + log2(max(width, height, depth)) */
         return KTX_FILE_DATA_ERROR;
@@ -293,7 +295,9 @@ KTX_error_code ktxCheckHeader2_(KTX_header2* pHeader,
 
     // This test works for arrays too because height or depth will be 0.
     max_dim = MAX(MAX(pHeader->pixelWidth, pHeader->pixelHeight), pHeader->pixelDepth);
-    if (max_dim < ((ktx_uint32_t)1 << (pHeader->levelCount - 1)))
+    // Check > 32 first. Shifting by 32 or more is undefined.
+    if (pHeader->levelCount > 32 ||
+        max_dim < ((ktx_uint32_t)1 << (pHeader->levelCount - 1)))
     {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         return KTX_FILE_DATA_ERROR;

@@ -249,9 +249,70 @@ TEST_F(MultithreadedEncode, EncodeASTC) {
     run(false);
 }
 
+// Compressions with and without noSSE at the same time. basisu reads
+// noSSE from a process-wide flag so this is best run under
+// ThreadSanitizer on an x86 build with SSE support.
+TEST(Multithreaded, EncodeBasisMixedNoSSE) {
+    const unsigned int numThreads = 4;
+    std::barrier<> syncPoint(numThreads);
+
+    fs::path ktx2Input = ktx2Path;
+    ktx2Input.replace_filename(u8"r8g8b8a8_srgb_mip.ktx2");
+    const std::u8string imagePath = ktx2Input.u8string();
+
+    auto encode = [&imagePath] (bool noSSE, std::barrier<>* syncPoint,
+                                std::vector<ktx_uint8_t>& out) {
+        ktxTexture2 *texture = nullptr;
+        ktx_error_code_e result = ktxTexture_CreateFromNamedFile(
+                reinterpret_cast<const char*>(imagePath.c_str()),
+                KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&texture);
+        ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
+                    << from_u8string(imagePath) << "\" failed: " << ktxErrorString(result);
+
+        ktxBasisParams params{};
+        params.structSize = sizeof(params);
+        params.codec = KTX_BASIS_CODEC_ETC1S;
+        params.threadCount = 1;
+        params.etc1sCompressionLevel = KTX_ETC1S_DEFAULT_COMPRESSION_LEVEL;
+        params.noSSE = noSSE;
+
+        if (syncPoint)
+            syncPoint->arrive_and_wait();
+
+        result = ktxTexture2_CompressBasisEx(texture, &params);
+        EXPECT_EQ(result, KTX_SUCCESS);
+
+        ktx_uint8_t* data = nullptr;
+        ktx_size_t size = 0;
+        result = ktxTexture2_WriteToMemory(texture, &data, &size);
+        EXPECT_EQ(result, KTX_SUCCESS);
+        out.assign(data, data + size);
+        free(data);
+        ktxTexture2_Destroy(texture);
+    };
+
+    std::vector<ktx_uint8_t> expected;
+    encode(false, nullptr, expected);
+    ASSERT_FALSE(expected.empty());
+
+    std::vector<std::vector<ktx_uint8_t>> outputs(numThreads);
+    std::vector<std::thread> threads;
+    for (unsigned int i = 0; i < numThreads; i++) {
+        threads.emplace_back([&encode, &syncPoint, &outputs, i] {
+            encode(i % 2 == 1, &syncPoint, outputs[i]);
+        });
+    }
+    for (auto& thread : threads)
+        thread.join();
+
+    // basisu's SSE and scalar paths give the same output.
+    for (unsigned int i = 0; i < numThreads; i++)
+        EXPECT_EQ(outputs[i], expected) << "Thread " << i << " differs";
+}
+
 }  // namespace
 
-GTEST_API_ int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
 
     if (!::testing::FLAGS_gtest_list_tests) {

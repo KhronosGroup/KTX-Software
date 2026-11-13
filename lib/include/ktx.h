@@ -844,21 +844,7 @@ typedef ktx_uint32_t ktxTextureCreateFlags;
 * ktxStream
 *===========================================================*/
 
-/*
- * This is unsigned to allow ktxmemstreams to use the
- * full amount of memory available. Platforms will
- * limit the size of ktxfilestreams to, e.g, MAX_LONG
- * on 32-bit and ktxfilestreams raises errors if
- * offset values exceed the limits. This choice may
- * need to be revisited if we ever start needing -ve
- * offsets.
- *
- * Should the 2GB file size handling limit on 32-bit
- * platforms become a problem, ktxfilestream will have
- * to be changed to explicitly handle large files by
- * using the 64-bit stream functions.
- */
-#if defined(_MSC_VER) && defined(_WIN64)
+#if (defined(_MSC_VER) && defined(_WIN64)) || defined(__MINGW32__)
   typedef __int64 ktx_off_t;
 #else
   typedef   off_t ktx_off_t;
@@ -1081,6 +1067,27 @@ ktxTexture1_GetDataSizeUncompressed(ktxTexture1* This);
 KTX_API ktx_size_t KTX_APIENTRY
 ktxTexture1_GetImageSize(ktxTexture1* This, ktx_uint32_t level);
 
+/**
+ * @~English
+ * @brief Options specifying the mapping to VkFormats  for @c GL_COMPRESSED_RGBA_ASTC_\*_KHR
+ *        formats.
+ * @sa ktxTexture1\_SetRgbaAstcMapping.
+ */
+typedef enum ktx_rgba_astc_mapping_e {
+    KTX_MAP_RGBA_ASTC_TO_HDR,
+        /*!< map to @c VK_FORMAT_ASTC_\*_SFLOAT_BLOCK formats. */
+    KTX_MAP_RGBA_ASTC_TO_LDR
+        /*!< map to @c VK_FORMAT_ASTC_\*_UNORM_BLOCK formats*/
+} ktx_rgba_astc_mapping_e;
+
+/* Sets the VkFormat mapping used for RGBA ASTC GL internal formats. */
+KTX_API void KTX_APIENTRY
+ktxTexture1_SetRgbaAstcMapping(ktxTexture1* This, ktx_rgba_astc_mapping_e mapping);
+
+/* Gets the VkFormat mapping to use for RGBA ASTC GL internal formats. */
+KTX_API ktx_rgba_astc_mapping_e KTX_APIENTRY
+ktxTexture1_GetRgbaAstcMapping(ktxTexture1* This);
+
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture1_LoadImageData(ktxTexture1* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
 
@@ -1260,7 +1267,7 @@ typedef enum ktx_pack_uastc_flag_bits_e {
         /*!< Very slow compression. 48.24dB. */
     KTX_PACK_UASTC_MAX_LEVEL = KTX_PACK_UASTC_LEVEL_VERYSLOW,
         /*!< Maximum supported quality level. */
-    KTX_PACK_UASTC_LEVEL_MASK     = 0xF,
+    KTX_PACK_UASTC_LEVEL_MASK     = 0x7,
         /*!< Mask to extract the level from the other bits. */
     KTX_PACK_UASTC_FAVOR_UASTC_ERROR = 8U,
         /*!< Optimize for lowest UASTC error. */
@@ -1439,7 +1446,7 @@ typedef ktx_uint32_t ktx_basis_codec;
  * @brief Structure for passing extended parameters to
  *        ktxTexture2_CompressBasisEx().
  *
- * If you only want default values, use ktxTexture2_CompressBasis(). Here, at
+ * If you only want default values, use ktxTexture2\_CompressBasis(). Here, at
  * a minimum you must initialize the structure as follows:
  * @code
  *  ktxBasisParams params = {0};

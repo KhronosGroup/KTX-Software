@@ -182,22 +182,22 @@ VulkanLoadTests::drawFrame(uint32_t msTicks)
 
 
 void
-VulkanLoadTests::getOverlayText(float yOffset)
+VulkanLoadTests::getOverlayText(float xOffset, float yOffset)
 {
     if (enableTextOverlay) {
         textOverlay->addText("Press \"n\" or 2-finger swipe left for next "
                              "sample, \"p\" or swipe right for previous.",
-                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                             xOffset, yOffset, VulkanTextOverlay::alignLeft);
         yOffset += 20;
         textOverlay->addText("2-finger rotate or left mouse + drag to rotate.",
-                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                             xOffset, yOffset, VulkanTextOverlay::alignLeft);
         yOffset += 20;
         textOverlay->addText("Pinch/zoom or right mouse + drag to change "
                              "object size.",
-                             5.0f, yOffset, VulkanTextOverlay::alignLeft);
+                             xOffset, yOffset, VulkanTextOverlay::alignLeft);
         yOffset += 20;
         if (pCurSample != nullptr) {
-            pCurSample->getOverlayText(textOverlay, yOffset);
+            pCurSample->getOverlayText(textOverlay, xOffset, yOffset);
         }
     }
 }
@@ -491,6 +491,10 @@ const VulkanLoadTests::sampleInvocation siSamples[] = {
     { Texture::create,
       "r8g8b8a8_srgb.ktx2",
       "KTX2: RGBA8 2D No KTXOrientation"
+    },
+    { Texture::create,
+      "--general-layout r8g8b8a8_srgb.ktx2",
+      "KTX2: RGBA8 2D No KTXOrientation, Using GENERAL Layout"
     },
     { Texture::create,
         "--linear-tiling r8g8b8a8_srgb.ktx2",

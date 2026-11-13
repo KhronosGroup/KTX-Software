@@ -798,7 +798,7 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
 {
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
-    ktx_uint8_t* workBuf;
+    ktx_uint8_t* workBuf = NULL;
     ktx_uint8_t* cmpData;
     ktx_size_t dstRemainingByteLength = 0;
     ktx_size_t byteLengthCmp = 0;
@@ -806,14 +806,18 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
     ktxLevelIndexEntry* nindex;
     ktx_uint8_t* pCmpDst;
-    ktx_error_code_e result;
+    ktx_error_code_e result = KTX_SUCCESS;
 
     ZSTD_CCtx* cctx = ZSTD_createCCtx();
-    if (cctx == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (cctx == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;
+    if (This->supercompressionScheme != KTX_SS_NONE) {
+        result = KTX_INVALID_OPERATION;
+        goto cleanup;
+    }
 
     // On rare occasions the deflated data can be a few bytes larger than
     // the source data. Calculating the dst buffer size using
@@ -839,7 +843,6 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
                               cindex[level].byteLength,
                               compressionLevel);
         if (ZSTD_isError(levelByteLengthCmp)) {
-            free(workBuf);
             ZSTD_ErrorCode error = ZSTD_getErrorCode(levelByteLengthCmp);
             switch(error) {
               case ZSTD_error_parameter_outOfBound:
@@ -881,28 +884,26 @@ ktxTexture2_DeflateZstd(ktxTexture2* This, ktx_uint32_t compressionLevel)
         dstRemainingByteLength -= levelByteLengthCmp;
     }
     ZSTD_freeCCtx(cctx);
+    cctx = NULL;
 
     // Move the compressed data into a correctly sized buffer.
     cmpData = malloc(byteLengthCmp);
     if (cmpData == NULL) {
-        free(workBuf);
-        return KTX_OUT_OF_MEMORY;
+        result = KTX_OUT_OF_MEMORY; 
+        goto cleanup;
     }
     // Now modify the texture.
     memcpy(cmpData, pCmpDst, byteLengthCmp); // Copy data to sized buffer.
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
-    free(workBuf);
     free(This->pData);
     This->pData = cmpData;
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZSTD;
     This->_private->_requiredLevelAlignment = 1;
 
-    return KTX_SUCCESS;
-
 cleanup:
-    ZSTD_freeCCtx(cctx);
-    free(workBuf);
+    ZSTD_freeCCtx(cctx);  // free'ing a NULL pointer is fine here
+    if(workBuf) free(workBuf);
     return result;
 }
 
@@ -923,7 +924,7 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
 {
     ktx_uint32_t levelIndexByteLength =
                             This->numLevels * sizeof(ktxLevelIndexEntry);
-    ktx_uint8_t* workBuf;
+    ktx_uint8_t* workBuf = NULL;
     ktx_uint8_t* cmpData;
     ktx_size_t dstRemainingByteLength = 0;
     ktx_size_t byteLengthCmp = 0;
@@ -931,9 +932,12 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     ktxLevelIndexEntry* cindex = This->_private->_levelIndex;
     ktxLevelIndexEntry* nindex;
     ktx_uint8_t* pCmpDst;
+    ktx_error_code_e result = KTX_SUCCESS;
 
-    if (This->supercompressionScheme != KTX_SS_NONE)
-        return KTX_INVALID_OPERATION;
+    if (This->supercompressionScheme != KTX_SS_NONE) {
+        result = KTX_INVALID_OPERATION;
+        goto cleanup;
+    }
 
     // On rare occasions the deflated data can be a few bytes larger than
     // the source data. Calculating the dst buffer size using
@@ -943,21 +947,22 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     }
 
     workBuf = malloc(dstRemainingByteLength + levelIndexByteLength);
-    if (workBuf == NULL)
-        return KTX_OUT_OF_MEMORY;
+    if (workBuf == NULL) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
     nindex = (ktxLevelIndexEntry*)workBuf;
     pCmpDst = &workBuf[levelIndexByteLength];
 
     for (int32_t level = This->numLevels - 1; level >= 0; level--) {
         size_t levelByteLengthCmp = dstRemainingByteLength;
-        KTX_error_code result = ktxCompressZLIBInt(pCmpDst + levelOffset,
-                                                    &levelByteLengthCmp,
-                                                    &This->pData[cindex[level].byteOffset],
-                                                    cindex[level].byteLength,
-                                                    compressionLevel);
+        result = ktxCompressZLIBInt(pCmpDst + levelOffset,
+                                    &levelByteLengthCmp,
+                                    &This->pData[cindex[level].byteOffset],
+                                    cindex[level].byteLength,
+                                    compressionLevel);
         if (result != KTX_SUCCESS) {
-            free(workBuf);
-            return result;
+            goto cleanup;
         }
 
         nindex[level].byteOffset = levelOffset;
@@ -971,20 +976,21 @@ ktxTexture2_DeflateZLIB(ktxTexture2* This, ktx_uint32_t compressionLevel)
     // Move the compressed data into a correctly sized buffer.
     cmpData = malloc(byteLengthCmp);
     if (cmpData == NULL) {
-        free(workBuf);
-        return KTX_OUT_OF_MEMORY;
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
     }
     // Now modify the texture.
     memcpy(cmpData, pCmpDst, byteLengthCmp); // Copy data to sized buffer.
     memcpy(cindex, nindex, levelIndexByteLength); // Update level index
-    free(workBuf);
     free(This->pData);
     This->pData = cmpData;
     This->dataSize = byteLengthCmp;
     This->supercompressionScheme = KTX_SS_ZLIB;
     This->_private->_requiredLevelAlignment = 1;
 
-    return KTX_SUCCESS;
+cleanup:
+    if (workBuf) free(workBuf);
+    return result;
 }
 
 /** @} */
