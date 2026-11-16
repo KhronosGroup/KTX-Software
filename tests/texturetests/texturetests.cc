@@ -1502,6 +1502,821 @@ TEST(ktxTexture_Create, RejectsMipLevelCountBeyondBitWidth) {
 }
 
 /////////////////////////////////////////
+// Image data sizes of large textures
+////////////////////////////////////////
+
+namespace {
+
+struct LargeTextureCase {
+    const char* name;
+    ktx_uint32_t glInternalformat;
+    VkFormat vkFormat;
+    ktx_uint32_t width, height, depth;
+    ktx_uint32_t numLevels, numLayers, numFaces;
+    ktx_uint64_t levelSize; // Expected size of level 0, if it fits.
+};
+
+ktxTextureCreateInfo
+createInfoFor(const LargeTextureCase& c)
+{
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.glInternalformat = c.glInternalformat;
+    createInfo.vkFormat = c.vkFormat;
+    createInfo.baseWidth = c.width;
+    createInfo.baseHeight = c.height;
+    createInfo.baseDepth = c.depth;
+    createInfo.numDimensions = c.depth > 1 ? 3 : 2;
+    createInfo.numLevels = c.numLevels;
+    createInfo.numLayers = c.numLayers;
+    createInfo.numFaces = c.numFaces;
+    createInfo.isArray = c.numLayers > 1;
+    return createInfo;
+}
+
+bool
+fitsInSizeT(ktx_uint64_t size)
+{
+    return (ktx_size_t)size == size;
+}
+
+// Format of a texture whose expected layout is calculated below.
+struct LayoutFormat {
+    ktx_uint32_t blockBytes;
+    ktx_uint32_t blockWidth, blockHeight;
+    bool compressed;
+};
+
+ktx_uint64_t
+roundUp(ktx_uint64_t value, ktx_uint64_t alignment)
+{
+    return (value + alignment - 1) / alignment * alignment;
+}
+
+// The size of each level and its offset in the image data as the KTX
+// specifications define them: KTX 1 rows of uncompressed formats are padded
+// to 4 bytes and levels are stored from level 0; KTX 2 rows are not padded,
+// levels are stored from the smallest and each level is aligned to
+// lcm(block size, 4). Calculated in 64 bits for cases known to fit.
+struct ExpectedLayout {
+    ktx_uint64_t levelSize[32];
+    ktx_uint64_t levelOffset[32];
+    ktx_uint64_t dataSize;
+};
+
+ExpectedLayout
+expectedLayout(const LargeTextureCase& c, const LayoutFormat& f,
+               ktxFormatVersionEnum fv)
+{
+    ExpectedLayout e = {};
+    for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+        ktx_uint64_t width = std::max(1u, c.width >> level);
+        ktx_uint64_t height = std::max(1u, c.height >> level);
+        ktx_uint64_t depth = std::max(1u, c.depth >> level);
+        ktx_uint64_t rowBytes = (width + f.blockWidth - 1) / f.blockWidth
+                              * f.blockBytes;
+        if (fv == KTX_FORMAT_VERSION_ONE && !f.compressed)
+            rowBytes = roundUp(rowBytes, 4);
+        e.levelSize[level] = rowBytes
+                           * ((height + f.blockHeight - 1) / f.blockHeight)
+                           * depth * c.numFaces * c.numLayers;
+    }
+    if (fv == KTX_FORMAT_VERSION_ONE) {
+        for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+            e.levelOffset[level] = e.dataSize;
+            e.dataSize += e.levelSize[level];
+        }
+    } else {
+        ktx_uint64_t alignment = f.blockBytes;
+        while (alignment % 4 != 0)
+            alignment += f.blockBytes;
+        for (ktx_uint32_t level = c.numLevels; level-- > 0;) {
+            e.levelOffset[level] = e.dataSize;
+            e.dataSize += level > 0 ? roundUp(e.levelSize[level], alignment)
+                                    : e.levelSize[level];
+        }
+    }
+    return e;
+}
+
+// Check the level sizes and offsets of a texture and the offset of the image
+// of its last layer and last face or depth slice in each level.
+void
+checkLayout(ktxTexture* texture, const LargeTextureCase& c,
+            const ExpectedLayout& e, ktxFormatVersionEnum fv)
+{
+    for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+        SCOPED_TRACE(level);
+        ktx_uint64_t depth = std::max(1u, c.depth >> level);
+        ktx_uint64_t layerSize = e.levelSize[level] / c.numLayers;
+        ktx_uint64_t imageSize = layerSize / c.numFaces / depth;
+        ktx_uint32_t lastFaceSlice = c.numFaces > 1 ? c.numFaces - 1
+                                                    : (ktx_uint32_t)depth - 1;
+        ktx_size_t offset = 0;
+
+        EXPECT_EQ(ktxTexture_calcLevelSize(texture, level, fv),
+                  e.levelSize[level]);
+        if (fv == KTX_FORMAT_VERSION_ONE) {
+            EXPECT_EQ(ktxTexture1_calcLevelOffset((ktxTexture1*)texture, level),
+                      e.levelOffset[level]);
+        } else {
+            ktxTexture2* texture2 = (ktxTexture2*)texture;
+            EXPECT_EQ(ktxTexture2_calcLevelOffset(texture2, level),
+                      e.levelOffset[level]);
+            // The level index ktxTexture2_Create builds from these.
+            EXPECT_EQ(texture2->_private->_levelIndex[level].byteOffset,
+                      e.levelOffset[level]);
+            EXPECT_EQ(texture2->_private->_levelIndex[level].uncompressedByteLength,
+                      e.levelSize[level]);
+        }
+        ASSERT_EQ(ktxTexture_GetImageOffset(texture, level, c.numLayers - 1,
+                                            lastFaceSlice, &offset),
+                  KTX_SUCCESS);
+        EXPECT_EQ(offset, e.levelOffset[level]
+                          + (c.numLayers - 1) * layerSize
+                          + lastFaceSlice * imageSize);
+    }
+}
+
+} // namespace
+
+// ktxTexture_calcImageSize used float and 32-bit arithmetic. Widths above
+// 2^24 were rounded, UINT32_MAX was rounded to 2^32 before conversion to
+// ktx_uint32_t (undefined) and block count products above 4GiB wrapped, so
+// image data could be allocated smaller than the images.
+TEST(ktxTexture_calcImageSize, IsExactForLargeImages) {
+    const LargeTextureCase cases[] = {
+        {"width above float precision", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         (1u << 24) + 1, 1, 1, 1, 1, 1, 4 * ((1ull << 24) + 1)},
+        {"width rounding past UINT32_MAX", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         UINT32_MAX, 1, 1, 1, 1, 1, 4ull * UINT32_MAX},
+        {"block count product above 32 bits",
+         GL_COMPRESSED_RGBA_ASTC_4x4_KHR, VK_FORMAT_ASTC_4x4_UNORM_BLOCK,
+         0xfffffffe, 0x7fff, 1, 1, 1, 1, 16ull * 0x40000000 * 0x2000},
+        {"large level", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         1u << 31, 0x70000000, 1, 1, 1, 1, 4ull * (1ull << 31) * 0x70000000},
+    };
+    for (const auto& c : cases) {
+        SCOPED_TRACE(c.name);
+        ktxTextureCreateInfo createInfo = createInfoFor(c);
+
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        ktxTexture2* texture2 = nullptr;
+        auto result2 = ktxTexture2_Create(&createInfo,
+                                          KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        if (!fitsInSizeT(c.levelSize)) {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+            EXPECT_EQ(result2, KTX_OUT_OF_MEMORY);
+            continue;
+        }
+        ASSERT_EQ(result, KTX_SUCCESS);
+        ASSERT_EQ(result2, KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture1), 0,
+                                           KTX_FORMAT_VERSION_ONE),
+                  c.levelSize);
+        EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture2), 0,
+                                           KTX_FORMAT_VERSION_TWO),
+                  c.levelSize);
+        // The size of the storage ktxTexture2_Create would allocate.
+        EXPECT_EQ(texture2->_private->_levelIndex[0].uncompressedByteLength,
+                  c.levelSize);
+    }
+}
+
+// The depth block count was (depth + blockDepth - 1) / blockDepth, which
+// wraps for depths near UINT32_MAX.
+TEST(ktxTexture_calcLevelSize, DepthBlockCountDoesNotWrap) {
+    const LargeTextureCase c = {
+        "3D ASTC", 0, VK_FORMAT_ASTC_3x3x3_UNORM_BLOCK_EXT,
+        3, 3, UINT32_MAX, 1, 1, 1, 16ull * (UINT32_MAX / 3)};
+    ktxTextureCreateInfo createInfo = createInfoFor(c);
+    ktxTexture2* texture2 = nullptr;
+    auto result = ktxTexture2_Create(&createInfo,
+                                     KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+    ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+    if (!fitsInSizeT(c.levelSize)) {
+        EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        return;
+    }
+    ASSERT_EQ(result, KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_calcLevelSize(ktxTexture(texture2), 0,
+                                       KTX_FORMAT_VERSION_TWO),
+              c.levelSize);
+    EXPECT_EQ(texture2->_private->_levelIndex[0].uncompressedByteLength,
+              c.levelSize);
+}
+
+// Accepted multi-level textures: the level sizes and offsets, including KTX 1
+// row padding and KTX 2 level alignment, are exact. The KTX 2 levels after
+// the first are larger than 4GiB, which _KTX_PADN, returning a ktx_uint32_t,
+// truncated.
+TEST(ktxTexture_calcLevelOffset, IsExactForLargeMultiLevelTextures) {
+    const LayoutFormat rgb8 = {3, 1, 1, false};
+    const LayoutFormat astc6x6 = {16, 6, 6, true};
+    const struct {
+        LargeTextureCase c;
+        LayoutFormat format;
+    } cases[] = {
+        {{"2D RGB8, odd sizes at every level", GL_RGB8, VK_FORMAT_R8G8B8_UNORM,
+          0x1ffff, 0xffff, 1, 17, 1, 1, 0}, rgb8},
+        {{"cube map array RGB8", GL_RGB8, VK_FORMAT_R8G8B8_UNORM,
+          0x7fff, 0x7fff, 1, 15, 2, 6, 0}, rgb8},
+        {{"3D RGB8", GL_RGB8, VK_FORMAT_R8G8B8_UNORM,
+          0xfff, 0xfff, 0xfff, 12, 1, 1, 0}, rgb8},
+        {{"2D ASTC 6x6", GL_COMPRESSED_RGBA_ASTC_6x6_KHR,
+          VK_FORMAT_ASTC_6x6_UNORM_BLOCK,
+          0x100001, 0x100001, 1, 21, 1, 1, 0}, astc6x6},
+    };
+
+    // Independently calculated values for the first case.
+    const ExpectedLayout first1 = expectedLayout(cases[0].c, rgb8,
+                                                 KTX_FORMAT_VERSION_ONE);
+    const ExpectedLayout first2 = expectedLayout(cases[0].c, rgb8,
+                                                 KTX_FORMAT_VERSION_TWO);
+    EXPECT_EQ(first1.levelSize[0], 25769410560ull);
+    EXPECT_EQ(first1.dataSize, 34358951944ull);
+    EXPECT_EQ(first2.levelSize[1], 6442156035ull);
+    EXPECT_EQ(first2.levelOffset[0], 8589344964ull);
+    EXPECT_EQ(first2.dataSize, 34358558919ull);
+
+    for (const auto& tc : cases) {
+        const LargeTextureCase& c = tc.c;
+        SCOPED_TRACE(c.name);
+        ktxTextureCreateInfo createInfo = createInfoFor(c);
+
+        const ExpectedLayout e1 = expectedLayout(c, tc.format,
+                                                 KTX_FORMAT_VERSION_ONE);
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        if (fitsInSizeT(e1.dataSize)) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            checkLayout(ktxTexture(texture1), c, e1, KTX_FORMAT_VERSION_ONE);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+
+        const ExpectedLayout e2 = expectedLayout(c, tc.format,
+                                                 KTX_FORMAT_VERSION_TWO);
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_Create(&createInfo,
+                                    KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        if (fitsInSizeT(e2.dataSize)) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            checkLayout(ktxTexture(texture2), c, e2, KTX_FORMAT_VERSION_TWO);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+    }
+}
+
+// Control: a small multi-level array whose rows need KTX 1 padding and whose
+// levels need KTX 2 alignment is created with storage of the exact size.
+TEST(ktxTexture_calcLevelOffset, IsExactForSmallPaddedArray) {
+    const LargeTextureCase c = {"RGB8 array", GL_RGB8, VK_FORMAT_R8G8B8_UNORM,
+                                5, 3, 1, 3, 2, 1, 0};
+    const LayoutFormat rgb8 = {3, 1, 1, false};
+    ktxTextureCreateInfo createInfo = createInfoFor(c);
+
+    // KTX 1: rows of 15, 6 and 3 bytes are padded to 16, 8 and 4.
+    const ExpectedLayout e1 = expectedLayout(c, rgb8, KTX_FORMAT_VERSION_ONE);
+    EXPECT_EQ(e1.levelSize[0], 96u);
+    EXPECT_EQ(e1.levelOffset[2], 112u);
+    EXPECT_EQ(e1.dataSize, 120u);
+    ktxTexture1* texture1 = nullptr;
+    auto result = ktxTexture1_Create(&createInfo,
+                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture1);
+    ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetDataSize(ktxTexture(texture1)), e1.dataSize);
+    checkLayout(ktxTexture(texture1), c, e1, KTX_FORMAT_VERSION_ONE);
+
+    // KTX 2: levels of 6 and 12 bytes before level 0 are aligned to 12.
+    const ExpectedLayout e2 = expectedLayout(c, rgb8, KTX_FORMAT_VERSION_TWO);
+    EXPECT_EQ(e2.levelOffset[1], 12u);
+    EXPECT_EQ(e2.levelOffset[0], 24u);
+    EXPECT_EQ(e2.dataSize, 114u);
+    ktxTexture2* texture2 = nullptr;
+    result = ktxTexture2_Create(&createInfo,
+                                KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture2);
+    ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    EXPECT_EQ(ktxTexture_GetDataSize(ktxTexture(texture2)), e2.dataSize);
+    checkLayout(ktxTexture(texture2), c, e2, KTX_FORMAT_VERSION_TWO);
+}
+
+// Each case exceeds 2^64 bytes through a different factor of the data size,
+// so it can never fit in a ktx_size_t.
+TEST(ktxTexture_Create, FailsWhenImageDataSizeDoesNotFit) {
+    const LargeTextureCase cases[] = {
+        {"width and height", GL_RGBA32F, VK_FORMAT_R32G32B32A32_SFLOAT,
+         UINT32_MAX, UINT32_MAX, 1, 1, 1, 1, 0},
+        {"depth", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         1u << 16, 1u << 16, 1u << 31, 1, 1, 1, 0},
+        {"layers", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         1u << 16, 1u << 16, 1, 1, 1u << 31, 1, 0},
+        {"faces", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         1u << 30, 1u << 30, 1, 1, 1, 6, 0},
+        {"levels", GL_RGBA8, VK_FORMAT_R8G8B8A8_UNORM,
+         1u << 31, 0x70000000, 1, 2, 1, 1, 0},
+    };
+    for (const auto& c : cases) {
+        SCOPED_TRACE(c.name);
+        ktxTextureCreateInfo createInfo = createInfoFor(c);
+
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_Create(&createInfo,
+                                    KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+    }
+}
+
+// The size check is exact for each format version. The cases have 8-bit
+// texels and data sizes at the 64-bit limit. On 64-bit hosts each is accepted
+// exactly when its size, with the padding of its format version, fits in 64
+// bits. On 32-bit hosts all are rejected.
+TEST(ktxTexture_Create, AcceptsExactlyTheSizesThatFit) {
+    // 1708606335 * 42009217 * 257 == 2^64 - 1. KTX 2 does not pad rows; KTX 1
+    // pads the 1708606335-byte rows by 1 byte, which does not fit.
+    static_assert(1708606335ull * 42009217ull * 257ull == UINT64_MAX, "");
+    // 2863311532 * 2147483647 * 3 == 2^64 - 4. 2863311529-byte rows are
+    // padded by KTX 1 to 2863311532 bytes.
+    static_assert(2863311532ull * 2147483647ull * 3ull == UINT64_MAX - 3, "");
+    // Two levels, 4294967294 and 2147483647 bytes wide, of 2863311532 layers:
+    // 2^64 - 4 bytes. The second level is a multiple of the KTX 2 level
+    // alignment, 4. KTX 1 pads the 4294967294-byte rows.
+    static_assert(2863311532ull * (4294967294ull + 2147483647ull)
+                  == UINT64_MAX - 3, "");
+    // Two levels, 3444014338 and 1722007169 bytes wide, of 3570783445
+    // layers: 2^64 - 1 bytes before KTX 2 aligns the second level, 1 byte
+    // short of a multiple of 4, which then does not fit.
+    static_assert(3570783445ull * (3444014338ull + 1722007169ull)
+                  == UINT64_MAX, "");
+    static_assert(3570783445ull * 1722007169ull % 4 == 1, "");
+
+    const bool is64 = sizeof(ktx_size_t) >= 8;
+    // Expected data sizes, 0 for a texture that does not fit in 64 bits.
+    const struct {
+        LargeTextureCase c;
+        ktx_uint64_t ktx1Size, ktx2Size;
+    } cases[] = {
+        {{"KTX 2 2^64 - 1", GL_R8, VK_FORMAT_R8_UNORM,
+          1708606335, 42009217, 1, 1, 257, 1, 0},
+         0, UINT64_MAX},
+        {{"KTX 2 one byte wider", GL_R8, VK_FORMAT_R8_UNORM,
+          1708606336, 42009217, 1, 1, 257, 1, 0},
+         0, 0},
+        {{"KTX 1 2^64 - 4", GL_R8, VK_FORMAT_R8_UNORM,
+          2863311529, 2147483647, 1, 1, 3, 1, 0},
+         UINT64_MAX - 3, 2863311529ull * 2147483647ull * 3ull},
+        {{"KTX 1 next padded row", GL_R8, VK_FORMAT_R8_UNORM,
+          2863311533, 2147483647, 1, 1, 3, 1, 0},
+         0, 0},
+        {{"KTX 2 two levels 2^64 - 4", GL_R8, VK_FORMAT_R8_UNORM,
+          4294967294, 1, 1, 2, 2863311532, 1, 0},
+         0, UINT64_MAX - 3},
+        {{"KTX 2 two levels past 2^64 - 1 by level alignment", GL_R8,
+          VK_FORMAT_R8_UNORM, 3444014338, 1, 1, 2, 3570783445, 1, 0},
+         0, 0},
+    };
+    const LayoutFormat r8 = {1, 1, 1, false};
+    for (const auto& tc : cases) {
+        const LargeTextureCase& c = tc.c;
+        SCOPED_TRACE(c.name);
+        ktxTextureCreateInfo createInfo = createInfoFor(c);
+
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_NO_STORAGE, &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        if (is64 && tc.ktx1Size != 0) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            const ExpectedLayout e = expectedLayout(c, r8, KTX_FORMAT_VERSION_ONE);
+            EXPECT_EQ(e.dataSize, tc.ktx1Size);
+            checkLayout(ktxTexture(texture1), c, e, KTX_FORMAT_VERSION_ONE);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_Create(&createInfo,
+                                    KTX_TEXTURE_CREATE_NO_STORAGE, &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        if (is64 && tc.ktx2Size != 0) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            const ExpectedLayout e = expectedLayout(c, r8, KTX_FORMAT_VERSION_TWO);
+            EXPECT_EQ(e.dataSize, tc.ktx2Size);
+            checkLayout(ktxTexture(texture2), c, e, KTX_FORMAT_VERSION_TWO);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+    }
+}
+
+namespace {
+
+// Write a one-level 1x1 RGBA32F texture to memory and change the pixel width
+// and height in its header. The level index and image data are unchanged.
+template<class Texture>
+std::vector<ktx_uint8_t>
+fileWithDimensions(ktx_uint32_t width, ktx_uint32_t height)
+{
+    ktxTextureCreateInfo createInfo = {};
+    createInfo.glInternalformat = GL_RGBA32F;
+    createInfo.vkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+    createInfo.baseWidth = createInfo.baseHeight = createInfo.baseDepth = 1;
+    createInfo.numDimensions = 2;
+    createInfo.numLevels = createInfo.numLayers = createInfo.numFaces = 1;
+
+    Texture* texture = nullptr;
+    ktx_uint8_t* data = nullptr;
+    ktx_size_t size = 0;
+    KTX_error_code result;
+    // KTX 1: pixelWidth at 36, pixelHeight at 40, in the writer's byte order.
+    // KTX 2: pixelWidth at 20, pixelHeight at 24.
+    size_t widthOffset;
+    if constexpr (std::is_same_v<Texture, ktxTexture1>) {
+        result = ktxTexture1_Create(&createInfo,
+                                    KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
+        widthOffset = 36;
+    } else {
+        result = ktxTexture2_Create(&createInfo,
+                                    KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
+        widthOffset = 20;
+    }
+    ktxTexture_unique_ptr texture_raii{ktxTexture(texture), ktxTexture_Deleter};
+    if (result != KTX_SUCCESS)
+        return {};
+    memset(ktxTexture(texture)->pData, 0, ktxTexture(texture)->dataSize);
+    if (ktxTexture_WriteToMemory(ktxTexture(texture), &data, &size)
+        != KTX_SUCCESS)
+        return {};
+    std::vector<ktx_uint8_t> file(data, data + size);
+    free(data);
+    memcpy(&file[widthOffset], &width, sizeof(width));
+    memcpy(&file[widthOffset + 4], &height, sizeof(height));
+    return file;
+}
+
+} // namespace
+
+// Loaded textures are sized from their headers by the same calculations as
+// created ones. A header whose image data size does not fit in a ktx_size_t
+// is rejected, and one whose size fits gets exact sizes.
+TEST(ktxTexture_CreateFromMemory, ChecksImageDataSizeOfHeader) {
+    const struct {
+        ktx_uint32_t width, height;
+        ktx_uint64_t imageSize; // 0 if it does not fit in 64 bits.
+    } cases[] = {
+        {UINT32_MAX, 3, 16ull * UINT32_MAX * 3},
+        {UINT32_MAX, UINT32_MAX, 0},
+    };
+    for (const auto& c : cases) {
+        SCOPED_TRACE(c.height);
+        const bool fits = c.imageSize != 0 && fitsInSizeT(c.imageSize);
+
+        auto file1 = fileWithDimensions<ktxTexture1>(c.width, c.height);
+        ASSERT_FALSE(file1.empty());
+        ktxTexture1* texture1 = nullptr;
+        auto result = ktxTexture1_CreateFromMemory(file1.data(), file1.size(),
+                                                   KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                   &texture1);
+        ktxTexture_unique_ptr texture1_raii{ktxTexture(texture1), ktxTexture_Deleter};
+        if (fits) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            EXPECT_EQ(texture1->baseWidth, c.width);
+            EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture1), 0,
+                                               KTX_FORMAT_VERSION_ONE),
+                      c.imageSize);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+
+        auto file2 = fileWithDimensions<ktxTexture2>(c.width, c.height);
+        ASSERT_FALSE(file2.empty());
+        ktxTexture2* texture2 = nullptr;
+        result = ktxTexture2_CreateFromMemory(file2.data(), file2.size(),
+                                              KTX_TEXTURE_CREATE_NO_FLAGS,
+                                              &texture2);
+        ktxTexture_unique_ptr texture2_raii{ktxTexture(texture2), ktxTexture_Deleter};
+        if (fits) {
+            ASSERT_EQ(result, KTX_SUCCESS);
+            EXPECT_EQ(texture2->baseWidth, c.width);
+            EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture2), 0,
+                                               KTX_FORMAT_VERSION_TWO),
+                      c.imageSize);
+        } else {
+            EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+        }
+    }
+}
+
+/////////////////////////////////////////
+// KTX 1 formats whose texels are not a whole number of bytes
+////////////////////////////////////////
+
+namespace {
+
+// The bytes of a row of width texels of bits bits, rounded up to a whole
+// byte, and the same row padded to 4 bytes as in KTX 1.
+ktx_uint64_t
+packedRowBytes(ktx_uint64_t width, ktx_uint32_t bits)
+{
+    return (width * bits + 7) / 8;
+}
+
+ktx_uint64_t
+ktx1RowBytes(ktx_uint64_t width, ktx_uint32_t bits)
+{
+    return roundUp(packedRowBytes(width, bits), 4);
+}
+
+struct Ktx1RowFormat {
+    const char* name;
+    ktx_uint32_t glInternalformat;
+    ktx_uint32_t bits;      // Bits per texel.
+    ktx_uint64_t dataSize;  // Data size of the texture below.
+};
+
+// Create a 33x3, 3-level, 2-layer KTX 1 array with storage, check its sizes
+// and offsets, set every image from packed rows and check the padded rows,
+// then write the texture to memory, load it and check the loaded data.
+void
+checkKtx1Rows(const Ktx1RowFormat& f)
+{
+    SCOPED_TRACE(f.name);
+    const LargeTextureCase c = {f.name, f.glInternalformat, VK_FORMAT_UNDEFINED,
+                                33, 3, 1, 3, 2, 1, 0};
+    ktxTextureCreateInfo createInfo = createInfoFor(c);
+    ktxTexture1* texture = nullptr;
+    auto result = ktxTexture1_Create(&createInfo,
+                                     KTX_TEXTURE_CREATE_ALLOC_STORAGE, &texture);
+    ktxTexture_unique_ptr texture_raii{ktxTexture(texture), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+
+    ktx_uint64_t levelOffset[3];
+    ktx_uint64_t dataSize = 0;
+    for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+        levelOffset[level] = dataSize;
+        dataSize += ktx1RowBytes(std::max(1u, c.width >> level), f.bits)
+                    * std::max(1u, c.height >> level) * c.numLayers;
+    }
+    EXPECT_EQ(dataSize, f.dataSize);
+    ASSERT_EQ(ktxTexture_GetDataSize(ktxTexture(texture)), f.dataSize);
+
+    std::vector<ktx_uint8_t> image;
+    for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+        SCOPED_TRACE(level);
+        const ktx_uint32_t width = std::max(1u, c.width >> level);
+        const ktx_uint32_t height = std::max(1u, c.height >> level);
+        const ktx_uint64_t packedRow = packedRowBytes(width, f.bits);
+        const ktx_uint64_t row = ktx1RowBytes(width, f.bits);
+
+        EXPECT_EQ(ktxTexture_GetRowPitch(ktxTexture(texture), level), row);
+        EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture), level,
+                                           KTX_FORMAT_VERSION_ONE),
+                  row * height);
+        EXPECT_EQ(ktxTexture_calcLevelSize(ktxTexture(texture), level,
+                                           KTX_FORMAT_VERSION_ONE),
+                  row * height * c.numLayers);
+        EXPECT_EQ(ktxTexture1_calcLevelOffset(texture, level),
+                  levelOffset[level]);
+        for (ktx_uint32_t layer = 0; layer < c.numLayers; layer++) {
+            SCOPED_TRACE(layer);
+            image.resize(packedRow * height);
+            for (size_t i = 0; i < image.size(); i++)
+                image[i] = (ktx_uint8_t)(1 + (level * 64 + layer * 32 + i) % 255);
+            ASSERT_EQ(ktxTexture_SetImageFromMemory(ktxTexture(texture), level,
+                                                    layer, 0, image.data(),
+                                                    image.size()),
+                      KTX_SUCCESS);
+            ktx_size_t offset = 0;
+            ASSERT_EQ(ktxTexture_GetImageOffset(ktxTexture(texture), level,
+                                                layer, 0, &offset),
+                      KTX_SUCCESS);
+            EXPECT_EQ(offset, levelOffset[level] + layer * row * height);
+            const ktx_uint8_t* data = texture->pData + offset;
+            for (ktx_uint32_t y = 0; y < height; y++) {
+                EXPECT_EQ(memcmp(data + y * row, image.data() + y * packedRow,
+                                 packedRow), 0);
+                for (ktx_uint64_t x = packedRow; x < row; x++)
+                    EXPECT_EQ(data[y * row + x], 0);
+            }
+        }
+    }
+
+    ktx_uint8_t* file = nullptr;
+    ktx_size_t fileSize = 0;
+    ASSERT_EQ(ktxTexture_WriteToMemory(ktxTexture(texture), &file, &fileSize),
+              KTX_SUCCESS);
+    std::unique_ptr<ktx_uint8_t, decltype(std::free)*> file_raii{file, std::free};
+    ktxTexture1* loaded = nullptr;
+    result = ktxTexture1_CreateFromMemory(file, fileSize,
+                                          KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
+                                          &loaded);
+    ktxTexture_unique_ptr loaded_raii{ktxTexture(loaded), ktxTexture_Deleter};
+    ASSERT_EQ(result, KTX_SUCCESS);
+    ASSERT_EQ(ktxTexture_GetDataSize(ktxTexture(loaded)), f.dataSize);
+    EXPECT_EQ(memcmp(loaded->pData, texture->pData, f.dataSize), 0);
+    for (ktx_uint32_t level = 0; level < c.numLevels; level++) {
+        SCOPED_TRACE(level);
+        EXPECT_EQ(ktxTexture_calcLevelSize(ktxTexture(loaded), level,
+                                           KTX_FORMAT_VERSION_ONE),
+                  ktxTexture_calcLevelSize(ktxTexture(texture), level,
+                                           KTX_FORMAT_VERSION_ONE));
+        EXPECT_EQ(ktxTexture1_calcLevelOffset(loaded, level),
+                  levelOffset[level]);
+    }
+}
+
+} // namespace
+
+// KTX 1 texels were sized as blockSizeInBits / 8 whole bytes: 0 bytes for
+// the 1-bit and 4-bit formats, so their textures had no image data at all,
+// and 1 and 4 bytes for GL_RGB4 (12 bits) and GL_RGB12 (36 bits), fewer
+// than ktxTexture1_SetImageFromMemory copies into each row. A row is now its
+// bits rounded up to a whole byte, then padded to 4 bytes. In the first
+// level each format's 33-texel rows end within a byte.
+TEST(ktxTexture1_Create, SizesRowsOfPartialByteTexels) {
+    // Bytes per layer, levels 33x3, 16x1 and 8x1, for 2 layers:
+    // 1 bit:   (8 * 3 + 4 + 4) * 2;   4 bits:  (20 * 3 + 8 + 4) * 2;
+    // 12 bits: (52 * 3 + 24 + 12) * 2; 36 bits: (152 * 3 + 72 + 36) * 2.
+    const Ktx1RowFormat formats[] = {
+        {"GL_STENCIL_INDEX1", GL_STENCIL_INDEX1, 1, 64},
+        {"GL_STENCIL_INDEX4", GL_STENCIL_INDEX4, 4, 144},
+        {"GL_PALETTE4_RGB8_OES", GL_PALETTE4_RGB8_OES, 4, 144},
+        {"GL_RGB4", GL_RGB4, 12, 384},
+        {"GL_RGB12", GL_RGB12, 36, 1128},
+    };
+    for (const auto& f : formats)
+        checkKtx1Rows(f);
+}
+
+// Control: formats whose texels are whole bytes keep their sizes. Passes
+// before and after the change.
+TEST(ktxTexture1_Create, SizesRowsOfWholeByteTexels) {
+    // 8 bits: (36 * 3 + 16 + 8) * 2; 24 bits: (100 * 3 + 48 + 24) * 2.
+    const Ktx1RowFormat formats[] = {
+        {"GL_STENCIL_INDEX8", GL_STENCIL_INDEX8, 8, 264},
+        {"GL_RGB8", GL_RGB8, 24, 744},
+    };
+    for (const auto& f : formats)
+        checkKtx1Rows(f);
+}
+
+namespace {
+
+// Textures of the partial-byte formats at the 64-bit limit. Rounded up to a
+// whole byte, rows of UINT32_MAX texels are 2^29 bytes at 1 bit and 2^31
+// bytes at 4 bits, and 3 * 2^31 - 1 bytes at 12 bits, which KTX 1 pads to
+// 3 * 2^31. Rows of 2^31 texels are 9 * 2^30 bytes at 36 bits.
+static_assert((UINT32_MAX * 1ull + 7) / 8 == 1ull << 29, "");
+static_assert((UINT32_MAX * 4ull + 7) / 8 == 1ull << 31, "");
+static_assert((UINT32_MAX * 12ull + 7) / 8 == (3ull << 31) - 1, "");
+static_assert((1ull << 31) * 36 / 8 == 9ull << 30, "");
+static_assert((1ull << 29) * UINT32_MAX * 8 == UINT64_MAX - UINT32_MAX, "");
+static_assert((1ull << 31) * UINT32_MAX * 2 == UINT64_MAX - UINT32_MAX, "");
+static_assert((3ull << 31) * 2863311530ull == UINT64_MAX - UINT32_MAX, "");
+static_assert((9ull << 30) * 1908874353ull == UINT64_MAX - (7ull << 30) + 1,
+              "");
+// Rows of UINT32_MAX - 30 1-bit texels end in a partial byte. Rounded up
+// they are 2^29 - 3 bytes, which KTX 1 pads to 2^29, so 2^31 rows of 16
+// layers are 2^64 bytes. Without the partial byte they would be 2^29 - 4
+// bytes, which need no padding, and the same texture would fit.
+static_assert(((UINT32_MAX - 30) * 1ull + 7) / 8 == (1ull << 29) - 3, "");
+static_assert((UINT32_MAX - 30) / 8 == (1u << 29) - 4, "");
+static_assert(((1ull << 29) - 4) * (1ull << 31) * 16
+              == UINT64_MAX - (1ull << 37) + 1, "");
+
+const struct PartialByteSizeCase {
+    const char* name;
+    ktx_uint32_t glInternalformat;
+    ktx_uint32_t width, height, layers;
+    ktx_uint64_t levelSize; // 0 if it does not fit in 64 bits.
+} partialByteSizeCases[] = {
+    {"GL_STENCIL_INDEX1 8 layers", GL_STENCIL_INDEX1,
+     UINT32_MAX, UINT32_MAX, 8, UINT64_MAX - UINT32_MAX},
+    {"GL_STENCIL_INDEX1 9 layers", GL_STENCIL_INDEX1,
+     UINT32_MAX, UINT32_MAX, 9, 0},
+    {"GL_STENCIL_INDEX1 partial byte 15 layers", GL_STENCIL_INDEX1,
+     UINT32_MAX - 30, 1u << 31, 15, 15ull << 60},
+    {"GL_STENCIL_INDEX1 partial byte 16 layers", GL_STENCIL_INDEX1,
+     UINT32_MAX - 30, 1u << 31, 16, 0},
+    {"GL_STENCIL_INDEX4 2 layers", GL_STENCIL_INDEX4,
+     UINT32_MAX, UINT32_MAX, 2, UINT64_MAX - UINT32_MAX},
+    {"GL_STENCIL_INDEX4 3 layers", GL_STENCIL_INDEX4,
+     UINT32_MAX, UINT32_MAX, 3, 0},
+    {"GL_PALETTE4_RGB8_OES 2 layers", GL_PALETTE4_RGB8_OES,
+     UINT32_MAX, UINT32_MAX, 2, UINT64_MAX - UINT32_MAX},
+    {"GL_PALETTE4_RGB8_OES 3 layers", GL_PALETTE4_RGB8_OES,
+     UINT32_MAX, UINT32_MAX, 3, 0},
+    {"GL_RGB4", GL_RGB4, UINT32_MAX, 2863311530, 1, UINT64_MAX - UINT32_MAX},
+    {"GL_RGB4 one more row", GL_RGB4, UINT32_MAX, 2863311531, 1, 0},
+    {"GL_RGB12", GL_RGB12, 1u << 31, 1908874353, 1,
+     UINT64_MAX - (7ull << 30) + 1},
+    {"GL_RGB12 one more row", GL_RGB12, 1u << 31, 1908874354, 1, 0},
+};
+
+// Check a KTX 1 texture created or loaded from a PartialByteSizeCase.
+void
+checkPartialByteSize(const PartialByteSizeCase& c, KTX_error_code result,
+                     ktxTexture1* texture)
+{
+    if (c.levelSize != 0 && fitsInSizeT(c.levelSize)) {
+        ASSERT_EQ(result, KTX_SUCCESS);
+        EXPECT_EQ(ktxTexture_calcImageSize(ktxTexture(texture), 0,
+                                           KTX_FORMAT_VERSION_ONE),
+                  c.levelSize / c.layers);
+        EXPECT_EQ(ktxTexture_calcLevelSize(ktxTexture(texture), 0,
+                                           KTX_FORMAT_VERSION_ONE),
+                  c.levelSize);
+    } else {
+        EXPECT_EQ(result, KTX_OUT_OF_MEMORY);
+    }
+}
+
+// Write a one-level 1x1 KTX 1 texture to memory and set the pixel width,
+// pixel height and number of array elements in its header. The image data
+// are unchanged.
+std::vector<ktx_uint8_t>
+ktx1FileWithHeader(ktx_uint32_t glInternalformat, ktx_uint32_t width,
+                   ktx_uint32_t height, ktx_uint32_t layers)
+{
+    const LargeTextureCase c = {"1x1", glInternalformat, VK_FORMAT_UNDEFINED,
+                                1, 1, 1, 1, 1, 1, 0};
+    ktxTextureCreateInfo createInfo = createInfoFor(c);
+    ktxTexture1* texture = nullptr;
+    if (ktxTexture1_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
+                           &texture) != KTX_SUCCESS)
+        return {};
+    ktxTexture_unique_ptr texture_raii{ktxTexture(texture), ktxTexture_Deleter};
+    memset(texture->pData, 0, texture->dataSize);
+    ktx_uint8_t* data = nullptr;
+    ktx_size_t size = 0;
+    if (ktxTexture_WriteToMemory(ktxTexture(texture), &data, &size)
+        != KTX_SUCCESS)
+        return {};
+    std::vector<ktx_uint8_t> file(data, data + size);
+    free(data);
+    // pixelWidth at 36, pixelHeight at 40 and numberOfArrayElements at 48,
+    // in the writer's byte order.
+    const ktx_uint32_t arrayElements = layers > 1 ? layers : 0;
+    memcpy(&file[36], &width, sizeof(width));
+    memcpy(&file[40], &height, sizeof(height));
+    memcpy(&file[48], &arrayElements, sizeof(arrayElements));
+    return file;
+}
+
+} // namespace
+
+// With texels sized as 0 bytes, any number of 1-bit or 4-bit texels fitted,
+// and 12-bit and 36-bit texels sized as 1 and 4 bytes fitted below their
+// real size. Each format is accepted at an exact size up to the limit and
+// rejected past it.
+TEST(ktxTexture1_Create, ChecksImageDataSizeOfPartialByteTexels) {
+    for (const auto& c : partialByteSizeCases) {
+        SCOPED_TRACE(c.name);
+        const LargeTextureCase lc = {c.name, c.glInternalformat,
+                                     VK_FORMAT_UNDEFINED, c.width, c.height, 1,
+                                     1, c.layers, 1, 0};
+        ktxTextureCreateInfo createInfo = createInfoFor(lc);
+        ktxTexture1* texture = nullptr;
+        auto result = ktxTexture1_Create(&createInfo,
+                                         KTX_TEXTURE_CREATE_NO_STORAGE, &texture);
+        ktxTexture_unique_ptr texture_raii{ktxTexture(texture), ktxTexture_Deleter};
+        checkPartialByteSize(c, result, texture);
+    }
+}
+
+// The same sizes from the header of a loaded KTX 1 file.
+TEST(ktxTexture1_CreateFromMemory, ChecksImageDataSizeOfPartialByteTexels) {
+    for (const auto& c : partialByteSizeCases) {
+        SCOPED_TRACE(c.name);
+        auto file = ktx1FileWithHeader(c.glInternalformat, c.width, c.height,
+                                       c.layers);
+        ASSERT_FALSE(file.empty());
+        ktxTexture1* texture = nullptr;
+        auto result = ktxTexture1_CreateFromMemory(file.data(), file.size(),
+                                                   KTX_TEXTURE_CREATE_NO_FLAGS,
+                                                   &texture);
+        ktxTexture_unique_ptr texture_raii{ktxTexture(texture), ktxTexture_Deleter};
+        checkPartialByteSize(c, result, texture);
+    }
+}
+
+/////////////////////////////////////////
 // ktxTexture1/2 ktxTexture_GetRowPitch vs. ktxTexture_GetImageSize
 ////////////////////////////////////////
 
