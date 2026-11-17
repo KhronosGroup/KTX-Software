@@ -44,6 +44,14 @@ armv7S
 arm64
 #elif defined(mips) || defined(__mips__) || defined(__mips)
 mips
+#elif defined(__riscv) && (__riscv_xlen == 32)
+riscv32
+#elif defined(__riscv) && (__riscv_xlen == 64)
+riscv64
+#elif defined(__loongarch__) && (__loongarch_grlen == 32)
+loongarch32
+#elif defined(__loongarch__) && (__loongarch_grlen == 64)
+loongarch64
 #elif defined(__sh__)
 superh
 #elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || defined(__POWERPC__) || defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC)
