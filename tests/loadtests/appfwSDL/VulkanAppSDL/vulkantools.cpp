@@ -51,40 +51,6 @@ namespace vkTools
         return false;
     }
 
-    std::string errorString(VkResult errorCode)
-    {
-        switch (errorCode)
-        {
-#define STR(r) case VK_ ##r: return #r
-            STR(NOT_READY);
-            STR(TIMEOUT);
-            STR(EVENT_SET);
-            STR(EVENT_RESET);
-            STR(INCOMPLETE);
-            STR(ERROR_OUT_OF_HOST_MEMORY);
-            STR(ERROR_OUT_OF_DEVICE_MEMORY);
-            STR(ERROR_INITIALIZATION_FAILED);
-            STR(ERROR_DEVICE_LOST);
-            STR(ERROR_MEMORY_MAP_FAILED);
-            STR(ERROR_LAYER_NOT_PRESENT);
-            STR(ERROR_EXTENSION_NOT_PRESENT);
-            STR(ERROR_FEATURE_NOT_PRESENT);
-            STR(ERROR_INCOMPATIBLE_DRIVER);
-            STR(ERROR_TOO_MANY_OBJECTS);
-            STR(ERROR_FORMAT_NOT_SUPPORTED);
-            STR(ERROR_SURFACE_LOST_KHR);
-            STR(ERROR_NATIVE_WINDOW_IN_USE_KHR);
-            STR(SUBOPTIMAL_KHR);
-            STR(ERROR_OUT_OF_DATE_KHR);
-            STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
-            STR(ERROR_VALIDATION_FAILED_EXT);
-            STR(ERROR_INVALID_SHADER_NV);
-#undef STR
-        default:
-            return "UNKNOWN_ERROR";
-        }
-    }
-
     VkBool32 getSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat *depthFormat)
     {
         // Since all depth formats may be optional, we need to find a suitable depth format to use
@@ -131,6 +97,9 @@ namespace vkTools
         imageMemoryBarrier.image = image;
         imageMemoryBarrier.subresourceRange = subresourceRange;
 
+        VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
         // Source layouts (old)
         // Source access mask controls actions that have to be finished on the old layout
         // before it will be transitioned to the new layout
@@ -147,6 +116,7 @@ namespace vkTools
                 // Image is preinitialized
                 // Only valid as initial layout for linear images, preserves memory contents
                 // Make sure host writes have been finished
+                srcStageFlags = VK_PIPELINE_STAGE_HOST_BIT;
                 imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
                 break;
 
@@ -203,6 +173,7 @@ namespace vkTools
         case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
             // Image will be used as a transfer source
             // Make sure any reads from and writes to the image have been finished
+            srcStageFlags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
             imageMemoryBarrier.srcAccessMask = imageMemoryBarrier.srcAccessMask | VK_ACCESS_TRANSFER_READ_BIT;
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
             break;
@@ -225,8 +196,11 @@ namespace vkTools
             // Make sure any writes to the image have been finished
             if (imageMemoryBarrier.srcAccessMask == 0)
             {
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+               srcStageFlags = VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+               imageMemoryBarrier.srcAccessMask
+                       = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
             }
+            destStageFlags = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
             break;
 
@@ -241,9 +215,6 @@ namespace vkTools
         }
 
         // Put barrier on top
-        VkPipelineStageFlags srcStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-        VkPipelineStageFlags destStageFlags = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-
         // Put barrier inside setup command buffer
         vkCmdPipelineBarrier(
             cmdbuffer, 

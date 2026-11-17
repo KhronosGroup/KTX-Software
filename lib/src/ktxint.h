@@ -248,13 +248,13 @@ KTX_error_code ktxUncompressZLIBInt(unsigned char* pDest,
 /*
  * Pad nbytes to next multiple of n
  */
-#define _KTX_PADN(n, nbytes) (ktx_uint32_t)(n * ceilf((float)(nbytes) / n))
+#define _KTX_PADN(n, nbytes) (ktx_uint32_t)(((nbytes) + (n) - 1) / (n) * (n))
 /*
  * Calculate bytes of of padding needed to reach next multiple of n.
  */
 /* Equivalent to (n * ceil(nbytes / n)) - nbytes */
 #define _KTX_PADN_LEN(n, nbytes) \
-    (ktx_uint32_t)((n * ceilf((float)(nbytes) / n)) - (nbytes))
+    (ktx_uint32_t)(((n) - (nbytes) % (n)) % (n))
 
 /*
  * Pad nbytes to next multiple of 4

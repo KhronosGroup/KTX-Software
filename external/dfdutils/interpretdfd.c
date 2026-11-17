@@ -138,7 +138,11 @@ enum InterpretDFDResult interpretDFD(const uint32_t *DFD,
             isFixed = false;
         } else {
             uint32_t sampleUpper = KHR_DFDSVAL(BDFDB, i, SAMPLEUPPER);
-            uint32_t maxVal = 1U << KHR_DFDSVAL(BDFDB, i, BITLENGTH);
+            // sampleUpper of a longer sample is extended per the spec, which
+            // gives the same comparison result as 32 bits.
+            uint32_t bitLength = KHR_DFDSVAL(BDFDB, i, BITLENGTH) + 1;
+            if (bitLength > 32) bitLength = 32;
+            uint32_t maxVal = 1U << (bitLength - 1);
             if (!isSigned) maxVal <<= 1;
             maxVal--;
             isFixed = 1U < sampleUpper && sampleUpper < maxVal;

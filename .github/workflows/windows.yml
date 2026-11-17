@@ -26,10 +26,12 @@ on:
       - .github/workflows/check-reuse.yml
       - .github/workflows/docs.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/macos.yml
       - .github/workflows/linux.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/pyktx.yml
       - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .travis.yml
@@ -55,9 +57,10 @@ jobs:
     #needs: formatting
     strategy:
       matrix:
-        os: [ windows-2022 ]
-        generator: [ 'Visual Studio 17 2022' ]
-        toolset: [v143, CLangCL]
+        os: [ windows-latest ]
+        generator: [ 'Visual Studio 18 2026' ]
+        # N.B. VS2026 lists the MSVC version as v14.5.
+        toolset: [v145, CLangCL]
         arch: [ x64 ]
         java-version: [ '17' ]
         check_mkvk: [ NO ]
@@ -80,17 +83,17 @@ jobs:
            sse: ON, opencl: ON}
         ]
         include:
-#          - os: windows-2022
-#            generator: 'Visual Studio 17 2022'
-#            toolset: v143
-#            arch: x64
-#            java-version: '17'
-#            options: {
-#              config: 'Debug,Release',
-#              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
-#              package: NO,
-#              sse: ON, opencl: OFF
-#            }
+          - os: windows-2022
+            generator: 'Visual Studio 17 2022'
+            toolset: v143
+            arch: x64
+            java-version: '17'
+            options: {
+              config: 'Debug,Release',
+              doc: OFF, jni: ON, loadtests: OpenGL+Vulkan, py: ON, tests: ON, tools: ON, tools_cts: ON,
+              package: NO,
+              sse: ON, opencl: OFF
+            }
           - os: windows-2022
             generator: 'Visual Studio 17 2022'
             toolset: CLangCL
@@ -104,7 +107,7 @@ jobs:
               package: NO
             }
           - os: windows-11-arm
-            generator: 'Visual Studio 17 2022'
+            generator: 'Visual Studio 18 2026'
             toolset: CLangCL
             arch: arm64
             # Oldest version available on arm runner.
@@ -162,7 +165,7 @@ jobs:
       OPENGL_ES_EMULATOR_WIN: C:\Imagination\Windows_x86_64
       PVR_SDK_HOME: https://github.com/powervr-graphics/Native_SDK/raw/master/lib/Windows_x86_64/
       PYTHON_DIST_DIR: interface/python_binding/dist
-      VULKAN_SDK_VERSION: 1.4.313.2
+      VULKAN_SDK_VERSION: 1.4.363.0
 
     steps:
     - uses: actions/checkout@v6
@@ -194,7 +197,7 @@ jobs:
 
     - name: Install Graphviz
       if: matrix.options.doc == 'ON'
-      uses: MarkCallow/setup-graphviz@v3
+      uses: ./.github/actions/setup-graphviz
 
     - name: Install AzureSignTool
       if: matrix.check_mkvk != 'ONLY'
@@ -372,9 +375,11 @@ jobs:
       with:
         draft: true
         prerelease: true
+        # pyktx wheels for this platform come from pyktx.yml, with
+        # libktx bundled.
         files: |
             ${{env.BUILD_DIR}}/KTX-Software-*.exe*
-            ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*
+            ${{env.BUILD_DIR}}/${{env.PYTHON_DIST_DIR}}/pyktx-*.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

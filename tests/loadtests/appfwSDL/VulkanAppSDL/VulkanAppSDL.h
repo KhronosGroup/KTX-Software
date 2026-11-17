@@ -30,7 +30,10 @@ class VulkanAppSDL : public AppBaseSDL {
              const uint32_t version,
              bool enableTextOverlay)
             : AppBaseSDL(name), w_width(width), w_height(height),
-              subOptimalPresentWarned(false), validate(false), hdr(false),
+              presentSwapchainErrorWarned(false), acquireNextImageErrorWarned(false),
+              validate(false), hdr(false),
+              defaultLdrColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear, false, false),
+              defaultHdrColorSpace(vk::ColorSpaceKHR::eExtendedSrgbLinearEXT, true, true),
               vkVersion(version),
               enableTextOverlay(enableTextOverlay),
               textOverlay(nullptr)
@@ -58,11 +61,18 @@ class VulkanAppSDL : public AppBaseSDL {
         ::operator delete(storage);
     }
 
+#if !defined(WORKAROUND_SDL_SAFE_AREA_BUGS)
+  #define WORKAROUND_SDL_SAFE_AREA_BUGS 1
+#endif
+#if WORKAROUND_SDL_SAFE_AREA_BUGS
+    uint32_t topBarHeight; // See resizeWindow() impl.
+    uint32_t bottomBarHeight;
+#endif
     void updateTextOverlay();
 
     // Called when the text overlay is updating
     // Can be overridden in derived class to add custom text to the overlay
-    virtual void getOverlayText(float yOffset);
+    virtual void getOverlayText(float xOffset, float yOffset);
 
   protected:
     bool createDevice();
@@ -78,7 +88,7 @@ class VulkanAppSDL : public AppBaseSDL {
     bool prepareCommandBuffers();
     bool prepareDepthBuffer();
     bool prepareDescriptorLayout();
-    void prepareFrame();
+    VkResult acquireNextImage();
     bool preparePresentCommandBuffers();
     bool prepareRenderPass();
     bool preparePipeline();
@@ -129,12 +139,23 @@ class VulkanAppSDL : public AppBaseSDL {
     uint32_t w_width;
     uint32_t w_height;
 
-    bool subOptimalPresentWarned;
+    bool presentSwapchainErrorWarned;
+    bool acquireNextImageErrorWarned;
     bool validate;
     bool hdr;
-    // colorSpace is only used with --hdr and this space is never used with --hdr
-    // so serves to indicate it has not been set.
-    VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+
+    VulkanSwapchain::csInfo defaultLdrColorSpace;
+    VulkanSwapchain::csInfo defaultHdrColorSpace;
+    VulkanSwapchain::csInfo colorSpace = defaultLdrColorSpace;
+
+#if SDL_PLATFORM_APPLE
+  #if VK_HEADER_VERSION >= 357
+    // This Id was not available in headers much before this.
+    vk::DriverId requestedDriver = vk::DriverId::eMesaKosmickrisp;
+  #else
+    vk::DriverId requestedDriver = vk::DriverId::eMoltenVK;
+  #endif
+#endif
 
     std::vector<const char*> extensionNames;
 
@@ -143,18 +164,8 @@ class VulkanAppSDL : public AppBaseSDL {
 
     VulkanContext vkctx;
 
-    // Index of active framebuffer.
-    uint32_t currentBuffer;
-
-    // Synchronization semaphores
-    struct {
-        // Swap chain image presentation
-        VkSemaphore presentComplete;
-        // Command buffer submission and execution
-        VkSemaphore renderComplete;
-        // Text overlay submission and execution
-        VkSemaphore textOverlayComplete;
-    } semaphores;
+    // Index of active framebuffer image.
+    uint32_t currentImage;
 
     const uint32_t vkVersion;
 

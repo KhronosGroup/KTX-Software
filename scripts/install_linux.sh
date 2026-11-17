@@ -16,13 +16,10 @@ ARCH=${ARCH:-$(uname -m)}  # Architecture to install tools for.
 FEATURE_DOC=${FEATURE_DOC:-ON}
 FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
 FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
-if [ "$ARCH" = "x86_64" ]; then
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
-else
-  # No Vulkan SDK yet for Linux/arm64.
-  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
-fi
-VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.4.313}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
+VULKAN_SDK_VER=${VULKAN_SDK_VER:-1.4.363.0}
+VULKAN_INSTALL_DIR=${VULKAN_INSTALL_DIR:-~/VulkanSDK}
+VULKAN_SDK=${VULKAN_SDK:-$VULKAN_INSTALL_DIR/$VULKAN_SDK_VER/$ARCH}
 
 sudo apt-get -qq update
 
@@ -79,22 +76,25 @@ if [[ "$FEATURE_VK_UPLOAD" = "ON" || "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
   sudo apt-get -qq install libvulkan1 libvulkan-dev:$dpkg_arch
 fi
 
-if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
+if [[ "$FEATURE_LOADTESTS" =~ "Vulkan" && !(-d $VULKAN_SDK) ]]; then
   # No Vulkan SDK for Linux/arm64 yet.
-  if [[ "$dpkg_arch" = "arm64" ]]; then
-    echo "No Vulkan SDK for Linux/arm64 yet. Please set FEATURE_LOADTESTS to OpenGL or OFF."
+  if [[ "$dpkg_arch" != "amd64" ]]; then
+    echo "No Vulkan SDK for Linux/$ARCH yet. Installing Vulkan components"
+    echo "from Linux distribution."
+    sudo apt-get -qq install libvulkan-dev:$dpkg_arch glslang-tools:$dpkg_arch glslc:$dpkg_arch vulkan-validationlayers:$dpkg_arch
+    export VULKAN_SDK=""
   else
-    os_codename=$(grep -E 'VERSION_CODENAME=[a-zA-Z]+$' /etc/os-release)
-    os_codename=${os_codename#VERSION_CODENAME=}
-
     echo "Download Vulkan SDK"
-    # tee is used (and elevated with sudo) so we can write to the destination.
-    wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc > /dev/null
-    sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list https://packages.lunarg.com/vulkan/$VULKAN_SDK_VER/lunarg-vulkan-$VULKAN_SDK_VER-$os_codename.list
+    vsdk_tar_file=vulkansdk-linux-$ARCH-$VULKAN_SDK_VER.tar.xz
+    wget -P ~/Downloads https://vulkan.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/$vsdk_tar_file 
     echo "Install Vulkan SDK"
-    sudo apt update
-    sudo apt install vulkan-sdk
+    mkdir -p $VULKAN_INSTALL_DIR
+    pushd $VULKAN_INSTALL_DIR
+    tar xf ~/Downloads/$vsdk_tar_file
+    popd
   fi
+  # Needed by SDL3 with X11 feature.
+  sudo apt-get -qq install libxcursor-dev libxrandr-dev libxtst-dev
 fi
 
 if [[ (-n "$FEATURE_LOADTESTS" && "$FEATURE_LOADTESTS" != "OFF") || ("$FEATURE_TESTS" = "ON") ]]; then

@@ -38,10 +38,12 @@ on:
       - .github/workflows/check-mkvk.yml
       - .github/workflows/check-reuse.yml
       - .github/workflows/formatting.yml
+      - .github/workflows/fuzz.yml
       - .github/workflows/linux.yml
       - .github/workflows/macos.yml
       - .github/workflows/mingw.yml
       - .github/workflows/publish-pyktx.yml
+      - .github/workflows/pyktx.yml
       - .github/workflows/manual.yml
       - .github/workflows/web.yml
       - .github/workflows/windows.yml
@@ -87,10 +89,10 @@ jobs:
       if: github.ref_type == 'tag'
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
 
-    - name: Set up Python 3.11
+    - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.11.4'
+        python-version: '>=3.11 <4.x'
 
     # virtualenv is no longer included as of 20240929.1 runner so
     # install it ourselves. See
@@ -105,7 +107,7 @@ jobs:
       uses: ssciwr/doxygen-install@v1
 
     - name: Install Graphviz
-      uses: MarkCallow/setup-graphviz@v3
+      uses: ./.github/actions/setup-graphviz
 
     - name: Smudge dates (macOS and Ubuntu)
       if:  matrix.os == 'macos-latest' || matrix.os == 'ubuntu-latest'

@@ -147,6 +147,21 @@ protected:
 private:
     virtual void read(std::size_t offset, void* readDst, std::size_t readSize, std::string_view name) = 0;
     virtual KTX_error_code createKTXTexture(ktxTextureCreateFlags createFlags, ktxTexture2** newTex) = 0;
+    /// The size of the input, or nullopt when it cannot be told.
+    virtual std::optional<std::size_t> inputSize() = 0;
+
+    /// Fails, as read() would, when the input ends before offset + size.
+    /// The offsets and sizes of the blocks come from the header, so a block
+    /// is checked before it is allocated: a damaged header must not cause a
+    /// huge allocation.
+    void checkReadable(std::uint64_t offset, std::uint64_t size, std::string_view name) {
+        const auto size_ = inputSize();
+        if (!size_)
+            return;
+        const std::uint64_t available = offset > *size_ ? 0 : *size_ - offset;
+        if (available < size)
+            fatal(IOError::UnexpectedEOF, size, offset, name, available);
+    }
 
 private:
     template <typename... Args>
@@ -191,7 +206,6 @@ private:
     size_t calcImageSize(uint32_t level);
     size_t calcLayerSize(uint32_t level);
     size_t calcLevelSize(uint32_t level);
-    size_t calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level);
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -243,6 +257,17 @@ private:
         ktx2Stream.emplace(stream.rdbuf(), std::ios::in | std::ios::binary);
         return ktxTexture2_CreateFromStream(ktx2Stream->stream(), createFlags, newTex);
     }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        // read() seeks before every read, so the position need not be kept.
+        stream.clear();
+        stream.seekg(0, std::ios::end);
+        const auto end = stream.tellg();
+        stream.clear();
+        if (end < 0)
+            return std::nullopt;
+        return static_cast<std::size_t>(end);
+    }
 };
 
 class ValidationContextStdioStream : public ValidationContext {
@@ -280,6 +305,16 @@ private:
 
         return ktxTexture2_CreateFromStdioStream(file, createFlags, newTex);
     }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        // read() seeks before every read, so the position need not be kept.
+        if (fseek(file, 0, SEEK_END) != 0)
+            return std::nullopt;
+        const auto end = ftell(file);
+        if (end < 0)
+            return std::nullopt;
+        return static_cast<std::size_t>(end);
+    }
 };
 
 class ValidationContextMemory : public ValidationContext {
@@ -310,6 +345,10 @@ private:
 
     virtual KTX_error_code createKTXTexture(ktxTextureCreateFlags createFlags, ktxTexture2** newTex) override {
         return ktxTexture2_CreateFromMemory(reinterpret_cast<const ktx_uint8_t*>(memoryData), memorySize, createFlags, newTex);
+    }
+
+    virtual std::optional<std::size_t> inputSize() override {
+        return memorySize;
     }
 };
 
@@ -497,8 +536,9 @@ void ValidationContext::validateHeader() {
     numLevels = std::max(header.levelCount, 1u);
 
     // This test works for arrays too because height or depth will be 0.
+    // Check > 32 first. Shifting by 32 or more is undefined.
     const auto max_dim = std::max(std::max(header.pixelWidth, header.pixelHeight), header.pixelDepth);
-    if (max_dim < (1u << (numLevels - 1u))) {
+    if (numLevels > 32 || max_dim < (1u << (numLevels - 1u))) {
         // Can't have more mip levels than 1 + log2(max(width, height, depth))
         error(HeaderData::TooManyMipLevels, numLevels, max_dim);
     }
@@ -594,6 +634,22 @@ void ValidationContext::validateIndices() {
     }
 }
 
+/// The size of a level along one dimension. A damaged levelCount can declare
+/// levels past the 32nd, whose size is 1: a shift by 32 or more bits would be
+/// undefined.
+[[nodiscard]] static constexpr uint32_t levelSize(uint32_t baseSize, uint32_t level) {
+    return level < 32 ? std::max(1u, baseSize >> level) : 1u;
+}
+
+/// Products and sums of counts from the header, limited to UINT64_MAX rather
+/// than wrapped: a wrapped count would pass checks it must fail.
+[[nodiscard]] static constexpr uint64_t mulSat(uint64_t a, uint64_t b) {
+    return a != 0 && b > UINT64_MAX / a ? UINT64_MAX : a * b;
+}
+[[nodiscard]] static constexpr uint64_t addSat(uint64_t a, uint64_t b) {
+    return b > UINT64_MAX - a ? UINT64_MAX : a + b;
+}
+
 inline uint32_t calcLevelAlignment(ktxSupercmpScheme scheme, uint8_t blockByteLength) {
     if (scheme != KTX_SS_NONE)
         return 1;
@@ -602,8 +658,8 @@ inline uint32_t calcLevelAlignment(ktxSupercmpScheme scheme, uint8_t blockByteLe
 }
 
 size_t ValidationContext::calcImageSize(uint32_t level) {
-    const auto levelWidth = std::max(1u, header.pixelWidth >> level);
-    const auto levelHeight = std::max(1u, header.pixelHeight >> level);
+    const auto levelWidth = levelSize(header.pixelWidth, level);
+    const auto levelHeight = levelSize(header.pixelHeight, level);
     const auto blockDimensionX = 1u + expectedBlockDimension0.value_or(parsedBlockDimension0.value_or(0u));
     const auto blockDimensionY = 1u + expectedBlockDimension1.value_or(parsedBlockDimension1.value_or(0u));
     const auto blockCountX = ceil_div(levelWidth, blockDimensionX);
@@ -616,7 +672,7 @@ size_t ValidationContext::calcImageSize(uint32_t level) {
 }
 
 size_t ValidationContext::calcLayerSize(uint32_t level) {
-    const auto levelDepth = std::max(1u, header.pixelDepth >> level);
+    const auto levelDepth = levelSize(header.pixelDepth, level);
     const auto blockDimensionZ = 1u + expectedBlockDimension2.value_or(parsedBlockDimension2.value_or(0u));
     const auto blockCountZ = ceil_div(levelDepth, blockDimensionZ);
 
@@ -631,30 +687,18 @@ size_t ValidationContext::calcLevelSize(uint32_t level) {
     return calcLayerSize(level) * numLayers;
 }
 
-size_t ValidationContext::calcLevelOffset(size_t firstLevelOffset, size_t alignment, uint32_t level) {
-    // This function is only useful when the following 2 conditions are met
-    // as otherwise we have no idea what the size of a level ought to be.
-    assert(header.vkFormat != VK_FORMAT_UNDEFINED);
-    assert(header.supercompressionScheme == KTX_SS_NONE);
-
-    assert(level < numLevels);
-    // Calculate the expected base offset in the file
-    size_t levelOffset = align(firstLevelOffset, alignment);
-    for (uint32_t i = numLevels - 1; i > level; --i) {
-        levelOffset += calcLevelSize(i);
-        levelOffset = align(levelOffset, alignment);
-    }
-    return levelOffset;
-}
-
 void ValidationContext::validateLevelIndex() {
-    levelIndices.resize(numLevels);
-
     const auto levelIndexOffset = sizeof(KTX_header2);
     const auto levelIndexSize = sizeof(ktxLevelIndexEntry) * numLevels;
+    checkReadable(levelIndexOffset, std::uint64_t{sizeof(ktxLevelIndexEntry)} * numLevels, "the level index");
+    levelIndices.resize(numLevels);
     read(levelIndexOffset, levelIndices.data(), levelIndexSize, "the level index");
 
-    const auto blockByteLength = (expectedBytePlanes ? expectedBytePlanes->at(0) : (parsedBlockByteLength == 0 ? uint8_t(1) : parsedBlockByteLength.value_or(0)));
+    // Without a parsed basic DFD block, as with bytesPlane0 0, take blocks of
+    // 1 byte: a level alignment of 0 would divide by 0.
+    const auto blockByteLength = expectedBytePlanes ?
+            expectedBytePlanes->at(0) :
+            std::max<uint8_t>(parsedBlockByteLength.value_or(0), 1);
     std::size_t requiredLevelAlignment = calcLevelAlignment(ktxSupercmpScheme(header.supercompressionScheme), blockByteLength);
 
     std::size_t expectedFirstLevelOffset = 0;
@@ -679,6 +723,11 @@ void ValidationContext::validateLevelIndex() {
 
     std::size_t lastByteOffset = expectedFirstLevelOffset; // Reuse lastByteOffset to inject first offset to expectedOffset
     std::size_t lastByteLength = 0;
+    // Where the level sizes are known, the expected offset of each level is
+    // the sum of the aligned sizes of the smaller levels, which the loop adds
+    // up as it goes. Summing them again for each level took time quadratic in
+    // levelCount, which a damaged header can set to 2^32 - 1.
+    std::size_t knownExpectedOffset = expectedFirstLevelOffset;
 
     // Count down, so we can check the distance between levels for the UNDEFINED and SUPERCOMPRESSION cases.
     for (auto it = static_cast<uint32_t>(levelIndices.size()); it != 0; --it) {
@@ -692,8 +741,10 @@ void ValidationContext::validateLevelIndex() {
         // In that case we know where the first level must be in the file, and we can calculate
         // the offsets by progressively summing the lengths and paddings so far.
         const auto expectedOffset = knownLevelOffset ?
-                calcLevelOffset(expectedFirstLevelOffset, requiredLevelAlignment, index) :
+                knownExpectedOffset :
                 align(lastByteOffset + lastByteLength, requiredLevelAlignment);
+        if (knownLevelOffset)
+            knownExpectedOffset = align(knownExpectedOffset + calcLevelSize(index), requiredLevelAlignment);
 
         if (level.byteOffset % requiredLevelAlignment != 0)
             error(LevelIndex::IncorrectByteOffsetUnaligned, index, level.byteOffset, requiredLevelAlignment, expectedOffset);
@@ -782,6 +833,12 @@ void ValidationContext::validateDFD() {
     if (dfdByteOffset == 0 || dfdByteLength == 0)
         return; // There is no DFD block
 
+    if (dfdByteLength < sizeof(uint32_t)) {
+        error(DFD::NotEnoughDataForTotalSize, dfdByteLength);
+        return;
+    }
+
+    checkReadable(dfdByteOffset, dfdByteLength, "the DFD");
     const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
     read(dfdByteOffset, buffer.get(), dfdByteLength, "the DFD");
     const auto* ptrDFD = buffer.get();
@@ -849,7 +906,10 @@ void ValidationContext::validateDFD() {
 
                     // Samples are located at the end of the block
                     std::vector<SampleType> samples(numSamplesValidating);
-                    std::memcpy(samples.data(), ptrDFDIt + sizeof(BDFD), numSamplesValidating * sizeof(SampleType));
+                    // Without samples, data() can be null, which memcpy does
+                    // not take even for 0 bytes.
+                    if (!samples.empty())
+                        std::memcpy(samples.data(), ptrDFDIt + sizeof(BDFD), numSamplesValidating * sizeof(SampleType));
 
                     validateDFDBasic(numBlocks, reinterpret_cast<uint32_t*>(buffer.get()), block, samples);
                 }
@@ -1295,7 +1355,7 @@ void ValidationContext::validateDFDBasic(uint32_t blockIndex, const uint32_t* df
 
         if (isColorModelBlockCompressed(khr_df_model_e(block.model))) {
             if (header.typeSize != 1)
-                error(HeaderData::TypeSizeNotOne, toString(khr_df_model_e(block.model)));
+                error(HeaderData::TypeSizeNotOne, header.typeSize, toString(khr_df_model_e(block.model)));
         } else {
             if (expectedTypeSize && header.typeSize != expectedTypeSize)
                 error(HeaderData::TypeSizeMismatch, header.typeSize, toString(VkFormat(header.vkFormat)), *expectedTypeSize);
@@ -1310,6 +1370,7 @@ void ValidationContext::validateKVD() {
     if (kvdByteOffset == 0 || kvdByteLength == 0)
         return; // There is no KVD block
 
+    checkReadable(kvdByteOffset, kvdByteLength, "the Key/Value Data");
     const auto buffer = std::make_unique<uint8_t[]>(kvdByteLength);
     read(kvdByteOffset, buffer.get(), kvdByteLength, "the Key/Value Data");
     const auto* ptrKVD = buffer.get();
@@ -1516,12 +1577,23 @@ void ValidationContext::validateKTXmapRange(const uint8_t* data, uint32_t size) 
     const auto dfdByteOffset = header.dataFormatDescriptor.byteOffset;
     const auto dfdByteLength = header.dataFormatDescriptor.byteLength;
 
+    checkReadable(dfdByteOffset, dfdByteLength, "the ff DFD");
     const auto buffer = std::make_unique<uint8_t[]>(dfdByteLength);
     read(dfdByteOffset, buffer.get(), dfdByteLength, "the ff DFD");
     const uint32_t * pDFD = reinterpret_cast<const uint32_t *>(buffer.get());
     const uint32_t * pBDB = pDFD + 1;
 
-    uint32_t nSamples = KHR_DFDSAMPLECOUNT(pBDB);
+    // Look only at the samples the DFD holds. validateDFD reports a DFD too
+    // short for its basic block or for the samples the block declares.
+    const auto bdfdSize = sizeof(uint32_t) * KHR_DF_WORD_SAMPLESTART;
+    const auto sampleSize = sizeof(uint32_t) * KHR_DF_WORD_SAMPLEWORDS;
+    uint32_t nSamples = 0;
+    if (dfdByteLength >= sizeof(uint32_t) + bdfdSize) {
+        const auto blockSize = std::min<std::size_t>(KHR_DFDVAL(pBDB, DESCRIPTORBLOCKSIZE),
+                                                     dfdByteLength - sizeof(uint32_t));
+        if (blockSize >= bdfdSize)
+            nSamples = static_cast<uint32_t>((blockSize - bdfdSize) / sampleSize);
+    }
     for (uint32_t sample = 0; sample < nSamples; ++sample) {
         auto qualifiers = static_cast<khr_df_sample_datatype_qualifiers_e>(KHR_DFDSVAL(pBDB, sample, QUALIFIERS));
         if (!(qualifiers & KHR_DF_SAMPLE_DATATYPE_LINEAR) &&
@@ -1693,11 +1765,21 @@ void ValidationContext::validateSGD() {
     if (sgdByteOffset == 0 || sgdByteLength == 0)
         return; // There is no SGD block
 
+    checkReadable(sgdByteOffset, sgdByteLength, "the SGD");
     const auto buffer = std::make_unique<uint8_t[]>(sgdByteLength);
     read(sgdByteOffset, buffer.get(), sgdByteLength, "the SGD");
 
     if ((header.supercompressionScheme != KTX_SS_BASIS_LZ) && (header.supercompressionScheme != KTX_SS_UASTC_HDR_6x6_INTERMEDIATE))
         return;
+
+    // The number of images, which have one image description each. The
+    // loops over the descriptions below run only when the SGD holds them
+    // all, and not without images, as with a faceCount of 0, when they
+    // would only count up to numLevels * numLayers.
+    uint64_t imageCount = 0;
+    for (uint32_t level = 0; level < numLevels; ++level)
+        // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
+        imageCount = addSat(imageCount, mulSat(mulSat(numLayers, header.faceCount), levelSize(header.pixelDepth, level)));
 
     switch (header.supercompressionScheme) {
         // Validate UASTC_HDR_6x6_INTERMEDIATE SGD
@@ -1712,14 +1794,19 @@ void ValidationContext::validateSGD() {
                 return;
             }
 
+            if (sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc) != imageCount)
+                error(SGD::UH6X6IESizeIncorrect, sgdByteLength, imageCount);
+            if (imageCount == 0 || sgdByteLength / sizeof(ktxUASTCHDR6x6IntermediateImageDesc) < imageCount)
+                return;
+
             const ktxUASTCHDR6x6IntermediateImageDesc* imageDescs = reinterpret_cast<ktxUASTCHDR6x6IntermediateImageDesc*>(buffer.get());
 
-            uint32_t i = 0;
+            std::size_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
                 const auto level_offset = levelIndices[level].byteOffset;
                 for (uint32_t layer = 0; layer < numLayers; ++layer) {
                     for (uint32_t face = 0; face < header.faceCount; ++face) {
-                        for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
+                        for (uint32_t zSlice = 0; zSlice < levelSize(header.pixelDepth, level); ++zSlice) {
                             const auto imageIndex = i++;
                             const auto& image = imageDescs[imageIndex];
 
@@ -1750,8 +1837,8 @@ void ValidationContext::validateSGD() {
                             if (version != sgd_version)
                                 error(SGD::UH6X6IERGBSliceTypeVersionMismatch, level, layer, face, zSlice, sgd_version, version);
 
-                            const auto expected_width = static_cast<uint16_t>(std::max(header.pixelWidth >> level, 1u));
-                            const auto expected_height = static_cast<uint16_t>(std::max(header.pixelHeight >> level, 1u));
+                            const auto expected_width = static_cast<uint16_t>(levelSize(header.pixelWidth, level));
+                            const auto expected_height = static_cast<uint16_t>(levelSize(header.pixelHeight, level));
                             if ((header_buffer[1] != expected_width) || (header_buffer[2] != expected_height))
                                 error(SGD::UH6X6IEInvalidRGBSliceDimensionsInData, level, layer, face, zSlice, header_buffer[1], header_buffer[2], expected_width, expected_height);
                         }
@@ -1763,12 +1850,6 @@ void ValidationContext::validateSGD() {
         }
         // Validate BASIS_LZ SGD
         case KTX_SS_BASIS_LZ: {
-            uint32_t imageCount = 0;
-            // uint32_t layersFaces = numLayers * header.faceCount;
-            for (uint32_t level = 0; level < numLevels; ++level)
-                // numFaces * depth is only reasonable because they can't both be > 1. There are no 3D cubemaps
-                imageCount += numLayers * header.faceCount * std::max(header.pixelDepth >> level, 1u);
-
             // Validate GlobalHeader
             if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
                 error(SGD::BLZESizeTooSmallHeader, sgdByteLength);
@@ -1777,13 +1858,13 @@ void ValidationContext::validateSGD() {
 
             const ktxBasisLzGlobalHeader& bgh = *reinterpret_cast<const ktxBasisLzGlobalHeader*>(buffer.get());
 
-            const uint64_t expectedBgdByteLength =
+            const uint64_t expectedBgdByteLength = addSat(
+                    mulSat(sizeof(ktxBasisLzEtc1sImageDesc), imageCount),
                     sizeof(ktxBasisLzGlobalHeader) +
-                    sizeof(ktxBasisLzEtc1sImageDesc) * imageCount +
-                    bgh.endpointsByteLength +
+                    uint64_t{bgh.endpointsByteLength} +
                     bgh.selectorsByteLength +
                     bgh.tablesByteLength +
-                    bgh.extendedByteLength;
+                    bgh.extendedByteLength);
             if (sgdByteLength != expectedBgdByteLength)
                 error(SGD::BLZESizeIncorrect, sgdByteLength, imageCount, expectedBgdByteLength);
 
@@ -1791,17 +1872,17 @@ void ValidationContext::validateSGD() {
                 error(SGD::BLZEExtendedByteLengthNotZero, bgh.extendedByteLength);
 
             // Validate ImageDesc
-            if (sgdByteLength < sizeof(ktxBasisLzGlobalHeader) + sizeof(ktxBasisLzEtc1sImageDesc) * imageCount)
+            if (imageCount == 0 || (sgdByteLength - sizeof(ktxBasisLzGlobalHeader)) / sizeof(ktxBasisLzEtc1sImageDesc) < imageCount)
                 return;
 
             const ktxBasisLzEtc1sImageDesc* imageDescs = BGD_ETC1S_IMAGE_DESCS(buffer.get());
 
             bool foundPFrame = false;
-            uint32_t i = 0;
+            std::size_t i = 0;
             for (uint32_t level = 0; level < numLevels; ++level) {
                 for (uint32_t layer = 0; layer < numLayers; ++layer) {
                     for (uint32_t face = 0; face < header.faceCount; ++face) {
-                        for (uint32_t zSlice = 0; zSlice < std::max(header.pixelDepth >> level, 1u); ++zSlice) {
+                        for (uint32_t zSlice = 0; zSlice < levelSize(header.pixelDepth, level); ++zSlice) {
                             const auto imageIndex = i++;
                             const auto& image = imageDescs[imageIndex];
 
@@ -1861,6 +1942,7 @@ void ValidationContext::validatePaddings() {
         }
 
         const auto paddingSize = offset - position;
+        checkReadable(position, paddingSize, "the padding before " + name);
         const auto buffer = std::make_unique<uint8_t[]>(paddingSize);
         read(position, buffer.get(), paddingSize, "the padding before " + name);
 

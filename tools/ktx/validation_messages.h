@@ -351,6 +351,10 @@ struct DFD {
         6004, "Invalid DFD data. Not enough data left to process another DFD block header.",
         "DFD has {} byte(s) unprocessed but for a valid DFD at least 8 bytes are required."
     };
+    static constexpr IssueError NotEnoughDataForTotalSize{
+        6032, "Invalid DFD data. Not enough data for dfdTotalSize.",
+        "dfdByteLength is {} but the DFD must hold at least the 4 bytes of dfdTotalSize."
+    };
     static constexpr IssueWarning MultipleBDFD{
         6005, "Multiple basic DFD blocks.",
         "DFD block #{} is a basic DFD block but one was already processed before. It will be ignored."
@@ -855,6 +859,10 @@ struct SGD {
     static constexpr IssueError UH6X6IEInvalidRGBSliceDimensionsInData{
         8209, "Invalid slice dimensions in the Compressed Data bitstream. The dimensions in the Compressed Data bitstream must match the level dimensions.",
         "For Level {} Layer {} Face {} zSlice {} the dimensions in the Compressed Data bitstream are width: {} and height: {} but the dimensions must be width: {} and height: {}."
+    };
+    static constexpr IssueError UH6X6IESizeIncorrect{
+        8210, "Invalid sgdByteLength for UASTC HDR6X6 Intermediate. sgdByteLength must hold one UASTCHDR6x6IntermediateImageDesc for each image.",
+        "sgdByteLength is {} but based on image count of {} the expected value is 12 * imageCount."
     };
 };
 

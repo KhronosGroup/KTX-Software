@@ -3,14 +3,27 @@
 
 # Find Vulkan package
 if(APPLE)
-    # N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
-    # the iOS frameworks and to set Vulkan_SDK_Base, used later in this
-    # file. Therefore ensure to make that env. var. available to CMake and
-    # Xcode. Special care is needed to ensure it is available to the CMake
-    # and Xcode GUIs.
-#    set(CMAKE_FIND_DEBUG_MODE TRUE)
-    find_package( Vulkan REQUIRED COMPONENTS MoltenVK )
-#    set(CMAKE_FIND_DEBUG_MODE FALSE)
+    # validation needed for copying to bundle on macOS, linking on IOS.
+    set(vk_components validation)
+    if(APPLE_LOCKED_OS)
+        # KosmicKrisp does not yet support iOS, etc.
+        list(APPEND vk_components MoltenVK)
+    else()
+        # KosmicKrisp only supports macOS 26+ so the bundle needs both in case
+        # of running on an earlier macOS.
+        list(APPEND vk_components KosmicKrisp MoltenVK)
+    endif()
+endif()
+# N.B. FindVulkan needs the VULKAN_SDK environment variable set to find
+# the iOS frameworks and to set Vulkan_SDK_Base, used later in this
+# file. Therefore ensure to make that env. var. available to CMake and
+# Xcode. Special care is needed to ensure it is available to the CMake
+# and Xcode GUIs.
+#set(CMAKE_FIND_DEBUG_MODE TRUE)
+find_package( Vulkan REQUIRED COMPONENTS ${vk_components} )
+#set(CMAKE_FIND_DEBUG_MODE FALSE)
+
+if(APPLE)
     # Derive some other useful variables from those provided by find_package
     if(APPLE_LOCKED_OS)
         set( Vulkan_SHARE_VULKAN ${Vulkan_SDK_Base}/${CMAKE_SYSTEM_NAME}/share/vulkan )
@@ -34,8 +47,6 @@ if(APPLE)
         )
         set( Vulkan_SHARE_VULKAN appfwSDL/VulkanAppSDL/mac/vulkan )
     endif()
-else()
-    find_package( Vulkan REQUIRED )
 endif()
 
 #cmake_print_variables(
@@ -43,6 +54,8 @@ endif()
 #    Vulkan_LIBRARY_REAL_PATH_NAME
 #    Vulkan_LIBRARY_REAL_FILE_NAME
 #    Vulkan_LIBRARY_SONAME_FILE_NAME
+#    Vulkan_KosmicKrisp_LIBRARY
+#    Vulkan_MoltenVK_LIBRARY
 #)
 
 include(compile_shader.cmake)
@@ -201,9 +214,10 @@ PRIVATE
 source_group( "Shader Source Files" FILES ${SHADER_SOURCES})
 source_group( "Resources/Shader Binaries" FILES ${SHADER_SPVS})
 source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/ktx(2?)/.*" )
+source_group( "Resources" FILES ${Vulkan_SHARE_VULKAN} )
 
 # Keep this in case something changes in the Vulkan implementation and we need to
-# explicitly set wantsExtendedDynamicRangeContent as we must on locked OSes.
+# explicitly set wantsExtendedDynamicRangeContent on macOS.
 #if(APPLE_MAC_OS)
 #    target_sources(
 #        vkloadtests
@@ -212,6 +226,7 @@ source_group( "Resources/KTX Images" REGULAR_EXPRESSION "${TEST_RESOURCES_DIR}/k
 #    )
 #endif()
 if(APPLE_LOCKED_OS)
+    # To work around a MoltenVK bug
     target_sources(
         vkloadtests
     PUBLIC
@@ -356,10 +371,9 @@ if(APPLE)
     # copies the executable and all files with the RESOURCE property to the
     # bundle adjusting for the difference in bundle layout between iOS &
     # macOS.
-
     if(IOS)
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_MoltenVK_LIBRARY};${Vulkan_LIBRARIES};${Vulkan_Layer_VALIDATION}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_MoltenVK_LIBRARY};${Vulkan_LIBRARIES};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             XCODE_EMBED_FRAMEWORKS_CODE_SIGN_ON_COPY		"YES"
             XCODE_EMBED_FRAMEWORKS_REMOVE_HEADERS_ON_COPY	"YES"
             # Set RPATH to find frameworks
@@ -372,7 +386,7 @@ if(APPLE)
         # hand the Vulkan and MoltenVK frameworks in the iOS SDK are not
         # signed. hence it is set there.
         set_target_properties( vkloadtests PROPERTIES
-            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_VALIDATION}"
+            XCODE_EMBED_FRAMEWORKS "${Vulkan_LIBRARY_REAL_PATH_NAME};${Vulkan_KosmicKrisp_LIBRARY};${Vulkan_MoltenVK_LIBRARY};${Vulkan_Layer_KHRONOS_VALIDATION_LIBRARY}"
             # Set RPATH to find frameworks and dylibs
             INSTALL_RPATH @executable_path/../Frameworks
         )
@@ -438,6 +452,10 @@ else()
     # put it in /opt/<provider>/lib with link from
     # ${CMAKE_INSTALL_LIBDIR}? NOTE: if we put lib in /opt/<provider>
     # then consider putting the executables in /opt/provider/<target>.
+
+    # TODO: Figure out how to add the libvulkan1 and mesa-vulkan-drivers
+    # packages as dependencies of the install package and whether doing
+    # so is a good idea.
 
     # TODO: Before adding this target to the release packages, ensure
     # this RPATH will work for alternate install root.

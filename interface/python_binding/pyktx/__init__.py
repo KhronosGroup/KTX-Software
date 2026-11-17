@@ -15,7 +15,9 @@ if os.name == 'nt':
         # add_dll_directory requires full path.
         LIBKTX_LIB_DIR = os.path.abspath(LIBKTX_LIB_DIR);
 
-    os.add_dll_directory(os.path.normpath(LIBKTX_LIB_DIR))
+    # The wheels include ktx.dll so libktx may not be installed.
+    if os.path.isdir(LIBKTX_LIB_DIR):
+        os.add_dll_directory(os.path.normpath(LIBKTX_LIB_DIR))
 
 from .gl_internalformat import *
 from .ktx_astc_params import *

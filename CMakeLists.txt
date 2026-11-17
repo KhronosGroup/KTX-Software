@@ -27,7 +27,7 @@ endif()
 if(APPLE)
     if(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set( APPLE_LOCKED_OS ON )
-    else()
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR NOT CMAKE_SYSTEM_NAME)
         set( APPLE_MAC_OS ON )
     endif()
 endif()
@@ -46,15 +46,6 @@ option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 option( KTX_FEATURE_JS "Enable JavaScript bindings in Emscripten builds." ON )
 option( KTX_FEATURE_TOOLS "Enable KTX CLI Tools." OFF)
-
-# Although MSVC added support for '-fsanitize', it hasn't been tested yet
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
-    #   - to enable AddressSanitizer (Asan), set to "address"
-    #   - to enable ThreadSanitizer (Tsan), set to "thread"
-    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
-    set(SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
-endif()
 
 if(KTX_FEATURE_TOOLS_CTS AND NOT KTX_FEATURE_TOOLS)
     message(WARNING "KTX_FEATURE_TOOLS is not set -> disabling KTX_FEATURE_TOOLS_CTS.")
@@ -123,7 +114,7 @@ if(APPLE)
         # The unit tests now use std::filesystem.
         set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "macOS Deployment Target")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "tvOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "iOS/tvOS Deployment Target")
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "iOS/tvOS Deployment Target")
         set(CMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH NO)
     elseif(CMAKE_SYSTEM_NAME STREQUAL "visionOS")
         set(CMAKE_OSX_DEPLOYMENT_TARGET "1.0" CACHE STRING "visionOS Deployment Target")
@@ -140,8 +131,18 @@ include(GNUInstallDirs) # Must be after project.
 include(CTest)          #           "
 
 set_target_processor_type(CPU_ARCHITECTURE) # Must be after project.
-if (CPU_ARCHITECTURE STREQUAL x86)
+if (CPU_ARCHITECTURE STREQUAL x86 AND NOT ANDROID)
     message(FATAL_ERROR "This project cannot be built for x86 cpu.")
+endif()
+
+# CMAKE_CXX_COMPILER_ID is not set until after project() so this must be after.
+# Although MSVC added support for '-fsanitize', it hasn't been tested yet
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # KTX_SANITIZE can be set to the same set of values acceptable by '-fsanitize' by both Clang and GCC
+    #   - to enable AddressSanitizer (Asan), set to "address"
+    #   - to enable ThreadSanitizer (Tsan), set to "thread"
+    #   - to enable UndefinedBehaviorSanitizer (UBSan), set to "undefined"
+    set(KTX_SANITIZE "" CACHE STRING "Build code using sanitizer. Results in significantly slower runtime. Can be set to any value acceptable by '-fsanitize'")
 endif()
 
 # Uses IOS, so included after project to avoid modifying it.
@@ -199,9 +200,9 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Cl
         add_link_options( $<IF:$<CONFIG:Debug>,-g,-O3> )
     endif()
     # Optional sanitizer (only Debug builds because with Release you will get a wall of warnings)
-    if (SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options (-fsanitize=${SANITIZE})
-        add_link_options (-fsanitize=${SANITIZE})
+    if (KTX_SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options (-fsanitize=${KTX_SANITIZE})
+        add_link_options (-fsanitize=${KTX_SANITIZE})
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             # finds writes past size of std::vector (won't be detected without this)
             add_compile_definitions (_GLIBCXX_SANITIZE_VECTOR=1)
@@ -534,7 +535,7 @@ if( APPLE AND CMAKE_OSX_ARCHITECTURES )
     else()
         set(processor_name ${arch0})
     endif()
-elseif( CMAKE_CXX_COMPILER_ARCHITECTURE_ID )
+elseif( WIN32 AND CMAKE_CXX_COMPILER_ARCHITECTURE_ID )
     # When targeting Windows arm64 CMAKE_SYSTEM_PROCESSOR will incorrectly
     # return AMD64. See: https://gitlab.kitware.com/cmake/cmake/-/issues/15170.
     # We assume that when building for Windows arm64 that we are using MSVC
@@ -587,6 +588,16 @@ if(APPLE)
 elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
+    # CPack asks dpkg for the .deb architecture. Builds on RPM-based
+    # systems, such as manylinux, don't have dpkg.
+    find_program(DPKG_EXECUTABLE dpkg)
+    if(NOT DPKG_EXECUTABLE)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
+        elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+            set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE arm64)
+        endif()
+    endif()
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
 
     # This fixes the directory permission derived from Ubuntu ${BUILD_DIR} of 0775 to 0755.

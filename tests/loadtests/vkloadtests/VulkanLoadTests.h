@@ -31,7 +31,7 @@ class VulkanLoadTests : public VulkanAppSDL {
     virtual bool doEvent(SDL_Event* event);
     virtual void drawFrame(uint32_t msTicks);
     virtual void finalize();
-    virtual void getOverlayText(float yOffset);
+    virtual void getOverlayText(float xOffset, float yOffset);
     virtual bool initialize(Args& args);
     virtual void onFPSUpdate();
     virtual void windowResized();

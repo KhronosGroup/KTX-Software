@@ -19,6 +19,7 @@
  */
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <inttypes.h>
 #include <stdio.h>
@@ -393,9 +394,11 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
     createInfo.pDfd = nullptr;
 
     KTX_error_code result;
-    ktxTexture2* prototype;
-    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE,
-                                &prototype);
+    std::unique_ptr<ktxTexture2, decltype(ktxTexture2_Destroy)*> prototype_raii{nullptr,
+                                                                                ktxTexture2_Destroy};
+    ktxTexture2* prototype = nullptr;
+    result = ktxTexture2_Create(&createInfo, KTX_TEXTURE_CREATE_ALLOC_STORAGE, &prototype);
+    prototype_raii.reset(prototype);
 
     if (result != KTX_SUCCESS) {
         assert(result == KTX_OUT_OF_MEMORY); // The only run time error
@@ -408,12 +411,10 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             result = ktxTexture2_LoadImageData(This, NULL, 0);
             if (result != KTX_SUCCESS)
             {
-                ktxTexture2_Destroy(prototype);
                 return result;
             }
         } else {
             // No data to transcode.
-            ktxTexture2_Destroy(prototype);
             return KTX_INVALID_OPERATION;
         }
     }
@@ -476,9 +477,81 @@ ktx2transcoderFormat(ktx_transcode_fmt_e ktx_fmt) {
             This->_private->_supercompressionGlobalData = NULL;
         }
     }
-    ktxTexture2_Destroy(prototype);
     return result;
  }
+
+/**
+ * @internal
+ * @~English
+ * @brief Return the position of a block in a PVRTC1 image's block order.
+ *
+ * PVRTC1 blocks are in Morton order, y in the low bit, over the square
+ * part of the image's block grid, followed by the remaining bits of the
+ * longer side. This is the order basisu writes them in.
+ *
+ * @param[in] blocksX  width of the image's block grid, a power of 2.
+ * @param[in] blocksY  height of the image's block grid, a power of 2.
+ * @param[in] x        the block's column.
+ * @param[in] y        the block's row.
+ */
+static uint32_t
+pvrtc1BlockIndex(uint32_t blocksX, uint32_t blocksY, uint32_t x, uint32_t y)
+{
+    const uint32_t minBlocks = MIN(blocksX, blocksY);
+    uint32_t index = 0;
+    uint32_t shift = 0;
+
+    for (uint32_t bit = 1; bit < minBlocks; bit <<= 1, shift += 2) {
+        if (y & bit)
+            index |= 1U << shift;
+        if (x & bit)
+            index |= 2U << shift;
+    }
+    if (blocksX > blocksY)
+        index |= (x / minBlocks) << shift;
+    else if (blocksY > blocksX)
+        index |= (y / minBlocks) << shift;
+    return index;
+}
+
+/**
+ * @internal
+ * @~English
+ * @brief Fill a PVRTC1 image that covers fewer than 2x2 blocks out to 2x2.
+ *
+ * A PVRTC1 image occupies at least 2x2 blocks and the texture's layout
+ * reserves that much, but basisu transcodes only the blocks the image
+ * covers, in the block order of that smaller grid, and leaves the rest of
+ * the image unwritten. It computes the blocks as if the image wrapped
+ * onto itself so tiling them over the 2x2 grid, in its block order, gives
+ * the image basisu intended and leaves no byte of it unwritten.
+ *
+ * Remove this and its two calls once basisu fills the whole 2x2 grid
+ * itself. See https://github.com/BinomialLLC/basis_universal/issues/475.
+ *
+ * @param[in,out] image    pointer to the transcoded image.
+ * @param[in]     blocksX  width of the image's block grid, a power of 2.
+ * @param[in]     blocksY  height of the image's block grid, a power of 2.
+ */
+static void
+padPvrtc1Image(ktx_uint8_t* image, uint32_t blocksX, uint32_t blocksY)
+{
+    const uint32_t blockSize = 8; // Bytes in a PVRTC1 4bpp block.
+    const uint32_t paddedX = MAX(2U, blocksX);
+    const uint32_t paddedY = MAX(2U, blocksY);
+    const std::vector<ktx_uint8_t> blocks(image,
+                                          image + blocksX * blocksY * blockSize);
+
+    for (uint32_t y = 0; y < paddedY; y++) {
+        for (uint32_t x = 0; x < paddedX; x++) {
+            uint32_t src = pvrtc1BlockIndex(blocksX, blocksY,
+                                            x % blocksX, y % blocksY);
+            uint32_t dst = pvrtc1BlockIndex(paddedX, paddedY, x, y);
+            memcpy(image + dst * blockSize, blocks.data() + src * blockSize,
+                   blockSize);
+        }
+    }
+}
 
 /**
  * @memberof ktxTexture2
@@ -552,10 +625,13 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
 {
     DECLARE_PRIVATE(priv, This);
     DECLARE_PRIVATE(protoPriv, prototype);
-    KTX_error_code result = KTX_SUCCESS;
 
     assert(This->supercompressionScheme == KTX_SS_BASIS_LZ);
 
+    if (priv._sgdByteLength < sizeof(ktxBasisLzGlobalHeader)) {
+        debug_printf("ktxTexture_TranscodeBasis: supercompression global data too short");
+        return KTX_FILE_DATA_ERROR;
+    }
     uint8_t* bgd = priv._supercompressionGlobalData;
     ktxBasisLzGlobalHeader& bgdh = *reinterpret_cast<ktxBasisLzGlobalHeader*>(bgd);
     if (!(bgdh.endpointsByteLength && bgdh.selectorsByteLength && bgdh.tablesByteLength)) {
@@ -570,7 +646,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     // level to largest or when randomly accessing them (t.b.c). The last array
     // entry contains the total number of images, for calculating the offsets
     // of the endpoints, etc.
-    uint32_t* firstImages = new uint32_t[This->numLevels+1];
+    std::unique_ptr<uint32_t[]> firstImages = std::make_unique<uint32_t[]>(This->numLevels+1);
 
     // Temporary invariant value
     uint32_t layersFaces = This->numLayers * This->numFaces;
@@ -584,13 +660,9 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     uint32_t& imageCount = firstImages[This->numLevels];
 
     if (BGD_TABLES_ADDR(0, bgdh, imageCount) + bgdh.tablesByteLength > priv._sgdByteLength) {
-        // Compiler will not allow `goto cleanup;` because "jump bypasses variable initialization."
-        // The static initializations below this and before the loop are presumably the issue
-        // as the compiler is, presumably, inserting code to destruct those at the end of the
-        // function.
-        delete[] firstImages;
         return KTX_FILE_DATA_ERROR;
     }
+
     // FIXME: Do more validation.
 
     // Prepare low-level transcoder for transcoding slices.
@@ -604,13 +676,19 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
     std::vector<basisu_transcoder_state> xcoderStates;
     xcoderStates.resize(This->isVideo ? This->numFaces : 1);
 
-    bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
-                        bgdh.endpointsByteLength,
-                        bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
-                        bgdh.selectorsByteLength);
+    if (!bit.decode_palettes(bgdh.endpointCount, BGD_ENDPOINTS_ADDR(bgd, imageCount),
+                             bgdh.endpointsByteLength,
+                             bgdh.selectorCount, BGD_SELECTORS_ADDR(bgd, bgdh, imageCount),
+                             bgdh.selectorsByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid endpoint or selector palettes");
+        return KTX_TRANSCODE_FAILED;
+    }
 
-    bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
-                      bgdh.tablesByteLength);
+    if (!bit.decode_tables(BGD_TABLES_ADDR(bgd, bgdh, imageCount),
+                           bgdh.tablesByteLength)) {
+        debug_printf("ktxTexture_TranscodeBasis: invalid Huffman tables");
+        return KTX_TRANSCODE_FAILED;
+    }
 
     // Find matching VkFormat and calculate output sizes.
 
@@ -707,8 +785,13 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
                       0  // output_rows_in_pixels
                       );
             if (!status) {
-                result = KTX_TRANSCODE_FAILED;
-                goto cleanup;
+                return KTX_TRANSCODE_FAILED;
+            }
+            if ((outputFormat == KTX_TTF_PVRTC1_4_RGB
+                 || outputFormat == KTX_TTF_PVRTC1_4_RGBA)
+                && (levelBlocksX < 2 || levelBlocksY < 2)) {
+                padPvrtc1Image(pXcodedData + writeOffset,
+                               levelBlocksX, levelBlocksY);
             }
 
             writeOffset += levelImageSizeOut;
@@ -716,11 +799,7 @@ ktxTexture2_transcodeLzEtc1s(ktxTexture2* This,
         } // end images loop
     } // level loop
 
-    result = KTX_SUCCESS;
-
-cleanup:
-    delete[] firstImages;
-    return result;
+    return KTX_SUCCESS;
 }
 
 static KTX_error_code
@@ -797,6 +876,12 @@ transcodeUastcLDR4x4(ktxTexture2* This, alpha_content_e alphaContent,
                           -1  // channel1
                           );
             if (!status) return KTX_TRANSCODE_FAILED;
+            if ((outputFormat == KTX_TTF_PVRTC1_4_RGB
+                 || outputFormat == KTX_TTF_PVRTC1_4_RGBA)
+                && (levelBlocksX < 2 || levelBlocksY < 2)) {
+                padPvrtc1Image(pXcodedData + writeOffset,
+                               levelBlocksX, levelBlocksY);
+            }
             writeOffset += levelImageSizeOut;
             writeOffsetBlocks = writeOffset / outputBlockByteLength;
             levelImageOffsetIn += levelImageSizeIn;
