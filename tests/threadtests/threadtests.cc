@@ -44,6 +44,8 @@
   // Use {fmt} instead.
   #include <fmt/ostream.h>
 #endif
+#include <fstream>
+#include <iterator>
 #include <thread>
 #include <sys/stat.h>
 #include "ktx.h"
@@ -185,6 +187,88 @@ TEST(Multithreaded, DecodeASTC) {
     for (int i = 0; i < numThreads; i++) {
         threads[i].join();
     }
+}
+
+// ktxTexture2_TranscodeBasis above has already run the transcoder's one
+// time initialization, which ktxLevelProcessor_CreateBasis shares. This
+// checks that separate processors can process the levels of one shared
+// source concurrently.
+TEST(Multithreaded, LevelProcessor) {
+    const int numThreads = 2;
+    std::barrier syncPoint(numThreads);
+
+    fs::path ktxFile1 = ::ktx2Path;
+    ktxFile1.replace_filename(u8"r8g8b8a8_srgb_mip_blze.ktx2");
+    fs::path goldenFile1 = ::ktx2Path;
+    goldenFile1.replace_filename(u8"r8g8b8a8_srgb_mip_etc2.ktx2");
+
+    // A metadata-only source shared by the threads. The level payloads the
+    // processors consume are read from the file separately.
+    ktxTexture2* source = nullptr;
+    ktx_error_code_e result = ktxTexture_CreateFromNamedFile(
+        reinterpret_cast<const char*>(ktxFile1.u8string().c_str()),
+        KTX_TEXTURE_CREATE_NO_FLAGS, (ktxTexture **)&source);
+    ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
+            << from_u8string(ktxFile1.u8string()) << "\" failed: " << ktxErrorString(result);
+    std::ifstream fileStream(ktxFile1, std::ios::binary);
+    const std::vector<ktx_uint8_t> file((std::istreambuf_iterator<char>(fileStream)),
+                                        std::istreambuf_iterator<char>());
+
+    ktxTexture2* golden = nullptr;
+    result = ktxTexture_CreateFromNamedFile(
+        reinterpret_cast<const char*>(goldenFile1.u8string().c_str()),
+        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, (ktxTexture **)&golden);
+    ASSERT_TRUE(result == KTX_SUCCESS) << "ktxTexture_CreateFromNamedFile \""
+            << from_u8string(goldenFile1.u8string()) << "\" failed: " << ktxErrorString(result);
+    ASSERT_TRUE(golden->pData != NULL) << "Image data not loaded";
+
+    auto funcProcess = [&syncPoint, source, golden, &file] () {
+        ktxLevelProcessor* processor = nullptr;
+
+        // Barrier to make ktxLevelProcessor_CreateBasis and ProcessLevel be
+        // called concurrently in multiple threads
+        syncPoint.arrive_and_wait();
+
+        ktx_error_code_e result = ktxLevelProcessor_CreateBasis(
+            source, KTX_TTF_ETC2_RGBA, 0, &processor);
+        ASSERT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+        for (ktx_int32_t level = source->numLevels - 1; level >= 0; level--) {
+            ktxLevelFileInfo levelInfo;
+            ktx_size_t levelSize = 0, goldenOffset = 0;
+            ASSERT_EQ(ktxTexture2_GetLevelFileInfo(source, level, &levelInfo),
+                      KTX_SUCCESS);
+            ASSERT_LE(levelInfo.byteOffset + levelInfo.byteLength,
+                      (ktx_uint64_t)file.size());
+            ASSERT_EQ(ktxLevelProcessor_GetLevelSize(processor, level, &levelSize),
+                      KTX_SUCCESS);
+            std::vector<ktx_uint8_t> levelData(levelSize);
+            result = ktxLevelProcessor_ProcessLevel(
+                processor, level, file.data() + (size_t)levelInfo.byteOffset,
+                (ktx_size_t)levelInfo.byteLength, levelData.data(), levelData.size());
+            EXPECT_EQ(result, KTX_SUCCESS) << ktxErrorString(result);
+
+            ASSERT_EQ(ktxTexture_GetImageOffset(ktxTexture(golden), level, 0, 0,
+                                                &goldenOffset),
+                      KTX_SUCCESS);
+            ASSERT_LE(goldenOffset + levelSize, golden->dataSize);
+            EXPECT_EQ(memcmp(levelData.data(), golden->pData + goldenOffset,
+                             levelSize), 0) << "level " << level;
+        }
+        ktxLevelProcessor_Destroy(processor);
+    };
+
+    std::vector<std::thread> threads;
+    threads.resize(numThreads);
+    for (int i = 0; i < numThreads; i++) {
+        threads[i] = std::thread(funcProcess);
+    }
+
+    for (int i = 0; i < numThreads; i++) {
+        threads[i].join();
+    }
+    ktxTexture2_Destroy(golden);
+    ktxTexture2_Destroy(source);
 }
 
 class MultithreadedEncode : public ::testing::Test
