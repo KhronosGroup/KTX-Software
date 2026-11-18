@@ -38,6 +38,11 @@ class Texture : public VulkanLoadTestSample
         No = 0,
         Yes
     };
+    enum class UseQueueGuard
+    {
+        No = 0,
+        Yes
+    };
 
     std::string filename;
     ktxVulkanTexture texture;
@@ -46,6 +51,7 @@ class Texture : public VulkanLoadTestSample
     vk::ImageTiling tiling;
     vk::ImageLayout finalLayout;
     UseSuballocator useSubAlloc;
+    UseQueueGuard useQueueGuard;
     vk::ComponentMapping swizzle;
 
     struct {

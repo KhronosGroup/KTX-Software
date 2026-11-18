@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <exception>
 #include <vector>
+#include <thread>
 
 #include "argparser.h"
 #include "Texture.h"
@@ -66,7 +67,8 @@ Texture::Texture(VulkanContext& vkctx,
     tiling = vk::ImageTiling::eOptimal;
     finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     useSubAlloc = UseSuballocator::No;
-    rgbcolor upperLeftColor{ 0.7f, 0.1f, 0.2f };
+    useQueueGuard = UseQueueGuard::No;
+    rgbcolor upperLeftColor{0.7f, 0.1f, 0.2f};
     rgbcolor lowerLeftColor{ 0.8f, 0.9f, 0.3f };
     rgbcolor upperRightColor{ 0.4f, 1.0f, 0.5f };
     rgbcolor lowerRightColor{ 0.0f, 0.6f, 0.1f };
@@ -131,11 +133,28 @@ Texture::Texture(VulkanContext& vkctx,
         VkInstance vkInst = vkctx.instance;
         VMA_CALLBACKS::InitVMA(vdi.physicalDevice, vdi.device, vkInst, vdi.deviceMemoryProperties);
 
-        ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
-                                                           static_cast<VkImageTiling>(tiling),
-                                                           VK_IMAGE_USAGE_SAMPLED_BIT,
-                                                           static_cast<VkImageLayout>(finalLayout),
-                                                           &subAllocatorCallbacks);
+        if (useQueueGuard == UseQueueGuard::Yes)
+        {
+            std::thread uploaderThread([&]() {
+                ktxresult = ktxTexture_VkUploadEx_WithSuballocatorAndQueueGuard(kTexture, &vdi, &texture,
+                                                                                static_cast<VkImageTiling>(tiling),
+                                                                                VK_IMAGE_USAGE_SAMPLED_BIT,
+                                                                                static_cast<VkImageLayout>(finalLayout),
+                                                                                &subAllocatorCallbacksGuarded,
+                                                                                &queueGuardCallbacks);
+            });
+            uploaderThread.join(); // We really have no choice here. This crucible/test-environment only loads one texture at a time.
+                                   // Additionally `QUEUE_GUARD_CALLBACKS::queueAccessGuard` and `QUEUE_GUARD_CALLBACKS::memoryAccessGuard` would
+                                   // need to be re-used when arena allocations or the same `VkQueue`s are being accessed simultaneously.
+        }
+        else
+        {
+            ktxresult = ktxTexture_VkUploadEx_WithSuballocator(kTexture, &vdi, &texture,
+                                                               static_cast<VkImageTiling>(tiling),
+                                                               VK_IMAGE_USAGE_SAMPLED_BIT,
+                                                               static_cast<VkImageLayout>(finalLayout),
+                                                               &subAllocatorCallbacks);
+        }
     }
     else // Keep separate call so ktxTexture_VkUploadEx is also tested.
         ktxresult = ktxTexture_VkUploadEx(kTexture, &vdi, &texture,
@@ -246,6 +265,7 @@ Texture::processArgs(std::string sArgs)
       {"linear-tiling", argparser::option::no_argument,       (int*)&tiling,        (int)vk::ImageTiling::eLinear},
       {"general-layout",argparser::option::no_argument,       (int*)&finalLayout,   (int)vk::ImageLayout::eGeneral},
       {"use-vma",       argparser::option::no_argument,       (int*)&useSubAlloc,   (int)UseSuballocator::Yes},
+      {"guard-queue",   argparser::option::no_argument,       (int*)&useQueueGuard, (int)UseQueueGuard::Yes},
       {"qcolor",        argparser::option::required_argument, NULL,                 1},
       {NULL,            argparser::option::no_argument,       NULL,                 0}
     };
