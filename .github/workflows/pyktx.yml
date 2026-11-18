@@ -61,6 +61,11 @@ jobs:
         include:
           - os: ubuntu-latest
           - os: ubuntu-26.04-arm
+          # Native RISC-V runner provided by RISE, as in linux.yml. Use the
+          # label as-is: the runner matches the exact set of runs-on labels.
+          # cibuildwheel builds riscv64 wheels in manylinux_2_39, the oldest
+          # manylinux with a riscv64 image, and musllinux_1_2.
+          - os: ubuntu-24.04-riscv
           - os: macos-latest
           - os: macos-15-intel
             # Most Intel Macs predate AVX2, the ASTC encoder's default.
