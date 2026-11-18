@@ -467,6 +467,11 @@ typedef KTX_error_code
                                          void* userdata);
 
 typedef KTX_error_code
+    (KTX_APIENTRY* PFNKTEXITERATELEVELFACES)(ktxTexture* This,
+                                             PFNKTXITERCB iterCb,
+                                             void* userdata);
+
+typedef KTX_error_code
     (KTX_APIENTRY* PFNKTEXITERATELOADLEVELFACES)(ktxTexture* This,
                                                  PFNKTXITERCB iterCb,
                                                  void* userdata);
@@ -521,6 +526,7 @@ typedef KTX_error_code
     PFNKTEXGETIMAGESIZE GetImageSize;
     PFNKTEXGETLEVELSIZE GetLevelSize;
     PFNKTEXITERATELEVELS IterateLevels;
+    PFNKTEXITERATELEVELFACES IterateLevelFaces;
     PFNKTEXITERATELOADLEVELFACES IterateLoadLevelFaces;
     PFNKTEXNEEDSTRANSCODING NeedsTranscoding;
     PFNKTEXISTRANSCODABLE IsTranscodable;
@@ -588,6 +594,14 @@ typedef KTX_error_code
  */
 #define ktxTexture_IterateLevels(This, iterCb, userdata) \
                             (This)->vtbl->IterateLevels(This, iterCb, userdata)
+
+/**
+ * @~English
+ * @brief Helper for calling the IterateLevelFaces virtual method of a ktxTexture.
+ * @copydoc ktxTexture2.ktxTexture2_IterateLevelFaces
+ */
+#define ktxTexture_IterateLevelFaces(This, iterCb, userdata) \
+                            (This)->vtbl->IterateLevelFaces(This, iterCb, userdata)
 
 /**
  * @~English
@@ -1009,12 +1023,6 @@ ktxTexture_GLUpload(ktxTexture* This, GLuint* pTexture, GLenum* pTarget,
                     GLenum* pGlerror);
 
 /*
- * Iterate over the levels or faces in a ktxTexture object.
- */
-KTX_API KTX_error_code KTX_APIENTRY
-ktxTexture_IterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
-                             void* userdata);
-/*
  * Create a new ktxTexture1.
  */
 KTX_API KTX_error_code KTX_APIENTRY
@@ -1090,6 +1098,33 @@ ktxTexture1_GetRgbaAstcMapping(ktxTexture1* This);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture1_LoadImageData(ktxTexture1* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+
+/*
+ * For iterating over MIP levels and calling a user-defined callback
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_IterateLevels(ktxTexture1* This, PFNKTXITERCB iterCb, void* userdata);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_IterateLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
+                             void* userdata);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_IterateLoadLevelFaces(ktxTexture1* This, PFNKTXITERCB iterCb,
+                                  void* userdata);
+
+/*
+ * These two write images to a KTX v1 texture directly.
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_SetImageFromMemory(ktxTexture1* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               const ktx_uint8_t* src, ktx_size_t srcSize);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture1_SetImageFromStdioStream(ktxTexture1* This, ktx_uint32_t level,
+                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                    FILE* src, ktx_size_t srcSize);
 
 /*
  * These four write a ktxTexture1 object to a KTX v1 file.
@@ -1227,12 +1262,40 @@ ktxTexture2_SetPrimaries(ktxTexture2* This, khr_df_primaries_e primaries);
 
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_LoadImageData(ktxTexture2* This, ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+
 /*
  * For rare testing scenarios. Use ktxTexture2_LoadImageData.
  */
 KTX_API ktx_error_code_e KTX_APIENTRY
 ktxTexture2_LoadDeflatedImageData(ktxTexture2* This,
                                   ktx_uint8_t* pBuffer, ktx_size_t bufSize);
+
+/*
+ * For iterating over MIP levels and calling a user-defined callback
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_IterateLevels(ktxTexture2* This, PFNKTXITERCB iterCb, void* userdata);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_IterateLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
+                             void* userdata);
+
+KTX_API ktx_error_code_e KTX_APIENTRY 
+ktxTexture2_IterateLoadLevelFaces(ktxTexture2* This, PFNKTXITERCB iterCb,
+                                  void* userdata);
+
+/*
+ * These two write images to a KTX v2 texture directly.
+ */
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SetImageFromMemory(ktxTexture2* This, ktx_uint32_t level,
+                               ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                               const ktx_uint8_t* src, ktx_size_t srcSize);
+
+KTX_API ktx_error_code_e KTX_APIENTRY
+ktxTexture2_SetImageFromStdioStream(ktxTexture2* This, ktx_uint32_t level,
+                                    ktx_uint32_t layer, ktx_uint32_t faceSlice,
+                                    FILE* src, ktx_size_t srcSize);
 
 /*
  * These four write a ktxTexture2 object to a KTX v2 file.

@@ -343,6 +343,16 @@ static inline FILE* ktxFOpenUTF8(char const* path, char const* mode) {
 
 /*
  ======================================
+     Internal functions to be inlined/called within ktxTexture[12] functions
+ ======================================
+*/
+
+ktx_error_code_e
+ktxTexture_iterateLevelFaces(ktxTexture* This, PFNKTXITERCB iterCb,
+                             void* userdata);
+
+/*
+ ======================================
      Test helper
  ======================================
 */
