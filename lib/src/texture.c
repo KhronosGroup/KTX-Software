@@ -42,6 +42,151 @@ ktx_size_t ktxTexture_GetDataSize(ktxTexture* This);
 
 static ktx_uint32_t padRow(ktx_uint32_t* rowBytes);
 
+/*
+ * Return the number of blocks of @p blockSize texels needed to cover
+ * @p texels texels. Unlike (texels + blockSize - 1) / blockSize this cannot
+ * wrap.
+ */
+static ktx_uint32_t
+blocksFor(ktx_uint32_t texels, ktx_uint32_t blockSize)
+{
+    return texels / blockSize + (texels % blockSize != 0);
+}
+
+/*
+ * Multiply @p *value by @p b. Return KTX_FALSE, leaving @p *value unchanged,
+ * if the result does not fit in a ktx_size_t.
+ */
+static ktx_bool_t
+mulFits(ktx_size_t* value, ktx_size_t b)
+{
+    if (b != 0 && *value > SIZE_MAX / b)
+        return KTX_FALSE;
+    *value *= b;
+    return KTX_TRUE;
+}
+
+/*
+ * Add @p b to @p *value. Return KTX_FALSE, leaving @p *value unchanged, if
+ * the result does not fit in a ktx_size_t.
+ */
+static ktx_bool_t
+addFits(ktx_size_t* value, ktx_size_t b)
+{
+    if (*value > SIZE_MAX - b)
+        return KTX_FALSE;
+    *value += b;
+    return KTX_TRUE;
+}
+
+/*
+ * Return the number of bytes in a row of @p blocks blocks of
+ * @p blockSizeInBits bits each, rounded up to a whole byte. Some KTX 1
+ * formats have blocks that are not a whole number of bytes: 1 bit for
+ * GL_STENCIL_INDEX1, 4 bits for GL_STENCIL_INDEX4 and the GL_PALETTE4_*_OES
+ * formats, 12 bits for GL_RGB4 and 36 bits for GL_RGB12, so the size of a
+ * row cannot be calculated from a whole number of bytes per block. The bits
+ * are counted in groups of 8 blocks, so blocks * blockSizeInBits is never
+ * formed. Callers must know the result fits; rowBytesFits checks that.
+ */
+static ktx_size_t
+rowBytesFor(ktx_size_t blocks, ktx_uint32_t blockSizeInBits)
+{
+    return blocks / 8 * blockSizeInBits
+           + ((blocks % 8) * blockSizeInBits + 7) / 8;
+}
+
+/*
+ * Calculate rowBytesFor(@p blocks, @p blockSizeInBits) into @p *pRowBytes.
+ * Return KTX_FALSE, leaving @p *pRowBytes unchanged, if it does not fit in
+ * a ktx_size_t.
+ */
+static ktx_bool_t
+rowBytesFits(ktx_size_t blocks, ktx_uint32_t blockSizeInBits,
+             ktx_size_t* pRowBytes)
+{
+    ktx_size_t rowBytes = blocks / 8;
+
+    if (!mulFits(&rowBytes, blockSizeInBits)
+        || !addFits(&rowBytes, ((blocks % 8) * blockSizeInBits + 7) / 8))
+        return KTX_FALSE;
+    *pRowBytes = rowBytes;
+    return KTX_TRUE;
+}
+
+/**
+ * @memberof ktxTexture @private
+ * @~English
+ * @brief Calculate the size of the image data of a texture, checking that it
+ *        fits in a ktx_size_t.
+ *
+ * The size is calculated in the same way as ktxTexture_calcImageSize,
+ * ktxTexture_layerSize and ktxTexture_calcLevelSize calculate the sizes of
+ * the images, layers and levels for format version @p fv, summed over all
+ * levels with each level except level 0 padded to a multiple of
+ * @p levelAlignment. That is the value ktxTexture_calcDataSizeTexture
+ * returns for KTX 2 when @p levelAlignment is the texture's required level
+ * alignment and for KTX 1 when it is 1. Every image, layer and level size and
+ * every level offset is at most this size so none of those calculations can
+ * wrap when this succeeds.
+ *
+ * The KTX 1 cube and mip padding are only added when KTX_GL_UNPACK_ALIGNMENT
+ * is not 4, which it always is, so they are not included.
+ *
+ * @param[in]  This           pointer to the ktxTexture object of interest.
+ * @param[in]  fv             format version for which to calculate the size.
+ * @param[in]  levelAlignment alignment of each level except level 0.
+ * @param[out] pDataSize      pointer to location to store the size.
+ *
+ * @return KTX_TRUE if the size and every partial result fit in a
+ *         ktx_size_t, KTX_FALSE otherwise. @p *pDataSize is only written on
+ *         success.
+ */
+ktx_bool_t
+ktxTexture_calcDataSizeChecked(ktxTexture* This, ktxFormatVersionEnum fv,
+                               ktx_uint32_t levelAlignment,
+                               ktx_size_t* pDataSize)
+{
+    DECLARE_PROTECTED(ktxTexture);
+    const ktxFormatSize* formatSize = &prtctd->_formatSize;
+    ktx_bool_t padRows = fv == KTX_FORMAT_VERSION_ONE
+                     && !(formatSize->flags & KTX_FORMAT_SIZE_COMPRESSED_BIT);
+    ktx_size_t dataSize = 0;
+
+    for (ktx_uint32_t level = 0; level < This->numLevels; level++) {
+        ktx_size_t blocksX = MAX(formatSize->minBlocksX,
+                                 blocksFor(This->baseWidth >> level,
+                                           formatSize->blockWidth));
+        ktx_size_t blocksY = MAX(formatSize->minBlocksY,
+                                 blocksFor(This->baseHeight >> level,
+                                           formatSize->blockHeight));
+        ktx_size_t blocksZ = MAX(1, blocksFor(This->baseDepth >> level,
+                                              formatSize->blockDepth));
+        ktx_size_t size;
+
+        /* Row, then image (ktxTexture_calcImageSize). */
+        if (!rowBytesFits(blocksX, formatSize->blockSizeInBits, &size))
+            return KTX_FALSE;
+        if (padRows && !addFits(&size, _KTX_PAD_UNPACK_ALIGN_LEN(size)))
+            return KTX_FALSE;
+        /* Image, layer (ktxTexture_layerSize) and level
+         * (ktxTexture_calcLevelSize). */
+        if (!mulFits(&size, blocksY)
+            || !mulFits(&size, blocksZ)
+            || !mulFits(&size, This->numFaces)
+            || !mulFits(&size, This->numLayers))
+            return KTX_FALSE;
+        /* Level 0 is the last level in the data and is not padded. */
+        if (level > 0 && levelAlignment > 1
+            && !addFits(&size, _KTX_PADN_LEN(levelAlignment, size)))
+            return KTX_FALSE;
+        if (!addFits(&dataSize, size))
+            return KTX_FALSE;
+    }
+    *pDataSize = dataSize;
+    return KTX_TRUE;
+}
+
 /**
  * @memberof ktxTexture @private
  * @~English
@@ -563,36 +708,35 @@ ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
 {
     DECLARE_PROTECTED(ktxTexture);
     struct blockCount {
-        ktx_uint32_t x, y;
+        ktx_size_t x, y;
     } blockCount;
-    ktx_uint32_t blockSizeInBytes;
-    ktx_uint32_t rowBytes;
+    ktx_size_t rowBytes;
 
     assert (This != NULL);
 
-    float levelWidth  = (float)(This->baseWidth >> level);
-    float levelHeight = (float)(This->baseHeight >> level);
     // Round up to next whole block. We can't use KTX_PADN because some of
-    // the block sizes are not powers of 2.
-    blockCount.x
-        = (ktx_uint32_t)ceilf(levelWidth / prtctd->_formatSize.blockWidth);
-    blockCount.y
-        = (ktx_uint32_t)ceilf(levelHeight / prtctd->_formatSize.blockHeight);
+    // the block sizes are not powers of 2. Use integers: a float does not
+    // hold every width exactly and can round past UINT32_MAX.
+    blockCount.x = blocksFor(This->baseWidth >> level,
+                             prtctd->_formatSize.blockWidth);
+    blockCount.y = blocksFor(This->baseHeight >> level,
+                             prtctd->_formatSize.blockHeight);
     blockCount.x = MAX(prtctd->_formatSize.minBlocksX, blockCount.x);
     blockCount.y = MAX(prtctd->_formatSize.minBlocksY, blockCount.y);
 
-    blockSizeInBytes = prtctd->_formatSize.blockSizeInBits / 8;
-
+    // Calculate in ktx_size_t. Creating or loading a texture checks with
+    // ktxTexture_calcDataSizeChecked that this does not wrap. Each row, not
+    // each block, is rounded up to a whole byte.
+    rowBytes = rowBytesFor(blockCount.x, prtctd->_formatSize.blockSizeInBits);
     if (prtctd->_formatSize.flags & KTX_FORMAT_SIZE_COMPRESSED_BIT) {
         assert(This->isCompressed);
-        return blockCount.x * blockCount.y * blockSizeInBytes;
+        return rowBytes * blockCount.y;
     } else {
         assert(prtctd->_formatSize.blockWidth == 1U
                && prtctd->_formatSize.blockHeight == 1U
                && prtctd->_formatSize.blockDepth == 1U);
-        rowBytes = blockCount.x * blockSizeInBytes;
         if (fv == KTX_FORMAT_VERSION_ONE)
-            (void)padRow(&rowBytes);
+            rowBytes += _KTX_PAD_UNPACK_ALIGN_LEN(rowBytes);
         return rowBytes * blockCount.y;
     }
 }
@@ -747,7 +891,8 @@ ktxTexture_layerSize(ktxTexture* This, ktx_uint32_t level,
     assert (This != NULL);
     assert (prtctd->_formatSize.blockDepth != 0);
 
-    blockCountZ = ((This->baseDepth >> level) + prtctd->_formatSize.blockDepth - 1) / prtctd->_formatSize.blockDepth;
+    blockCountZ = blocksFor(This->baseDepth >> level,
+                            prtctd->_formatSize.blockDepth);
     blockCountZ = MAX(1, blockCountZ);
     imageSize = ktxTexture_calcImageSize(This, level, fv);
     layerSize = imageSize * blockCountZ;
@@ -872,7 +1017,9 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
     *numRows = MAX(1, (This->baseHeight / prtctd->_formatSize.blockHeight)  >> level);
 
-    *pRowLengthBytes = blockCount.x * prtctd->_formatSize.blockSizeInBits / 8;
+    // The same row size as ktxTexture_calcImageSize.
+    *pRowLengthBytes = (ktx_uint32_t)rowBytesFor(blockCount.x,
+                                       prtctd->_formatSize.blockSizeInBits);
     *pRowPadding = padRow(pRowLengthBytes);
 }
 
@@ -902,7 +1049,8 @@ ktxTexture_rowInfo(ktxTexture* This, ktx_uint32_t level,
     ktx_uint32_t pitch;
 
     blockCount.x = MAX(1, (This->baseWidth / prtctd->_formatSize.blockWidth)  >> level);
-    pitch = blockCount.x * prtctd->_formatSize.blockSizeInBits / 8;
+    pitch = (ktx_uint32_t)rowBytesFor(blockCount.x,
+                                      prtctd->_formatSize.blockSizeInBits);
     if (This->classId == ktxTexture1_c)
         (void)padRow(&pitch);
 

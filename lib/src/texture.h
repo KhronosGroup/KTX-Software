@@ -77,6 +77,10 @@ ktxTexture_iterateSourceImages(ktxTexture* This, PFNKTXITERCB iterCb,
                                void* userdata);
 
 ktx_size_t ktxTexture_calcDataSizeTexture(ktxTexture* This);
+ktx_bool_t ktxTexture_calcDataSizeChecked(ktxTexture* This,
+                                          ktxFormatVersionEnum fv,
+                                          ktx_uint32_t levelAlignment,
+                                          ktx_size_t* pDataSize);
 ktx_size_t ktxTexture_calcImageSize(ktxTexture* This, ktx_uint32_t level,
                                     ktxFormatVersionEnum fv);
 ktx_bool_t ktxTexture_isActiveStream(ktxTexture* This);

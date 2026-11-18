@@ -449,7 +449,9 @@ ktxTexture2_constructCommon(ktxTexture2* This, ktx_uint32_t numLevels)
  *                       enum indicating whether or not to allocate storage
  *                       for the texture images.
  * @return    KTX_SUCCESS on success, other KTX_* enum values on error.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture or image data.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture or image data,
+ *                              or the size of the image data does not fit in
+ *                              a ktx_size_t.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
  *                              The request VkFormat is one of the
  *                              prohibited formats or is otherwise
@@ -516,6 +518,18 @@ ktxTexture2_construct(ktxTexture2* This,
 
     This->_private->_requiredLevelAlignment
                         = ktxTexture2_calcRequiredLevelAlignment(This);
+
+    // The level index is built and the image data allocated from these
+    // sizes. Fail if they do not fit in a ktx_size_t rather than let them
+    // wrap.
+    ktx_size_t dataSize;
+    if (!ktxTexture_calcDataSizeChecked(ktxTexture(This),
+                                        KTX_FORMAT_VERSION_TWO,
+                                        This->_private->_requiredLevelAlignment,
+                                        &dataSize)) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
 
     // Create levelIndex. Offsets are from start of the KTX2 stream.
     ktxLevelIndexEntry* levelIndex = This->_private->_levelIndex;
@@ -713,7 +727,8 @@ bool isNotSrgbFormatButHasSrgbVariant(VkFormat format);
  * @exception KTX_FILE_UNEXPECTED_EOF
  *                              Not enough data in the source.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to load either the images or
- *                              the key-value data.
+ *                              the key-value data, or the size of the image
+ *                              data does not fit in a ktx_size_t.
  * @exception KTX_UNKNOWN_FILE_FORMAT
  *                              The source is not in KTX format.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
@@ -992,6 +1007,17 @@ ktxTexture2_constructFromStreamAndHeader(ktxTexture2* This, ktxStream* pStream,
 
     This->_private->_requiredLevelAlignment
                           = ktxTexture2_calcRequiredLevelAlignment(This);
+
+    // The image and level sizes are calculated from the header. Fail if they
+    // do not fit in a ktx_size_t rather than let them wrap.
+    ktx_size_t calcDataSize;
+    if (!ktxTexture_calcDataSizeChecked(ktxTexture(This),
+                                        KTX_FORMAT_VERSION_TWO,
+                                        private->_requiredLevelAlignment,
+                                        &calcDataSize)) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
 
     // Make an empty hash list.
     ktxHashList_Construct(&This->kvDataHead);
@@ -1418,7 +1444,9 @@ ktxTexture2_destruct(ktxTexture2* This)
  *                              @p createInfo is requesting more mip levels
  *                              than needed for the specified
  *                              <tt>base{Width,Height,Depth}</tt>.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images, or
+ *                              the size of the images does not fit in a
+ *                              ktx_size_t.
  */
 KTX_error_code
 ktxTexture2_Create(const ktxTextureCreateInfo* const createInfo,
@@ -1768,8 +1796,10 @@ ktxTexture2_calcDataSizeLevels(ktxTexture2* This, ktx_uint32_t levels)
     for (ktx_uint32_t i = levels - 1; i > 0; i--) {
         ktx_size_t levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
                                                         KTX_FORMAT_VERSION_TWO);
-        dataSize += _KTX_PADN(This->_private->_requiredLevelAlignment,
-                              levelSize);
+        // Pad in ktx_size_t. _KTX_PADN returns a ktx_uint32_t.
+        dataSize += levelSize
+                  + _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
+                                  levelSize);
     }
     dataSize += ktxTexture_calcLevelSize(ktxTexture(This), 0,
                                          KTX_FORMAT_VERSION_TWO);
@@ -1823,8 +1853,10 @@ ktxTexture2_calcLevelOffset(ktxTexture2* This, ktx_uint32_t level)
       ktx_size_t levelSize;
       levelSize = ktxTexture_calcLevelSize(ktxTexture(This), i,
                                            KTX_FORMAT_VERSION_TWO);
-      levelOffset += _KTX_PADN(This->_private->_requiredLevelAlignment,
-                               levelSize);
+      // Pad in ktx_size_t. _KTX_PADN returns a ktx_uint32_t.
+      levelOffset += levelSize
+                   + _KTX_PADN_LEN(This->_private->_requiredLevelAlignment,
+                                   levelSize);
   }
   return levelOffset;
 }

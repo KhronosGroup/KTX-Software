@@ -74,6 +74,7 @@ ktxTexture1_construct(ktxTexture1* This,
     GLuint typeSize;
     GLenum glFormat;
     KTX_error_code result;
+    ktx_size_t dataSize;
 
 	memset(This, 0, sizeof(*This));
 
@@ -128,6 +129,15 @@ ktxTexture1_construct(ktxTexture1* This,
         prtctd->_typeSize = typeSize;
     }
 
+    // The image data is allocated and indexed from these sizes. Fail if they
+    // do not fit in a ktx_size_t rather than let them wrap.
+    if (!ktxTexture_calcDataSizeChecked(ktxTexture(This),
+                                        KTX_FORMAT_VERSION_ONE, 1,
+                                        &dataSize)) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
+
     if (storageAllocation == KTX_TEXTURE_CREATE_ALLOC_STORAGE) {
         This->dataSize
                     = ktxTexture_calcDataSizeTexture(ktxTexture(This));
@@ -180,7 +190,8 @@ cleanup:
  * @exception KTX_FILE_UNEXPECTED_EOF
  *                              Not enough data in the source.
  * @exception KTX_OUT_OF_MEMORY Not enough memory to load either the images or
- *                              the key-value data.
+ *                              the key-value data, or the size of the image
+ *                              data does not fit in a ktx_size_t.
  * @exception KTX_UNKNOWN_FILE_FORMAT
  *                              The source is not in KTX format.
  * @exception KTX_UNSUPPORTED_TEXTURE_TYPE
@@ -199,6 +210,7 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     ktx_off_t pos;
     ktx_size_t size;
     ktxFormatSize formatSize;
+    ktx_size_t dataSize;
 
     assert(pHeader != NULL && pStream != NULL);
 
@@ -268,6 +280,16 @@ ktxTexture1_constructFromStreamAndHeader(ktxTexture1* This, ktxStream* pStream,
     if (pHeader->endianness == KTX_ENDIAN_REF_REV)
         private->_needSwap = KTX_TRUE;
     This->_protected->_typeSize = pHeader->glTypeSize;
+
+    /*
+     * The image, level and data sizes are calculated from the header. Fail
+     * if they do not fit in a ktx_size_t rather than let them wrap.
+     */
+    if (!ktxTexture_calcDataSizeChecked(ktxTexture(This),
+                                        KTX_FORMAT_VERSION_ONE, 1, &dataSize)) {
+        result = KTX_OUT_OF_MEMORY;
+        goto cleanup;
+    }
 
     /*
      * Make an empty hash list.
@@ -606,7 +628,9 @@ ktxTexture1_destruct(ktxTexture1* This)
  *                              @p createInfo is requesting more mip levels
  *                              than needed for the specified
  *                              <tt>base{Width,Height,Depth}</tt>.
- * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images.
+ * @exception KTX_OUT_OF_MEMORY Not enough memory for the texture's images, or
+ *                              the size of the images does not fit in a
+ *                              ktx_size_t.
  */
 KTX_error_code
 ktxTexture1_Create(const ktxTextureCreateInfo* const createInfo,
