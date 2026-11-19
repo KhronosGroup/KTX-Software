@@ -1,0 +1,19 @@
+# Copyright 2026 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+homepage:"https://github.com/KhronosGroup/KTX-Software"
+main_repo: "https://github.com/KhronosGroup/KTX-Software"
+language: c++
+# The contacts get the reports and access to them. Each must be the address
+# of a Google account, or one linked to a Google account.
+primary_contact: "TODO@example.com"
+auto_ccs:
+  - "TODO@example.com"
+sanitizers:
+  - address
+  - undefined
+fuzzing_engines:
+  - libfuzzer
+  - afl
+  - honggfuzz
+file_github_issue: true
